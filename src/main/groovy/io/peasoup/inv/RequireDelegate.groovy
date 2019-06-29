@@ -1,4 +1,4 @@
-package main.groovy.io.peasoup.inv
+package io.peasoup.inv
 
 class RequireDelegate {
 

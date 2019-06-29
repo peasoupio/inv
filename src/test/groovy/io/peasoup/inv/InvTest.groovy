@@ -1,4 +1,4 @@
-package main.groovy.io.peasoup.inv
+package io.peasoup.inv
 
 import org.junit.Test
 

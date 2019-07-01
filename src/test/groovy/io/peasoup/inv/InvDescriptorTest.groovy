@@ -17,7 +17,7 @@ class InvDescriptorTest {
             require inv.Server("my-server-id")
 
             broadcast inv.Endpoint using {
-                id "my-webservice-id"
+                id name: "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
                 }
@@ -28,9 +28,9 @@ class InvDescriptorTest {
             name "my-app"
 
             require inv.Endpoint using {
-                id "my-webservice-id"
+                id name: "my-webservice-id"
                 resolved {
-                    println "my-webservice-id has been resolved by ${it.owner}"
+                    println "my-webservice-id has been resolved by ${resolvedBy}"
                 }
             }
 
@@ -143,7 +143,7 @@ class InvDescriptorTest {
             require inv.Endpoint using {
                 id "my-webservice-id"
                 resolved {
-                    assert it.owner == "my-webservice-2"
+                    assert resolvedBy == "my-webservice-2"
                 }
             }
 

@@ -14,6 +14,7 @@ class InvDescriptor {
 
         InvDescriptor.metaClass.methodMissing = { String methodName, args ->
             pool.checkAvailability(methodName)
+            //noinspection GroovyAssignabilityCheck
             return new NetworkValuableDescriptor(name: methodName)(*args)
         }
     }

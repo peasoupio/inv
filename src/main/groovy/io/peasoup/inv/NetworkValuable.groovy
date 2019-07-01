@@ -17,7 +17,6 @@ class NetworkValuable {
     Closure unresolved
 
     Inv inv
-    Object response
 
 
     @Override
@@ -40,12 +39,27 @@ class NetworkValuable {
                 return false
             }
 
-            Logger.info networkValuable
+            def channel = pool.availableValuables[networkValuable.name]
+            def staging = pool.stagingValuables[networkValuable.name]
 
-            if (networkValuable.ready) {
-                networkValuable.response = networkValuable.ready()
+            if (channel.containsKey(networkValuable.id) || staging.containsKey(networkValuable.id)) {
+                Logger.warn "${networkValuable.id} already broadcasted. Skipped"
+
+                return false
             }
 
+            Logger.info networkValuable
+
+            def response = "undefined"
+
+            if (networkValuable.ready) {
+                response = networkValuable.ready()
+            }
+
+            staging.put(networkValuable.id, [
+                owner: networkValuable.inv.name,
+                response: response
+            ])
 
             return true
         }
@@ -72,12 +86,7 @@ class NetworkValuable {
             if (!channel.containsKey(networkValuable.id))
                 return false
 
-            def broadcast = channel.containsKey(networkValuable.id)
-
             Logger.info networkValuable
-
-            if (networkValuable.resolved)
-                networkValuable.resolved(broadcast.response)
 
             return true
         }

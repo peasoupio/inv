@@ -6,16 +6,14 @@ class InvDelegate {
 
     String name
 
-    def name(String name) {
+    void name(String name) {
         assert name
 
         this.name = name
     }
 
     NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
-
         assert networkValuableDescriptor
-
 
         if (networkValuableDescriptor.id) {
             networkValuables << new NetworkValuable(
@@ -48,7 +46,6 @@ class InvDelegate {
     }
 
     NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
-
         assert networkValuableDescriptor
 
         if (networkValuableDescriptor.id) {
@@ -69,7 +66,7 @@ class InvDelegate {
             usingBody.call()
 
             NetworkValuable networkValuable = new NetworkValuable(
-                    id: networkValuableDescriptor.id ?: delegate.id,
+                    id: delegate.id,
                     name: networkValuableDescriptor.name,
                     match: NetworkValuable.REQUIRE,
                     resolved: delegate.resolved,
@@ -81,7 +78,4 @@ class InvDelegate {
 
         return networkValuableDescriptor
     }
-
-
-
 }

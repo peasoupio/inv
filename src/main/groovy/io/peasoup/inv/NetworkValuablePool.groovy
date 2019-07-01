@@ -6,7 +6,10 @@ class NetworkValuablePool {
 
     boolean stillRunning = true
 
+    Set<String> names = []
+
     Map<String, Map<Object, Object>> availableValuables = [:]
+    Map<String, Map<Object, Object>> stagingValuables = [:]
 
     List<Inv> remainingsInv = [].asSynchronized()
     List<Inv> totalInv = [].asSynchronized()
@@ -14,14 +17,14 @@ class NetworkValuablePool {
     List<Inv> digest() {
 
         List<Inv> invsDone = []
-        Collection<NetworkValuable> toBroadcast = []
+
+        Collection<NetworkValuable> toResolve = [].asSynchronized()
 
         // Use fori-loop for speed
         for (int i = 0; i < remainingsInv.size() ; i++) {
             def inv = remainingsInv.getAt(i)
 
             Collection<NetworkValuable> remainingValuables = inv.remainingValuables.collect()
-
 
             // Use fori-loop for speed
             for (int j = 0; j < remainingValuables.size(); j++) {
@@ -36,8 +39,9 @@ class NetworkValuablePool {
                       continue
                 }
 
-                if (networkValuable.match == NetworkValuable.BROADCAST)
-                    toBroadcast << networkValuable
+
+                if (networkValuable.match == NetworkValuable.REQUIRE)
+                    toResolve << networkValuable
 
                 inv.remainingValuables.remove(networkValuable)
             }
@@ -46,34 +50,37 @@ class NetworkValuablePool {
                 invsDone << inv
         }
 
-        for (int i = 0; i < toBroadcast.size(); i++) {
-            NetworkValuable networkValuable = toBroadcast[i]
-            def channel = availableValuables[networkValuable.name]
-
-            if (channel.containsKey(networkValuable.id)) {
-                Logger.warn "${networkValuable.id} already broadcasted. Skipped"
-                continue
-            }
-
-            channel << [(networkValuable.id): [
-                owner: networkValuable.inv.name,
-                response: networkValuable.response]
-            ]
+        def stagingSet = stagingValuables.entrySet()
+        for (int i = 0; i < stagingValuables.size(); i++) {
+            def networkValuables = stagingSet[i]
+            availableValuables[networkValuables.key].putAll(networkValuables.value)
         }
 
 
+        for (int i = 0; i < toResolve.size(); i++) {
+            NetworkValuable networkValuable = toResolve[i]
+
+            if (!networkValuable.resolved)
+                continue
+
+            def broadcast = availableValuables[networkValuable.name][networkValuable.id]
+            networkValuable.resolved(broadcast)
+        }
+
         remainingsInv.removeAll(invsDone)
 
-        stillRunning = !remainingsInv.isEmpty()
+        stillRunning = !invsDone.isEmpty()
 
         return invsDone
     }
 
-    boolean checkAvailability(String name) {
-        if (availableValuables.containsKey(name))
-            return true
+    void checkAvailability(String name) {
+        if (names.contains(name))
+            return
 
+        names << name
         availableValuables.put(name, new ConcurrentHashMap<Object, Object>())
+        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>())
     }
 
 

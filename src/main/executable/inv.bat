@@ -1,1 +1,1 @@
-java -jar ../lib/${project.artifactId}-${project.version}.jar %*
+java -jar ../lib/${project.artifactId}-${project.version}.jar "%*"

@@ -32,7 +32,7 @@ class InvDelegate {
             usingBody.call()
 
             NetworkValuable networkValuable = new NetworkValuable(
-                    id: delegate.id,
+                    id: delegate.id ?: "undefined",
                     name: networkValuableDescriptor.name,
                     match: NetworkValuable.BROADCAST,
                     ready: delegate.ready,
@@ -66,7 +66,7 @@ class InvDelegate {
             usingBody.call()
 
             NetworkValuable networkValuable = new NetworkValuable(
-                    id: delegate.id,
+                    id: delegate.id ?: "undefined",
                     name: networkValuableDescriptor.name,
                     match: NetworkValuable.REQUIRE,
                     resolved: delegate.resolved,

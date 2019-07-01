@@ -22,7 +22,7 @@ class NetworkValuablePool {
 
         // Use fori-loop for speed
         for (int i = 0; i < remainingsInv.size() ; i++) {
-            def inv = remainingsInv.getAt(i)
+            def inv = remainingsInv[i]
 
             Collection<NetworkValuable> remainingValuables = inv.remainingValuables.collect()
 
@@ -64,7 +64,8 @@ class NetworkValuablePool {
                 continue
 
             def broadcast = availableValuables[networkValuable.name][networkValuable.id]
-            networkValuable.resolved(broadcast)
+            networkValuable.resolved.delegate = broadcast
+            networkValuable.resolved()
         }
 
         remainingsInv.removeAll(invsDone)

@@ -21,7 +21,7 @@ class NetworkValuable {
 
     @Override
     String toString() {
-        return "[${match ?: "UNSPECIFIED ACTION"}] ${this.id}"
+        return "[${match ?: "UNSPECIFIED ACTION"}] [${name}] ${id}"
     }
 
 
@@ -57,7 +57,7 @@ class NetworkValuable {
             }
 
             staging.put(networkValuable.id, [
-                owner: networkValuable.inv.name,
+                resolvedBy: networkValuable.inv.name,
                 response: response
             ])
 

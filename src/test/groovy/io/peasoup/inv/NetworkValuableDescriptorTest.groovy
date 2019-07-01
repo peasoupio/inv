@@ -38,6 +38,14 @@ class NetworkValuableDescriptorTest {
         assertThrows(PowerAssertionError.class, {
             myself.call(null)
         })
+
+        assertThrows(PowerAssertionError.class, {
+            myself.call((Object)null)
+        })
+
+        assertThrows(PowerAssertionError.class, {
+            myself.call((Map)null)
+        })
     }
 
     @Test

@@ -1,15 +1,23 @@
 package io.peasoup.inv
 
+import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+import org.junit.Before
 import org.junit.Test
+
+import static org.junit.jupiter.api.Assertions.assertThrows
 
 class InvDescriptorTest {
 
+    InvDescriptor inv
+
+    @Before
+    void setup() {
+        ExpandoMetaClass.enableGlobally()
+        inv = new InvDescriptor()
+    }
+
     @Test
     void call_ok() {
-
-        ExpandoMetaClass.enableGlobally()
-
-        def inv = new InvDescriptor()
 
         inv {
             name "my-webservice"
@@ -60,9 +68,9 @@ class InvDescriptorTest {
     @Test
     void call_not_ok() {
 
-        ExpandoMetaClass.enableGlobally()
-
-        def inv = new InvDescriptor()
+        assertThrows(PowerAssertionError.class, {
+            inv.call(null)
+        })
 
         inv {
             name "my-webservice"
@@ -106,10 +114,6 @@ class InvDescriptorTest {
 
     @Test
     void call_broadcast_twice() {
-
-        ExpandoMetaClass.enableGlobally()
-
-        def inv = new InvDescriptor()
 
         inv {
             name "my-webservice-2"

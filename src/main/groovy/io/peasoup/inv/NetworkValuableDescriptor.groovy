@@ -22,7 +22,7 @@ class NetworkValuableDescriptor {
         return this
     }
 
-    def using(Closure usingBody) {
+    void using(Closure usingBody) {
         assert digestor
         assert usingBody
 

@@ -19,7 +19,7 @@ class InvDescriptor {
         }
     }
 
-    def call(Closure body) {
+    void call(Closure body) {
 
         assert body
 
@@ -41,7 +41,6 @@ class InvDescriptor {
 
         pool.totalInv << inv
         pool.remainingsInv << inv
-
     }
 
     List<Inv> call() {

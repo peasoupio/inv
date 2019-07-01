@@ -28,8 +28,6 @@ class InvDelegateTest {
         assertThrows(PowerAssertionError.class, {
             String name = null
             myself.name(name)
-
-            assert myself.name == name
         })
     }
 

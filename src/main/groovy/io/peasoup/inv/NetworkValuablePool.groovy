@@ -33,10 +33,11 @@ class NetworkValuablePool {
                 def result = networkValuable.match.manage(this, networkValuable)
 
                 if (!result) {
-                  if (inv.sync)
+                  if (inv.sync) {
                       break
-                    else
+                  } else {
                       continue
+                  }
                 }
 
 
@@ -85,7 +86,7 @@ class NetworkValuablePool {
     }
 
 
-    def isEmpty() {
+    boolean isEmpty() {
         return remainingsInv.isEmpty()
     }
 }

@@ -1,7 +1,5 @@
 package io.peasoup.inv
 
-import java.util.concurrent.ConcurrentHashMap
-
 class Inv {
 
     String name

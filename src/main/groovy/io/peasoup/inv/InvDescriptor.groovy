@@ -2,8 +2,7 @@ package io.peasoup.inv
 
 class InvDescriptor {
 
-    private static Map<String, Closure> names = [:]
-    private static NetworkValuablePool pool = new NetworkValuablePool()
+    private NetworkValuablePool pool = new NetworkValuablePool()
 
     InvDescriptor() {
 
@@ -43,9 +42,6 @@ class InvDescriptor {
         pool.remainingsInv << inv
 
     }
-
-
-
 
     List<Inv> call() {
 

@@ -6,22 +6,19 @@ class BroadcastDelegate {
     Closure ready
     Closure unready
 
-    def id(Object id) {
+    void id(Object id) {
         this.id = id
     }
 
-    def id(Map id) {
+    void id(Map id) {
         this.id = id
     }
 
-    def ready(Closure readyBody) {
-
-        assert readyBody
-
+    void ready(Closure readyBody) {
         this.ready = readyBody
     }
 
-    def unready(Closure unreadyBody) {
+    void unready(Closure unreadyBody) {
         this.unready = unreadyBody
     }
 

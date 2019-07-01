@@ -1,8 +1,8 @@
 package io.peasoup.inv
 
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.Before
+import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
@@ -10,7 +10,7 @@ class InvDelegateTest {
 
     InvDelegate myself
 
-    @BeforeEach
+    @Before
     void setup() {
         myself = new InvDelegate()
     }

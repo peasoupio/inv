@@ -1,13 +1,14 @@
 package io.peasoup.inv
 
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+
+import org.junit.Before
+import org.junit.Test
 
 class RequireDelegateTest {
 
     RequireDelegate myself
 
-    @BeforeEach
+    @Before
     void setup() {
         myself = new RequireDelegate()
     }

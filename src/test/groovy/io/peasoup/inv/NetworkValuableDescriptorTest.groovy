@@ -50,7 +50,7 @@ class NetworkValuableDescriptorTest {
 
     @Test
     void using_ok() {
-        myself.digestor = { }
+        myself.usingDigestor = { }
 
         myself.using { }
     }
@@ -58,13 +58,13 @@ class NetworkValuableDescriptorTest {
     @Test
     void using__not_ok() {
 
-        // requires digestor
+        // requires usingDigestor
         assertThrows(PowerAssertionError.class, {
             myself.using {}
         })
 
         assertThrows(PowerAssertionError.class, {
-            myself.digestor = {}
+            myself.usingDigestor = {}
             myself.using()
         })
 

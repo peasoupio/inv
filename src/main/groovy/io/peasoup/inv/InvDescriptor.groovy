@@ -24,20 +24,12 @@ class InvDescriptor {
         assert body
 
 
-        InvDelegate delegate = new InvDelegate()
+        Inv inv = new Inv()
 
-        body.delegate = delegate
+        body.delegate = inv.delegate
         body.call()
 
-        Inv inv = new Inv(name: delegate.name)
-
-        // use for-loop to keep order
-        for(NetworkValuable networkValuable : delegate.networkValuables) {
-            networkValuable.inv = inv
-
-            inv.totalValuables << networkValuable
-            inv.remainingValuables << networkValuable
-        }
+        inv.dumpDelegate()
 
         pool.totalInv << inv
         pool.remainingsInv << inv

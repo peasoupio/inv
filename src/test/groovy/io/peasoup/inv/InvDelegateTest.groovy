@@ -36,12 +36,7 @@ class InvDelegateTest {
         def nvd = new NetworkValuableDescriptor(name: "name")
 
         assert nvd == myself.broadcast(nvd)
-        assert nvd.digestor != null
-
-        def nvd2 = new NetworkValuableDescriptor(name: "name", id: "id")
-
-        assert nvd2 == myself.broadcast(nvd2)
-        assert nvd2.digestor == null
+        assert nvd.usingDigestor != null
     }
 
     @Test
@@ -56,12 +51,7 @@ class InvDelegateTest {
         def nvd = new NetworkValuableDescriptor(name: "name")
 
         assert nvd == myself.require(nvd)
-        assert nvd.digestor != null
-
-        def nvd2 = new NetworkValuableDescriptor(name: "name", id: "id")
-
-        assert nvd2 == myself.require(nvd2)
-        assert nvd2.digestor == null
+        assert nvd.usingDigestor != null
     }
 
     @Test

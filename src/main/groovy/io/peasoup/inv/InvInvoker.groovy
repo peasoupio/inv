@@ -19,6 +19,7 @@ class InvInvoker {
         Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
+        myNewScript.binding.setProperty("pwd", new File(filename).parentFile.absolutePath)
 
         myNewScript.run()
     }

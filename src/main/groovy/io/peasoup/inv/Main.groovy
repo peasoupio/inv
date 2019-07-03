@@ -17,8 +17,13 @@ class Main extends Script {
         if (lookupFile.exists())
             InvInvoker.invoke(inv,lookupFile)
         else {
+
+            while(!lookupFile.parentFile.exists()) {
+                lookupFile = lookupFile.parentFile
+            }
+
             def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
-            def invFiles = new FileNameFinder().getFileNames(new File(invHome).absolutePath, lookupFile.name)
+            def invFiles = new FileNameFinder().getFileNames(new File(invHome).absolutePath, lookupPattern.replace(lookupFile.parent, ""))
 
             invFiles.each {
                 InvInvoker.invoke(inv,new File(it))

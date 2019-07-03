@@ -40,38 +40,57 @@ class NetworkValuablePool {
                   }
                 }
 
-
+                // Resolved requirements later to make use broadcasts are available
                 if (networkValuable.match == NetworkValuable.REQUIRE)
                     toResolve << networkValuable
 
                 inv.remainingValuables.remove(networkValuable)
             }
+        }
+
+
+        // Batch all broadcasts resolve at once
+        for (int i = 0; i < toResolve.size(); i++) {
+            NetworkValuable networkValuable = toResolve[i]
+
+            def broadcast = availableValuables[networkValuable.name][networkValuable.id]
+
+            // Sends message to resolved (if defined)
+            if (networkValuable.resolved) {
+                networkValuable.resolved.delegate = broadcast
+                networkValuable.resolved()
+            }
+        }
+
+        // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
+        def stagingSet = stagingValuables.entrySet()
+        for (int i = 0; i < stagingValuables.size(); i++) {
+            def networkValuables = stagingSet[i]
+            availableValuables[networkValuables.key].putAll(networkValuables.value)
+
+            networkValuables.value.clear()
+        }
+
+        // Check for new dumps
+        boolean hasDumpedSomething = false
+        for (int i = 0; i < remainingsInv.size() ; i++) {
+            def inv = remainingsInv[i]
+
+            if (inv.dumpDelegate())
+                hasDumpedSomething = true
 
             if (inv.remainingValuables.isEmpty())
                 invsDone << inv
         }
 
-        def stagingSet = stagingValuables.entrySet()
-        for (int i = 0; i < stagingValuables.size(); i++) {
-            def networkValuables = stagingSet[i]
-            availableValuables[networkValuables.key].putAll(networkValuables.value)
-        }
-
-
-        for (int i = 0; i < toResolve.size(); i++) {
-            NetworkValuable networkValuable = toResolve[i]
-
-            if (!networkValuable.resolved)
-                continue
-
-            def broadcast = availableValuables[networkValuable.name][networkValuable.id]
-            networkValuable.resolved.delegate = broadcast
-            networkValuable.resolved()
-        }
 
         remainingsInv.removeAll(invsDone)
 
-        stillRunning = !invsDone.isEmpty()
+        // Won't run if :
+        // Has processed nothing
+        // -and-
+        // Has dumped nothing
+        stillRunning = !invsDone.isEmpty() || hasDumpedSomething
 
         return invsDone
     }

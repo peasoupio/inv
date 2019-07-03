@@ -4,7 +4,9 @@ class NetworkValuableDescriptor {
 
     String name
     Object id
-    Closure digestor
+
+    Closure usingDigestor
+    Closure intoDigestor
 
     NetworkValuableDescriptor call(Object id) {
         assert id
@@ -22,11 +24,20 @@ class NetworkValuableDescriptor {
         return this
     }
 
-    void using(Closure usingBody) {
-        assert digestor
+    NetworkValuableDescriptor using(Closure usingBody) {
+        assert usingDigestor
         assert usingBody
 
-        this.digestor.call(usingBody)
+        this.usingDigestor.call(usingBody)
+
+        return this
     }
 
+    NetworkValuableDescriptor into(String variable) {
+        assert variable
+
+        this.intoDigestor.call(variable)
+
+        return this
+    }
 }

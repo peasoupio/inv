@@ -23,9 +23,12 @@ class Main extends Script {
             }
 
             def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
-            def invFiles = new FileNameFinder().getFileNames(new File(invHome).absolutePath, lookupPattern.replace(lookupFile.parent, ""))
+            def invFiles = new FileNameFinder().getFileNames(
+                    new File(invHome).absolutePath,
+                    new File(lookupPattern).absolutePath.replace(lookupFile.parentFile.absolutePath, ""))
 
             invFiles.each {
+                Logger.info("file: ${it}")
                 InvInvoker.invoke(inv,new File(it))
             }
         }

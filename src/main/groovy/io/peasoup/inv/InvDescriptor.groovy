@@ -55,7 +55,14 @@ class InvDescriptor {
             }
 
             Logger.info "---- [DIGEST] #${++count} ----"
-            digested += pool.digest()
+            for(Inv digest: pool.digest()) {
+
+                if (digest.ready)
+                    digest.ready()
+
+                digested.add(digest)
+            }
+
         }
 
         Logger.info "--- completed ----"

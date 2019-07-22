@@ -3,6 +3,8 @@ package io.peasoup.inv
 class Inv {
 
     String name
+    Closure ready
+
     boolean sync = true
 
     final InvDelegate delegate = new InvDelegate()
@@ -13,6 +15,9 @@ class Inv {
     boolean dumpDelegate() {
         if (!name)
             name = delegate.name
+
+        if (!ready)
+            ready = delegate.ready
 
         if (delegate.networkValuables.isEmpty())
             return false

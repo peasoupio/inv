@@ -3,6 +3,8 @@ Intertwined network valuables
 
 *Inv* allows **sequencing** between **intertwined** objects. These objects can be databases, apps, webservices, servers, etc. Anything that need sequencing.
 
+Get latest version here : [Version 0.2-beta - TESTS PURPOSES ONLY](https://github.com/peasoupio/inv/releases/download/0.2-beta/inv-0.2-beta-SNAPSHOT.zip) 
+
 ## Quick example :
 
 ### What we know ?
@@ -10,6 +12,8 @@ Intertwined network valuables
 * ServerB hosts AppB through IIS
 
 ### How we write it up ?
+
+For more information, [get there](https://github.com/peasoupio/inv/wiki/Syntax)
 
 ```groovy
 #~/serverA.groovy
@@ -143,3 +147,6 @@ inv ~/*.groovy
 These are the elements we can determine :
 * Which instance server (barebone or under kubernetes) hosts AppA
 * Apps are deployed without knowledge of credentials or physical access points (EP)
+
+### Contribution
+First and only global rule : use your common sense - we help each other :)

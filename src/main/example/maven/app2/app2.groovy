@@ -6,5 +6,9 @@ inv {
             impersonate response.analyze with "app2/pom.xml"
         }
     }
+
+    ready {
+        println "my-app-2 is ready!"
+    }
 }
 

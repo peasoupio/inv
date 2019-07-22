@@ -6,6 +6,7 @@ class InvDelegate {
     final List<NetworkValuable> networkValuables = [].asSynchronized()
 
     String name
+    Closure ready
 
     void name(String name) {
         assert name
@@ -82,5 +83,11 @@ class InvDelegate {
         networkValuables << networkValuable
 
         return networkValuableDescriptor
+    }
+
+    void ready(Closure ready) {
+        assert ready
+
+        this.ready = ready
     }
 }

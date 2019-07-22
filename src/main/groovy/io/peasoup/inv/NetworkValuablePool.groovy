@@ -6,7 +6,10 @@ class NetworkValuablePool {
 
     boolean stillRunning = true
 
+    Set<String> names = []
+
     Map<String, Map<Object, Object>> availableValuables = [:]
+    Map<String, Map<Object, Object>> stagingValuables = [:]
 
     List<Inv> remainingsInv = [].asSynchronized()
     List<Inv> totalInv = [].asSynchronized()
@@ -14,14 +17,14 @@ class NetworkValuablePool {
     List<Inv> digest() {
 
         List<Inv> invsDone = []
-        Collection<NetworkValuable> toBroadcast = []
+
+        Collection<NetworkValuable> toResolve = [].asSynchronized()
 
         // Use fori-loop for speed
         for (int i = 0; i < remainingsInv.size() ; i++) {
-            def inv = remainingsInv.getAt(i)
+            def inv = remainingsInv[i]
 
             Collection<NetworkValuable> remainingValuables = inv.remainingValuables.collect()
-
 
             // Use fori-loop for speed
             for (int j = 0; j < remainingValuables.size(); j++) {
@@ -30,54 +33,79 @@ class NetworkValuablePool {
                 def result = networkValuable.match.manage(this, networkValuable)
 
                 if (!result) {
-                  if (inv.sync)
+                  if (inv.sync) {
                       break
-                    else
+                  } else {
                       continue
+                  }
                 }
 
-                if (networkValuable.match == NetworkValuable.BROADCAST)
-                    toBroadcast << networkValuable
+                // Resolved requirements later to make use broadcasts are available
+                if (networkValuable.match == NetworkValuable.REQUIRE)
+                    toResolve << networkValuable
 
                 inv.remainingValuables.remove(networkValuable)
             }
+        }
+
+
+        // Batch all broadcasts resolve at once
+        for (int i = 0; i < toResolve.size(); i++) {
+            NetworkValuable networkValuable = toResolve[i]
+
+            def broadcast = availableValuables[networkValuable.name][networkValuable.id]
+
+            // Sends message to resolved (if defined)
+            if (networkValuable.resolved) {
+                networkValuable.resolved.delegate = broadcast
+                networkValuable.resolved()
+            }
+        }
+
+        // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
+        def stagingSet = stagingValuables.entrySet()
+        for (int i = 0; i < stagingValuables.size(); i++) {
+            def networkValuables = stagingSet[i]
+            availableValuables[networkValuables.key].putAll(networkValuables.value)
+
+            networkValuables.value.clear()
+        }
+
+        // Check for new dumps
+        boolean hasDumpedSomething = false
+        for (int i = 0; i < remainingsInv.size() ; i++) {
+            def inv = remainingsInv[i]
+
+            if (inv.dumpDelegate())
+                hasDumpedSomething = true
 
             if (inv.remainingValuables.isEmpty())
                 invsDone << inv
         }
 
-        for (int i = 0; i < toBroadcast.size(); i++) {
-            NetworkValuable networkValuable = toBroadcast[i]
-            def channel = availableValuables[networkValuable.name]
-
-            if (channel.containsKey(networkValuable.id)) {
-                Logger.warn "${networkValuable.id} already broadcasted. Skipped"
-                continue
-            }
-
-            channel << [(networkValuable.id): [
-                owner: networkValuable.inv.name,
-                response: networkValuable.response]
-            ]
-        }
-
 
         remainingsInv.removeAll(invsDone)
 
-        stillRunning = !remainingsInv.isEmpty()
+        // Won't run if :
+        // Has processed nothing
+        // -and-
+        // Has dumped nothing
+        stillRunning = !invsDone.isEmpty() || hasDumpedSomething
 
         return invsDone
     }
 
-    boolean checkAvailability(String name) {
-        if (availableValuables.containsKey(name))
-            return true
+    void checkAvailability(String name) {
+        if (names.contains(name))
+            return
 
+        names << name
         availableValuables.put(name, new ConcurrentHashMap<Object, Object>())
+        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>())
     }
 
 
-    def isEmpty() {
+    boolean isEmpty() {
         return remainingsInv.isEmpty()
     }
 }

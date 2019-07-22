@@ -16,7 +16,7 @@
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/exemple</directory>
+            <directory>${project.basedir}/src/main/example</directory>
             <outputDirectory>/bin/example</outputDirectory>
         </fileSet>
     </fileSets>

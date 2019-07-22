@@ -2,8 +2,7 @@ package io.peasoup.inv
 
 class InvDescriptor {
 
-    private static Map<String, Closure> names = [:]
-    private static NetworkValuablePool pool = new NetworkValuablePool()
+    private NetworkValuablePool pool = new NetworkValuablePool()
 
     InvDescriptor() {
 
@@ -15,37 +14,26 @@ class InvDescriptor {
 
         InvDescriptor.metaClass.methodMissing = { String methodName, args ->
             pool.checkAvailability(methodName)
+            //noinspection GroovyAssignabilityCheck
             return new NetworkValuableDescriptor(name: methodName)(*args)
         }
     }
 
-    def call(Closure body) {
+    void call(Closure body) {
 
         assert body
 
 
-        InvDelegate delegate = new InvDelegate()
+        Inv inv = new Inv()
 
-        body.delegate = delegate
+        body.delegate = inv.delegate
         body.call()
 
-        Inv inv = new Inv(name: delegate.name)
-
-        // use for-loop to keep order
-        for(NetworkValuable networkValuable : delegate.networkValuables) {
-            networkValuable.inv = inv
-
-            inv.totalValuables << networkValuable
-            inv.remainingValuables << networkValuable
-        }
+        inv.dumpDelegate()
 
         pool.totalInv << inv
         pool.remainingsInv << inv
-
     }
-
-
-
 
     List<Inv> call() {
 
@@ -67,7 +55,14 @@ class InvDescriptor {
             }
 
             Logger.info "---- [DIGEST] #${++count} ----"
-            digested += pool.digest()
+            for(Inv digest: pool.digest()) {
+
+                if (digest.ready)
+                    digest.ready()
+
+                digested.add(digest)
+            }
+
         }
 
         Logger.info "--- completed ----"

@@ -2,10 +2,11 @@ package io.peasoup.inv
 
 class NetworkValuableDescriptor {
 
-    Object id
     String name
-    Closure digestor
+    Object id
 
+    Closure usingDigestor
+    Closure intoDigestor
 
     NetworkValuableDescriptor call(Object id) {
         assert id
@@ -23,8 +24,20 @@ class NetworkValuableDescriptor {
         return this
     }
 
-    def using(Closure usingBody) {
-        this.digestor.call(usingBody)
+    NetworkValuableDescriptor using(Closure usingBody) {
+        assert usingDigestor
+        assert usingBody
+
+        this.usingDigestor.call(usingBody)
+
+        return this
     }
 
+    NetworkValuableDescriptor into(String variable) {
+        assert variable
+
+        this.intoDigestor.call(variable)
+
+        return this
+    }
 }

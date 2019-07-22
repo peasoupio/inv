@@ -1,0 +1,1 @@
+Example : ~\inv\src\main\example\maven\**\*.groovy

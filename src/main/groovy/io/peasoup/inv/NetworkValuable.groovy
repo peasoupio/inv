@@ -5,8 +5,6 @@ class NetworkValuable {
     final static Broadcast BROADCAST = new Broadcast()
     final static Require REQUIRE = new Require()
 
-
-
     Object id
     String name
     Manageable match
@@ -17,14 +15,14 @@ class NetworkValuable {
     Closure unresolved
 
     Inv inv
-    Object response
 
+    // When resolving requirement into a variable
+    String into
 
     @Override
     String toString() {
-        return "[${match ?: "UNSPECIFIED ACTION"}] ${this.id}"
+        return "[${match ?: "UNSPECIFIED ACTION"}] [${name}] ${id}"
     }
-
 
     interface Manageable {
         boolean manage(NetworkValuablePool pool, NetworkValuable networkValuable)
@@ -40,12 +38,27 @@ class NetworkValuable {
                 return false
             }
 
-            Logger.info networkValuable
+            def channel = pool.availableValuables[networkValuable.name]
+            def staging = pool.stagingValuables[networkValuable.name]
 
-            if (networkValuable.ready) {
-                networkValuable.response = networkValuable.ready()
+            if (channel.containsKey(networkValuable.id) || staging.containsKey(networkValuable.id)) {
+                Logger.warn "${networkValuable.id} already broadcasted. Skipped"
+
+                return false
             }
 
+            Logger.info networkValuable
+
+            def response = "undefined"
+
+            if (networkValuable.ready) {
+                response = networkValuable.ready()
+            }
+
+            staging.put(networkValuable.id, [
+                resolvedBy: networkValuable.inv.name,
+                response: response
+            ])
 
             return true
         }
@@ -68,16 +81,16 @@ class NetworkValuable {
             }
 
             def channel = pool.availableValuables[networkValuable.name]
+            def broadcast = channel[networkValuable.id]
 
-            if (!channel.containsKey(networkValuable.id))
+            if (!broadcast)
                 return false
-
-            def broadcast = channel.containsKey(networkValuable.id)
 
             Logger.info networkValuable
 
-            if (networkValuable.resolved)
-                networkValuable.resolved(broadcast.response)
+            // Implement variable into NV inv (if defined)
+            if (networkValuable.into)
+                networkValuable.inv.delegate.metaClass.setProperty(networkValuable.into, broadcast.response)
 
             return true
         }

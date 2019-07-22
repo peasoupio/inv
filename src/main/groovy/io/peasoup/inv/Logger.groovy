@@ -3,11 +3,11 @@ package io.peasoup.inv
 class Logger {
 
 
-    static def info(Object arg) {
+    static void info(Object arg) {
         println "[INV] ${arg}"
     }
 
-    static def warn(Object arg) {
+    static void warn(Object arg) {
         println "[WARN] ${arg}"
     }
 

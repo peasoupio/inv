@@ -6,19 +6,19 @@ class RequireDelegate {
     Closure resolved
     Closure unresolved
 
-    def id(Object id) {
+    void id(Object id) {
         this.id = id
     }
 
-    def id(Map id) {
+    void id(Map id) {
         this.id = id
     }
 
-    def received(Closure resolvedBody) {
+    void resolved(Closure resolvedBody) {
         this.resolved  = resolvedBody
     }
 
-    def unresolved(Closure unresolvedBody) {
+    void unresolved(Closure unresolvedBody) {
         this.unresolved  = unresolvedBody
     }
 }

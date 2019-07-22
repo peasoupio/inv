@@ -2,86 +2,92 @@ package io.peasoup.inv
 
 class InvDelegate {
 
+
     final List<NetworkValuable> networkValuables = [].asSynchronized()
 
     String name
+    Closure ready
 
-    def name(String name) {
+    void name(String name) {
         assert name
 
         this.name = name
+    }
+
+    Map impersonate(Closure body) {
+        body.delegate = this
+
+        [
+            now: {
+                body()
+            },
+            with: { params ->
+                body(params)
+            }
+        ]
     }
 
     NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
 
         assert networkValuableDescriptor
 
+        NetworkValuable networkValuable = new NetworkValuable()
 
-        if (networkValuableDescriptor.id) {
-            networkValuables << new NetworkValuable(
-                id: networkValuableDescriptor.id,
-                name: networkValuableDescriptor.name,
-                match: NetworkValuable.BROADCAST
-            )
+        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.name = networkValuableDescriptor.name
+        networkValuable.match = NetworkValuable.BROADCAST
 
-            return networkValuableDescriptor
-        }
-
-        networkValuableDescriptor.digestor = { Closure usingBody ->
+        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             BroadcastDelegate delegate = new BroadcastDelegate()
 
             usingBody.delegate = delegate
             usingBody.call()
 
-            NetworkValuable networkValuable = new NetworkValuable(
-                    id: delegate.id,
-                    name: networkValuableDescriptor.name,
-                    match: NetworkValuable.BROADCAST,
-                    ready: delegate.ready,
-                    unready: delegate.unready
-            )
+            if (delegate.id)
+                networkValuable.id = delegate.id
 
-            networkValuables << networkValuable
+            networkValuable.ready = delegate.ready
+            networkValuable.unready = delegate.unready
         }
+
+        networkValuables << networkValuable
 
         return networkValuableDescriptor
     }
 
     NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
-
         assert networkValuableDescriptor
 
-        if (networkValuableDescriptor.id) {
-            networkValuables << new NetworkValuable(
-                id: networkValuableDescriptor.id,
-                name: networkValuableDescriptor.name,
-                match: NetworkValuable.REQUIRE
-            )
+        NetworkValuable networkValuable = new NetworkValuable()
 
-            return networkValuableDescriptor
-        }
+        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.name = networkValuableDescriptor.name
+        networkValuable.match = NetworkValuable.REQUIRE
 
-
-        networkValuableDescriptor.digestor = { Closure usingBody ->
+        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             RequireDelegate delegate = new RequireDelegate()
 
             usingBody.delegate = delegate
             usingBody.call()
 
-            NetworkValuable networkValuable = new NetworkValuable(
-                    id: networkValuableDescriptor.id ?: delegate.id,
-                    name: networkValuableDescriptor.name,
-                    match: NetworkValuable.REQUIRE,
-                    resolved: delegate.resolved,
-                    unresolved: delegate.unresolved
-            )
+            if (delegate.id)
+                networkValuable.id = delegate.id
 
-            networkValuables << networkValuable
+            networkValuable.resolved = delegate.resolved
+            networkValuable.unresolved = delegate.unresolved
         }
+        networkValuableDescriptor.intoDigestor = { String into ->
+            networkValuable.into = into
+        }
+
+        networkValuables << networkValuable
 
         return networkValuableDescriptor
     }
 
+    void ready(Closure ready) {
+        assert ready
 
-
+        this.ready = ready
+    }
 }

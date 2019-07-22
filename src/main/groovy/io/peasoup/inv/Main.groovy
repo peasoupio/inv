@@ -4,31 +4,36 @@ import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
-    def run() {
+    @SuppressWarnings("GroovyAssignabilityCheck")
+    Object run() {
         assert args[0]
 
         ExpandoMetaClass.enableGlobally()
 
         def inv = new InvDescriptor()
-        def lookupPattern = args[0]
+        def lookupPattern = (String)args[0]
         def lookupFile = new File(lookupPattern)
 
-
         if (lookupFile.exists())
-            InvInvoker.invoke(inv,lookupPattern)
+            InvInvoker.invoke(inv,lookupFile)
         else {
-            def invHome = System.getenv('INV_HOME') ?: ""
-            def invFiles = new FileNameFinder().getFileNames(invHome, lookupPattern)
+
+            while(!lookupFile.parentFile.exists()) {
+                lookupFile = lookupFile.parentFile
+            }
+
+            def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
+            def invFiles = new FileNameFinder().getFileNames(new File(invHome).absolutePath, lookupPattern.replace(lookupFile.parent, ""))
 
             invFiles.each {
-                InvInvoker.invoke(inv,it)
+                InvInvoker.invoke(inv,new File(it))
             }
         }
 
         inv()
+
+        return 0
     }
-
-
 
     static void main(String[] args) {
         InvokerHelper.runScript(Main, args)

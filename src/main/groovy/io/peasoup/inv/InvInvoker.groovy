@@ -2,14 +2,24 @@ package io.peasoup.inv
 
 class InvInvoker {
 
-    static def invoke(InvDescriptor inv, String scriptPath) {
+    static void invoke(InvDescriptor inv, File scriptPath) {
+        assert inv
+        assert scriptPath
 
-        File scriptFile = new File(scriptPath.replace("\\", "/"))
+        invoke(inv, scriptPath.text, scriptPath.absolutePath.replace("\\", "/"))
 
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, scriptFile.absolutePath)
-        Script myNewScript = groovyClass.newInstance()
+    }
+    static void invoke(InvDescriptor inv, String text, String filename) {
+        assert inv
+        assert text
+        assert filename
+
+        Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, filename)
+
+        Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
+        myNewScript.binding.setProperty("pwd", new File(filename).parentFile.absolutePath)
 
         myNewScript.run()
     }

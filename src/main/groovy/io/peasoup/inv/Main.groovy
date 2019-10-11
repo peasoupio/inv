@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.InvDescriptor
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {

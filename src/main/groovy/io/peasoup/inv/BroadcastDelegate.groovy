@@ -4,7 +4,6 @@ class BroadcastDelegate {
 
     Object id
     Closure ready
-    Closure unready
 
     void id(Object id) {
         this.id = id
@@ -16,10 +15,6 @@ class BroadcastDelegate {
 
     void ready(Closure readyBody) {
         this.ready = readyBody
-    }
-
-    void unready(Closure unreadyBody) {
-        this.unready = unreadyBody
     }
 
 }

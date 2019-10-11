@@ -4,6 +4,7 @@ class InvDelegate {
 
 
     final List<NetworkValuable> networkValuables = [].asSynchronized()
+    final List<Closure> steps = [].asSynchronized()
 
     String name
     Closure ready
@@ -21,7 +22,7 @@ class InvDelegate {
             now: {
                 body()
             },
-            with: { params ->
+            withArgs: { ...params ->
                 body(params)
             }
         ]
@@ -47,7 +48,6 @@ class InvDelegate {
                 networkValuable.id = delegate.id
 
             networkValuable.ready = delegate.ready
-            networkValuable.unready = delegate.unready
         }
 
         networkValuables << networkValuable
@@ -75,6 +75,7 @@ class InvDelegate {
 
             networkValuable.resolved = delegate.resolved
             networkValuable.unresolved = delegate.unresolved
+            networkValuable.unbloatable = delegate.unbloatable
         }
         networkValuableDescriptor.intoDigestor = { String into ->
             networkValuable.into = into
@@ -84,6 +85,11 @@ class InvDelegate {
 
         return networkValuableDescriptor
     }
+
+    void step(Closure step) {
+        steps << step
+    }
+
 
     void ready(Closure ready) {
         assert ready

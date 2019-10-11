@@ -12,6 +12,8 @@ class Inv {
     final List<NetworkValuable> remainingValuables = [].asSynchronized()
     final List<NetworkValuable> totalValuables = [].asSynchronized()
 
+    final List<Closure> steps = [].asSynchronized()
+
     boolean dumpDelegate() {
         if (!name)
             name = delegate.name
@@ -19,20 +21,29 @@ class Inv {
         if (!ready)
             ready = delegate.ready
 
-        if (delegate.networkValuables.isEmpty())
-            return false
+        def dumpedSomething = false
+
+        if (!delegate.steps.isEmpty()) {
+            steps.addAll(delegate.steps)
+            dumpedSomething = true
+        }
 
         // use for-loop to keep order
         for(NetworkValuable networkValuable : delegate.networkValuables) {
+
+            dumpedSomething = true
+
             networkValuable.inv = this
 
             this.totalValuables << networkValuable
             this.remainingValuables << networkValuable
         }
 
+        delegate.ready = null
+        delegate.steps.clear()
         delegate.networkValuables.clear()
 
-        return true
+        return dumpedSomething
     }
 
 }

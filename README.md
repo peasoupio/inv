@@ -125,23 +125,29 @@ inv {
 ```
 
 ```
-inv ~/*.groovy
+$../inv ~/*.groovy
 
-> [INV] ---- [DIGEST] #1 ----
-> [INV] [BROADCAST] [Server] [name:server-a]
-> [INV] [BROADCAST] [Server] [name:server-b]
-> [INV] ---- [DIGEST] #2 ----
-> [INV] [REQUIRE] [Server] [name:server-a]
-> [INV] [BROADCAST] [IIS] undefined
-> [INV] [REQUIRE] [Server] [name:server-a]
-> [INV] [BROADCAST] [Kubernetes] undefined
-> Installing service kubectl on 10.22.99.999
-> [INV] ---- [DIGEST] #3 ----
-> [INV] [REQUIRE] [Kubernetes] undefined
-> [INV] [REQUIRE] [IIS] undefined
-> Pod my-mod-for-app-3 has been installed
-> IIS webapp my-web-app has been deployed
-> [INV] --- completed ----
+[INV] file: ...\bin\example\githubHomepage\appA.groovy
+[INV] file: ...\bin\example\githubHomepage\appB.groovy
+[INV] file: ...\bin\example\githubHomepage\iis.groovy
+[INV] file: ...\bin\example\githubHomepage\kubernetes.groovy
+[INV] file: ...\bin\example\githubHomepage\serverA.groovy
+[INV] file: ...\bin\example\githubHomepage\serverB.groovy
+[INV] ---- [DIGEST] #1 (state=RUNNING) ----
+[INV] [ServerB] => [BROADCAST] [Server] [name:server-b]
+[INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
+[INV] ---- [DIGEST] #2 (state=RUNNING) ----
+[INV] [Kubernetes] => [REQUIRE] [Server] [name:server-a]
+[INV] [iis] => [REQUIRE] [Server] [name:server-a]
+[INV] [Kubernetes] => [BROADCAST] [Kubernetes] undefined
+[INV] [iis] => [BROADCAST] [IIS] undefined
+Installing service kubectl on 10.22.99.999
+[INV] ---- [DIGEST] #3 (state=RUNNING) ----
+[INV] [appA] => [REQUIRE] [Kubernetes] undefined
+[INV] [appB] => [REQUIRE] [IIS] undefined
+[INV] --- completed ----
+Pod my-mod-for-app-3 has been installed
+IIS webapp my-web-app has been deployed
 ```
 
 These are the elements we can determine :

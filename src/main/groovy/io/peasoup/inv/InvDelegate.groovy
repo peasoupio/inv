@@ -22,8 +22,8 @@ class InvDelegate {
             now: {
                 body()
             },
-            withArgs: { ...params ->
-                body(params)
+            withArgs: { Object[] params ->
+                body.call(*params)
             }
         ]
     }

@@ -42,41 +42,51 @@ class InvDescriptor {
 
         boolean haltInProgress = false
 
-        while(true) {
-
-            // has no more work to do
-            if (pool.isEmpty())
-                break
-
-
-            Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState}) ----"
-            for(Inv digest: pool.digest()) {
-
-                if (digest.ready)
-                    digest.ready()
-
-                digested.add(digest)
+        try {
+            // TODO Might make a fori loop for performance
+            pool.remainingsInv.each {
+                if (it.ready)
+                    it.ready()
             }
 
-            if (haltInProgress) {
-                // Reset state and break loop
-                pool.runningState == pool.RUNNING
-                break
-            }
+            while (true) {
 
-            // Has finish unbloating and halted
-            if (pool.runningState == pool.HALTED) {
-                haltInProgress = true
-            }
+                // has no more work to do
+                if (pool.isEmpty())
+                    break
 
+
+                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState}) ----"
+                // TODO Might make a fori loop for performance
+                for (Inv digest : pool.digest()) {
+                    digested.add(digest)
+                }
+
+                if (haltInProgress) {
+                    // Reset state and break loop
+                    pool.runningState == pool.RUNNING
+                    break
+                }
+
+                // Has finish unbloating and halted
+                if (pool.runningState == pool.HALTED) {
+                    haltInProgress = true
+                }
+
+            }
+        }
+        catch (Exception ex) {
+            ex.printStackTrace()
         }
 
         Logger.info "--- completed ----"
 
+        // Kill pool executor if still running
+        if (pool.invExecutor)
+            pool.invExecutor.shutdown()
+
         return digested
     }
-
-    void bloatable(String name) {
-        pool.bloatables << name
-    }
 }
+
+

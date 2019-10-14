@@ -23,6 +23,7 @@ inv {
     broadcast inv.Maven using {
         ready {[
             analyze: { glob ->
+
                 $files.glob(glob).each {
 
                     MavenXpp3Reader reader = new MavenXpp3Reader()
@@ -34,6 +35,10 @@ inv {
                         ready {
                             model
                         }
+                    }
+
+                    model.dependencies.each {
+                        require inv.Artifact(it.groupId + ":" + it.artifactId)
                     }
                 }
             }

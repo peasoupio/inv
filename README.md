@@ -3,7 +3,7 @@ Intertwined network valuables
 
 *Inv* allows **sequencing** between **intertwined** objects. These objects can be databases, apps, webservices, servers, etc. Anything that need sequencing.
 
-Get latest version here : [Version 0.2-beta - TESTS PURPOSES ONLY](https://github.com/peasoupio/inv/releases/download/0.2-beta/inv-0.2-beta-SNAPSHOT.zip) 
+Get latest version here : [Version 0.3-beta - Viable solution, not yet official release](https://github.com/peasoupio/inv/releases/download/0.3-beta/inv-0.3-beta-SNAPSHOT.zip) 
 
 ## Quick example :
 

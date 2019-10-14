@@ -1,17 +1,41 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.graph.DotGraph
+import io.peasoup.inv.graph.PlainGraph
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
+    /*
+        Commands :
+            inv file.groovy - Execute single groovy script. Useful for debugging
+            inv pattern/*.groovy - Execute a bunch of groovy scripts based on a Ant-style file pattern. Useful for actual executions
+            inv graph [plan, dot] - Print the graphdot from the logs output of a previous generation. May support futur graph format.
+                                    Context usage : inv my-file.groovy | inv graph dot
+
+     */
+
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
+
         assert args[0]
 
-        ExpandoMetaClass.enableGlobally()
+        String arg0 = args[0]
 
+        switch (arg0.toLowerCase()) {
+            case "graph":
+                return buildGraph(args.length > 1 ? args[1] : "plain")
+            default:
+                return executeScript(arg0)
+        }
+
+
+
+    }
+
+    int executeScript(String arg0) {
         def inv = new InvDescriptor()
-        def lookupPattern = (String)args[0]
+        def lookupPattern = arg0
         def lookupFile = new File(lookupPattern)
 
         if (lookupFile.exists())
@@ -23,9 +47,12 @@ class Main extends Script {
             }
 
             def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
-            def invFiles = new FileNameFinder().getFileNames(new File(invHome).absolutePath, lookupPattern.replace(lookupFile.parent, ""))
+            def invFiles = new FileNameFinder().getFileNames(
+                    new File(invHome).absolutePath,
+                    new File(lookupPattern).absolutePath.replace(lookupFile.parentFile.absolutePath, ""))
 
             invFiles.each {
+                Logger.info("file: ${it}")
                 InvInvoker.invoke(inv,new File(it))
             }
         }
@@ -35,7 +62,27 @@ class Main extends Script {
         return 0
     }
 
+    int buildGraph(String arg1) {
+
+        System.in.newReader()
+
+        switch (arg1.toLowerCase()) {
+            case "plain" :
+                new PlainGraph(System.in.newReader()).print()
+                return 0
+            case "dot":
+                new DotGraph(System.in.newReader()).print()
+                return 0
+            default :
+                return -1
+
+        }
+    }
+
+
     static void main(String[] args) {
+        ExpandoMetaClass.enableGlobally()
+
         InvokerHelper.runScript(Main, args)
     }
 

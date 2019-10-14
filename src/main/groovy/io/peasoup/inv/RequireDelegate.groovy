@@ -5,6 +5,7 @@ class RequireDelegate {
     Object id
     Closure resolved
     Closure unresolved
+    boolean unbloatable
 
     void id(Object id) {
         this.id = id
@@ -20,5 +21,9 @@ class RequireDelegate {
 
     void unresolved(Closure unresolvedBody) {
         this.unresolved  = unresolvedBody
+    }
+
+    void unbloatable(boolean value) {
+        this.unbloatable = value
     }
 }

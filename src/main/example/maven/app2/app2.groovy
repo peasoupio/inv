@@ -3,7 +3,9 @@ inv {
 
     require inv.Maven using {
         resolved {
-            impersonate response.analyze with "app2/pom.xml"
+            impersonate response.analyze withArgs "app2/pom.xml"
+
+            println "got my poms"
         }
     }
 

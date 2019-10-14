@@ -3,4 +3,13 @@
     <groupId>com.mycompany.app</groupId>
     <artifactId>my-app-2</artifactId>
     <version>1</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.mycompany.app</groupId>
+            <artifactId>my-app-1</artifactId>
+            <version>1</version>
+        </dependency>
+
+    </dependencies>
 </project>

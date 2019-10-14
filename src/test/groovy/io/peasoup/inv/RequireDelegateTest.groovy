@@ -48,4 +48,15 @@ class RequireDelegateTest {
 
         assert myself.unresolved == unresolved
     }
+
+    @Test
+    void unbloatable() {
+        def unbloatable = true
+
+        assert !myself.unbloatable
+
+        myself.unbloatable(unbloatable)
+
+        assert myself.unbloatable
+    }
 }

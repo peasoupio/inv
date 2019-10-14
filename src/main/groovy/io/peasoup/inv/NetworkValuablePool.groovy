@@ -1,9 +1,11 @@
 package io.peasoup.inv
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 class NetworkValuablePool {
-
 
 
     final static String HALTED = "HALTED",
@@ -20,68 +22,36 @@ class NetworkValuablePool {
     List<Inv> remainingsInv = [].asSynchronized()
     List<Inv> totalInv = [].asSynchronized()
 
+    ExecutorService invExecutor
+
     List<Inv> digest() {
 
         List<Inv> invsDone = []
         Collection<NetworkValuable> toResolve = [].asSynchronized()
+
+        invExecutor = Executors.newFixedThreadPool(4)
+        List<Future> futures = []
 
         // Use fori-loop for speed
         for (int i = 0; i < remainingsInv.size() ; i++) {
 
             def inv = remainingsInv[i]
 
-
-            // Loop because dump
-            while(true) {
-
-                Collection<NetworkValuable> remainingValuables = inv.remainingValuables.collect()
-                boolean hasResolvedSomething = false
-
-                // Use fori-loop for speed
-                for (int j = 0; j < remainingValuables.size(); j++) {
-                    def networkValuable = remainingValuables[j]
-
-                    def result = networkValuable.match.manage(this, networkValuable)
-
-                    if (result == NetworkValuable.FAILED) {
-                        if (inv.sync) {
-                            break
-                        } else {
-                            continue
-                        }
-                    }
-
-                    inv.remainingValuables.remove(networkValuable)
-
-                    if (result == NetworkValuable.SUCCESSFUL) {
-
-                        hasResolvedSomething = true
-
-                        // Resolved requirements later to make sure broadcasts are available
-                        if (networkValuable.match == NetworkValuable.REQUIRE) {
-                            toResolve << networkValuable
-                        }
-
-                        // If we caught a successful matching while in unbloating state, we need to skip since
-                        // and restart digest since this inv could unjammed something else
-                        if (runningState == UNBLOATING) {
-                            runningState = RUNNING
-                            break
-                        }
-                    }
-                }
-
-                // Check for new steps
-                if (inv.remainingValuables.isEmpty() && // has no more valuables -and-
-                    !hasResolvedSomething &&            // did not just resolved something (waiting for resolve) -and-
-                    !inv.steps.isEmpty()) {             // has a remaining step
-                    inv.steps.removeAt(0).call()
-                }
-
-                // Check for new dumps
-                if (!inv.dumpDelegate())
-                    break
+            // If is in RUNNING state, we are allowed to do parallel stuff.
+            // Otherwise, we may change the sequence.
+            if (runningState == RUNNING) {
+                futures << invExecutor.submit({->
+                    toResolve += inv.digest(this)
+                })
+            } else {
+                // If so, execute right now
+                toResolve += inv.digest(this)
             }
+        }
+
+        // Wait for invs to be digested in parallel.
+        if (!futures.isEmpty()) {
+            futures.each { it.get() }
         }
 
         // If running in halted mode, no need to broadcasts
@@ -101,6 +71,9 @@ class NetworkValuablePool {
             if (networkValuable.resolved) {
                 networkValuable.resolved.delegate = broadcast
                 networkValuable.resolved()
+
+                // Check if NV would have dumped something
+                networkValuable.inv.dumpDelegate()
             }
 
             hasResolvedSomething = true
@@ -120,23 +93,6 @@ class NetworkValuablePool {
         }
 
         // Check for new dumps
-        /*
-        boolean hasDumpedSomething = false
-        for (int i = 0; i < remainingsInv.size() ; i++) {
-            def inv = remainingsInv[i]
-
-            if (inv.dumpDelegate())
-                hasDumpedSomething = true
-
-            if (!inv.steps.isEmpty())
-                continue
-
-            if (!inv.remainingValuables.isEmpty())
-                continue
-
-            invsDone << inv
-        }
-        */
         boolean hasDoneSomething = false
         for (int i = 0; i < remainingsInv.size() ; i++) {
             def inv = remainingsInv[i]
@@ -168,6 +124,9 @@ class NetworkValuablePool {
             runningState = UNBLOATING // Should start unbloating
         }
 
+        // Clear executor
+        invExecutor.shutdown()
+
         return invsDone
     }
 
@@ -184,4 +143,5 @@ class NetworkValuablePool {
     boolean isEmpty() {
         return remainingsInv.isEmpty()
     }
+
 }

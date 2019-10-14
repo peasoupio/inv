@@ -60,4 +60,25 @@ class InvDelegateTest {
             myself.require()
         })
     }
+
+
+    @Test
+    void impersonate() {
+
+        myself.name = "impersonate"
+
+        Closure myTempClosure = { int value ->
+            assert value == 10
+            assert name == "impersonate"
+        }
+
+        def impersonateState = myself.impersonate(myTempClosure)
+
+        assert impersonateState
+        assert impersonateState.now
+        assert impersonateState.withArgs
+
+        impersonateState.withArgs (10)
+
+    }
 }

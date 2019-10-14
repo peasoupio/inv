@@ -33,12 +33,6 @@ class InvInvokerTest {
             InvInvoker.invoke(new InvDescriptor(), null)
         })
 
-        /*
-        assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(null, "my-path")
-        })
-        */
-
         assertThrows(PowerAssertionError.class, {
             InvInvoker.invoke(null, null, null)
         })

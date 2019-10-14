@@ -3,7 +3,7 @@ inv {
 
     require inv.Maven using {
         resolved {
-            impersonate response.analyze with "app1/pom.xml"
+            impersonate response.analyze withArgs "app1/pom.xml"
         }
     }
 }

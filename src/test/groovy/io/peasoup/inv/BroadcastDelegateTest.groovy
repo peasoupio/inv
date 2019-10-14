@@ -38,13 +38,4 @@ class BroadcastDelegateTest {
 
         assert myself.ready == ready
     }
-
-    @Test
-    void unready() {
-        def unready = { }
-
-        myself.unready(unready)
-
-        assert myself.unready == unready
-    }
 }

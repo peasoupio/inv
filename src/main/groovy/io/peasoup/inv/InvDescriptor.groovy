@@ -40,33 +40,53 @@ class InvDescriptor {
         int count = 0
         List<Inv> digested = []
 
-        while(true) {
+        boolean haltInProgress = false
 
-            // has no more work to do
-            if (pool.isEmpty())
-                break
-
-            // flagged as done, but has more work to do.
-            // --- It allows the remaining NV to raise uncompleted events
-            if (!pool.stillRunning) {
-                pool.digest()
-                pool.stillRunning = true
-                break
+        try {
+            // TODO Might make a fori loop for performance
+            pool.remainingsInv.each {
+                if (it.ready)
+                    it.ready()
             }
 
-            Logger.info "---- [DIGEST] #${++count} ----"
-            for(Inv digest: pool.digest()) {
+            while (true) {
 
-                if (digest.ready)
-                    digest.ready()
+                // has no more work to do
+                if (pool.isEmpty())
+                    break
 
-                digested.add(digest)
+
+                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState}) ----"
+                // TODO Might make a fori loop for performance
+                for (Inv digest : pool.digest()) {
+                    digested.add(digest)
+                }
+
+                if (haltInProgress) {
+                    // Reset state and break loop
+                    pool.runningState == pool.RUNNING
+                    break
+                }
+
+                // Has finish unbloating and halted
+                if (pool.runningState == pool.HALTED) {
+                    haltInProgress = true
+                }
+
             }
-
+        }
+        catch (Exception ex) {
+            ex.printStackTrace()
         }
 
         Logger.info "--- completed ----"
 
+        // Kill pool executor if still running
+        if (pool.invExecutor)
+            pool.invExecutor.shutdown()
+
         return digested
     }
 }
+
+

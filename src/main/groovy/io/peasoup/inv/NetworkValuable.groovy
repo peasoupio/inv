@@ -2,41 +2,46 @@ package io.peasoup.inv
 
 class NetworkValuable {
 
+    final static int NOT_PROCESSED = -1, // Not processed yet
+                     FAILED = 0, // Negative match
+                     UNBLOADTING = 1, // No match verified
+                     SUCCESSFUL = 2, // Positive match
+                     ALREADY_BROADCAST = 3 // Positive match
+
     final static Broadcast BROADCAST = new Broadcast()
     final static Require REQUIRE = new Require()
 
     Object id
     String name
     Manageable match
+    boolean unbloatable
 
     Closure ready
-    Closure unready
     Closure resolved
     Closure unresolved
 
+    // When assigned to a Inv
     Inv inv
-
     // When resolving requirement into a variable
     String into
+    // When processed
+    int match_state = NOT_PROCESSED
 
     @Override
     String toString() {
-        return "[${match ?: "UNSPECIFIED ACTION"}] [${name}] ${id}"
+        return "[$inv.name] => [${match ?: "UNSPECIFIED ACTION"}] [${name}] ${id}"
     }
 
     interface Manageable {
-        boolean manage(NetworkValuablePool pool, NetworkValuable networkValuable)
+        void manage(NetworkValuablePool pool, NetworkValuable networkValuable)
     }
 
     static class Broadcast implements Manageable {
 
-        boolean manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
-            if (!pool.stillRunning) {
-                if (networkValuable.unready)
-                    networkValuable.unready()
+        void manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
 
-                return false
-            }
+            // Reset to make sure NV is fine
+            networkValuable.match_state = NetworkValuable.NOT_PROCESSED
 
             def channel = pool.availableValuables[networkValuable.name]
             def staging = pool.stagingValuables[networkValuable.name]
@@ -44,7 +49,8 @@ class NetworkValuable {
             if (channel.containsKey(networkValuable.id) || staging.containsKey(networkValuable.id)) {
                 Logger.warn "${networkValuable.id} already broadcasted. Skipped"
 
-                return false
+                networkValuable.match_state = NetworkValuable.ALREADY_BROADCAST
+                return
             }
 
             Logger.info networkValuable
@@ -60,7 +66,7 @@ class NetworkValuable {
                 response: response
             ])
 
-            return true
+            networkValuable.match_state = NetworkValuable.SUCCESSFUL
         }
 
         @Override
@@ -71,20 +77,51 @@ class NetworkValuable {
 
     static class Require implements Manageable {
 
-        boolean manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
+        void manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
 
-            if (!pool.stillRunning) {
+            // Reset to make sure NV is fine
+            networkValuable.match_state = NetworkValuable.NOT_PROCESSED
+
+            // Is it in cleaning state ?
+            if (pool.runningState == pool.HALTED) {
+
                 if (networkValuable.unresolved)
-                    networkValuable.unresolved()
+                    networkValuable.unresolved([
+                            name: networkValuable.name,
+                            id: networkValuable.id,
+                            owner: networkValuable.inv.name
+                    ])
 
-                return false
+                Logger.warn networkValuable
+
+                networkValuable.match_state = NetworkValuable.SUCCESSFUL
+                return
             }
 
             def channel = pool.availableValuables[networkValuable.name]
             def broadcast = channel[networkValuable.id]
 
-            if (!broadcast)
-                return false
+            if (!broadcast) {
+
+                // Is it bloating ?
+
+                if (pool.runningState == pool.UNBLOATING &&
+                    networkValuable.unbloatable) {
+
+                    if (networkValuable.unresolved)
+                        networkValuable.unresolved([
+                                name: networkValuable.name,
+                                id: networkValuable.id,
+                                owner: networkValuable.inv.name
+                        ])
+
+                    networkValuable.match_state = NetworkValuable.UNBLOADTING
+                    return
+                }
+
+                networkValuable.match_state = NetworkValuable.FAILED
+                return
+            }
 
             Logger.info networkValuable
 
@@ -92,7 +129,8 @@ class NetworkValuable {
             if (networkValuable.into)
                 networkValuable.inv.delegate.metaClass.setProperty(networkValuable.into, broadcast.response)
 
-            return true
+            networkValuable.match_state = NetworkValuable.SUCCESSFUL
+            return
         }
 
         @Override

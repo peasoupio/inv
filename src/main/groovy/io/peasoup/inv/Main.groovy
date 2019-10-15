@@ -42,14 +42,24 @@ class Main extends Script {
             InvInvoker.invoke(inv,lookupFile)
         else {
 
-            while(!lookupFile.parentFile.exists()) {
-                lookupFile = lookupFile.parentFile
-            }
+            def invFiles
 
-            def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
-            def invFiles = new FileNameFinder().getFileNames(
-                    new File(invHome).absolutePath,
-                    new File(lookupPattern).absolutePath.replace(lookupFile.parentFile.absolutePath, ""))
+            def invHome = System.getenv('INV_HOME')
+            if (invHome) {
+                invFiles = new FileNameFinder().getFileNames(
+                        invHome,
+                        lookupPattern, "")
+            } else {
+
+                while(!lookupFile.parentFile.exists()) {
+                    lookupFile = lookupFile.parentFile
+                }
+
+                invHome = lookupFile.parent ?: "."
+                invFiles = new FileNameFinder().getFileNames(
+                        new File(invHome).absolutePath,
+                        new File(lookupPattern).absolutePath.replace(new File(invHome).absolutePath, ""))
+            }
 
             invFiles.each {
                 Logger.info("file: ${it}")

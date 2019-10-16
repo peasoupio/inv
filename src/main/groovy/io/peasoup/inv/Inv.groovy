@@ -53,12 +53,11 @@ class Inv {
         // Loop because dump
         while (true) {
 
-            Collection<NetworkValuable> remainingValuablesRightNow = remainingValuables.collect()
             boolean hasResolvedSomething = false
 
             // Use fori-loop for speed
-            for (int j = 0; j < remainingValuablesRightNow.size(); j++) {
-                def networkValuable = remainingValuablesRightNow[j]
+            for (int j = 0; j < this.remainingValuables.size(); j++) {
+                def networkValuable = this.remainingValuables[j]
 
                 networkValuable.match.manage(pool, networkValuable)
                 int result = networkValuable.match_state
@@ -91,15 +90,27 @@ class Inv {
                 }
             }
 
-            // Check for new steps
-            if (remainingValuablesRightNow.isEmpty() && // has no more valuables -and-
-                    !hasResolvedSomething &&            // did not just resolved something (waiting for resolve) -and-
-                    !steps.isEmpty()) {             // has a remaining step
-                steps.removeAt(0).call()
+            boolean hasDumpedSomething = false
+
+            // Check for new steps if :
+            // 1. did not just resolved something (waiting for resolve) -and-
+            // 2. has no more valuables
+            // 3. has a remaining step
+            if (!hasResolvedSomething) {
+                while (this.remainingValuables.isEmpty() && !steps.isEmpty()) {
+
+                    // Call next step
+                    steps.pop().call()
+
+                    // If the step dumped something, we stop and reevaluate
+                    if (dumpDelegate()) {
+                        hasDumpedSomething = true
+                    }
+                }
             }
 
             // Check for new dumps
-            if (!dumpDelegate())
+            if (!hasDumpedSomething)
                 break
         }
 

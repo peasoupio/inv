@@ -222,6 +222,58 @@ class InvDescriptorTest {
     }
 
     @Test
+    void call_using_step_and_unbloating() {
+
+
+        inv {
+            name "my-webservice"
+
+
+            require inv.Server("my-server-id")
+
+            step {
+                broadcast inv.Endpoint using {
+                    id "my-webservice-id"
+                    ready {
+                        return "http://my.endpoint.com"
+                    }
+                }
+            }
+        }
+
+        inv {
+            name "my-app"
+
+            require inv.Endpoint("my-unbloatable-ws-id") using {
+                unbloatable true
+            }
+
+            require inv.Endpoint("my-webservice-id") into '$ep'
+
+            step {
+                broadcast inv.App("my-app-id") using {
+                    ready {
+                        print "My App is hosted here: ${$ep}"
+                    }
+                }
+            }
+        }
+
+        inv {
+            name "my-server"
+
+            broadcast inv.Server using {
+                id "my-server-id"
+                ready {
+                    println "my-server-id has been broadcast"
+                }
+            }
+        }
+
+        inv()
+    }
+
+    @Test
     void ready() {
 
         def value = 1

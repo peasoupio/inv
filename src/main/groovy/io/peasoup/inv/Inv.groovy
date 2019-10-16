@@ -54,6 +54,7 @@ class Inv {
         while (true) {
 
             boolean hasResolvedSomething = false
+            List toRemove = []
 
             // Use fori-loop for speed
             for (int j = 0; j < this.remainingValuables.size(); j++) {
@@ -70,44 +71,48 @@ class Inv {
                     }
                 }
 
-                this.remainingValuables.remove(networkValuable)
+                toRemove << networkValuable
 
                 if (result >= NetworkValuable.SUCCESSFUL) {
-
-                    hasResolvedSomething = true
 
                     // Resolved requirements later to make sure broadcasts are available
                     if (networkValuable.match == NetworkValuable.REQUIRE) {
                         toResolve << networkValuable
                     }
 
-                    // If we caught a successful matching while in unbloating state, we need to skip since
+                    // If we caught a successful broadcast while in unbloating state, we need to skip since
                     // and restart digest since this inv could unjammed something else
-                    if (pool.runningState == pool.UNBLOATING) {
+                    if (pool.runningState == pool.UNBLOATING &&
+                        networkValuable.match == NetworkValuable.BROADCAST) {
+
                         pool.runningState = pool.RUNNING
+
                         break
                     }
                 }
             }
 
+            // Remove all NV meant to be deleted
+            this.remainingValuables.removeAll(toRemove)
+
             boolean hasDumpedSomething = false
 
             // Check for new steps if :
-            // 1. did not just resolved something (waiting for resolve) -and-
-            // 2. has no more valuables
-            // 3. has a remaining step
-            if (!hasResolvedSomething) {
-                while (this.remainingValuables.isEmpty() && !steps.isEmpty()) {
+            // 1. has a remaining step
+            // 2. has nothing to resolve (might glitch because of $into)
+            // 3. has not (previously dumped something)
+            // 4. has no more valuables
+            while (!steps.isEmpty() &&
+                   toResolve.isEmpty() &&
+                   !hasDumpedSomething &&
+                   this.remainingValuables.isEmpty()) {
+                // Call next step
+                steps.pop().call()
 
-                    // Call next step
-                    steps.pop().call()
-
-                    // If the step dumped something, we stop and reevaluate
-                    if (dumpDelegate()) {
-                        hasDumpedSomething = true
-                    }
-                }
+                // If the step dumped something, remainingValuables won't be empty and exit loop
+                hasDumpedSomething = dumpDelegate()
             }
+
 
             // Check for new dumps
             if (!hasDumpedSomething)

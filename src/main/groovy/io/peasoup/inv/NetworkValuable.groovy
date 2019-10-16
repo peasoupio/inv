@@ -57,7 +57,7 @@ class NetworkValuable {
 
             def response = "undefined"
 
-            if (networkValuable.ready) {
+            if (networkValuable.ready && pool.runningState != pool.HALTED) {
                 response = networkValuable.ready()
             }
 
@@ -130,7 +130,6 @@ class NetworkValuable {
                 networkValuable.inv.delegate.metaClass.setProperty(networkValuable.into, broadcast.response)
 
             networkValuable.match_state = NetworkValuable.SUCCESSFUL
-            return
         }
 
         @Override

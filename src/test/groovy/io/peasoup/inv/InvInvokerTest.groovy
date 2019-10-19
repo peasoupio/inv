@@ -19,7 +19,7 @@ class InvInvokerTest {
         InvInvoker.invoke(new InvDescriptor(), scriptFile)
 
         def scriptPath = script.path
-        InvInvoker.invoke(new InvDescriptor(), scriptFile.text, scriptPath)
+        InvInvoker.invoke(new InvDescriptor(), scriptFile.text, scriptPath, scriptPath)
     }
 
     @Test
@@ -42,12 +42,14 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvDescriptor(), "text", null)
+            InvInvoker.invoke(new InvDescriptor(), "text", null, null)
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(null, "text", "filename")
+            InvInvoker.invoke(null, "text", "filename", null)
         })
+
+        // TODO Missing conditions here
 
     }
 }

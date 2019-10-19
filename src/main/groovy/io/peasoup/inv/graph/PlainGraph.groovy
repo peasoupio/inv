@@ -11,12 +11,10 @@ class PlainGraph {
 
     PlainGraph(BufferedReader logs) {
 
-        String line
-
-        while(line = logs.readLine()) {
+        logs.eachLine { String line ->
 
             if (!line.startsWith("[INV]"))
-                continue
+                return
 
             Matcher broadcast = line =~ /\[INV\] \[(.*)\] => \[BROADCAST\] (.*)/
             Matcher require = line =~ /\[INV\] \[(.*)\] => \[REQUIRE\] (.*)/

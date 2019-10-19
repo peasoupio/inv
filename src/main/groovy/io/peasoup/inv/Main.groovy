@@ -12,7 +12,7 @@ class Main extends Script {
             inv pattern/*.groovy - Execute a bunch of groovy scripts based on a Ant-style file pattern. Useful for actual executions
             inv graph [plan, dot] - Print the graphdot from the logs output of a previous generation. May support futur graph format.
                                     Context usage : inv my-file.groovy | inv graph dot
-
+            inv from-scm my-scm.file - Process the SCM file to extract or update sources
      */
 
     @SuppressWarnings("GroovyAssignabilityCheck")
@@ -25,6 +25,8 @@ class Main extends Script {
         switch (arg0.toLowerCase()) {
             case "graph":
                 return buildGraph(args.length > 1 ? args[1] : "plain")
+            case "from-scm":
+                return launchFromSCM(args[1])
             default:
                 return executeScript(arg0)
         }
@@ -66,6 +68,24 @@ class Main extends Script {
                 InvInvoker.invoke(inv,new File(it))
             }
         }
+
+        inv()
+
+        return 0
+    }
+
+    int launchFromSCM(String arg1) {
+
+        def invFiles = new ScmReader(new File(arg1)).execute()
+
+        def inv = new InvDescriptor()
+
+        invFiles.each { String name, File script ->
+            Logger.info("file: ${script.canonicalPath}")
+            InvInvoker.invoke(inv, script, name)
+        }
+
+        Logger.info("[SCM] done")
 
         inv()
 

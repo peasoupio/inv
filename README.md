@@ -3,7 +3,18 @@ Intertwined network valuables
 
 *Inv* allows **sequencing** between **intertwined** objects. These objects can be databases, apps, webservices, servers, etc. Anything that need sequencing.
 
-Get latest version here : [Version 0.2-beta - TESTS PURPOSES ONLY](https://github.com/peasoupio/inv/releases/download/0.2-beta/inv-0.2-beta-SNAPSHOT.zip) 
+Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/releases/download/0.4-beta/inv-0.4-beta-SNAPSHOT.zip)  
+
+#### Maven coordinates:
+
+```
+<dependency>
+    <groupId>io.peasoup</groupId>
+    <artifactId>inv</artifactId>
+    <version>0.4-beta-SNAPSHOT</version>
+</dependency>
+```
+(NOTE : Snapshots need to be downloaded from this repository: https://oss.sonatype.org/content/repositories/snapshots/) 
 
 ## Quick example :
 
@@ -147,6 +158,42 @@ inv ~/*.groovy
 These are the elements we can determine :
 * Which instance server (barebone or under kubernetes) hosts AppA
 * Apps are deployed without knowledge of credentials or physical access points (EP)
+
+### Graphs
+
+You could also generate a graph from a previous execution. Per example :
+
+    cat myprevious.log | ./inv graph dot
+
+could generate this dot file
+
+```
+digraph inv {
+	"ServerA";
+	"ServerB";
+	"iis";
+	"Kubernetes";
+	"files";
+	"maven";
+	"my-app-1";
+	"my-app-2";
+	"appA";
+	"appB";
+    
+	"iis" -> "ServerA" [ label = "[Server] [name:server-a]" ];
+	"Kubernetes" -> "ServerA" [ label = "[Server] [name:server-a]" ];
+	"maven" -> "files" [ label = "[Files]" ];
+	"my-app-1" -> "maven" [ label = "[Maven]" ];
+	"my-app-2" -> "maven" [ label = "[Maven]" ];
+	"my-app-2" -> "my-app-1" [ label = "[Artifact] com.mycompany.app:my-app-1" ];
+	"appA" -> "Kubernetes" [ label = "[Kubernetes]" ];
+	"appB" -> "iis" [ label = "[IIS]" ];
+}
+```
+
+This is an image represention of the dot file :  
+![Dotgraph image using WebGraphViz](https://github.com/peasoupio/inv/blob/feature/0.4-beta/src/main/example/graph/dotGraph.png "Dotgraph image using WebGraphViz")
+
 
 ### Contribution
 First and only global rule : use your common sense - we help each other :)

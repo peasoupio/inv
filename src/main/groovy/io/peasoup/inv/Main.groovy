@@ -1,5 +1,7 @@
 package io.peasoup.inv
 
+import groovy.cli.commons.CliBuilder
+import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
 import org.codehaus.groovy.runtime.InvokerHelper
@@ -18,24 +20,55 @@ class Main extends Script {
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
-        assert args[0]
+        def cli = new CliBuilder(usage:'''inv [commands]
+Sequence and manage INV groovy files or logs.
+Commands: 
+ <file>                 Execute a single groovy file
+ <pattern>              Execute an Ant-compatible file pattern
+                        (p.e *.groovy, ./**/*.groovy, ...)
+''')
 
-        String arg0 = args[0]
+        cli.g(
+            type: String,
+            longOpt:'graph',
+            args:1,
+            argName:'type',
+            defaultValue: 'plain',
+            optionalArg: true,
+            'Print the graph from stdin of a previous execution')
 
-        switch (arg0.toLowerCase()) {
-            case "graph":
-                return buildGraph(args[1])
-            case "from-scm":
-                return launchFromSCM(args[1])
-            default:
-                return executeScript(arg0)
-        }
+        cli.s(
+            longOpt:'from-scm',
+            convert: {
+                new File(it)
+            },
+            argName:'file',
+            'Process the SCM file to extract or update sources')
+        cli.d(
+                longOpt:'delta',
+                convert: {
+                    new File(it)
+                },
+                argName:'file',
+                'Generate a delta from a recent execution in stdin compared to a previous execution')
 
+        cli.usage()
 
+        def options = cli.parse(args)
 
+        if (options.hasOption("g"))
+            return buildGraph(options.g, options.arguments())
+
+        if (options.hasOption("s"))
+            return launchFromSCM(options.s, options.arguments())
+
+        if (options.hasOption("d"))
+            return delta(options.d, options.arguments())
+
+        return executeScript( options.arguments().pop(), options.arguments())
     }
 
-    int executeScript(String arg0) {
+    int executeScript(String arg0, List<String> args) {
         def inv = new InvDescriptor()
         def lookupPattern = arg0
         def lookupFile = new File(lookupPattern)
@@ -64,7 +97,7 @@ class Main extends Script {
             }
 
             invFiles.each {
-                Logger.info("file: ${it}")
+
                 InvInvoker.invoke(inv,new File(it))
             }
         }
@@ -74,9 +107,9 @@ class Main extends Script {
         return 0
     }
 
-    int launchFromSCM(String arg1) {
+    int launchFromSCM(File arg1, List<String> args) {
 
-        def invFiles = new ScmReader(new File(arg1)).execute()
+        def invFiles = new ScmReader(arg1).execute()
 
         def inv = new InvDescriptor()
 
@@ -92,9 +125,7 @@ class Main extends Script {
         return 0
     }
 
-    int buildGraph(String arg1) {
-
-        System.in.newReader()
+    int buildGraph(String arg1, List<String> args) {
 
         switch (arg1.toLowerCase()) {
             case "plain" :
@@ -103,11 +134,12 @@ class Main extends Script {
             case "dot":
                 new DotGraph(System.in.newReader()).print()
                 return 0
-            default :
-                new PlainGraph(System.in.newReader()).print()
-                return 0
-
         }
+    }
+
+    int delta(File arg1, List<String> args) {
+        new DeltaGraph(arg1.newReader(), System.in.newReader()).print()
+        return 0
     }
 
 

@@ -74,23 +74,24 @@ class PlainGraph {
             if (!match)
                 return
 
-            edges[match.owner] << it
+            edges[it.owner] << match
         }
 
     }
 
     String print() {
         print """    
-# Regex rule:^(?!\\#.*\$)(?'giver'.*) -> (?'receiver'.*) \\((?'edge'.*)\\)\$
+# Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
 ${
     edges
         .collectMany { String owner, Set edges ->
             edges.collect { Map edge ->
-                "${owner} -> ${edge.owner} (${edge.require})"
+                "${owner} -> ${edge.owner} (${edge.broadcast})"
             }
         }
         .join(lf)
-}"""
+}
+"""
     }
 
 }

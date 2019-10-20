@@ -24,7 +24,7 @@ class Main extends Script {
 
         switch (arg0.toLowerCase()) {
             case "graph":
-                return buildGraph(args.length > 1 ? args[1] : "plain")
+                return buildGraph(args[1])
             case "from-scm":
                 return launchFromSCM(args[1])
             default:
@@ -104,7 +104,8 @@ class Main extends Script {
                 new DotGraph(System.in.newReader()).print()
                 return 0
             default :
-                return -1
+                new PlainGraph(System.in.newReader()).print()
+                return 0
 
         }
     }

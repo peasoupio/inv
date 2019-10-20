@@ -8,9 +8,13 @@ class ScmReader {
     private final Map scm
 
     ScmReader(File scmFile) {
+        this(scmFile.newReader())
+    }
+
+    ScmReader(Reader reader) {
 
         // Parse JSON file into object
-        scm = new JsonSlurper().parse(scmFile)
+        scm = new JsonSlurper().parse(reader)
 
         // For each SCM, we parse hooks using a template engine
         def templateEngine = new SimpleTemplateEngine()

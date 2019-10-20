@@ -32,15 +32,23 @@ class MainTest {
 
         println "\nTest default graph: "
         System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("graph", logOutput.path)
+        Main.main("-g")
+
+        println "\nTest default graph: "
+        System.setIn(new ByteArrayInputStream(logOutput.bytes))
+        Main.main("--graph")
 
         println "\nTest selecting 'plain': "
         System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("graph", "plain", logOutput.path)
+        Main.main("--graph", "plain")
 
         println "\nTest selecting 'dot': "
         System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("graph", "dot", logOutput.path)
+        Main.main("--graph", "dot")
+
+        /*
+
+         */
     }
 
     @Test
@@ -49,7 +57,23 @@ class MainTest {
 
         assert scmFile
 
-        Main.main("from-scm", scmFile.path)
+        Main.main("-s", scmFile.path)
+        Main.main("--from-scm", scmFile.path)
+    }
+
+    @Test
+    void main_delta() {
+
+        def logOutput = MainTest.class.getResource("/logOutput1.txt")
+        def logOutputAfter = MainTest.class.getResource("/logAfterOutput1.txt")
+
+        assert logOutput
+        assert logOutputAfter
+
+        println "\nTest selecting 'delta': "
+        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
+        Main.main("-d", logOutput.path)
+        Main.main("--delta", logOutput.path)
     }
 
 }

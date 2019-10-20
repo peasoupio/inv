@@ -25,6 +25,8 @@ class InvInvoker {
         assert text
         assert filename
 
+        Logger.info("file: ${filepath}")
+
         Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, filename)
 
         Script myNewScript = (Script)groovyClass.newInstance()

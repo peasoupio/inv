@@ -16,7 +16,16 @@ Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/re
 ```
 (NOTE : Snapshots need to be downloaded from this repository: https://oss.sonatype.org/content/repositories/snapshots/) 
 
-## Quick example :
+## Avaiable commands:  
+```
+    ./inv file.groovy - Execute single groovy script. Useful for debugging
+    ./inv pattern/*.groovy - Execute a bunch of groovy scripts based on a Ant-style file pattern. Useful for actual executions
+    ./inv graph [plan, dot] - Print the graphdot from the logs output of a previous generation. May support futur graph format.
+			    Context usage : inv my-file.groovy | inv graph dot
+    ./inv from-scm my-scm.file - Process the SCM file to extract or update sources
+```
+
+## Quick example:
 
 ### What we know ?
 * ServerA hosts AppA through Kubernetes

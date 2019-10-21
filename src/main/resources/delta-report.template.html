@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Delta report from ${beforeFile}</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+
+    <style>
+        .red { color: red; }
+        .green { color: green; }
+        .black { color: gray; }
+
+        .bg-red { background: #ff00002e; }
+        .bg-green { background: #0080003b; }
+        .bg-black { background: gray; }
+
+        pre {
+            background-color: #10101005;
+        }
+
+        .inv {
+            padding-left: 5px;
+            padding-right: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container" style="padding: 1em">
+        <h1 class="title">INV - Delta report from ${beforeFile}</h1>
+
+        <div class="control">
+            <input class="input" type="text" v-model="filter" placeholder="Search by name" />
+        </div>
+
+        <p class="has-text-centered">Showing: {{showing}}/{{total}}</p>
+
+        <div style="margin: 1em">
+            <div v-for="(inv, index) in sort()">
+                <div class="columns">
+                    <div class="column">
+                        <p class="has-text-right has-text-weight-semibold" v-bind:class="[getColour(inv)]">#{{index + 1}}</p>
+                    </div>
+                    <div class="column is-11 inv" style="background-color: #f5f5f5">
+                        <require-branch v-model="inv"></require-branch>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="has-text-centered">
+            Colour guide : <strong style="color: green">Added</strong> <strong style="color: gray">Same</strong> <strong style="color: red">Removed</strong> </br>
+            <span>generated on ${now}</span>
+        </div>
+    </div>
+
+<script>
+    Vue.component('require-branch', {
+        props: ['value'],
+        methods: {
+            getTabs: function(require) {
+                var tabs = ""
+
+                for(var i=-1; i<require.index;i++) {
+                    tabs += "\t"
+                }
+
+                return tabs
+            },
+            getColour: function(require) {
+                switch(require.state) {
+                    case "+": return "green"
+                    case "=": return "gray"
+                    case "-": return "red"
+                }
+            }
+        },
+        template: `<pre style="padding: 0; font-size: 1.1em" v-bind:class="[getColour(value)]">
+{{getTabs(value)}}{{value.require}}
+</pre>`
+    })
+
+    new Vue({
+        el: '#container',
+        data: {
+            delta: `
+                ${lines.join("\n")}
+            `,
+            all: {},
+            preSorted: [],
+            showing: 0,
+            total: 0,
+            filter: ""
+        },
+        methods: {
+            sort: function() {
+                var vm = this
+
+                if (vm.filter === "") {
+                    vm.showing = vm.preSorted.length
+                    return vm.preSorted
+                }
+
+                var result = vm.preSorted.filter(function (el) {
+                    return el.require.indexOf(vm.filter) > -1
+                })
+
+                vm.showing = result.length
+
+                return result
+            },
+            getColour: function(require) {
+                switch(require.state) {
+                    case "+": return "bg-green"
+                    case "=": return "bg-gray"
+                    case "-": return "bg-red"
+                }
+            }
+        },
+        created: function() {
+            var vm = this
+
+            var lines = vm.delta.split('\\n');
+
+            var re = /^(\\W) (?!\\#.*\$)(.*) -> (.*) \\((.*)\\)/;
+
+            lines.forEach(function callback(it) {
+                var matches = re.exec(it);
+
+                if (matches === null) {
+                    return;
+                }
+
+                var inv = {
+                    state: matches[1],
+                    require: matches[2],
+                    broadcast: matches[3],
+                    id: matches[4],
+                    index: -1,
+                    children: [],
+                    parent: null,
+                    sort: ""
+                }
+
+                if (vm.all[inv.require] === undefined) {
+                    vm.all[inv.require] = []
+                }
+                vm.all[inv.require].push(inv)
+            })
+
+            var resolved = function(require, broadcast) {
+                if (require.parent !== null) {
+
+                    var index = require.parent.children.indexOf(require.require);
+                    if (index > -1) {
+                        require.parent.children.splice(index, 1)
+                    }
+                }
+
+                require.index = broadcast.index + 1
+                require.parent = broadcast
+                broadcast.children.push(require.require)
+
+                console.log("Matched " + require.require + " with " + broadcast.require)
+            }
+
+            // Resolve level of invs
+            for (var key in vm.all) {
+                var value = vm.all[key];
+
+                value.forEach(function callback(it) {
+                    (function resolver (require, data) {
+                        if (data.index > -1) {
+                            // Already resolved
+                            return;
+                        }
+
+                        if (data.broadcast === "not-existing") {
+                            // Not existing
+                            return;
+                        }
+
+                        if (vm.all[data.broadcast] === undefined) {
+                            var notExisting = {
+                                state: data.state,
+                                require: data.broadcast,
+                                broadcast: "not-existing",
+                                id: data.id,
+                                index: -1,
+                                children: [],
+                                parent: null,
+                                sort: ""
+                            }
+
+                            if (vm.all[data.broadcast] === undefined) {
+                                vm.all[data.broadcast] = []
+                            }
+
+                            vm.all[data.broadcast].push(notExisting)
+
+                            resolved(data, notExisting)
+
+                            return
+                        }
+
+                        var broadcasts = vm.all[data.broadcast]
+
+                        broadcasts.forEach(function callback(broadcast) {
+                            if (broadcast.index < 0) {
+                                resolver(data.broadcast, broadcast)
+                            }
+
+                            if (broadcast.index + 1 > data.index) {
+                                resolved(data, broadcast)
+                            }
+                        })
+
+
+                    })(key, it)
+                })
+            }
+
+            var index = {}
+            for (var key in vm.all) {
+                var value = vm.all[key];
+
+                value.forEach(function callback(inv) {
+
+                    // get sorting data
+                    var parent = inv.parent
+                    while(parent !== null) {
+                        inv.sort = parent.require + ">" + inv.sort
+                        parent = parent.parent
+                    }
+
+                    inv.sort += inv.require
+
+                    if (index[inv.require] === undefined) {
+                        index[inv.require] = inv
+                        return
+                    }
+
+                    if (index[inv.require].index >= inv.index) {
+                        return
+                    }
+
+                    index[inv.require] = inv
+                })
+            }
+
+            vm.preSorted = Object
+                .values(index)
+                .sort(function (a, b) {
+                    return ('' + a.sort).localeCompare(b.sort);
+                })
+
+            vm.total = vm.preSorted.length
+        }
+    })
+
+
+
+
+
+</script>
+</body>
+</html>

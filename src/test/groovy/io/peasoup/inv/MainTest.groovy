@@ -73,6 +73,8 @@ class MainTest {
         println "\nTest selecting 'delta': "
         System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
         Main.main("-d", logOutput.path)
+
+        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
         Main.main("--delta", logOutput.path)
     }
 

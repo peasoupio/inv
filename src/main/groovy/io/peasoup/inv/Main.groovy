@@ -1,6 +1,7 @@
 package io.peasoup.inv
 
 import groovy.cli.commons.CliBuilder
+import groovy.text.SimpleTemplateEngine
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
@@ -51,8 +52,6 @@ Commands:
                 },
                 argName:'file',
                 'Generate a delta from a recent execution in stdin compared to a previous execution')
-
-        cli.usage()
 
         def options = cli.parse(args)
 
@@ -138,7 +137,26 @@ Commands:
     }
 
     int delta(File arg1, List<String> args) {
-        new DeltaGraph(arg1.newReader(), System.in.newReader()).print()
+        def output = new DeltaGraph(arg1.newReader(), System.in.newReader()).print()
+
+        print(output)
+
+        def templateEngine = new SimpleTemplateEngine()
+        def htmlReport = Main.class.getResource("/delta-report.template.html")
+
+        def htmlOutput = new File("./reports/${arg1.name}.html")
+
+        htmlOutput.mkdirs()
+
+        if (htmlOutput.exists())
+            htmlOutput.delete()
+
+        htmlOutput << templateEngine.createTemplate(htmlReport.text).make([
+                now: new Date().toString(),
+                beforeFile: arg1.name,
+                lines: output.split(System.lineSeparator())
+        ])
+
         return 0
     }
 

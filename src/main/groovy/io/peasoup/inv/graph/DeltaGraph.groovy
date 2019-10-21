@@ -86,8 +86,8 @@ class DeltaGraph {
     }
 
     String print() {
-        print """    
-# Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
+        // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
+        return """    
 ${
     // Shared nodes and edges
     sharedEdges

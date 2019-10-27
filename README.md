@@ -21,13 +21,16 @@ Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/re
 usage: inv [commands]
 Sequence and manage INV groovy files or logs.
 Commands:
- <file>                 Execute a single groovy file
- <pattern>              Execute an Ant-compatible file pattern
-                        (p.e *.groovy, ./**/*.groovy, ...)
- -d,--delta <file>      Generate a delta from a recent execution in stdin
-                        compared to a previous execution
- -g,--graph <type>      Print the graph from stdin of a previous execution
- -s,--from-scm <file>   Process the SCM file to extract or update sources
+ <file>                      Execute a single groovy file
+ <pattern>                   Execute an Ant-compatible file pattern
+                             (p.e *.groovy, ./**/*.groovy, ...)
+ -d,--delta <previousFile>   Generate a delta from a recent execution in
+                             stdin compared to a previous execution
+ -g,--graph <type>           Print the graph from stdin of a previous
+                             execution
+ -h,--html                   Output generates an HTML file
+ -s,--from-scm <file>        Process the SCM file to extract or update
+                             sources
 ```
 
 ## Quick example:

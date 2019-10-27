@@ -1,91 +1,93 @@
 package io.peasoup.inv.graph
 
+import groovy.text.SimpleTemplateEngine
+
 class DeltaGraph {
 
     final private static lf = System.properties['line.separator']
 
-    Map beforeNodes = [:]
-    Map beforeEdges = [:]
+    Map previousNodes = [:]
+    Map previousEdges = [:]
 
-    Map afterNodes = [:]
-    Map afterEdges = [:]
+    Map currentNodes = [:]
+    Map currentEdges = [:]
 
     Map sharedNodes = [:]
     Map sharedEdges = [:]
 
-    DeltaGraph(BufferedReader before, BufferedReader after) {
+    DeltaGraph(BufferedReader previous, BufferedReader current) {
 
-        def beforePlainGraph = new PlainGraph(before)
-        def afterPlainGraph = new PlainGraph(after)
+        def beforePlainGraph = new PlainGraph(previous)
+        def afterPlainGraph = new PlainGraph(current)
 
-        beforeNodes += beforePlainGraph.nodes
-        beforeEdges += beforePlainGraph.edges
+        previousNodes += beforePlainGraph.nodes
+        previousEdges += beforePlainGraph.edges
 
-        afterNodes += afterPlainGraph.nodes
-        afterEdges += afterPlainGraph.edges
+        currentNodes += afterPlainGraph.nodes
+        currentEdges += afterPlainGraph.edges
 
 
         // Calculate shared nodes
-        beforeNodes.each { String name, HashSet<Map> edges ->
-            if (!afterNodes[name])
+        previousNodes.each { String name, HashSet<Map> edges ->
+            if (!currentNodes[name])
                 return
 
-            def afterNode = afterNodes[name] as List<Map>
+            def currentNode = currentNodes[name] as List<Map>
 
-            if (edges.size() != afterNode.size())
+            if (edges.size() != currentNode.size())
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                Map beforeEdge = edges[i]
-                Map afterEdge = afterNode[i]
+                Map previousEdge = edges[i]
+                Map afterEdge = currentNode[i]
 
-                if (!beforeEdge.equals(afterEdge))
+                if (!previousEdge.equals(afterEdge))
                     continue
 
                 if (!sharedNodes.containsKey(name))
                     sharedNodes << [(name): new HashSet<>()]
 
-                sharedNodes[name] << beforeEdge
+                sharedNodes[name] << previousEdge
             }
         }
 
         // Calculate shared edges
-        beforeEdges.clone().each { String name, HashSet<Map> edges ->
-            if (!afterEdges[name])
+        previousEdges.clone().each { String name, HashSet<Map> edges ->
+            if (!currentEdges[name])
                 return
 
-            def afterNode = afterEdges[name] as List<Map>
+            def previousNode = currentEdges[name] as List<Map>
 
-            if (edges.size() != afterNode.size())
+            if (edges.size() != previousNode.size())
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                Map beforeEdge = edges[i]
-                Map afterEdge = afterNode[i]
+                Map currentEdge = edges[i]
+                Map previousEdge = previousNode[i]
 
-                if (!beforeEdge.equals(afterEdge))
+                if (!currentEdge.equals(previousEdge))
                     continue
 
                 if (!sharedEdges.containsKey(name))
                     sharedEdges << [(name): new HashSet<>()]
 
-                sharedEdges[name] << beforeEdge
+                sharedEdges[name] << currentEdge
             }
 
             // Remove all matched
             edges.removeAll(sharedEdges[name])
-            afterNode.removeAll(sharedEdges[name])
+            previousNode.removeAll(sharedEdges[name])
 
             // Delete if empty - no need
             if (edges.isEmpty())
-                beforeEdges.remove(name)
+                previousEdges.remove(name)
 
-            if (afterNode.isEmpty())
-                afterEdges.remove(name)
+            if (previousNode.isEmpty())
+                currentEdges.remove(name)
         }
     }
 
-    String print() {
+    String echo() {
         // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
         return """    
 ${
@@ -99,8 +101,8 @@ ${
         .join(lf)
 }
 ${
-    // Deleted nodes and edges (present before, but not present after)
-    beforeEdges
+    // Deleted nodes and edges (in previous, not in current)
+    previousEdges
         .collectMany { String owner, Set edges ->
             edges.collect { Map edge ->
                 "- ${owner} -> ${edge.owner} (${edge.broadcast})"
@@ -109,8 +111,8 @@ ${
         .join(lf)
 }
 ${
-    // Added nodes and edges (not present before, but present after)
-    afterEdges
+    // Added nodes and edges (not in previous, but in current)
+    currentEdges
         .collectMany { String owner, Set edges ->
             edges.collect { Map edge ->
                 "+ ${owner} -> ${edge.owner} (${edge.broadcast})"
@@ -120,6 +122,28 @@ ${
 }
 """
 
+    }
+
+    String html(String previousFilename) {
+
+
+        def templateEngine = new SimpleTemplateEngine()
+        def htmlReport = this.class.getResource("/delta-report.template.html")
+
+        def htmlOutput = new File("./reports/${previousFilename}.html")
+
+        htmlOutput.mkdirs()
+
+        if (htmlOutput.exists())
+            htmlOutput.delete()
+
+        htmlOutput << templateEngine.createTemplate(htmlReport.text).make([
+                now: new Date().toString(),
+                previousFile: previousFilename,
+                lines: echo().split(System.lineSeparator())
+        ])
+
+        return "Report generated at: ${htmlOutput.canonicalPath}"
     }
 
 }

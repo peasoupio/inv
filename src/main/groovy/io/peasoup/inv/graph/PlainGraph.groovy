@@ -79,8 +79,8 @@ class PlainGraph {
 
     }
 
-    String print() {
-        print """    
+    String echo() {
+        return """    
 # Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
 ${
     edges

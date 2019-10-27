@@ -1,7 +1,6 @@
 package io.peasoup.inv
 
 import groovy.cli.commons.CliBuilder
-import groovy.text.SimpleTemplateEngine
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
@@ -53,7 +52,21 @@ Commands:
                 argName:'file',
                 'Generate a delta from a recent execution in stdin compared to a previous execution')
 
+        cli.d(
+                longOpt:'delta',
+                convert: {
+                    new File(it)
+                },
+                argName:'previousFile',
+                'Generate a delta from a recent execution in stdin compared to a previous execution')
+
+        cli.h(
+                longOpt:'html',
+                'Output generates an HTML file')
+
         def options = cli.parse(args)
+
+        boolean hasHtml = options.hasOption("h")
 
         if (options.hasOption("g"))
             return buildGraph(options.g, options.arguments())
@@ -62,7 +75,7 @@ Commands:
             return launchFromSCM(options.s, options.arguments())
 
         if (options.hasOption("d"))
-            return delta(options.d, options.arguments())
+            return delta(hasHtml: hasHtml, options.d)
 
         return executeScript( options.arguments().pop(), options.arguments())
     }
@@ -128,34 +141,22 @@ Commands:
 
         switch (arg1.toLowerCase()) {
             case "plain" :
-                new PlainGraph(System.in.newReader()).print()
+                print(new PlainGraph(System.in.newReader()).echo())
                 return 0
             case "dot":
-                new DotGraph(System.in.newReader()).print()
+                print(new DotGraph(System.in.newReader()).echo())
                 return 0
         }
     }
 
-    int delta(File arg1, List<String> args) {
-        def output = new DeltaGraph(arg1.newReader(), System.in.newReader()).print()
+    int delta(Map args, File arg1) {
 
-        print(output)
+        def delta = new DeltaGraph(arg1.newReader(), System.in.newReader())
 
-        def templateEngine = new SimpleTemplateEngine()
-        def htmlReport = Main.class.getResource("/delta-report.template.html")
-
-        def htmlOutput = new File("./reports/${arg1.name}.html")
-
-        htmlOutput.mkdirs()
-
-        if (htmlOutput.exists())
-            htmlOutput.delete()
-
-        htmlOutput << templateEngine.createTemplate(htmlReport.text).make([
-                now: new Date().toString(),
-                beforeFile: arg1.name,
-                lines: output.split(System.lineSeparator())
-        ])
+        if (args.hasHtml)
+            print(delta.html(arg1.name))
+        else
+            print(delta.echo())
 
         return 0
     }

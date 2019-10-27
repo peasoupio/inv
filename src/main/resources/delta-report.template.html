@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Delta report from ${beforeFile}</title>
+    <title>Delta report from ${previousFile}</title>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
 
@@ -13,11 +13,11 @@
     <style>
         .red { color: red; }
         .green { color: green; }
-        .black { color: gray; }
+        .gray { color: gray; }
 
         .bg-red { background: #ff00002e; }
         .bg-green { background: #0080003b; }
-        .bg-black { background: gray; }
+        .bg-gray {  }
 
         pre {
             background-color: #10101005;
@@ -31,7 +31,7 @@
 </head>
 <body>
     <div id="container" style="padding: 1em">
-        <h1 class="title">INV - Delta report from ${beforeFile}</h1>
+        <h1 class="title">INV - Delta report from ${previousFile}</h1>
 
         <div class="control">
             <input class="input" type="text" v-model="filter" placeholder="Search by name" />

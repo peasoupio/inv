@@ -15,8 +15,8 @@ class DotGraph {
         edges += plainGraph.edges
     }
 
-    String print() {
-        print """
+    String echo() {
+        return """
 digraph inv {
 ${
     edges.keySet()

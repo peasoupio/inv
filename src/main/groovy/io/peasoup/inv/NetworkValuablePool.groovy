@@ -1,9 +1,6 @@
 package io.peasoup.inv
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
+import java.util.concurrent.*
 
 class NetworkValuablePool {
 
@@ -27,7 +24,7 @@ class NetworkValuablePool {
     List<Inv> digest() {
 
         List<Inv> invsDone = []
-        Collection<NetworkValuable> toResolve = [].asSynchronized()
+        List<NetworkValuable> toResolve = []
 
         invExecutor = Executors.newFixedThreadPool(4)
         List<Future> futures = []
@@ -40,9 +37,12 @@ class NetworkValuablePool {
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
             if (runningState == RUNNING) {
-                futures << invExecutor.submit({->
-                    toResolve += inv.digest(this)
-                })
+
+                def pool = this
+
+                futures << invExecutor.submit( {
+                    return inv.digest(pool)
+                } as Callable )
             } else {
                 // If so, execute right now
                 toResolve += inv.digest(this)
@@ -51,7 +51,9 @@ class NetworkValuablePool {
 
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
-            futures.each { it.get() }
+            futures.each {
+                toResolve += it.get()
+            }
         }
 
         // If running in halted mode, no need to broadcasts

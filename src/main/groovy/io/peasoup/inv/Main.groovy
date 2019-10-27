@@ -23,9 +23,9 @@ class Main extends Script {
         def cli = new CliBuilder(usage:'''inv [commands]
 Sequence and manage INV groovy files or logs.
 Commands: 
- <file>                 Execute a single groovy file
- <pattern>              Execute an Ant-compatible file pattern
-                        (p.e *.groovy, ./**/*.groovy, ...)
+ <file>                      Execute a single groovy file
+ <pattern>                   Execute an Ant-compatible file pattern
+                             (p.e *.groovy, ./**/*.groovy, ...)
 ''')
 
         cli.g(

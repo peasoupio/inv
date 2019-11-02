@@ -39,7 +39,6 @@ class InvHandler {
 
         int count = 0
         List<Inv> digested = []
-
         boolean haltInProgress = false
 
         Logger.info "---- [DIGEST] started ----"
@@ -58,19 +57,19 @@ class InvHandler {
                 inv.ready()
             }
 
+            // Run for eternity
             while (true) {
 
                 // has no more work to do
                 if (pool.isEmpty())
                     break
 
-
                 Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState()}) ----"
-                // TODO Might make a fori loop for performance
-                for (Inv digest : pool.digest()) {
-                    digested.add(digest)
-                }
 
+                // Get the next digested invs and stack them in the list
+                digested.addAll(pool.digest())
+
+                // If we were running a HALTING cycle, break the eternity loop
                 if (haltInProgress) {
                     // Reset state and break loop
                     pool.runningState() == pool.RUNNING

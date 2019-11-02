@@ -13,6 +13,8 @@ class Logger {
      */
     public static boolean DebugModeEnabled = false
 
+    private static List captureList = null
+    private static Closure captureClosure = null
     private static def logger = java.util.logging.Logger.getLogger("inv")
 
 
@@ -22,7 +24,16 @@ class Logger {
         consoleHandler.setFormatter(new SimpleFormatter() {
                 @Override
                 String format(LogRecord lr) {
-                    return lr.getMessage() + "\n"
+
+                    def message = lr.getMessage()
+
+                    if (captureList != null)
+                        captureList << message
+
+                    if (captureClosure)
+                        captureClosure.call(message)
+
+                    return message + "\n"
                 }
             })
 
@@ -46,5 +57,18 @@ class Logger {
         logger.info "[WARN] ${arg}"
     }
 
+    static Object capture(Object value) {
 
+        // Reset both so only one works at the time
+        captureClosure = null
+        captureList = null
+
+        if (value instanceof List)
+            captureList = value
+
+        if (value instanceof Closure)
+            captureClosure = value
+
+        return value
+    }
 }

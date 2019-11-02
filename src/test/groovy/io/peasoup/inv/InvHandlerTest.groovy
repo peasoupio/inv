@@ -278,6 +278,58 @@ class InvHandlerTest {
     }
 
     @Test
+    void call_using_step_unbloating_and_broadcast_after() {
+
+
+        inv {
+            name "my-webservice"
+
+
+            require inv.Server("my-server-id")
+
+            step {
+                broadcast inv.Endpoint using {
+                    id "my-webservice-id"
+                    ready {
+                        return "http://my.endpoint.com"
+                    }
+                }
+            }
+        }
+
+        inv {
+            name "my-app"
+
+            require inv.Endpoint("my-unbloatable-ws-id") using {
+                unbloatable true
+            }
+
+            step {
+                broadcast inv.App("my-app-id")
+            }
+        }
+
+        inv {
+            name "my-server"
+
+            broadcast inv.Server using {
+                id "my-server-id"
+                ready {
+                    println "my-server-id has been broadcast"
+                }
+            }
+        }
+
+        inv {
+            name "my-other-app"
+
+            require inv.App("my-app-id")
+        }
+
+        inv()
+    }
+
+    @Test
     void ready() {
 
         def value = 1

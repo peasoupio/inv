@@ -5,7 +5,7 @@ import groovy.text.SimpleTemplateEngine
 
 class ScmReader {
 
-    private final Map scm
+    final Map<String, Repository> scm
 
     ScmReader(File scmFile) {
         this(scmFile.newReader())
@@ -14,12 +14,12 @@ class ScmReader {
     ScmReader(Reader reader) {
 
         // Parse JSON file into object
-        scm = new JsonSlurper().parse(reader)
+        Map json = new JsonSlurper().parse(reader)
 
         // For each SCM, we parse hooks using a template engine
         def templateEngine = new SimpleTemplateEngine()
 
-        scm.each { String name, Map repository ->
+        scm = json.collectEntries { String name, Map repository ->
 
             if (!repository.hooks)
                 return
@@ -30,66 +30,84 @@ class ScmReader {
                 env:  System.getenv()
             ]
 
-            repository.path = binding.path =
-                    new File(
-                            templateEngine.createTemplate(repository.path).make(binding).toString()
-                    ).canonicalPath
+            binding.path = new File(templateEngine.createTemplate(repository.path).make(binding).toString())
 
-            repository.hooks = repository.hooks.collectEntries { String hookName, List<String> commands ->
-                [
-                    (hookName):
+            return [(name): new Repository(
+                name: binding.name,
+                path: binding.path,
+                src: repository.src,
+                entry: repository.entry ?: "",
+                timeout: repository.timeout,
+                hooks: repository.hooks.collectEntries { String hookName, List<String> commands -> [(hookName):
                     commands.collect { String command ->
                         templateEngine.createTemplate(command).make(binding)
                             .toString()
                             .replace("\\", "/") // normalize path
                     }
-                ]
-            }
-
+                ]}
+            )]
         }
     }
 
     Map<String, File> execute() {
 
-        return scm.collectEntries { String name, Map repository ->
+        return scm.collectEntries { String name, Repository repository ->
 
             if (!repository.hooks)
                 return
 
-            File path = new File(repository.path)
-
-            if (!path.exists()) {
+            if (!repository.path.exists()) {
 
                 Logger.info("[SCM] ${name} [INIT] start")
-                executeCommands path, repository.hooks["init"]
+                executeCommands repository, repository.hooks["init"]
                 Logger.info("[SCM] ${name} [INIT] done")
             } else {
 
                 Logger.info("[SCM] ${name} [UPDATE] start")
-                executeCommands path, repository.hooks["update"]
+                executeCommands repository, repository.hooks["update"]
                 Logger.info("[SCM] ${name} [UPDATE] done")
             }
 
-            return [(name): new File(path, repository.entry)]
+            return [(name): new File(repository.path, repository.entry)]
         }
     }
 
-    private void executeCommands(File path, List<String> commands) {
+    private void executeCommands(Repository repository, List<String> commands) {
 
-        def shFile = new File(path.parent, ".scm-sh")
-
+        // Create file and dirs for the SH file
+        def shFile = new File(repository.path.parent, ".scm-sh")
         shFile.mkdirs()
 
+        // Make sure we're using the latest version of the commands
         if (shFile.exists())
             shFile.delete()
 
+        // Stack them into the SH file
         commands.each {
             shFile << it
             shFile << System.lineSeparator()
         }
 
-        def process = "sh ${shFile.canonicalPath}".execute()
+        // Calling the SH file with the commands in it
+        // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
+        def cmd = "sh ${shFile.canonicalPath}"
+        def process = cmd.execute(null, new File(repository.path.parent))
+
+        Logger.debug cmd
+
+        // Consome output and wait until done.
         process.consumeProcessOutput(System.out, System.err)
-        process.waitForOrKill(60000) //TODO Needs to bo configurable from the SCM file
+        process.waitForOrKill(repository.timeout ?: 60000)
+    }
+
+    private static class Repository {
+
+        String name
+        File path
+        String src
+        String entry
+        Integer timeout
+
+        Map<String, List<String>> hooks
     }
 }

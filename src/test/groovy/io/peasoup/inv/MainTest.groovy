@@ -1,28 +1,45 @@
 package io.peasoup.inv
 
-import org.junit.Ignore
+import io.peasoup.inv.utils.Stdout
+import org.junit.After
 import org.junit.Test
 
 class MainTest {
 
+    @After
+    void after() {
+        Logger.capture(null)
+    }
+
     @Test
     void main() {
-        def script = MainTest.class.getResource("/mainTestScript.groovy")
+        // Enable capture
+        def logs = Logger.capture([])
 
+        def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
 
+        def canonicalPath = InvInvoker.normalizePath(new File(script.path))
+
         Main.main(script.path)
+
+        assert logs.contains("[INV] file: ${canonicalPath}".toString())
     }
 
     @Test
     void main_with_pattern() {
-        def script = MainTest.class.getResource("/mainTestScript.groovy")
+        // Enable capture
+        def logs = Logger.capture([])
 
+        def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
 
         def scriptParentFile = new File(script.path).parent
+        def canonicalPath = InvInvoker.normalizePath(new File(script.path))
 
         Main.main(scriptParentFile + "/mainTestScript.*")
+
+        assert logs.contains("[INV] file: ${canonicalPath}".toString())
     }
 
     @Test
@@ -46,21 +63,29 @@ class MainTest {
         println "\nTest selecting 'dot': "
         System.setIn(new ByteArrayInputStream(logOutput.bytes))
         Main.main("--graph", "dot")
-
-        /*
-
-         */
     }
 
     @Test
-    @Ignore // Test is not relevant the way it's written
     void main_launchScm() {
-        def scmFile = MainTest.class.getResource("/.scm")
+        Logger.DebugModeEnabled = true
 
+        def scmFile = MainTest.class.getResource("/test.scm")
         assert scmFile
 
-        Main.main("-s", scmFile.path)
-        Main.main("--from-scm", scmFile.path)
+        def comparable = new ScmReader(new File(scmFile.path).newReader())
+        assert comparable.scm["my-repository"]
+
+        // Remove to make sure we trigger init
+        if (comparable.scm["my-repository"].path.exists())
+            comparable.scm["my-repository"].path.deleteDir()
+
+        Stdout.capture ({ Main.main("-s", scmFile.path) }, {
+            assert it.contains("init")
+        })
+
+        Stdout.capture ({ Main.main("--from-scm", scmFile.path) }, {
+            assert it.contains("update")
+        })
     }
 
     @Test

@@ -126,6 +126,12 @@ Commands:
         def inv = new InvHandler()
 
         invFiles.each { String name, File script ->
+
+            if (!script.exists()) {
+                Logger.warn "${script.canonicalPath} does not exist. Won't run."
+                return
+            }
+
             Logger.info("file: ${script.canonicalPath}")
             InvInvoker.invoke(inv, script, name)
         }

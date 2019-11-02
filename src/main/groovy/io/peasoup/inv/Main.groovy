@@ -104,8 +104,8 @@ Commands:
 
                 invHome = lookupFile.parent ?: "."
                 invFiles = new FileNameFinder().getFileNames(
-                        new File(invHome).absolutePath,
-                        new File(lookupPattern).absolutePath.replace(new File(invHome).absolutePath, ""))
+                        new File(invHome).canonicalPath,
+                        new File(lookupPattern).absolutePath.replace(new File(invHome).canonicalPath, ""))
             }
 
             invFiles.each {

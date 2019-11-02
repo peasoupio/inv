@@ -35,7 +35,7 @@ class InvHandler {
         pool.remainingsInv << inv
     }
 
-    List<Inv> call() {
+    def call() {
 
         int count = 0
         List<Inv> digested = []
@@ -92,7 +92,7 @@ class InvHandler {
         // Shutdown pool executor if still running
         pool.shutdown()
 
-        return digested
+        return [digested, !haltInProgress]
     }
 }
 

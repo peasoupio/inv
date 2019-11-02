@@ -35,6 +35,6 @@ class DotGraphTest {
         assert plainGraph.edges["ServerA"].isEmpty()
         assert plainGraph.edges["ServerB"].isEmpty()
 
-        plainGraph.print()
+        plainGraph.echo()
     }
 }

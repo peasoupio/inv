@@ -2,7 +2,7 @@ package io.peasoup.inv
 
 class InvInvoker {
 
-    static void invoke(InvDescriptor inv, File scriptPath) {
+    static void invoke(InvHandler inv, File scriptPath) {
         assert inv
         assert scriptPath
 
@@ -11,7 +11,7 @@ class InvInvoker {
         invoke(inv, scriptPath.text, scriptFile, scriptFile)
     }
 
-    static void invoke(InvDescriptor inv, File scriptPath, String className) {
+    static void invoke(InvHandler inv, File scriptPath, String className) {
         assert inv
         assert scriptPath
 
@@ -20,7 +20,7 @@ class InvInvoker {
         invoke(inv, scriptPath.text, scriptFile, className)
     }
 
-    static void invoke(InvDescriptor inv, String text, String filepath, String filename) {
+    static void invoke(InvHandler inv, String text, String filepath, String filename) {
         assert inv
         assert text
         assert filename

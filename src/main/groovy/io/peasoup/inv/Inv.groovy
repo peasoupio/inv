@@ -7,7 +7,7 @@ class Inv {
 
     boolean sync = true
 
-    final InvDelegate delegate = new InvDelegate()
+    final InvDescriptor delegate = new InvDescriptor()
 
     final List<NetworkValuable> remainingValuables = [].asSynchronized()
     final List<NetworkValuable> totalValuables = [].asSynchronized()

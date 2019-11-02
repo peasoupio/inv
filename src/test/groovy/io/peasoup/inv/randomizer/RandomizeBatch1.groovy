@@ -1,27 +1,26 @@
 package io.peasoup.inv.randomizer
 
-import io.peasoup.inv.InvDescriptor
+import io.peasoup.inv.InvHandler
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 
 class RandomizeBatch1 {
 
-    InvDescriptor inv
+    InvHandler inv
 
     @Before
     void setup() {
         ExpandoMetaClass.enableGlobally()
-        inv = new InvDescriptor()
+        inv = new InvHandler()
     }
 
     @Test
     void randomize_batch_1() {
 
         // main parameters
-        def totalInv = 10000
-        def maxRequire = 200
-
+        def totalInv = 100
+        def maxRequire = 10
         // state vars
         Map invs = [:]
 

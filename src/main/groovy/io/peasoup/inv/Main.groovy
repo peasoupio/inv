@@ -81,7 +81,7 @@ Commands:
     }
 
     int executeScript(String arg0, List<String> args) {
-        def inv = new InvDescriptor()
+        def inv = new InvHandler()
         def lookupPattern = arg0
         def lookupFile = new File(lookupPattern)
 
@@ -123,7 +123,7 @@ Commands:
 
         def invFiles = new ScmReader(arg1).execute()
 
-        def inv = new InvDescriptor()
+        def inv = new InvHandler()
 
         invFiles.each { String name, File script ->
             Logger.info("file: ${script.canonicalPath}")

@@ -61,7 +61,8 @@ class InvHandlerTest {
         }
 
 
-        def digested = inv()
+        def (List digested, Boolean success) = inv()
+        assert success
 
         assert digested.size() == 3
         assert digested[0].name == "my-server"
@@ -109,7 +110,8 @@ class InvHandlerTest {
         }
 
 
-        def digested = inv()
+        def (List digested, Boolean success) = inv()
+        assert !success
 
         assert digested.size() == 2
         assert digested[0].name == "my-server"
@@ -167,7 +169,8 @@ class InvHandlerTest {
         }
 
 
-        def digested = inv()
+        def (List digested, Boolean success) = inv()
+        assert success
 
         digested
             .findAll { it.name.contains("my-webservice") }
@@ -184,7 +187,6 @@ class InvHandlerTest {
         inv {
             name "my-webservice"
 
-
             require inv.Server("my-server-id")
 
             step {
@@ -200,12 +202,12 @@ class InvHandlerTest {
         inv {
             name "my-app"
 
-            require inv.Endpoint(id: "my-webservice-id") into '$ep'
+            require inv.Endpoint("my-webservice-id") into '$ep'
 
             step {
                 broadcast inv.App("my-app-id") using {
                     ready {
-                        print "My App is hosted here: ${ep}"
+                        print "My App is hosted here: ${$ep}"
                     }
                 }
             }
@@ -222,7 +224,8 @@ class InvHandlerTest {
             }
         }
 
-        inv()
+        def (List invs, Boolean success) = inv()
+        assert success
     }
 
     @Test
@@ -274,7 +277,8 @@ class InvHandlerTest {
             }
         }
 
-        inv()
+        def (List invs, Boolean success) = inv()
+        assert success
     }
 
     @Test
@@ -326,7 +330,8 @@ class InvHandlerTest {
             require inv.App("my-app-id")
         }
 
-        inv()
+        def (List invs, Boolean success) = inv()
+        assert success
     }
 
     @Test
@@ -357,13 +362,13 @@ class InvHandlerTest {
         inv {
             name "my-app"
 
-            require inv.Endpoint(id: "my-webservice-id") into '$ep'
+            require inv.Endpoint("my-webservice-id") into '$ep'
 
             step {
                 broadcast inv.App("my-app-id") using {
                     ready {
                         value++
-                        print "My App is hosted here: ${ep}"
+                        print "My App is hosted here: ${$ep}"
                     }
                 }
             }
@@ -381,7 +386,8 @@ class InvHandlerTest {
             }
         }
 
-        inv()
+        def (List invs, Boolean success) = inv()
+        assert success
     }
 
     @Test
@@ -414,6 +420,7 @@ class InvHandlerTest {
                     }
             }
 
-        inv()
+        def (List invs, Boolean success) = inv()
+        assert success
     }
 }

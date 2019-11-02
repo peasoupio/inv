@@ -95,7 +95,7 @@ class NetworkValuablePool {
         // If running in halted mode, no need to broadcasts
         // It is only required to unresolved requirements.
         if (runningState == HALTING) {
-            return null
+            return []
         }
 
         // Batch all require resolve at once

@@ -8,16 +8,17 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/bulma-pageloader/dist/css/bulma-pageloader.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 
     <style>
-        .red { color: red; }
-        .green { color: green; }
-        .gray { color: gray; }
+        .removed { color: red; }
+        .added { color: green; }
+        .same { color: gray; }
 
-        .bg-red { background: #ff00002e; }
-        .bg-green { background: #0080003b; }
-        .bg-gray {  }
+        .bg-removed { background: #ff00002e; }
+        .bg-added { background: #0080003b; }
+        .bg-same {  }
 
         pre {
             background-color: #10101005;
@@ -27,35 +28,51 @@
             padding-left: 5px;
             padding-right: 0;
         }
+
+        [v-cloak] {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div id="container" style="padding: 1em">
-        <h1 class="title">INV - Delta report from ${previousFile}</h1>
-
-        <div class="control">
-            <input class="input" type="text" v-model="filter" placeholder="Search by name" />
+        <div class="pageloader is-active" v-if="preSorted.length === 0">
+            <span class="title">Loading...</span>
         </div>
+        <div v-cloak>
+            <h1 class="title">INV - Delta report from ${previousFile}</h1>
 
-        <p class="has-text-centered">Showing: {{showing}}/{{total}}</p>
-
-        <div style="margin: 1em">
-            <div v-for="(inv, index) in sort()">
-                <div class="columns">
-                    <div class="column">
-                        <p class="has-text-right has-text-weight-semibold" v-bind:class="[getColour(inv)]">#{{index + 1}}</p>
-                    </div>
-                    <div class="column is-11 inv" style="background-color: #f5f5f5">
-                        <require-branch v-model="inv"></require-branch>
-                    </div>
-                </div>
-
+            <div class="control">
+                <input class="input" type="text" v-model="filter" placeholder="Search by name" />
             </div>
-        </div>
 
-        <div class="has-text-centered">
-            Colour guide : <strong style="color: green">Added</strong> <strong style="color: gray">Same</strong> <strong style="color: red">Removed</strong> </br>
-            <span>generated on ${now}</span>
+            <p class="has-text-centered">
+                Showing: {{showing}}/{{total}} <br />
+                Colour guide :
+                    <strong class="added" v-on:click="filterState('+')">Added</strong>
+                    <strong class="same" v-on:click="filterState('=')">Same</strong>
+                    <strong class="removed" v-on:click="filterState('-')">Removed</strong>
+            </p>
+
+
+            <div style="margin: 1em">
+                <div v-for="(inv, index) in sort()">
+                    <div class="columns">
+                        <div class="column">
+                            <p class="has-text-right has-text-weight-semibold" v-bind:class="[getColour(inv)]">#{{index + 1}}</p>
+                        </div>
+                        <div class="column is-11 inv" style="background-color: #f5f5f5">
+                            <require-branch v-model="inv"></require-branch>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="has-text-centered">
+                Colour guide : <strong style="color: green">Added</strong> <strong style="color: gray">Same</strong> <strong style="color: red">Removed</strong> </br>
+                <span>generated on ${now}</span>
+            </div>
         </div>
     </div>
 
@@ -74,9 +91,9 @@
             },
             getColour: function(require) {
                 switch(require.state) {
-                    case "+": return "green"
-                    case "=": return "gray"
-                    case "-": return "red"
+                    case "+": return "added"
+                    case "=": return "same"
+                    case "-": return "removed"
                 }
             }
         },
@@ -88,27 +105,37 @@
     new Vue({
         el: '#container',
         data: {
-            delta: `
-                ${lines.join("\n")}
-            `,
+            delta: `${lines.join(",")}`,
             all: {},
             preSorted: [],
             showing: 0,
             total: 0,
-            filter: ""
+            filter: "",
+            stateFilter: ""
         },
         methods: {
             sort: function() {
                 var vm = this
 
-                if (vm.filter === "") {
+                if (vm.filter === "" &&
+                    vm.stateFilter === "") {
                     vm.showing = vm.preSorted.length
                     return vm.preSorted
                 }
 
-                var result = vm.preSorted.filter(function (el) {
-                    return el.require.indexOf(vm.filter) > -1
-                })
+                var result = vm.preSorted
+
+                if (vm.stateFilter !== "") {
+                    result = vm.preSorted.filter(function (el) {
+                        return el.require.indexOf(vm.filter) > -1
+                    });
+                }
+
+                if (vm.stateFilter !== "") {
+                    result = vm.preSorted.filter(function (el) {
+                        return el.state === vm.stateFilter
+                    });
+                }
 
                 vm.showing = result.length
 
@@ -116,16 +143,24 @@
             },
             getColour: function(require) {
                 switch(require.state) {
-                    case "+": return "bg-green"
-                    case "=": return "bg-gray"
-                    case "-": return "bg-red"
+                    case "+": return "bg-added"
+                    case "=": return "bg-same"
+                    case "-": return "bg-removed"
                 }
+            },
+            filterState: function(newState) {
+                if (this.stateFilter === newState) {
+                    this.stateFilter = ""
+                    return
+                }
+
+                this.stateFilter = newState
             }
         },
         created: function() {
             var vm = this
 
-            var lines = vm.delta.split('\\n');
+            var lines = vm.delta.split(',');
 
             var re = /^(\\W) (?!\\#.*\$)(.*) -> (.*) \\((.*)\\)/;
 
@@ -165,8 +200,6 @@
                 require.index = broadcast.index + 1
                 require.parent = broadcast
                 broadcast.children.push(require.require)
-
-                console.log("Matched " + require.require + " with " + broadcast.require)
             }
 
             // Resolve level of invs

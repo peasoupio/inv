@@ -5,6 +5,8 @@ Intertwined network valuables
 
 Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/releases/download/0.4-beta/inv-0.4-beta-SNAPSHOT.zip)  
 
+![Travis build status](https://travis-ci.org/peasoupio/inv.svg?branch=feature%2F0.4-beta "Travis build status")
+
 #### Maven coordinates:
 
 ```

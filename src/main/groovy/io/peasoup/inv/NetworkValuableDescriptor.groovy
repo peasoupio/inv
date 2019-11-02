@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.plexus.util.StringUtils
+import org.apache.commons.lang.StringUtils
 
 class NetworkValuableDescriptor {
 

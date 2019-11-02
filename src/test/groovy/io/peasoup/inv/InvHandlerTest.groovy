@@ -14,6 +14,8 @@ class InvHandlerTest {
 
     @Before
     void setup() {
+        Logger.DebugModeEnabled = true
+
         ExpandoMetaClass.enableGlobally()
         inv = new InvHandler()
     }

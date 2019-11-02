@@ -39,7 +39,7 @@ class InvDescriptor {
         networkValuable.match = NetworkValuable.BROADCAST
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
-            BroadcastDelegate delegate = new BroadcastDelegate()
+            BroadcastDescriptor delegate = new BroadcastDescriptor()
 
             usingBody.delegate = delegate
             usingBody.call()
@@ -65,7 +65,7 @@ class InvDescriptor {
         networkValuable.match = NetworkValuable.REQUIRE
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
-            RequireDelegate delegate = new RequireDelegate()
+            RequireDescriptor delegate = new RequireDescriptor()
 
             usingBody.delegate = delegate
             usingBody.call()

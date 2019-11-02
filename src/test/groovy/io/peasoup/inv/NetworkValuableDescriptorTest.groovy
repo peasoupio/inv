@@ -13,7 +13,18 @@ class NetworkValuableDescriptorTest {
 
     @Before
     void setup() {
-        myself = new NetworkValuableDescriptor()
+        myself = new NetworkValuableDescriptor("name")
+    }
+
+    @Test
+    void ctor_not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            new NetworkValuableDescriptor(null)
+        })
+
+        assertThrows(PowerAssertionError.class, {
+            new NetworkValuableDescriptor("%\$;")
+        })
     }
 
     @Test

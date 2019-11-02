@@ -46,7 +46,22 @@ class Inv {
         return dumpedSomething
     }
 
-    List<NetworkValuable> digest(NetworkValuablePool pool ) {
+    /**
+     * Digest this inv.
+     * This method is meant to be called during a digest cycle of the pool.
+     * This method is also meant to be called synchronously.
+     *
+     * It allows to match the remaining network valuables.
+     * Steps are also handled here.
+     *
+     *
+     * @param pool the pool currently in digestion
+     * @return
+     */
+    synchronized List<NetworkValuable> digest(NetworkValuablePool pool ) {
+
+        assert pool
+        assert pool.isDigesting()
 
         List<NetworkValuable> toResolve = []
 
@@ -80,15 +95,10 @@ class Inv {
                         toResolve << networkValuable
                     }
 
-                    // If we caught a successful broadcast while in unbloating state, we need to skip since
-                    // and restart digest since this inv could unjammed something else
-                    if (pool.runningState == pool.UNBLOATING &&
-                        networkValuable.match == NetworkValuable.BROADCAST) {
-
-                        pool.runningState = pool.RUNNING
-
+                    // If we caught a successful broadcast during the unbloating cycle, we need to
+                    // restart digest since this broadcasts can altered the remaining cycles
+                    if (pool.stopUnbloating(networkValuable))
                         break
-                    }
                 }
             }
 

@@ -33,7 +33,7 @@ class InvDescriptorTest {
 
     @Test
     void broadcast() {
-        def nvd = new NetworkValuableDescriptor(name: "name")
+        def nvd = new NetworkValuableDescriptor("name")
 
         assert nvd == myself.broadcast(nvd)
         assert nvd.usingDigestor != null
@@ -48,7 +48,7 @@ class InvDescriptorTest {
 
     @Test
     void require() {
-        def nvd = new NetworkValuableDescriptor(name: "name")
+        def nvd = new NetworkValuableDescriptor("name")
 
         assert nvd == myself.require(nvd)
         assert nvd.usingDigestor != null

@@ -3,13 +3,13 @@ package io.peasoup.inv
 import org.junit.Before
 import org.junit.Test
 
-class BroadcastDelegateTest {
+class BroadcastDescriptorTest {
 
-    BroadcastDelegate myself
+    BroadcastDescriptor myself
 
     @Before
     void setup() {
-        myself = new BroadcastDelegate()
+        myself = new BroadcastDescriptor()
     }
 
     @Test

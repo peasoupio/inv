@@ -9,13 +9,13 @@ class InvHandler {
         // When trying to invoke Name as property (w/o parameters)
         InvHandler.metaClass.propertyMissing = { String propertyName ->
             pool.checkAvailability(propertyName)
-            return new NetworkValuableDescriptor(name: propertyName)
+            return new NetworkValuableDescriptor(propertyName)
         }
 
         InvHandler.metaClass.methodMissing = { String methodName, args ->
             pool.checkAvailability(methodName)
             //noinspection GroovyAssignabilityCheck
-            return new NetworkValuableDescriptor(name: methodName)(*args)
+            return new NetworkValuableDescriptor(methodName)(*args)
         }
     }
 
@@ -42,11 +42,20 @@ class InvHandler {
 
         boolean haltInProgress = false
 
+        Logger.info "---- [DIGEST] started ----"
+
         try {
-            // TODO Might make a fori loop for performance
-            pool.remainingsInv.each {
-                if (it.ready)
-                    it.ready()
+
+            // Raising ready event for all invs before the first digest
+            for (int i = 0; i < pool.remainingsInv.size(); i++) {
+                Inv inv = pool.remainingsInv[i]
+
+                if (!inv.ready) {
+                    continue
+                }
+
+                Logger.info "[${inv.name}] event ready raised"
+                inv.ready()
             }
 
             while (true) {
@@ -56,7 +65,7 @@ class InvHandler {
                     break
 
 
-                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState}) ----"
+                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState()}) ----"
                 // TODO Might make a fori loop for performance
                 for (Inv digest : pool.digest()) {
                     digested.add(digest)
@@ -64,12 +73,12 @@ class InvHandler {
 
                 if (haltInProgress) {
                     // Reset state and break loop
-                    pool.runningState == pool.RUNNING
+                    pool.runningState() == pool.RUNNING
                     break
                 }
 
                 // Has finish unbloating and halted
-                if (pool.runningState == pool.HALTED) {
+                if (pool.runningState() == pool.HALTING) {
                     haltInProgress = true
                 }
 
@@ -79,11 +88,10 @@ class InvHandler {
             ex.printStackTrace()
         }
 
-        Logger.info "--- completed ----"
+        Logger.info "---- [DIGEST] completed ----"
 
-        // Kill pool executor if still running
-        if (pool.invExecutor)
-            pool.invExecutor.shutdown()
+        // Shutdown pool executor if still running
+        pool.shutdown()
 
         return digested
     }

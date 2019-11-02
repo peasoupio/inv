@@ -2,91 +2,98 @@ package io.peasoup.inv
 
 class InvDescriptor {
 
-    private NetworkValuablePool pool = new NetworkValuablePool()
 
-    InvDescriptor() {
+    final List<NetworkValuable> networkValuables = [].asSynchronized()
+    final List<Closure> steps = [].asSynchronized()
 
-        // When trying to invoke Name as property (w/o parameters)
-        InvDescriptor.metaClass.propertyMissing = { String propertyName ->
-            pool.checkAvailability(propertyName)
-            return new NetworkValuableDescriptor(name: propertyName)
-        }
+    String name
+    Closure ready
 
-        InvDescriptor.metaClass.methodMissing = { String methodName, args ->
-            pool.checkAvailability(methodName)
-            //noinspection GroovyAssignabilityCheck
-            return new NetworkValuableDescriptor(name: methodName)(*args)
-        }
+    void name(String name) {
+        assert name
+
+        this.name = name
     }
 
-    void call(Closure body) {
+    Map impersonate(Closure body) {
+        body.delegate = this
 
-        assert body
-
-
-        Inv inv = new Inv()
-
-        body.delegate = inv.delegate
-        body.call()
-
-        inv.dumpDelegate()
-
-        pool.totalInv << inv
-        pool.remainingsInv << inv
+        [
+            now: {
+                body()
+            },
+            withArgs: { Object[] params ->
+                body.call(*params)
+            }
+        ]
     }
 
-    List<Inv> call() {
+    NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
 
-        int count = 0
-        List<Inv> digested = []
+        assert networkValuableDescriptor
 
-        boolean haltInProgress = false
+        NetworkValuable networkValuable = new NetworkValuable()
 
-        try {
-            // TODO Might make a fori loop for performance
-            pool.remainingsInv.each {
-                if (it.ready)
-                    it.ready()
-            }
+        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.name = networkValuableDescriptor.name
+        networkValuable.match = NetworkValuable.BROADCAST
 
-            while (true) {
+        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
+            BroadcastDelegate delegate = new BroadcastDelegate()
 
-                // has no more work to do
-                if (pool.isEmpty())
-                    break
+            usingBody.delegate = delegate
+            usingBody.call()
 
+            if (delegate.id)
+                networkValuable.id = delegate.id
 
-                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState}) ----"
-                // TODO Might make a fori loop for performance
-                for (Inv digest : pool.digest()) {
-                    digested.add(digest)
-                }
-
-                if (haltInProgress) {
-                    // Reset state and break loop
-                    pool.runningState == pool.RUNNING
-                    break
-                }
-
-                // Has finish unbloating and halted
-                if (pool.runningState == pool.HALTED) {
-                    haltInProgress = true
-                }
-
-            }
-        }
-        catch (Exception ex) {
-            ex.printStackTrace()
+            networkValuable.ready = delegate.ready
         }
 
-        Logger.info "--- completed ----"
+        networkValuables << networkValuable
 
-        // Kill pool executor if still running
-        if (pool.invExecutor)
-            pool.invExecutor.shutdown()
+        return networkValuableDescriptor
+    }
 
-        return digested
+    NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
+        assert networkValuableDescriptor
+
+        NetworkValuable networkValuable = new NetworkValuable()
+
+        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.name = networkValuableDescriptor.name
+        networkValuable.match = NetworkValuable.REQUIRE
+
+        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
+            RequireDelegate delegate = new RequireDelegate()
+
+            usingBody.delegate = delegate
+            usingBody.call()
+
+            if (delegate.id)
+                networkValuable.id = delegate.id
+
+            networkValuable.resolved = delegate.resolved
+            networkValuable.unresolved = delegate.unresolved
+            networkValuable.unbloatable = delegate.unbloatable
+        }
+        networkValuableDescriptor.intoDigestor = { String into ->
+            networkValuable.into = into
+        }
+
+        networkValuables << networkValuable
+
+        return networkValuableDescriptor
+    }
+
+    void step(Closure step) {
+        steps << step
+    }
+
+
+    void ready(Closure ready) {
+        assert ready
+
+        this.ready = ready
     }
 }
-
-

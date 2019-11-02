@@ -16,10 +16,10 @@ class InvInvokerTest {
         def scriptFile = new File(script.path)
 
         ExpandoMetaClass.enableGlobally()
-        InvInvoker.invoke(new InvDescriptor(), scriptFile)
+        InvInvoker.invoke(new InvHandler(), scriptFile)
 
         def scriptPath = script.path
-        InvInvoker.invoke(new InvDescriptor(), scriptFile.text, scriptPath, scriptPath)
+        InvInvoker.invoke(new InvHandler(), scriptFile.text, scriptPath, scriptPath)
     }
 
     @Test
@@ -30,7 +30,7 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvDescriptor(), null)
+            InvInvoker.invoke(new InvHandler(), null)
         })
 
         assertThrows(PowerAssertionError.class, {
@@ -38,11 +38,11 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvDescriptor(), null, "filename")
+            InvInvoker.invoke(new InvHandler(), null, "filename")
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvDescriptor(), "text", null, null)
+            InvInvoker.invoke(new InvHandler(), "text", null, null)
         })
 
         assertThrows(PowerAssertionError.class, {

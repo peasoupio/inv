@@ -8,323 +8,95 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 
 class InvDescriptorTest {
 
-    InvDescriptor inv
+    InvDescriptor myself
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
-        inv = new InvDescriptor()
+        myself = new InvDescriptor()
     }
 
     @Test
-    void call_ok() {
+    void name() {
+        def name = "name"
+        myself.name(name)
 
-        inv {
-            name "my-webservice"
-
-            require inv.Server("my-server-id")
-
-            broadcast inv.Endpoint using {
-                id name: "my-webservice-id"
-                ready {
-                    println "my-webservice-id has been broadcast"
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint using {
-                id name: "my-webservice-id"
-                resolved {
-                    println "my-webservice-id has been resolved by ${resolvedBy}"
-                }
-            }
-
-            broadcast inv.App("my-app-id")
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-
-        def digested = inv()
-
-        assert digested.size() == 3
-        assert digested[0].name == "my-server"
-        assert digested[1].name == "my-webservice"
-        assert digested[2].name == "my-app"
+        assert myself.name == name
     }
 
     @Test
-    void call_not_ok() {
-
+    void name_not_ok() {
         assertThrows(PowerAssertionError.class, {
-            inv.call(null)
+            String name = null
+            myself.name(name)
         })
-
-        inv {
-            name "my-webservice"
-
-            require inv.Server("my-server-id")
-
-            broadcast inv.Endpoint using {
-                id "my-webservice-id"
-                ready {
-                    println "my-webservice-id has been broadcast"
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint("my-webservice-id-not-existing")
-
-            broadcast inv.App("my-app-id")
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-
-        def digested = inv()
-
-        assert digested.size() == 2
-        assert digested[0].name == "my-server"
-        assert digested[1].name == "my-webservice"
     }
 
     @Test
-    void call_broadcast_twice() {
+    void broadcast() {
+        def nvd = new NetworkValuableDescriptor(name: "name")
 
-        inv {
-            name "my-webservice-2"
-
-            require inv.Server("my-server-id")
-
-            broadcast inv.Endpoint using {
-                id "my-webservice-id"
-                ready {
-                    println "my-webservice-id has been broadcast"
-                }
-            }
-        }
-
-        inv {
-            name "my-webservice"
-
-            require inv.Server("my-server-id")
-
-            broadcast inv.Endpoint using {
-                id "my-webservice-id"
-                ready {
-                    println "my-webservice-id has been broadcast twice"
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint using {
-                id "my-webservice-id"
-            }
-
-            broadcast inv.App("my-app-id")
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-
-        def digested = inv()
-
-        digested
-            .findAll { it.name.contains("my-webservice") }
-            .collect { it.totalValuables }
-            .any {
-                it.match_state == NetworkValuable.ALREADY_BROADCAST
-            }
+        assert nvd == myself.broadcast(nvd)
+        assert nvd.usingDigestor != null
     }
 
     @Test
-    void call_using_step() {
-
-
-        inv {
-            name "my-webservice"
-
-
-            require inv.Server("my-server-id")
-
-            step {
-                broadcast inv.Endpoint using {
-                    id "my-webservice-id"
-                    ready {
-                        return "http://my.endpoint.com"
-                    }
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint(id: "my-webservice-id") into '$ep'
-
-            step {
-                broadcast inv.App("my-app-id") using {
-                    ready {
-                        print "My App is hosted here: ${ep}"
-                    }
-                }
-            }
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-        inv()
+    void broadcast_not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            myself.broadcast()
+        })
     }
 
     @Test
-    void call_using_step_and_unbloating() {
+    void require() {
+        def nvd = new NetworkValuableDescriptor(name: "name")
 
-
-        inv {
-            name "my-webservice"
-
-
-            require inv.Server("my-server-id")
-
-            step {
-                broadcast inv.Endpoint using {
-                    id "my-webservice-id"
-                    ready {
-                        return "http://my.endpoint.com"
-                    }
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint("my-unbloatable-ws-id") using {
-                unbloatable true
-            }
-
-            require inv.Endpoint("my-webservice-id") into '$ep'
-
-            step {
-                broadcast inv.App("my-app-id") using {
-                    ready {
-                        print "My App is hosted here: ${$ep}"
-                    }
-                }
-            }
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-        inv()
+        assert nvd == myself.require(nvd)
+        assert nvd.usingDigestor != null
     }
 
     @Test
-    void ready() {
+    void require_not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            myself.require()
+        })
+    }
 
-        def value = 1
+    @Test
+    void impersonate_now() {
 
-        inv {
-            name "my-webservice"
+        myself.name = "impersonate"
 
-            require inv.Server("my-server-id")
-
-            step {
-                broadcast inv.Endpoint using {
-                    id "my-webservice-id"
-                    ready {
-                        value++
-                        return "http://my.endpoint.com"
-                    }
-                }
-            }
-
-            ready {
-                assert value == 1
-            }
+        Closure myTempClosure = {
+            assert name == "impersonate"
         }
 
-        inv {
-            name "my-app"
+        def impersonateState = myself.impersonate(myTempClosure)
 
-            require inv.Endpoint(id: "my-webservice-id") into '$ep'
+        assert impersonateState
+        assert impersonateState.now
+        assert impersonateState.withArgs
 
-            step {
-                broadcast inv.App("my-app-id") using {
-                    ready {
-                        value++
-                        print "My App is hosted here: ${ep}"
-                    }
-                }
-            }
+        impersonateState.now()
+
+    }
+
+    @Test
+    void impersonate_withArgs() {
+
+        myself.name = "impersonate"
+
+        Closure myTempClosure = { int value ->
+            assert value == 10
+            assert name == "impersonate"
         }
 
-        inv {
-            name "my-server"
+        def impersonateState = myself.impersonate(myTempClosure)
 
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    value++
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
+        assert impersonateState
+        assert impersonateState.now
+        assert impersonateState.withArgs
 
-        inv()
+        impersonateState.withArgs (10)
+
     }
 }

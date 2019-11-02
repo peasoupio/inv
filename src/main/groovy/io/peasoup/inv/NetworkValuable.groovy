@@ -57,7 +57,7 @@ class NetworkValuable {
 
             def response = "undefined"
 
-            if (networkValuable.ready && pool.runningState != pool.HALTED) {
+            if (networkValuable.ready && pool.runningState != pool.HALTING) {
                 response = networkValuable.ready()
             }
 
@@ -83,7 +83,7 @@ class NetworkValuable {
             networkValuable.match_state = NetworkValuable.NOT_PROCESSED
 
             // Is it in cleaning state ?
-            if (pool.runningState == pool.HALTED) {
+            if (pool.runningState == pool.HALTING) {
 
                 if (networkValuable.unresolved)
                     networkValuable.unresolved([

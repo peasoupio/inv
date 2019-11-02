@@ -4,13 +4,13 @@ package io.peasoup.inv
 import org.junit.Before
 import org.junit.Test
 
-class RequireDelegateTest {
+class RequireDescriptorTest {
 
-    RequireDelegate myself
+    RequireDescriptor myself
 
     @Before
     void setup() {
-        myself = new RequireDelegate()
+        myself = new RequireDescriptor()
     }
 
     @Test

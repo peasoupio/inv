@@ -52,7 +52,7 @@ class MainTest {
         ]
 
         def scriptParentFile = new File(files[0]).parent
-        Main.main(scriptParentFile + "/mainTestScript*.*")
+        Main.main(scriptParentFile + "mainTestScript*.*")
 
         files.each {
             assert logs.contains("[INV] file: ${it}".toString())
@@ -80,7 +80,7 @@ class MainTest {
         ]
 
         def scriptParentFile = MainTest.class.getResource("/").path
-        Main.main(scriptParentFile + "/pattern/**/mainTestScript*.*")
+        Main.main(scriptParentFile + "pattern/**/mainTestScript*.*")
 
         files.each {
             assert logs.contains("[INV] file: ${it}".toString())

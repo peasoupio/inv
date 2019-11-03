@@ -67,7 +67,7 @@ class InvHandler {
                 Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState()}) ----"
 
                 // Get the next digested invs and stack them in the list
-                digested.addAll(pool.digest() as List)
+                digested.addAll(pool.digest())
 
                 // If we were running a HALTING cycle, break the eternity loop
                 if (haltInProgress) {

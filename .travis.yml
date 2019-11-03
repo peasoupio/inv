@@ -9,11 +9,6 @@ cache:
   directories:
     - "$HOME/.cache"
 
-env:
-  global:
-    - secure: encrypted env-variable OSSRH_USERNAME
-    - secure: encrypted env-variable OSSRH_PASSWORD
-
 deploy:
   provider: script
   script: "mvn deploy --settings .travis-settings.xml -DskipTests=true -B"

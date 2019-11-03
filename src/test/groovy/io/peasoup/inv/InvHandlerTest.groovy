@@ -183,7 +183,6 @@ class InvHandlerTest {
     @Test
     void call_using_step() {
 
-
         inv {
             name "my-webservice"
 

@@ -98,6 +98,10 @@ Commands:
 
             def invHome = System.getenv('INV_HOME')
             if (invHome) {
+
+                Logger.debug "parent folder to pattern: ${invHome}"
+                Logger.debug "pattern without parent: ${lookupPattern}"
+
                 invFiles = new FileNameFinder().getFileNames(
                         invHome,
                         lookupPattern, "")
@@ -108,13 +112,19 @@ Commands:
                 }
 
                 invHome = lookupFile.parent ?: "."
-                invFiles = new FileNameFinder().getFileNames(
-                        new File(invHome).canonicalPath,
-                        new File(lookupPattern).absolutePath.replace(new File(invHome).canonicalPath, ""))
+
+                def parentFolderToPattern = InvInvoker.normalizePath(new File(invHome))
+                def patternWithoutParent = new File(lookupPattern).absolutePath
+                        .replace("\\", "/")
+                        .replace(parentFolderToPattern, "")
+
+                Logger.debug "parent folder to pattern: ${parentFolderToPattern}"
+                Logger.debug "pattern without parent: ${patternWithoutParent}"
+
+                invFiles = new FileNameFinder().getFileNames(parentFolderToPattern, patternWithoutParent)
             }
 
             invFiles.each {
-
                 InvInvoker.invoke(inv,new File(it))
             }
         }

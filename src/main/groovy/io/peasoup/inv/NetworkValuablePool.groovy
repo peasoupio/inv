@@ -57,12 +57,15 @@ class NetworkValuablePool {
      */
     List<Inv> digest() {
 
+        // Multithreading is allowed only in a RUNNING cycle
+        if (!invExecutor)
+            invExecutor = Executors.newFixedThreadPool(4)
+
         isDigesting = true
 
         List<Inv> invsDone = []
         List<NetworkValuable> toResolve = []
 
-        invExecutor = Executors.newFixedThreadPool(4)
         List<Future> futures = []
 
         // Use fori-loop for speed
@@ -166,9 +169,6 @@ class NetworkValuablePool {
             startUnbloating() // Should start unbloating
         }
 
-        // Clear executor - ensure no threads are stuck between cycles
-        invExecutor.shutdown()
-
         // Update validation flag for ins
         isDigesting = false
 
@@ -193,7 +193,6 @@ class NetworkValuablePool {
     }
 
     synchronized void startRunning() {
-
         runningState = RUNNING
     }
 
@@ -234,11 +233,16 @@ class NetworkValuablePool {
     /**
      * Shutting down any remaining tasks in the pool
      */
-    void shutdown() {
+    boolean shutdown() {
         if (invExecutor) {
             Logger.debug "executor is shutting down"
-            invExecutor.shutdown()
+            invExecutor.shutdownNow()
+            invExecutor = null
+
+            return true
         }
+
+        return false
     }
 
     /**

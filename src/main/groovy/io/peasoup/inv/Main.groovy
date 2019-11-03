@@ -64,6 +64,11 @@ Commands:
                 longOpt:'html',
                 'Output generates an HTML file')
 
+        if (args.length == 0) {
+            cli.usage()
+            return -1
+        }
+
         def options = cli.parse(args)
 
         boolean hasHtml = options.hasOption("h")

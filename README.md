@@ -18,6 +18,9 @@ Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/re
 ```
 (NOTE : Snapshots need to be downloaded from this repository: https://oss.sonatype.org/content/repositories/snapshots/) 
 
+#### Prerequisites  
+JDK 8 or higher
+
 ## Avaiable commands:  
 ```
 usage: inv [commands]

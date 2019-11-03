@@ -13,6 +13,13 @@ class MainTest {
     }
 
     @Test
+    void main_no_args() {
+        Stdout.capture ({ Main.main() }, {
+            assert it.contains("usage")
+        })
+    }
+
+    @Test
     void main() {
         // Enable capture
         def logs = Logger.capture([])

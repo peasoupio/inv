@@ -16,11 +16,7 @@ env:
 
 deploy:
   provider: script
-  script:
-    - mvn test -B
-    - if [ $TRAVIS_TEST_RESULT -eq 0 ]; then
-      mvn deploy -B --settings .travis-settings.xml;
-      fi
+  script: "mvn deploy --settings .travis-settings.xml -DskipTests=true -B"
   skip_cleanup: true
   on:
     all_branches: true

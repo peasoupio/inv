@@ -43,6 +43,7 @@ class InvHandler {
 
         Logger.info "---- [DIGEST] started ----"
 
+
         try {
 
             // Raising ready event for all invs before the first digest
@@ -87,10 +88,10 @@ class InvHandler {
             ex.printStackTrace()
         }
 
-        Logger.info "---- [DIGEST] completed ----"
-
         // Shutdown pool executor if still running
         pool.shutdown()
+
+        Logger.info "---- [DIGEST] completed ----"
 
         return [digested, !haltInProgress]
     }

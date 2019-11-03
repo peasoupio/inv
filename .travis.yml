@@ -9,9 +9,18 @@ cache:
   directories:
     - "$HOME/.cache"
 
+env:
+  global:
+    - secure: encrypted env-variable OSSRH_USERNAME
+    - secure: encrypted env-variable OSSRH_PASSWORD
+
 deploy:
   provider: script
-  script: "mvn deploy --settings .travis-settings.xml -DskipTests=true -B"
+  script:
+    - mvn test -B
+    - if [ $TRAVIS_TEST_RESULT -eq 0 ]; then
+      mvn deploy -B --settings .travis-settings.xml;
+      fi
   skip_cleanup: true
   on:
     all_branches: true

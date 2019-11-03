@@ -27,7 +27,7 @@ class MainTest {
         def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
 
-        def canonicalPath = InvInvoker.normalizePath(new File(script.path))
+        def canonicalPath = new File(script.path).canonicalPath
 
         Main.main(script.path)
 
@@ -43,7 +43,7 @@ class MainTest {
             def script = MainTest.class.getResource("/mainTestScript${index}.groovy".toString())
             assert script
 
-            return InvInvoker.normalizePath(new File(script.path))
+            return new File(script.path).canonicalPath
         }
 
         def files = [
@@ -71,7 +71,7 @@ class MainTest {
             def script = MainTest.class.getResource(file.toString())
             assert script
 
-            return InvInvoker.normalizePath(new File(script.path))
+            return new File(script.path).canonicalPath
         }
 
         def files = [

@@ -113,9 +113,8 @@ Commands:
 
                 invHome = lookupFile.parent ?: "."
 
-                def parentFolderToPattern = InvInvoker.normalizePath(new File(invHome))
+                def parentFolderToPattern = new File(invHome).absolutePath
                 def patternWithoutParent = new File(lookupPattern).absolutePath
-                        .replace("\\", "/")
                         .replace(parentFolderToPattern, "")
 
                 Logger.debug "parent folder to pattern: ${parentFolderToPattern}"

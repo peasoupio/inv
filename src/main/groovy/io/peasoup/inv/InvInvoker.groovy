@@ -6,7 +6,7 @@ class InvInvoker {
         assert inv
         assert scriptPath
 
-        def scriptFile = normalizePath(scriptPath)
+        def scriptFile = scriptPath.canonicalPath
 
         invoke(inv, scriptPath.text, scriptFile, scriptFile)
     }
@@ -15,7 +15,7 @@ class InvInvoker {
         assert inv
         assert scriptPath
 
-        invoke(inv, scriptPath.text, normalizePath(scriptPath), className)
+        invoke(inv, scriptPath.text, scriptPath.canonicalPath, className)
     }
 
     static void invoke(InvHandler inv, String text, String filepath, String filename) {
@@ -30,14 +30,9 @@ class InvInvoker {
         Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
-        myNewScript.binding.setProperty("pwd", normalizePath(new File(filepath).parentFile))
+        myNewScript.binding.setProperty("pwd", new File(filepath).parentFile.canonicalPath)
 
         myNewScript.run()
-    }
-
-    static String normalizePath(File file) {
-        return file.canonicalPath
-                .replace("\\", "/")
     }
 
 }

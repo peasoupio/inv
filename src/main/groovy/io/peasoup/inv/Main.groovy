@@ -20,116 +20,145 @@ class Main extends Script {
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
-        def cli = new CliBuilder(usage:'''inv [commands]
-Sequence and manage INV groovy files or logs.
-Commands: 
- <file>                      Execute a single groovy file
- <pattern>                   Execute an Ant-compatible file pattern
-                             (p.e *.groovy, ./**/*.groovy, ...)
+        def commandsCli = new CliBuilder(usage:'''inv [options] <file>|<pattern>...
+Options: 
+ <pattern>   Execute an Ant-compatible file pattern
+             (p.e *.groovy, ./**/*.groovy, ...)
+             
+             Pattern is expandable using a space-separator
+             (p.e myfile1.groovy myfile2.groovy)                            
 ''')
 
-        cli.g(
+
+
+        commandsCli.s(
+                longOpt:'from-scm',
+                convert: {
+                    new File(it)
+                },
+                argName:'file',
+                'Process the SCM file to extract or update sources')
+
+        commandsCli.e(
+                longOpt:'exclude',
+                args:1,
+                argName:'label',
+                defaultValue: '',
+                optionalArg: true,
+                'Exclude files if containing the label')
+
+        commandsCli.x(
+                longOpt:'debug',
+                'Enable debug logs')
+
+        def utilsCli = new CliBuilder(usage: '''inv [options]''')
+
+        utilsCli.g(
             type: String,
             longOpt:'graph',
             args:1,
             argName:'type',
             defaultValue: 'plain',
             optionalArg: true,
-            'Print the graph from stdin of a previous execution')
+            'Print the graph from STDIN of a previous execution')
 
-        cli.s(
-            longOpt:'from-scm',
-            convert: {
-                new File(it)
-            },
-            argName:'file',
-            'Process the SCM file to extract or update sources')
-
-        cli.d(
+        utilsCli.d(
                 longOpt:'delta',
                 convert: {
                     new File(it)
                 },
                 argName:'previousFile',
-                'Generate a delta from a recent execution in stdin compared to a previous execution')
+                'Generate a delta from a recent execution in STDIN compared to a previous execution')
 
-        cli.h(
+        utilsCli.h(
                 longOpt:'html',
                 'Output generates an HTML file')
 
-        cli.x(
-                longOpt:'debug',
-                'Enable debug logs')
 
         if (args.length == 0) {
-            cli.usage()
+            println "INV - Generated a INV sequence and manage past generations"
+            println "Generate a new sequence:"
+            commandsCli.usage()
+            println "Manage or view an old sequence:"
+            utilsCli.usage()
             return -1
         }
 
-        def options = cli.parse(args)
+        def commandsOptions = commandsCli.parse(args)
 
-        boolean hasHtml = options.hasOption("h")
-        boolean hasDebug = options.hasOption("x")
-
+        boolean hasDebug = commandsOptions.hasOption("x")
         if (hasDebug)
             Logger.DebugModeEnabled = true
 
-        if (options.hasOption("g"))
-            return buildGraph(options.g, options.arguments())
+        def utilsOptions = utilsCli.parse(args)
+        boolean hasHtml = utilsOptions.hasOption("h")
 
-        if (options.hasOption("s"))
-            return launchFromSCM(options.s, options.arguments())
 
-        if (options.hasOption("d"))
-            return delta(hasHtml: hasHtml, options.d)
+        if (utilsOptions.hasOption("g"))
+            return buildGraph(utilsOptions.g, utilsOptions.arguments())
 
-        return executeScript( options.arguments().pop(), options.arguments())
+        if (utilsOptions.hasOption("d"))
+            return delta(hasHtml: hasHtml, utilsOptions.d)
+
+        if (commandsOptions.hasOption("s"))
+            return launchFromSCM(commandsOptions.s, commandsOptions.arguments())
+
+        return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
     }
 
-    int executeScript(String arg0, List<String> args) {
+    int executeScript(List<String> args, String exclude) {
         def inv = new InvHandler()
-        def lookupPattern = arg0
-        def lookupFile = new File(lookupPattern)
 
-        if (lookupFile.exists())
-            InvInvoker.invoke(inv, lookupFile)
-        else {
+        args.each {
+            def lookupPattern = it
 
-            def invHome = System.getenv('INV_HOME') ?: "./"
+            def lookupFile = new File(lookupPattern)
 
-            Logger.debug "parent folder to pattern: ${invHome}"
-            Logger.debug "pattern without parent: ${lookupPattern}"
+            if (lookupFile.exists())
+                InvInvoker.invoke(inv, lookupFile)
+            else {
 
-            // Convert Ant pattern to regex
-            def resolvedPattern = lookupPattern
-                .replace("\\", "/")
-                .replace("/", "\\/")
-                .replace(".", "\\.")
-                .replace("*", ".*")
-                .replace("?", ".*")
+                def invHome = System.getenv('INV_HOME') ?: "./"
 
-            Logger.debug "resolved pattern: ${resolvedPattern}"
+                Logger.debug "parent folder to pattern: ${invHome}"
+                Logger.debug "pattern without parent: ${lookupPattern}"
 
-            List<File> invFiles = []
-            new File(invHome).eachFileRecurse {
+                // Convert Ant pattern to regex
+                def resolvedPattern = lookupPattern
+                        .replace("\\", "/")
+                        .replace("/", "\\/")
+                        .replace(".", "\\.")
+                        .replace("*", ".*")
+                        .replace("?", ".*")
 
-                // Won't check directory
-                if (it.isDirectory())
-                    return
+                Logger.debug "resolved pattern: ${resolvedPattern}"
 
-                // Make sure path is using the *nix slash for folders
-                def file = it.path.replace("\\", "/")
+                List<File> invFiles = []
+                new File(invHome).eachFileRecurse {
 
-                if (file ==~ /.*${resolvedPattern}.*/)
-                    invFiles << it
-                else
-                    Logger.debug "match failed '${file}'"
-            }
+                    // Won't check directory
+                    if (it.isDirectory())
+                        return
 
-            invFiles.each {
-                InvInvoker.invoke(inv, it)
+                    // Exclude
+                    if (exclude && it.path.contains(exclude))
+                        return
+
+                    // Make sure path is using the *nix slash for folders
+                    def file = it.path.replace("\\", "/")
+
+                    if (file ==~ /.*${resolvedPattern}.*/)
+                        invFiles << it
+                    else
+                        Logger.debug "match failed '${file}'"
+                }
+
+                invFiles.each {
+                    InvInvoker.invoke(inv, it)
+                }
             }
         }
+
 
         inv()
 

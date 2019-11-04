@@ -23,20 +23,26 @@ JDK 8 or higher
 
 ## Avaiable commands:  
 ```
-usage: inv [commands]
-Sequence and manage INV groovy files or logs.
-Commands:
- <file>                      Execute a single groovy file
- <pattern>                   Execute an Ant-compatible file pattern
-                             (p.e *.groovy, ./**/*.groovy, ...)
+INV - Generated a INV sequence and manage past generations
+Generate a new sequence:
+usage: inv [options] <pattern>...
+Options:
+ <pattern>   Execute an Ant-compatible file pattern
+             (p.e *.groovy, ./**/*.groovy, ...)
+
+             Pattern is expandable using a space-separator
+             (p.e myfile1.groovy myfile2.groovy)
+           
+ -e,--exclude <label>   Exclude files if containing the label
+ -s,--from-scm <file>   Process the SCM file to extract or update sources
+ -x,--debug             Enable debug logs
+Manage or view an old sequence:
+usage: inv [options]
  -d,--delta <previousFile>   Generate a delta from a recent execution in
-                             stdin compared to a previous execution
- -g,--graph <type>           Print the graph from stdin of a previous
+                             STDIN compared to a previous execution
+ -g,--graph <type>           Print the graph from STDIN of a previous
                              execution
  -h,--html                   Output generates an HTML file
- -s,--from-scm <file>        Process the SCM file to extract or update
-                             sources
- -x,--debug                  Enable debug logs
 ```
 
 ## Quick example:

@@ -2,7 +2,6 @@ package io.peasoup.inv
 
 import io.peasoup.inv.utils.Stdout
 import org.junit.After
-import org.junit.Ignore
 import org.junit.Test
 
 class MainTest {
@@ -33,6 +32,31 @@ class MainTest {
         Main.main(script.path)
 
         assert logs.contains("[INV] file: ${canonicalPath}".toString())
+    }
+
+    @Test
+    void main_with_expansion() {
+        // Enable capture
+        def logs = Logger.capture([])
+
+        def getFile = { String file ->
+            def script = MainTest.class.getResource(file)
+            assert script
+
+            return new File(script.path).canonicalPath
+        }
+
+        def files = [
+            getFile("/mainTestScript.groovy"),
+            getFile("/mainTestScript2.groovy")
+        ]
+
+        Main.main("-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
+
+        files.each {
+            assert logs.contains("[INV] file: ${it}".toString())
+        }
+
     }
 
     @Test

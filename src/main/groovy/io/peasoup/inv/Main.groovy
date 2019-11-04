@@ -92,7 +92,7 @@ Commands:
         def lookupFile = new File(lookupPattern)
 
         if (lookupFile.exists())
-            InvInvoker.invoke(inv,lookupFile)
+            InvInvoker.invoke(inv, lookupFile)
         else {
 
             def invHome = System.getenv('INV_HOME') ?: "./"
@@ -106,7 +106,7 @@ Commands:
                 .replace("/", "\\/")
                 .replace(".", "\\.")
                 .replace("*", ".*")
-                .replace("?", ".")
+                .replace("?", ".*")
 
             Logger.debug "resolved pattern: ${resolvedPattern}"
 

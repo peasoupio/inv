@@ -100,13 +100,34 @@ Commands:
             Logger.debug "parent folder to pattern: ${invHome}"
             Logger.debug "pattern without parent: ${lookupPattern}"
 
-            def invFiles = new FileNameFinder().getFileNames(
-                    invHome,
-                    lookupPattern, "")
+            // Convert Ant pattern to regex
+            def resolvedPattern = lookupPattern
+                .replace("\\", "/")
+                .replace("/", "\\/")
+                .replace(".", "\\.")
+                .replace("*", ".*")
+                .replace("?", ".")
 
+            Logger.debug "resolved pattern: ${resolvedPattern}"
+
+            List<File> invFiles = []
+            new File(invHome).eachFileRecurse {
+
+                // Won't check directory
+                if (it.isDirectory())
+                    return
+
+                // Make sure path is using the *nix slash for folders
+                def file = it.path.replace("\\", "/")
+
+                if (file ==~ /.*${resolvedPattern}.*/)
+                    invFiles << it
+                else
+                    Logger.debug "match failed '${file}'"
+            }
 
             invFiles.each {
-                InvInvoker.invoke(inv,new File(it))
+                InvInvoker.invoke(inv, it)
             }
         }
 

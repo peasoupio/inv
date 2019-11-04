@@ -13,7 +13,7 @@ deploy:
   provider: script
   script:
     - mvn deploy -Pdistribute --settings .travis-settings.xml -DskipTests=true -B
-    - ./target/image/build.sh
+    # - ./target/image/build.sh
   skip_cleanup: true
   on:
     all_branches: true

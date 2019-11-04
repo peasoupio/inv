@@ -36,6 +36,7 @@ Commands:
  -h,--html                   Output generates an HTML file
  -s,--from-scm <file>        Process the SCM file to extract or update
                              sources
+ -x,--debug                  Enable debug logs
 ```
 
 ## Quick example:
@@ -178,8 +179,8 @@ inv.sh ./example/githubHomepage/*.groovy
 Installing service kubectl on 10.22.99.999
 [INV] ---- [DIGEST] #3 (state=RUNNING) ----
 [INV] [appA] => [REQUIRE] [Kubernetes] undefined
-Pod my-mod-for-app-3 has been installed
 [INV] [appB] => [REQUIRE] [IIS] undefined
+Pod my-mod-for-app-3 has been installed
 IIS webapp my-web-app has been deployed
 [INV] ---- [DIGEST] completed ----
 ```

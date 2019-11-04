@@ -44,13 +44,6 @@ Commands:
             },
             argName:'file',
             'Process the SCM file to extract or update sources')
-        cli.d(
-                longOpt:'delta',
-                convert: {
-                    new File(it)
-                },
-                argName:'file',
-                'Generate a delta from a recent execution in stdin compared to a previous execution')
 
         cli.d(
                 longOpt:'delta',
@@ -64,6 +57,10 @@ Commands:
                 longOpt:'html',
                 'Output generates an HTML file')
 
+        cli.x(
+                longOpt:'debug',
+                'Enable debug logs')
+
         if (args.length == 0) {
             cli.usage()
             return -1
@@ -72,6 +69,10 @@ Commands:
         def options = cli.parse(args)
 
         boolean hasHtml = options.hasOption("h")
+        boolean hasDebug = options.hasOption("x")
+
+        if (hasDebug)
+            Logger.DebugModeEnabled = true
 
         if (options.hasOption("g"))
             return buildGraph(options.g, options.arguments())

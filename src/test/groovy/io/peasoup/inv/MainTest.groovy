@@ -39,20 +39,12 @@ class MainTest {
         // Enable capture
         def logs = Logger.capture([])
 
-        def getMainScriptTestFile = { String index = "" ->
-            def script = MainTest.class.getResource("/mainTestScript${index}.groovy".toString())
-            assert script
-
-            return new File(script.path).canonicalPath
-        }
-
         def files = [
-                getMainScriptTestFile(),
-                getMainScriptTestFile("2")
+                new File("./", "src/test/resources/mainTestScript.groovy").canonicalPath,
+                new File("./", "src/test/resources/mainTestScript2.groovy").canonicalPath,
         ]
 
-        def scriptParentFile = new File(files[0]).parent
-        Main.main(scriptParentFile + "mainTestScript*.*")
+        Main.main("src/test/resources/mainTestScript*.*")
 
         files.each {
             assert logs.contains("[INV] file: ${it}".toString())
@@ -66,21 +58,12 @@ class MainTest {
         // Enable capture
         def logs = Logger.capture([])
 
-        def getMainScriptTestFile = { String file ->
-
-            def script = MainTest.class.getResource(file.toString())
-            assert script
-
-            return new File(script.path).canonicalPath
-        }
-
         def files = [
-                getMainScriptTestFile("/pattern/inside/folder/mainTestScript.groovy"),
-                getMainScriptTestFile("/pattern/inside/different/mainTestScript2.groovy")
+            new File("./", "src/test/resources/pattern/inside/folder/mainTestScript.groovy").canonicalPath,
+            new File("./", "src/test/resources/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        def scriptParentFile = MainTest.class.getResource("/").path
-        Main.main(scriptParentFile + "pattern/**/mainTestScript*.*")
+        Main.main("src/test/resources/pattern/**/*.*")
 
         files.each {
             assert logs.contains("[INV] file: ${it}".toString())

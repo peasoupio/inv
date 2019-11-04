@@ -10,6 +10,7 @@ class MainTest {
     @After
     void after() {
         Logger.capture(null)
+        Logger.DebugModeEnabled = false
     }
 
     @Test
@@ -53,7 +54,6 @@ class MainTest {
 
     @Test
     void main_with_pattern_2() {
-        Logger.DebugModeEnabled = true
 
         // Enable capture
         def logs = Logger.capture([])

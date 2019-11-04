@@ -94,34 +94,15 @@ Commands:
             InvInvoker.invoke(inv,lookupFile)
         else {
 
-            def invFiles
+            def invHome = System.getenv('INV_HOME') ?: "./"
 
-            def invHome = System.getenv('INV_HOME')
-            if (invHome) {
+            Logger.debug "parent folder to pattern: ${invHome}"
+            Logger.debug "pattern without parent: ${lookupPattern}"
 
-                Logger.debug "parent folder to pattern: ${invHome}"
-                Logger.debug "pattern without parent: ${lookupPattern}"
+            def invFiles = new FileNameFinder().getFileNames(
+                    invHome,
+                    lookupPattern, "")
 
-                invFiles = new FileNameFinder().getFileNames(
-                        invHome,
-                        lookupPattern, "")
-            } else {
-
-                while(!lookupFile.parentFile.exists()) {
-                    lookupFile = lookupFile.parentFile
-                }
-
-                invHome = lookupFile.parent ?: "."
-
-                def parentFolderToPattern = new File(invHome).absolutePath
-                def patternWithoutParent = new File(lookupPattern).absolutePath
-                        .replace(parentFolderToPattern, "")
-
-                Logger.debug "parent folder to pattern: ${parentFolderToPattern}"
-                Logger.debug "pattern without parent: ${patternWithoutParent}"
-
-                invFiles = new FileNameFinder().getFileNames(parentFolderToPattern, patternWithoutParent)
-            }
 
             invFiles.each {
                 InvInvoker.invoke(inv,new File(it))

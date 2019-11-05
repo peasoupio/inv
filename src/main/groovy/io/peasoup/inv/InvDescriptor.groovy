@@ -16,14 +16,17 @@ class InvDescriptor {
     }
 
     Map impersonate(Closure body) {
-        body.delegate = this
+
+        def copy = body
+            .dehydrate()
+            .rehydrate(this, body.owner, body.thisObject)
 
         [
             now: {
-                body()
+                copy()
             },
             withArgs: { Object[] params ->
-                body.call(*params)
+                copy.call(*params)
             }
         ]
     }

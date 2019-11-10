@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.scm.ScmReader
 import io.peasoup.inv.utils.Stdout
 import org.junit.After
 import org.junit.Test
@@ -121,15 +122,15 @@ class MainTest {
     void main_launchScm() {
         Logger.DebugModeEnabled = true
 
-        def scmFile = MainTest.class.getResource("/test.scm")
+        def scmFile = MainTest.class.getResource("/test-scm.groovy")
         assert scmFile
 
         def comparable = new ScmReader(new File(scmFile.path).newReader())
-        assert comparable.scm["my-repository"]
+        assert comparable.scms["my-repository"]
 
         // Remove to make sure we trigger init
-        if (comparable.scm["my-repository"].path.exists())
-            comparable.scm["my-repository"].path.deleteDir()
+        if (comparable.scms["my-repository"].path.exists())
+            comparable.scms["my-repository"].path.deleteDir()
 
         Stdout.capture ({ Main.main("-s", scmFile.path) }, {
             assert it.contains("init")

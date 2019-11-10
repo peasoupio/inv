@@ -257,3 +257,7 @@ NOTE: Using the same "path" allows you to do a single extraction
 
 ### Contribution
 First and only global rule : use your common sense - we help each other :)
+
+### Known issues
+#### Create symlink under Windows
+Please enable SeCreateSymbolicLinkPrivilege (using Developer mode OR look at https://superuser.com/questions/124679/how-do-i-create-a-link-in-windows-7-home-premium-as-a-regular-user/125981#125981)

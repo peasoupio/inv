@@ -1,31 +1,49 @@
 package io.peasoup.inv
 
+import java.nio.file.Files
+
 class InvInvoker {
+
+    static String Cache = "./.cache"
 
     static void invoke(InvHandler inv, File scriptPath) {
         assert inv
         assert scriptPath
 
-
-        invoke(inv, scriptPath.text, scriptPath.canonicalPath, normalizeClassName(scriptPath))
+        invoke(inv, scriptPath.text, scriptPath, normalizeClassName(scriptPath))
     }
 
 
-    static void invoke(InvHandler inv, String text, String filepath, String filename) {
+    static void invoke(InvHandler inv, String text, File scriptFile, String classname) {
         assert inv
         assert text
-        assert filename
+        assert classname
 
-        Logger.info("file: ${filepath}")
+        Logger.info("file: ${scriptFile.canonicalPath}")
 
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, filename)
+        Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, cache(scriptFile, classname))
 
         Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
-        myNewScript.binding.setProperty("pwd", new File(filepath).parentFile.canonicalPath)
+        myNewScript.binding.setProperty("pwd", scriptFile.parentFile.canonicalPath)
 
         myNewScript.run()
+    }
+
+    static String cache(File scriptFile, String classname) {
+
+        File filename = new File(Cache, classname)
+        filename.mkdirs()
+
+        // Make sure we got latest
+        Files.delete(filename.toPath())
+
+        // Create a symlink to have dynamic updates
+        Files.createSymbolicLink(filename.toPath(), scriptFile.toPath())
+        Logger.debug "created symlink for ${classname} here: ${filename.canonicalPath}"
+
+        return filename.canonicalPath
     }
 
     private static String normalizeClassName(File script) {
@@ -33,10 +51,10 @@ class InvInvoker {
             return script.name.split("\\.")[0]
 
         if (script.name.toLowerCase() == "inv")
-            return script.parent
+            return script.parentFile.name
 
         if (script.name.toLowerCase() == "inv.groovy")
-            return script.parent
+            return script.parentFile.name
 
         return script.name.split("\\.")[0]
     }

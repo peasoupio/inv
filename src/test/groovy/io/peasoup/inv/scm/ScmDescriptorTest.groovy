@@ -13,7 +13,6 @@ class ScmDescriptorTest  {
         def scmDescriptor = new ScmDescriptor(testScm.newReader())
 
         assert scmDescriptor.scms()["my-repository"]
-        assert scmDescriptor.scms()["my-repository"].path.exists()
 
         assertEquals scmDescriptor.scms()["my-repository"].src, "https://github.com/spring-guides/gs-spring-boot.git"
         assertEquals scmDescriptor.scms()["my-repository"].entry, "inv.groovy"

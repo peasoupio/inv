@@ -29,7 +29,7 @@ class InvHandler {
         body.delegate = inv.delegate
         body.call()
 
-        inv.dumpDelegate()
+        inv.dumpDelegate(body.owner.class.getName())
 
         pool.totalInv << inv
         pool.remainingsInv << inv

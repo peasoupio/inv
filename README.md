@@ -231,5 +231,29 @@ This is an image represention of the dot file :
 ![Dotgraph image using WebGraphViz](https://github.com/peasoupio/inv/blob/feature/0.4-beta/src/main/example/graph/dotGraph.png "Dotgraph image using WebGraphViz")
 
 
+### Defaults INV
+We offer default implementation of multi-purposes INV, such as "files (I/O), http, ..."  
+You can get them at "./defaults".  
+This is how you would import "files" using an SCM file:  
+```groovy
+#~/scm.groovy
+
+"default-files" {
+    path "choose your path..."
+    scm  "https://github.com/peasoupio/inv.git"
+    entry "defaults/files/inv.groovy"
+    hooks {
+        init {
+            "git clone ${scm}"
+        }
+        update {
+            "git pull"
+        }
+    }
+}
+...
+```
+NOTE: Using the same "path" allows you to do a single extraction
+
 ### Contribution
 First and only global rule : use your common sense - we help each other :)

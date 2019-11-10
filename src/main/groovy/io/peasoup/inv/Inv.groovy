@@ -14,9 +14,9 @@ class Inv {
 
     final List<Closure> steps = [].asSynchronized()
 
-    synchronized boolean dumpDelegate() {
+    synchronized boolean dumpDelegate(String defaultName) {
         if (!name)
-            name = delegate.name
+            name = delegate.name ?: defaultName
 
         if (!ready)
             ready = delegate.ready

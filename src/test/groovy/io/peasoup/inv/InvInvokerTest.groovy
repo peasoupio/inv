@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.utils.Stdout
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Test
 
@@ -9,17 +10,24 @@ class InvInvokerTest {
 
     @Test
     void invoke() {
-        def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
+        ExpandoMetaClass.enableGlobally()
+        Logger.DebugModeEnabled = true
 
+        def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
         assert script
 
         def scriptFile = new File(script.path)
 
-        ExpandoMetaClass.enableGlobally()
-        InvInvoker.invoke(new InvHandler(), scriptFile)
+        // Resolve with filename as classname
+        Stdout.capture ({ InvInvoker.invoke(new InvHandler(), scriptFile) }, {
+            assert it.contains("From invokerTestScript")
+        })
 
-        def scriptPath = script.path
-        InvInvoker.invoke(new InvHandler(), scriptFile.text, scriptPath, scriptPath)
+        // Resolve with specified classname
+        Stdout.capture ({ InvInvoker.invoke(new InvHandler(), scriptFile.text, scriptFile,  "my-classname") }, {
+            assert it.contains("From my-classname")
+        })
+
     }
 
     @Test
@@ -38,10 +46,7 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(null, "text", "filename", null)
+            InvInvoker.invoke(null, "text", new File("filename"), null)
         })
-
-        // TODO Missing conditions here
-
     }
 }

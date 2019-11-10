@@ -4,18 +4,33 @@ import groovy.cli.commons.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
+import io.peasoup.inv.scm.ScmReader
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
-    /*
-        Commands :
-            inv file.groovy - Execute single groovy script. Useful for debugging
-            inv pattern/*.groovy - Execute a bunch of groovy scripts based on a Ant-style file pattern. Useful for actual executions
-            inv graph [plan, dot] - Print the graphdot from the logs output of a previous generation. May support futur graph format.
-                                    Context usage : inv my-file.groovy | inv graph dot
-            inv from-scm my-scm.file - Process the SCM file to extract or update sources
-     */
+/*
+INV - Generated a INV sequence and manage past generations
+Generate a new sequence:
+usage: inv [options] <file>|<pattern>...
+Options:
+ <pattern>   Execute an Ant-compatible file pattern
+             (p.e *.groovy, ...)
+
+    Pattern is expandable using a space-separator
+    (p.e myfile1.groovy myfile2.groovy)
+
+    -e,--exclude <label>   Exclude files if containing the label
+    -s,--from-scm <file>   Process the SCM file to extract or update sources
+    -x,--debug             Enable debug logs
+    Manage or view an old sequence:
+    usage: inv [options]
+    -d,--delta <previousFile>   Generate a delta from a recent execution in
+    STDIN compared to a previous execution
+    -g,--graph <type>           Print the graph from STDIN of a previous
+    execution
+    -h,--html                   Output generates an HTML file
+*/
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
@@ -23,7 +38,7 @@ class Main extends Script {
         def commandsCli = new CliBuilder(usage:'''inv [options] <file>|<pattern>...
 Options: 
  <pattern>   Execute an Ant-compatible file pattern
-             (p.e *.groovy, ./**/*.groovy, ...)
+             (p.e *.groovy, ...)
              
              Pattern is expandable using a space-separator
              (p.e myfile1.groovy myfile2.groovy)                            

@@ -1,8 +1,6 @@
 package defaults.files
 
 inv {
-    name "test-defaults-files"
-
     require inv.Files into '$files'
 
     step {

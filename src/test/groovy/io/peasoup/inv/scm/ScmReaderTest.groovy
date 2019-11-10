@@ -1,6 +1,5 @@
 package io.peasoup.inv.scm
 
-import io.peasoup.inv.scm.ScmReader
 import org.junit.Test
 
 class ScmReaderTest {

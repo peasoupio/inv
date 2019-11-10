@@ -6,17 +6,10 @@ class InvInvoker {
         assert inv
         assert scriptPath
 
-        def scriptFile = scriptPath.canonicalPath
 
-        invoke(inv, scriptPath.text, scriptFile, scriptFile)
+        invoke(inv, scriptPath.text, scriptPath.canonicalPath, normalizeClassName(scriptPath))
     }
 
-    static void invoke(InvHandler inv, File scriptPath, String className) {
-        assert inv
-        assert scriptPath
-
-        invoke(inv, scriptPath.text, scriptPath.canonicalPath, className)
-    }
 
     static void invoke(InvHandler inv, String text, String filepath, String filename) {
         assert inv
@@ -33,6 +26,19 @@ class InvInvoker {
         myNewScript.binding.setProperty("pwd", new File(filepath).parentFile.canonicalPath)
 
         myNewScript.run()
+    }
+
+    private static String normalizeClassName(File script) {
+        if (!script.parent)
+            return script.name.split("\\.")[0]
+
+        if (script.name.toLowerCase() == "inv")
+            return script.parent
+
+        if (script.name.toLowerCase() == "inv.groovy")
+            return script.parent
+
+        return script.name.split("\\.")[0]
     }
 
 }

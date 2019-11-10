@@ -34,14 +34,6 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(null, null, null)
-        })
-
-        assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvHandler(), null, "filename")
-        })
-
-        assertThrows(PowerAssertionError.class, {
             InvInvoker.invoke(new InvHandler(), "text", null, null)
         })
 

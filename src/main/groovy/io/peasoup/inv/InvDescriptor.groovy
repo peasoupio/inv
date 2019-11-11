@@ -2,12 +2,12 @@ package io.peasoup.inv
 
 class InvDescriptor {
 
+    String name
+    String path
+    Closure ready
 
     final List<NetworkValuable> networkValuables = [].asSynchronized()
     final List<Closure> steps = [].asSynchronized()
-
-    String name
-    Closure ready
 
     void name(String name) {
         assert name
@@ -15,11 +15,23 @@ class InvDescriptor {
         this.name = name
     }
 
+    void path(String path) {
+        assert path
+
+        this.path = path
+    }
+
+    void ready(Closure ready) {
+        assert ready
+
+        this.ready = ready
+    }
+
     NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
 
         assert networkValuableDescriptor
 
-        NetworkValuable networkValuable = new BroadcastValuable()
+        BroadcastValuable networkValuable = new BroadcastValuable()
 
         networkValuable.id = networkValuableDescriptor.id ?: "undefined"
         networkValuable.name = networkValuableDescriptor.name
@@ -44,7 +56,7 @@ class InvDescriptor {
     NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
         assert networkValuableDescriptor
 
-        NetworkValuable networkValuable = new RequireValuable()
+        RequireValuable networkValuable = new RequireValuable()
 
         networkValuable.id = networkValuableDescriptor.id ?: "undefined"
         networkValuable.name = networkValuableDescriptor.name
@@ -61,6 +73,7 @@ class InvDescriptor {
             networkValuable.resolved = delegate.resolved
             networkValuable.unresolved = delegate.unresolved
             networkValuable.unbloatable = delegate.unbloatable
+            networkValuable.defaults = delegate.defaults
         }
         networkValuableDescriptor.intoDigestor = { String into ->
             networkValuable.into = into
@@ -76,9 +89,5 @@ class InvDescriptor {
     }
 
 
-    void ready(Closure ready) {
-        assert ready
 
-        this.ready = ready
-    }
 }

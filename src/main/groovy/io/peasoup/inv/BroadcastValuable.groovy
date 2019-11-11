@@ -7,8 +7,6 @@ class BroadcastValuable implements NetworkValuable {
     Object id
     String name
 
-
-
     // Callback when ready
     Closure ready
 
@@ -43,14 +41,25 @@ class BroadcastValuable implements NetworkValuable {
             Logger.info networkValuable
 
             Object response = "undefined"
+            Closure defaultClosure = null
 
             if (networkValuable.ready && pool.runningState != pool.HALTING) {
                 response = networkValuable.ready()
+
+                // Resolve default closure
+                if (response instanceof Map && response["\$"] instanceof Closure)
+                    defaultClosure = response["\$"]
+                else if(response.respondsTo("\$")) {
+                    defaultClosure = response.&$
+                }
+
             }
 
+            // Staging response
             staging.put(networkValuable.id, new Response(
                 resolvedBy: networkValuable.inv.name,
-                response: response
+                response: response,
+                defaultClosure: defaultClosure
             ))
 
             networkValuable.match_state = BroadcastValuable.SUCCESSFUL
@@ -66,12 +75,39 @@ class BroadcastValuable implements NetworkValuable {
     static class Response {
         String resolvedBy
         Object response
+        Closure defaultClosure
 
 
+        void callDefault(Inv caller) {
+            assert caller
 
-        private Expando asDelegate(Inv caller) {
+            // If response has a default closure, call it right now
+            if (!defaultClosure) {
+                return
+            }
+
+            def copy = defaultClosure
+                    .dehydrate()
+                    .rehydrate(
+                            caller.delegate,
+                            defaultClosure.owner,
+                            defaultClosure.thisObject)
+            copy.resolveStrategy = Closure.DELEGATE_FIRST
+            copy.call()
+        }
+
+        /**
+         * Cast Response into a thread-safe delegate.
+         * It also expands response closures at top level already bound to the inv's delegate (for inner broadcasts and requires)
+         * @param caller the actual inv requiring this response
+         * @return an expando object gathering all the delegate information
+         */
+        Expando asDelegate(Inv caller) {
+            assert caller
+
             def delegate = toExpando()
 
+            // Defer properties into response
             delegate.metaClass.propertyMissing = { String propertyName ->
                 def property = response[propertyName]
 
@@ -79,17 +115,23 @@ class BroadcastValuable implements NetworkValuable {
                     return property
             }
 
+            // Defer into response (if existing)
             delegate.metaClass.methodMissing = { String methodName, args ->
+                // Can't call default closure directly
+                if (methodName == "\$")
+                    return
+
                 def method = response[methodName]
 
                 if (method && method instanceof Closure) {
-                    method
+                    def copy = method
                             .dehydrate()
                             .rehydrate(
                                     caller.delegate,
                                     method.owner,
                                     method.thisObject)
-                            .call(args)
+                    copy.resolveStrategy = Closure.DELEGATE_FIRST
+                    copy.call(args)
                 }
             }
 

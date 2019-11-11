@@ -108,14 +108,19 @@ class NetworkValuablePool {
 
             def broadcast = availableValuables[requireValuable.name][requireValuable.id]
 
+            // Call default closure (if existing)
+            if (requireValuable.defaults) {
+                broadcast.callDefault(requireValuable.inv)
+            }
+
             // Sends message to resolved (if defined)
             if (requireValuable.resolved) {
                 requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv)
                 requireValuable.resolved()
-
-                // Check if NV would have dumped something
-                requireValuable.inv.dumpDelegate()
             }
+
+            // Check if NV would have dumped something
+            requireValuable.inv.dumpDelegate()
 
             hasResolvedSomething = true
         }

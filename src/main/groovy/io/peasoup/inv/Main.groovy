@@ -129,7 +129,7 @@ Options:
 
             def lookupFile = new File(lookupPattern)
 
-            if (lookupFile.exists())
+            if (!lookupFile.isDirectory() && lookupFile.exists())
                 InvInvoker.invoke(inv, lookupFile)
             else {
 

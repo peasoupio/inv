@@ -60,43 +60,4 @@ class InvDescriptorTest {
             myself.require()
         })
     }
-
-    @Test
-    void impersonate_now() {
-
-        myself.name = "impersonate"
-
-        Closure myTempClosure = {
-            assert name == "impersonate"
-        }
-
-        def impersonateState = myself.impersonate(myTempClosure)
-
-        assert impersonateState
-        assert impersonateState.now
-        assert impersonateState.withArgs
-
-        impersonateState.now()
-
-    }
-
-    @Test
-    void impersonate_withArgs() {
-
-        myself.name = "impersonate"
-
-        Closure myTempClosure = { int value ->
-            assert value == 10
-            assert name == "impersonate"
-        }
-
-        def impersonateState = myself.impersonate(myTempClosure)
-
-        assert impersonateState
-        assert impersonateState.now
-        assert impersonateState.withArgs
-
-        impersonateState.withArgs (10)
-
-    }
 }

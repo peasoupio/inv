@@ -58,12 +58,12 @@ class Inv {
      * @param pool the pool currently in digestion
      * @return
      */
-    synchronized List<NetworkValuable> digest(NetworkValuablePool pool ) {
+    synchronized List<RequireValuable> digest(NetworkValuablePool pool ) {
 
         assert pool
         assert pool.isDigesting()
 
-        List<NetworkValuable> toResolve = []
+        List<RequireValuable> toResolve = []
 
         // Loop because dump
         while (true) {

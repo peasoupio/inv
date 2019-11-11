@@ -15,31 +15,14 @@ class InvDescriptor {
         this.name = name
     }
 
-    Map impersonate(Closure body) {
-
-        def copy = body
-            .dehydrate()
-            .rehydrate(this, body.owner, body.thisObject)
-
-        [
-            now: {
-                copy()
-            },
-            withArgs: { Object[] params ->
-                copy.call(*params)
-            }
-        ]
-    }
-
     NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
 
         assert networkValuableDescriptor
 
-        NetworkValuable networkValuable = new NetworkValuable()
+        NetworkValuable networkValuable = new BroadcastValuable()
 
         networkValuable.id = networkValuableDescriptor.id ?: "undefined"
         networkValuable.name = networkValuableDescriptor.name
-        networkValuable.match = NetworkValuable.BROADCAST
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             BroadcastDescriptor delegate = new BroadcastDescriptor()
@@ -61,11 +44,10 @@ class InvDescriptor {
     NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
         assert networkValuableDescriptor
 
-        NetworkValuable networkValuable = new NetworkValuable()
+        NetworkValuable networkValuable = new RequireValuable()
 
         networkValuable.id = networkValuableDescriptor.id ?: "undefined"
         networkValuable.name = networkValuableDescriptor.name
-        networkValuable.match = NetworkValuable.REQUIRE
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             RequireDescriptor delegate = new RequireDescriptor()

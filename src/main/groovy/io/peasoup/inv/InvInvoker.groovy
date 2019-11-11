@@ -1,6 +1,7 @@
 package io.peasoup.inv
 
 import java.nio.file.Files
+import java.nio.file.Paths
 
 class InvInvoker {
 
@@ -33,14 +34,15 @@ class InvInvoker {
 
     static String cache(File scriptFile, String classname) {
 
-        File filename = new File(Cache, classname)
+        File filename = new File(Cache, classname + ".groovy")
         filename.mkdirs()
 
         // Make sure we got latest
         Files.delete(filename.toPath())
 
-        // Create a symlink to have dynamic updates
-        Files.createSymbolicLink(filename.toPath(), scriptFile.toPath())
+        // Create a symlink to have dynamic updates adn save space
+        Files.createSymbolicLink(filename.toPath(), Paths.get(scriptFile.canonicalPath))
+
         Logger.debug "created symlink for ${classname} here: ${filename.canonicalPath}"
 
         return filename.canonicalPath

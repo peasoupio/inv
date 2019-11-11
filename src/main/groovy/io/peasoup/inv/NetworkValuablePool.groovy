@@ -13,8 +13,8 @@ class NetworkValuablePool {
 
     final Set<String> names = []
 
-    final Map<String, Map<Object, Object>> availableValuables = [:]
-    final Map<String, Map<Object, Object>> stagingValuables = [:]
+    final Map<String, Map<Object, BroadcastValuable.Response>> availableValuables = [:]
+    final Map<String, Map<Object, BroadcastValuable.Response>> stagingValuables = [:]
 
     final List<Inv> remainingsInv = [].asSynchronized()
     final List<Inv> totalInv = [].asSynchronized()
@@ -64,7 +64,7 @@ class NetworkValuablePool {
         isDigesting = true
 
         List<Inv> invsDone = []
-        List<NetworkValuable> toResolve = []
+        List<RequireValuable> toResolve = []
 
         List<Future> futures = []
 
@@ -104,17 +104,17 @@ class NetworkValuablePool {
         // Batch all require resolve at once
         boolean hasResolvedSomething = false
         for (int i = 0; i < toResolve.size(); i++) {
-            NetworkValuable networkValuable = toResolve[i]
+            RequireValuable requireValuable = toResolve[i]
 
-            def broadcast = availableValuables[networkValuable.name][networkValuable.id]
+            def broadcast = availableValuables[requireValuable.name][requireValuable.id]
 
             // Sends message to resolved (if defined)
-            if (networkValuable.resolved) {
-                networkValuable.resolved.delegate = broadcast
-                networkValuable.resolved()
+            if (requireValuable.resolved) {
+                requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv)
+                requireValuable.resolved()
 
                 // Check if NV would have dumped something
-                networkValuable.inv.dumpDelegate()
+                requireValuable.inv.dumpDelegate()
             }
 
             hasResolvedSomething = true
@@ -268,5 +268,7 @@ class NetworkValuablePool {
     boolean isDigesting() {
         return this.isDigesting
     }
+
+
 
 }

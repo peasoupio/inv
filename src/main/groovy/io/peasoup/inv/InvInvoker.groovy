@@ -38,14 +38,14 @@ class InvInvoker {
         filename.mkdirs()
 
         // Make sure we got latest
-        Files.delete(filename.toPath())
+        Files.delete(Paths.get(filename.absolutePath))
 
         // Create a symlink to have dynamic updates adn save space
-        Files.createSymbolicLink(filename.toPath(), Paths.get(scriptFile.canonicalPath))
+        Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
 
-        Logger.debug "created symlink for ${classname} here: ${filename.canonicalPath}"
+        Logger.debug "created symlink for ${classname} here: ${filename.absolutePath}"
 
-        return filename.canonicalPath
+        return filename.absolutePath
     }
 
     private static String normalizeClassName(File script) {

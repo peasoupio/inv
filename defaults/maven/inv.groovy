@@ -6,29 +6,45 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 inv {
     require inv.Files into '$files'
 
-    broadcast inv.SimpleMavenLookup using {
-        ready {[
-            analyze: { String pwd, String exclude = "" ->
+    broadcast inv.Maven using {
+        ready {
+            def instance = [:]
+            instance << [
+                $: {
+                    def copy = (instance.analyze as Closure)
+                            .dehydrate()
+                            .rehydrate(
+                                    delegate,
+                                    instance.analyze.owner,
+                                    instance.analyze.thisObject)
+                    copy.resolveStrategy = Closure.DELEGATE_FIRST
 
-                // Using find makes it faster
-                $files.find(pwd, "pom.xml", exclude).each {
+                    copy(path) // using default path of Inv
+                },
+                analyze: { String pwd, String exclude = "" ->
 
-                    MavenXpp3Reader reader = new MavenXpp3Reader()
-                    Model model = reader.read(new FileReader(it))
+                    // Using find makes it faster
+                    $files.find(pwd, "pom.xml", exclude).each {
 
-                    broadcast inv.Artifact using {
-                        id model.groupId + ":" + model.artifactId
+                        MavenXpp3Reader reader = new MavenXpp3Reader()
+                        Model model = reader.read(new FileReader(it))
 
-                        ready {
-                            model
+                        broadcast inv.Artifact using {
+                            id model.groupId + ":" + model.artifactId
+
+                            ready {
+                                model
+                            }
+                        }
+
+                        model.dependencies.each {
+                            require inv.Artifact(it.groupId + ":" + it.artifactId)
                         }
                     }
-
-                    model.dependencies.each {
-                        require inv.Artifact(it.groupId + ":" + it.artifactId)
-                    }
                 }
-            }
-        ]}
+            ]
+
+            return instance
+        }
     }
 }

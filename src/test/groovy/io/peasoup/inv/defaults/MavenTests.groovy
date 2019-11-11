@@ -31,17 +31,23 @@ class MavenTests {
 
         inv {
             name "app1"
+            path app1
 
-            require inv.SimpleMavenLookup using {
-                resolved { analyze(app1) }
-            }
+            // Using default
+            require inv.Maven
         }
 
         inv {
             name "app2"
 
-            require inv.SimpleMavenLookup using {
-                resolved { analyze(app2) }
+            require inv.Maven using {
+
+                // Disabling defaults and calling manually
+                defaults false
+
+                resolved {
+                    analyze(app2)
+                }
             }
         }
 

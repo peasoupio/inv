@@ -26,10 +26,20 @@ class InvHandler {
 
         Inv inv = new Inv()
 
+
+
         body.delegate = inv.delegate
         body.call()
 
-        inv.dumpDelegate(body.owner.class.simpleName)
+        inv.dumpDelegate()
+
+        // Set default name
+        if (!inv.name)
+            inv.name = body.owner.class.simpleName
+
+        // Set default path
+        if (!inv.path && body.owner.properties["binding"])
+            inv.path =  body.binding.variables["pwd"]
 
         pool.totalInv << inv
         pool.remainingsInv << inv

@@ -10,6 +10,7 @@ class RequireValuable implements NetworkValuable {
 
     // State managmenet
     boolean unbloatable
+    boolean defaults = true
     Inv inv
     String into // When resolving requirement into a variable
 
@@ -20,6 +21,7 @@ class RequireValuable implements NetworkValuable {
 
     // When processed
     int match_state = NOT_PROCESSED
+
 
     @Override
     String toString() {

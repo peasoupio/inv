@@ -3,6 +3,7 @@ package io.peasoup.inv
 class Inv {
 
     String name
+    String path
     Closure ready
 
     boolean sync = true
@@ -14,9 +15,12 @@ class Inv {
 
     final List<Closure> steps = [].asSynchronized()
 
-    synchronized boolean dumpDelegate(String defaultName) {
+    synchronized boolean dumpDelegate() {
         if (!name)
-            name = delegate.name ?: defaultName
+            name = delegate.name
+
+        if (!path)
+            path = delegate.path
 
         if (!ready)
             ready = delegate.ready

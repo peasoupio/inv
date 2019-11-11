@@ -6,6 +6,7 @@ class RequireDescriptor {
     Closure resolved
     Closure unresolved
     boolean unbloatable
+    boolean defaults
 
     /**
      * Defines the requirement id from a generic object
@@ -51,5 +52,13 @@ class RequireDescriptor {
      */
     void unbloatable(boolean value) {
         this.unbloatable = value
+    }
+
+    /**
+     * Defines if this requirement allow to call the default ("$") closure of the associated response
+     * @param value the boolean value
+     */
+    void defaults(boolean value) {
+        this.defaults = value
     }
 }

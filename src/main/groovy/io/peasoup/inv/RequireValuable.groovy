@@ -28,9 +28,9 @@ class RequireValuable implements NetworkValuable {
         return "[$inv.name] => [REQUIRE] [${name}] ${id}"
     }
 
-    static class Require implements NetworkValuable.Manageable {
+    static class Require implements NetworkValuable.Manageable<RequireValuable> {
 
-        void manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
+        void manage(NetworkValuablePool pool, RequireValuable networkValuable) {
 
             // Reset to make sure NV is fine
             networkValuable.match_state = RequireValuable.NOT_PROCESSED

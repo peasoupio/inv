@@ -23,7 +23,7 @@ interface NetworkValuable {
     // When processed
     int match_state
 
-    interface Manageable {
-        void manage(NetworkValuablePool pool, NetworkValuable networkValuable)
+    interface Manageable<N extends NetworkValuable> {
+        void manage(NetworkValuablePool pool, N networkValuable)
     }
 }

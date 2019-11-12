@@ -34,7 +34,11 @@ class MavenTests {
             path app1
 
             // Using default
-            require inv.Maven
+            require inv.Maven into '$maven'
+
+            step {
+                assert $maven.poms
+            }
         }
 
         inv {

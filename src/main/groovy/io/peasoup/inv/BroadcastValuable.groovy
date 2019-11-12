@@ -8,7 +8,7 @@ class BroadcastValuable implements NetworkValuable {
     String name
 
     // Callback when ready
-    Closure ready
+    Closure<Map> ready
 
     // When assigned to a Inv
     Inv inv
@@ -21,9 +21,9 @@ class BroadcastValuable implements NetworkValuable {
         return "[$inv.name] => [BROADCAST] [${name}] ${id}"
     }
 
-    static class Broadcast implements NetworkValuable.Manageable {
+    static class Broadcast implements NetworkValuable.Manageable<BroadcastValuable> {
 
-        void manage(NetworkValuablePool pool, NetworkValuable networkValuable) {
+        void manage(NetworkValuablePool pool, BroadcastValuable networkValuable) {
 
             // Reset to make sure NV is fine
             networkValuable.match_state = BroadcastValuable.NOT_PROCESSED
@@ -40,17 +40,16 @@ class BroadcastValuable implements NetworkValuable {
 
             Logger.info networkValuable
 
-            Object response = "undefined"
-            Closure defaultClosure = null
+            Map response = null
+            Closure<Map> defaultClosure = null
 
             if (networkValuable.ready && pool.runningState != pool.HALTING) {
                 response = networkValuable.ready()
 
                 // Resolve default closure
-                if (response instanceof Map && response["\$"] instanceof Closure)
-                    defaultClosure = response["\$"]
-                else if(response.respondsTo("\$")) {
-                    defaultClosure = response.&$
+                if (response && response["\$"] instanceof Closure) {
+                    defaultClosure = response["\$"] as Closure<Map>
+                    response.remove("\$")
                 }
 
             }
@@ -74,8 +73,10 @@ class BroadcastValuable implements NetworkValuable {
 
     static class Response {
         String resolvedBy
-        Object response
+        Map response
+
         Closure defaultClosure
+        Map defaultResponse
 
 
         void callDefault(Inv caller) {
@@ -93,7 +94,9 @@ class BroadcastValuable implements NetworkValuable {
                             defaultClosure.owner,
                             defaultClosure.thisObject)
             copy.resolveStrategy = Closure.DELEGATE_FIRST
-            copy.call()
+            defaultResponse = copy.call()
+
+            response << defaultResponse
         }
 
         /**
@@ -113,26 +116,29 @@ class BroadcastValuable implements NetworkValuable {
 
                 if (property)
                     return property
+
+                return null
             }
 
             // Defer into response (if existing)
             delegate.metaClass.methodMissing = { String methodName, args ->
                 // Can't call default closure directly
                 if (methodName == "\$")
-                    return
+                    return null
 
-                def method = response[methodName]
-
-                if (method && method instanceof Closure) {
-                    def copy = method
+                def closure = response[methodName]
+                if (closure && closure instanceof Closure) {
+                    def copy = closure
                             .dehydrate()
                             .rehydrate(
                                     caller.delegate,
-                                    method.owner,
-                                    method.thisObject)
+                                    closure.owner,
+                                    closure.thisObject)
                     copy.resolveStrategy = Closure.DELEGATE_FIRST
-                    copy.call(args)
+                    return copy.call(args)
                 }
+
+                return null
             }
 
             return delegate
@@ -140,8 +146,8 @@ class BroadcastValuable implements NetworkValuable {
 
         private Expando toExpando() {
             return new Expando(
-                    response: this.response,
-                    resolvedBy: this.resolvedBy
+                response: this.response,
+                resolvedBy: this.resolvedBy
             )
         }
     }

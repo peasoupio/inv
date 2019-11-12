@@ -76,30 +76,6 @@ class BroadcastValuable implements NetworkValuable {
         Map response
 
         Closure defaultClosure
-        Map defaultResponse
-
-
-        void callDefault(Inv caller) {
-            assert caller
-
-            // If response has a default closure, call it right now
-            if (!defaultClosure) {
-                return
-            }
-
-            def copy = defaultClosure
-                    .dehydrate()
-                    .rehydrate(
-                            caller.delegate,
-                            defaultClosure.owner,
-                            defaultClosure.thisObject)
-            copy.resolveStrategy = Closure.DELEGATE_FIRST
-            defaultResponse = copy.call()
-
-            if (defaultResponse) {
-                response << defaultResponse
-            }
-        }
 
         /**
          * Cast Response into a thread-safe delegate.
@@ -107,7 +83,7 @@ class BroadcastValuable implements NetworkValuable {
          * @param caller the actual inv requiring this response
          * @return an expando object gathering all the delegate information
          */
-        Expando asDelegate(Inv caller) {
+        Expando asDelegate(Inv caller, boolean defaults) {
             assert caller
 
             def delegate = toExpando()
@@ -142,6 +118,24 @@ class BroadcastValuable implements NetworkValuable {
 
                 return null
             }
+
+            // If response has a default closure, call it right now
+            if (defaultClosure && defaults) {
+                def copy = defaultClosure
+                        .dehydrate()
+                        .rehydrate(
+                                caller.delegate,
+                                defaultClosure.owner,
+                                defaultClosure.thisObject)
+                copy.resolveStrategy = Closure.DELEGATE_FIRST
+                def defaultResponse = copy.call()
+
+                if (defaultResponse) {
+                    delegate.properties << defaultResponse
+                }
+            }
+
+
 
             return delegate
         }

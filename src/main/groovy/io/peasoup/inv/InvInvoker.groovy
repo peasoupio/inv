@@ -41,7 +41,8 @@ class InvInvoker {
         Files.delete(Paths.get(filename.absolutePath))
 
         // Create a symlink to have dynamic updates adn save space
-        Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
+        //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
+        Files.copy(Paths.get(scriptFile.absolutePath), Paths.get(filename.absolutePath))
 
         Logger.debug "created symlink for ${classname} here: ${filename.absolutePath}"
 

@@ -106,18 +106,27 @@ class NetworkValuablePool {
         for (int i = 0; i < toResolve.size(); i++) {
             RequireValuable requireValuable = toResolve[i]
 
-            def broadcast = availableValuables[requireValuable.name][requireValuable.id]
+            futures << invExecutor.submit( {
+                def broadcast = availableValuables[requireValuable.name][requireValuable.id]
 
-            // Sends message to resolved (if defined)
-            if (requireValuable.resolved) {
-                requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
-                requireValuable.resolved()
+                // Sends message to resolved (if defined)
+                if (requireValuable.resolved) {
+                    requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
+                    requireValuable.resolved()
+                }
+
+                // Check if NV would have dumped something
+                requireValuable.inv.dumpDelegate()
+
+                hasResolvedSomething = true
+            } as Callable )
+        }
+
+        // Wait for nv to resolved in parallel
+        if (!futures.isEmpty()) {
+            futures.each {
+                toResolve += it.get()
             }
-
-            // Check if NV would have dumped something
-            requireValuable.inv.dumpDelegate()
-
-            hasResolvedSomething = true
         }
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest

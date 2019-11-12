@@ -19,9 +19,11 @@ inv {
                                     instance.analyze.thisObject)
                     copy.resolveStrategy = Closure.DELEGATE_FIRST
 
-                    copy(path) // using default path of Inv
+                    return copy(path) // using default path of Inv
                 },
                 analyze: { String pwd, String exclude = "" ->
+
+                    def poms = []
 
                     // Using find makes it faster
                     $files.find(pwd, "pom.xml", exclude).each {
@@ -32,15 +34,19 @@ inv {
                         broadcast inv.Artifact using {
                             id model.groupId + ":" + model.artifactId
 
-                            ready {
-                                model
-                            }
+                            ready { [model: model] }
                         }
 
                         model.dependencies.each {
                             require inv.Artifact(it.groupId + ":" + it.artifactId)
                         }
+
+                        poms << model
                     }
+
+                    return [
+                        poms: poms
+                    ]
                 }
             ]
 

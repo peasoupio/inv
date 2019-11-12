@@ -96,7 +96,9 @@ class BroadcastValuable implements NetworkValuable {
             copy.resolveStrategy = Closure.DELEGATE_FIRST
             defaultResponse = copy.call()
 
-            response << defaultResponse
+            if (defaultResponse) {
+                response << defaultResponse
+            }
         }
 
         /**

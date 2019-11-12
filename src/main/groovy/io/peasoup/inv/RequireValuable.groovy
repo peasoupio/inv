@@ -80,7 +80,10 @@ class RequireValuable implements NetworkValuable {
 
             // Implement variable into NV inv (if defined)
             if (networkValuable.into)
-                networkValuable.inv.delegate.metaClass.setProperty(networkValuable.into, broadcast.response)
+                networkValuable.inv.delegate.metaClass.setProperty(
+                        networkValuable.into,
+                        broadcast.asDelegate(networkValuable.inv)
+                )
 
             networkValuable.match_state = RequireValuable.SUCCESSFUL
         }

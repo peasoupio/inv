@@ -95,11 +95,6 @@ class RequireValuable implements NetworkValuable {
 
             requireValuable.match_state = RequireValuable.SUCCESSFUL
         }
-
-        @Override
-        String toString() {
-            return "REQUIRE"
-        }
     }
 
 

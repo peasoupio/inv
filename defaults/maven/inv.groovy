@@ -1,6 +1,5 @@
-import org.apache.maven.model.Model
 @Grab("org.apache.maven:maven-model:3.0.2")
-
+import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 
 inv {

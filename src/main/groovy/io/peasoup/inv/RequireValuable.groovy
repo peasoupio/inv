@@ -9,13 +9,12 @@ class RequireValuable implements NetworkValuable {
     String name
 
     // State managmenet
-    boolean unbloatable
-    boolean defaults = true
+    Boolean unbloatable = false
+    Boolean defaults = true
     Inv inv
     String into // When resolving requirement into a variable
 
     // Events callback
-    Closure ready
     Closure resolved
     Closure unresolved
 

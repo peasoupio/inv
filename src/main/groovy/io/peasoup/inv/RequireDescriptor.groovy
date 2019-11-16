@@ -5,8 +5,8 @@ class RequireDescriptor {
     Object id
     Closure resolved
     Closure unresolved
-    boolean unbloatable
-    boolean defaults
+    Boolean unbloatable
+    Boolean defaults
 
     /**
      * Defines the requirement id from a generic object

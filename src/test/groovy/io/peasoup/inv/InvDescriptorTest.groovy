@@ -49,9 +49,79 @@ class InvDescriptorTest {
     @Test
     void require() {
         def nvd = new NetworkValuableDescriptor("name")
+        nvd("my-id")
 
-        assert nvd == myself.require(nvd)
-        assert nvd.usingDigestor != null
+        myself.require(nvd)
+
+        def delegate = myself.networkValuables.get(0) as RequireValuable
+
+        assert delegate.name == nvd.name
+        assert delegate.id == nvd.id
+        assert delegate.defaults
+        assert !delegate.unbloatable
+        assert delegate.into == null
+    }
+
+    @Test
+    void require_without_id() {
+        def nvd = new NetworkValuableDescriptor("name")
+
+        myself.require(nvd)
+
+        def delegate = myself.networkValuables.get(0) as RequireValuable
+
+        assert delegate.name == nvd.name
+        assert delegate.id == NetworkValuable.DEFAULT_ID
+    }
+
+    @Test
+    void require_set_defaults() {
+        def nvd = new NetworkValuableDescriptor("name")
+
+        myself.require(nvd)
+        def delegate = myself.networkValuables.get(0) as RequireValuable
+
+        assert delegate.name == nvd.name
+        assert delegate.defaults
+
+        nvd.using {
+            defaults false
+        }
+
+        assert delegate.name == nvd.name
+        assert !delegate.defaults
+
+        nvd.using {
+            defaults true
+        }
+
+        assert delegate.name == nvd.name
+        assert delegate.defaults
+    }
+
+    @Test
+    void require_set_unbloatable() {
+        def nvd = new NetworkValuableDescriptor("name")
+
+        myself.require(nvd)
+        def delegate = myself.networkValuables.get(0) as RequireValuable
+
+        assert delegate.name == nvd.name
+        assert !delegate.unbloatable
+
+        nvd.using {
+            unbloatable false
+        }
+
+        assert delegate.name == nvd.name
+        assert !delegate.unbloatable
+
+        nvd.using {
+            unbloatable true
+        }
+
+        assert delegate.name == nvd.name
+        assert delegate.unbloatable
     }
 
     @Test

@@ -30,62 +30,71 @@ class RequireValuable implements NetworkValuable {
 
     static class Require implements NetworkValuable.Manageable<RequireValuable> {
 
-        void manage(NetworkValuablePool pool, RequireValuable networkValuable) {
+        void manage(NetworkValuablePool pool, RequireValuable requireValuable) {
 
             // Reset to make sure NV is fine
-            networkValuable.match_state = RequireValuable.NOT_PROCESSED
+            requireValuable.match_state = RequireValuable.NOT_PROCESSED
 
             // Is it in cleaning state ?
             if (pool.runningState == pool.HALTING) {
 
-                if (networkValuable.unresolved)
-                    networkValuable.unresolved([
-                            name: networkValuable.name,
-                            id: networkValuable.id,
-                            owner: networkValuable.inv.name
+                if (requireValuable.unresolved)
+                    requireValuable.unresolved([
+                            name: requireValuable.name,
+                            id: requireValuable.id,
+                            owner: requireValuable.inv.name
                     ])
 
-                Logger.warn networkValuable
+                Logger.warn requireValuable
 
-                networkValuable.match_state = RequireValuable.SUCCESSFUL
+                requireValuable.match_state = RequireValuable.SUCCESSFUL
                 return
             }
 
-            def channel = pool.availableValuables[networkValuable.name]
-            def broadcast = channel[networkValuable.id]
+            def channel = pool.availableValuables[requireValuable.name]
+            def broadcast = channel[requireValuable.id]
 
             if (!broadcast) {
 
                 // Is it bloating ?
 
                 if (pool.runningState == pool.UNBLOATING &&
-                    networkValuable.unbloatable) {
+                    requireValuable.unbloatable) {
 
-                    if (networkValuable.unresolved)
-                        networkValuable.unresolved([
-                                name: networkValuable.name,
-                                id: networkValuable.id,
-                                owner: networkValuable.inv.name
+                    if (requireValuable.unresolved)
+                        requireValuable.unresolved([
+                                name: requireValuable.name,
+                                id: requireValuable.id,
+                                owner: requireValuable.inv.name
                         ])
 
-                    networkValuable.match_state = RequireValuable.UNBLOADTING
+                    requireValuable.match_state = RequireValuable.UNBLOADTING
                     return
                 }
 
-                networkValuable.match_state = RequireValuable.FAILED
+                requireValuable.match_state = RequireValuable.FAILED
                 return
             }
 
-            Logger.info networkValuable
+            Logger.info requireValuable
 
             // Implement variable into NV inv (if defined)
-            if (networkValuable.into)
-                networkValuable.inv.delegate.metaClass.setProperty(
-                        networkValuable.into,
-                        broadcast.asDelegate(networkValuable.inv, networkValuable.defaults)
+            if (requireValuable.into)
+                requireValuable.inv.delegate.metaClass.setProperty(
+                        requireValuable.into,
+                        broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
                 )
 
-            networkValuable.match_state = RequireValuable.SUCCESSFUL
+            // Sends message to resolved (if defined)
+            if (requireValuable.resolved) {
+                requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
+                requireValuable.resolved()
+            }
+
+            // Check if NV would have dumped something
+            requireValuable.inv.dumpDelegate()
+
+            requireValuable.match_state = RequireValuable.SUCCESSFUL
         }
 
         @Override

@@ -36,14 +36,7 @@ class NetworkValuablePool {
      * Invs resolution process is multithreaded during the RUNNING cycle only.
      * Within the resolution, network valuables are processed.
      * During this step, the network valuables (require and broadcast) are matched.
-     * Require and broadcast behave differently.
-     * During resolution, broadcasts "ready" event are raised, but is not stacked into the available network valuables.
-     * During resolution, requires "resolved" event is not raised, but is stacked into the available network valuables.
      * NOTE : If running in an UNBLOATING cycle, requires "unresolved" could be raised if marked unbloatable.
-     * At the end of the cycle, broadcasts "ready" event is already raised and is now stacked into the available network valuables.
-     * At the end of the cycle, requires "resolved" event is raised with its matching data from the available network valuables.
-     * This differenciation allows to protect the current cycle from unsequencable propagation of network valuables.
-     * An example : if the matching broadcast of a require is resolved before, the require is ok. Otherwise, require could be UNBLOATED
      *
      * During the UNBLOATING cycle, we removed/do not resolve unbloatable requirements to unbloat the pool.
      * We wait until we catch a broadcast since a broadcast could alter the remaining network valuables within the pool.
@@ -102,23 +95,7 @@ class NetworkValuablePool {
         }
 
         // Batch all require resolve at once
-        boolean hasResolvedSomething = false
-        for (int i = 0; i < toResolve.size(); i++) {
-            RequireValuable requireValuable = toResolve[i]
-
-            def broadcast = availableValuables[requireValuable.name][requireValuable.id]
-
-            // Sends message to resolved (if defined)
-            if (requireValuable.resolved) {
-                requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
-                requireValuable.resolved()
-            }
-
-            // Check if NV would have dumped something
-            requireValuable.inv.dumpDelegate()
-
-            hasResolvedSomething = true
-        }
+        boolean hasResolvedSomething = !toResolve.isEmpty()
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
         boolean hasStagedSomething = false

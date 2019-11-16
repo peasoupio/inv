@@ -1,0 +1,27 @@
+os:
+  - linux
+  - osx
+sudo: false
+language: java
+services:
+  - docker
+cache:
+  directories:
+    - "$HOME/.cache"
+
+addons:
+  sonarcloud:
+    organization: "peasoupio"
+    token:
+      secure: "XUXzae/R2J14wKvO2VbRTU5pT7CvHuXpKv/qyZakBvkdYcuRYdDspsVPObJ+Heogh+gAi2s2M0Yhn+ebqY/ouKBhwG+ekNy/0J3o32lCHzSKLRxb/l3lgGYr51RoEBuaddYZ83+xUxGu8mEv9HdzPoNTtg7h3WEdmslklYerI1/oxIB0RWOy+8npB9j2rS7fPRx13EZUnyabVNXox7359rIoepVOqLrrOzYPK/5gtSiylaj8jMD1fvY6CdoZQQfM4MxSCLVVZnJiv3ojrwGczIaFLGpe5Jh85SE10Lzk/VGB43upJOC2xcrZ6tqHMAsmZ/6anSykw8SCK9qMJKNhEC0P43rmJfZBO7jmMz/4UCrzUwZUz7K7gdKCFjomdEnx1ozSzMMBaOhKdvvbe2p2ArjQQipErfhVW585yRpE3TemhUbu+3vKqkc46A3LRQjlr3dXe3JMqdNf2VudN5IeWgoxC5xVLjAd5VmAMaEkdm+mpnyXVE5v1hhSiEqyePDQXIiMLAUJbWunEjGNMgb26N23dUUje+m7rqEwk2q7+Yj/rlptsnQBkQ4Dh6iTw0/xYdBLzW5ebujOfhL3Zg94+pIJN/OkcJXYrbJ9mA6voS9ipwSu9qX91i1BOixLYAxMjJfPDLH3+WnF099uPuKTufs4RHR5qirGsYZLBawL+wI="
+
+script:
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=peasoupio_inv
+
+deploy:
+  provider: script
+  script: 'bash deploy.sh'
+  skip_cleanup: true
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^release\/.*$ && $TRAVIS_OS_NAME == "linux"

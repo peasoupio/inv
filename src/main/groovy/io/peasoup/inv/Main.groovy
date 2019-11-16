@@ -1,82 +1,231 @@
 package io.peasoup.inv
 
+import groovy.cli.commons.CliBuilder
+import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
+import io.peasoup.inv.scm.ScmReader
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
-    /*
-        Commands :
-            inv file.groovy - Execute single groovy script. Useful for debugging
-            inv pattern/*.groovy - Execute a bunch of groovy scripts based on a Ant-style file pattern. Useful for actual executions
-            inv graph [plan, dot] - Print the graphdot from the logs output of a previous generation. May support futur graph format.
-                                    Context usage : inv my-file.groovy | inv graph dot
+/*
+INV - Generated a INV sequence and manage past generations
+Generate a new sequence:
+usage: inv [options] <file>|<pattern>...
+Options:
+ <pattern>   Execute an Ant-compatible file pattern
+             (p.e *.groovy, ...)
 
-     */
+    Pattern is expandable using a space-separator
+    (p.e myfile1.groovy myfile2.groovy)
+
+    -e,--exclude <label>   Exclude files if containing the label
+    -s,--from-scm <file>   Process the SCM file to extract or update sources
+    -x,--debug             Enable debug logs
+    Manage or view an old sequence:
+    usage: inv [options]
+    -d,--delta <previousFile>   Generate a delta from a recent execution in
+    STDIN compared to a previous execution
+    -g,--graph <type>           Print the graph from STDIN of a previous
+    execution
+    -h,--html                   Output generates an HTML file
+*/
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
-        assert args[0]
+        def commandsCli = new CliBuilder(usage:'''inv [options] <file>|<pattern>...
+Options: 
+ <pattern>   Execute an Ant-compatible file pattern
+             (p.e *.groovy, ...)
+             
+             Pattern is expandable using a space-separator
+             (p.e myfile1.groovy myfile2.groovy)                            
+''')
 
-        String arg0 = args[0]
 
-        switch (arg0.toLowerCase()) {
-            case "graph":
-                return buildGraph(args.length > 1 ? args[1] : "plain")
-            default:
-                return executeScript(arg0)
+
+        commandsCli.s(
+                longOpt:'from-scm',
+                convert: {
+                    new File(it)
+                },
+                argName:'file',
+                'Process the SCM file to extract or update sources')
+
+        commandsCli.e(
+                longOpt:'exclude',
+                args:1,
+                argName:'label',
+                defaultValue: '',
+                optionalArg: true,
+                'Exclude files if containing the label')
+
+        commandsCli.x(
+                longOpt:'debug',
+                'Enable debug logs')
+
+        def utilsCli = new CliBuilder(usage: '''inv [options]''')
+
+        utilsCli.g(
+            type: String,
+            longOpt:'graph',
+            args:1,
+            argName:'type',
+            defaultValue: 'plain',
+            optionalArg: true,
+            'Print the graph from STDIN of a previous execution')
+
+        utilsCli.d(
+                longOpt:'delta',
+                convert: {
+                    new File(it)
+                },
+                argName:'previousFile',
+                'Generate a delta from a recent execution in STDIN compared to a previous execution')
+
+        utilsCli.h(
+                longOpt:'html',
+                'Output generates an HTML file')
+
+
+        if (args.length == 0) {
+            println "INV - Generated a INV sequence and manage past generations"
+            println "Generate a new sequence:"
+            commandsCli.usage()
+            println "Manage or view an old sequence:"
+            utilsCli.usage()
+            return -1
         }
 
+        def commandsOptions = commandsCli.parse(args)
+
+        boolean hasDebug = commandsOptions.hasOption("x")
+        if (hasDebug)
+            Logger.DebugModeEnabled = true
+
+        def utilsOptions = utilsCli.parse(args)
+        boolean hasHtml = utilsOptions.hasOption("h")
 
 
+        if (utilsOptions.hasOption("g"))
+            return buildGraph(utilsOptions.g, utilsOptions.arguments())
+
+        if (utilsOptions.hasOption("d"))
+            return delta(hasHtml: hasHtml, utilsOptions.d)
+
+        if (commandsOptions.hasOption("s"))
+            return launchFromSCM(commandsOptions.s, commandsOptions.arguments())
+
+        return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
     }
 
-    int executeScript(String arg0) {
-        def inv = new InvDescriptor()
-        def lookupPattern = arg0
-        def lookupFile = new File(lookupPattern)
+    int executeScript(List<String> args, String exclude) {
+        def inv = new InvHandler()
 
-        if (lookupFile.exists())
-            InvInvoker.invoke(inv,lookupFile)
-        else {
+        args.each {
+            def lookupPattern = it
 
-            while(!lookupFile.parentFile.exists()) {
-                lookupFile = lookupFile.parentFile
-            }
+            def lookupFile = new File(lookupPattern)
 
-            def invHome = System.getenv('INV_HOME') ?: (lookupFile.parent ?: ".")
-            def invFiles = new FileNameFinder().getFileNames(
-                    new File(invHome).absolutePath,
-                    new File(lookupPattern).absolutePath.replace(lookupFile.parentFile.absolutePath, ""))
+            if (!lookupFile.isDirectory() && lookupFile.exists())
+                InvInvoker.invoke(inv, lookupFile)
+            else {
 
-            invFiles.each {
-                Logger.info("file: ${it}")
-                InvInvoker.invoke(inv,new File(it))
+                def invHome = System.getenv('INV_HOME') ?: "./"
+
+                Logger.debug "parent folder to pattern: ${invHome}"
+                Logger.debug "pattern without parent: ${lookupPattern}"
+
+                // Convert Ant pattern to regex
+                def resolvedPattern = lookupPattern
+                        .replace("\\", "/")
+                        .replace("/", "\\/")
+                        .replace(".", "\\.")
+                        .replace("*", ".*")
+                        .replace("?", ".*")
+
+                Logger.debug "resolved pattern: ${resolvedPattern}"
+
+                List<File> invFiles = []
+                new File(invHome).eachFileRecurse {
+
+                    // Won't check directory
+                    if (it.isDirectory())
+                        return
+
+                    // Exclude
+                    if (exclude && it.path.contains(exclude))
+                        return
+
+                    // Make sure path is using the *nix slash for folders
+                    def file = it.path.replace("\\", "/")
+
+                    if (file ==~ /.*${resolvedPattern}.*/)
+                        invFiles << it
+                    else
+                        Logger.debug "match failed '${file}'"
+                }
+
+                invFiles.each {
+                    InvInvoker.invoke(inv, it)
+                }
             }
         }
+
 
         inv()
 
         return 0
     }
 
-    int buildGraph(String arg1) {
+    int launchFromSCM(File arg1, List<String> args) {
 
-        System.in.newReader()
+        def invFiles = new ScmReader(arg1).execute()
+
+        def inv = new InvHandler()
+
+        invFiles.each { String name, File script ->
+
+            if (!script.exists()) {
+                Logger.warn "${script.canonicalPath} does not exist. Won't run."
+                return
+            }
+
+            Logger.info("file: ${script.canonicalPath}")
+            InvInvoker.invoke(inv, script, name)
+        }
+
+        Logger.info("[SCM] done")
+
+        inv()
+
+        return 0
+    }
+
+    int buildGraph(String arg1, List<String> args) {
 
         switch (arg1.toLowerCase()) {
             case "plain" :
-                new PlainGraph(System.in.newReader()).print()
+                print(new PlainGraph(System.in.newReader()).echo())
                 return 0
             case "dot":
-                new DotGraph(System.in.newReader()).print()
+                print(new DotGraph(System.in.newReader()).echo())
                 return 0
-            default :
-                return -1
-
         }
+    }
+
+    int delta(Map args, File arg1) {
+
+        def delta = new DeltaGraph(arg1.newReader(), System.in.newReader())
+
+        if (args.hasHtml)
+            print(delta.html(arg1.name))
+        else
+            print(delta.echo())
+
+        return 0
     }
 
 

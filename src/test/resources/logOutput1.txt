@@ -3,7 +3,9 @@
 [INV] file: C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\iis.groovy
 [INV] file: C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\kubernetes.groovy
 [INV] file: C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\serverA.groovy
+
 [INV] file: C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\serverB.groovy
+
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
 [INV] [ServerB] => [BROADCAST] [Server] [name:server-b]

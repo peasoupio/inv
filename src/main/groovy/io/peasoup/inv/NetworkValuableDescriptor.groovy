@@ -1,12 +1,22 @@
 package io.peasoup.inv
 
+import org.apache.commons.lang.StringUtils
+
 class NetworkValuableDescriptor {
 
-    String name
+    final String name
     Object id
 
     Closure usingDigestor
     Closure intoDigestor
+
+    NetworkValuableDescriptor(String name) {
+
+        assert name
+        assert StringUtils.isAlphanumeric(name)
+
+        this.name = name
+    }
 
     NetworkValuableDescriptor call(Object id) {
         assert id

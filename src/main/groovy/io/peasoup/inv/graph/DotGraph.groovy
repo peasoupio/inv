@@ -15,8 +15,8 @@ class DotGraph {
         edges += plainGraph.edges
     }
 
-    String print() {
-        print """
+    String echo() {
+        return """
 digraph inv {
 ${
     edges.keySet()
@@ -30,13 +30,12 @@ ${
     edges
         .collectMany { String owner, Set edges ->
             edges.collect { Map edge ->
-                "\t\"${owner}\" -> \"${edge.owner}\" [ label = \"${edge.require}\" ];"
+                "\t\"${owner}\" -> \"${edge.owner}\" [ label = \"${edge.broadcast.replace("undefined", "").trim()}\" ];"
             }
         }
         .join(lf)
 }
 }
-
 """
     }
 

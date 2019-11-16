@@ -63,12 +63,6 @@ class BroadcastValuable implements NetworkValuable {
 
             networkValuable.match_state = BroadcastValuable.SUCCESSFUL
         }
-
-        @Override
-        String toString() {
-            return "BROADCAST"
-        }
-
     }
 
     static class Response {

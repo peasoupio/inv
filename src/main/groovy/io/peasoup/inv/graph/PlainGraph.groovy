@@ -11,12 +11,10 @@ class PlainGraph {
 
     PlainGraph(BufferedReader logs) {
 
-        String line
-
-        while(line = logs.readLine()) {
+        logs.eachLine { String line ->
 
             if (!line.startsWith("[INV]"))
-                continue
+                return
 
             Matcher broadcast = line =~ /\[INV\] \[(.*)\] => \[BROADCAST\] (.*)/
             Matcher require = line =~ /\[INV\] \[(.*)\] => \[REQUIRE\] (.*)/
@@ -76,23 +74,24 @@ class PlainGraph {
             if (!match)
                 return
 
-            edges[match.owner] << it
+            edges[it.owner] << match
         }
 
     }
 
-    String print() {
-        print """    
-# Regex rule:^(?!\\#.*\$)(?'giver'.*) -> (?'receiver'.*) \\((?'edge'.*)\\)\$
+    String echo() {
+        return """    
+# Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
 ${
     edges
         .collectMany { String owner, Set edges ->
             edges.collect { Map edge ->
-                "${owner} -> ${edge.owner} (${edge.require})"
+                "${owner} -> ${edge.owner} (${edge.broadcast})"
             }
         }
         .join(lf)
-}"""
+}
+"""
     }
 
 }

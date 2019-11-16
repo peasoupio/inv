@@ -3,20 +3,24 @@ package io.peasoup.inv
 class Inv {
 
     String name
+    String path
     Closure ready
 
     boolean sync = true
 
-    final InvDelegate delegate = new InvDelegate()
+    final InvDescriptor delegate = new InvDescriptor()
 
     final List<NetworkValuable> remainingValuables = [].asSynchronized()
     final List<NetworkValuable> totalValuables = [].asSynchronized()
 
     final List<Closure> steps = [].asSynchronized()
 
-    boolean dumpDelegate() {
+    synchronized boolean dumpDelegate() {
         if (!name)
             name = delegate.name
+
+        if (!path)
+            path = delegate.path
 
         if (!ready)
             ready = delegate.ready
@@ -46,19 +50,34 @@ class Inv {
         return dumpedSomething
     }
 
-    List<NetworkValuable> digest(NetworkValuablePool pool ) {
+    /**
+     * Digest this inv.
+     * This method is meant to be called during a digest cycle of the pool.
+     * This method is also meant to be called synchronously.
+     *
+     * It allows to match the remaining network valuables.
+     * Steps are also handled here.
+     *
+     *
+     * @param pool the pool currently in digestion
+     * @return
+     */
+    synchronized List<RequireValuable> digest(NetworkValuablePool pool ) {
 
-        List<NetworkValuable> toResolve = []
+        assert pool
+        assert pool.isDigesting()
+
+        List<RequireValuable> toResolve = []
 
         // Loop because dump
         while (true) {
 
-            Collection<NetworkValuable> remainingValuablesRightNow = remainingValuables.collect()
             boolean hasResolvedSomething = false
+            List toRemove = []
 
             // Use fori-loop for speed
-            for (int j = 0; j < remainingValuablesRightNow.size(); j++) {
-                def networkValuable = remainingValuablesRightNow[j]
+            for (int j = 0; j < this.remainingValuables.size(); j++) {
+                def networkValuable = this.remainingValuables[j]
 
                 networkValuable.match.manage(pool, networkValuable)
                 int result = networkValuable.match_state
@@ -71,35 +90,46 @@ class Inv {
                     }
                 }
 
-                this.remainingValuables.remove(networkValuable)
+                toRemove << networkValuable
 
                 if (result >= NetworkValuable.SUCCESSFUL) {
-
-                    hasResolvedSomething = true
 
                     // Resolved requirements later to make sure broadcasts are available
                     if (networkValuable.match == NetworkValuable.REQUIRE) {
                         toResolve << networkValuable
                     }
 
-                    // If we caught a successful matching while in unbloating state, we need to skip since
-                    // and restart digest since this inv could unjammed something else
-                    if (pool.runningState == pool.UNBLOATING) {
-                        pool.runningState = pool.RUNNING
+                    // If we caught a successful broadcast during the unbloating cycle, we need to
+                    // restart digest since this broadcasts can altered the remaining cycles
+                    if (pool.stopUnbloating(networkValuable))
                         break
-                    }
                 }
             }
 
-            // Check for new steps
-            if (remainingValuablesRightNow.isEmpty() && // has no more valuables -and-
-                    !hasResolvedSomething &&            // did not just resolved something (waiting for resolve) -and-
-                    !steps.isEmpty()) {             // has a remaining step
-                steps.removeAt(0).call()
+            // Remove all NV meant to be deleted
+            this.remainingValuables.removeAll(toRemove)
+
+            boolean hasDumpedSomething = false
+
+            // Check for new steps if :
+            // 1. has a remaining step
+            // 2. has nothing to resolve (might glitch because of $into)
+            // 3. has not (previously dumped something)
+            // 4. has no more valuables
+            while (!steps.isEmpty() &&
+                   toResolve.isEmpty() &&
+                   !hasDumpedSomething &&
+                   this.remainingValuables.isEmpty()) {
+                // Call next step
+                steps.pop().call()
+
+                // If the step dumped something, remainingValuables won't be empty and exit loop
+                hasDumpedSomething = dumpDelegate()
             }
 
+
             // Check for new dumps
-            if (!dumpDelegate())
+            if (!hasDumpedSomething)
                 break
         }
 

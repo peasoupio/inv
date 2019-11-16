@@ -11,9 +11,7 @@ cache:
 
 deploy:
   provider: script
-  script:
-    - mvn deploy -Pdistribute --settings .travis-settings.xml -DskipTests=true -B
-    - sh -c ./target/image/build.sh
+  script: 'bash deploy.sh'
   skip_cleanup: true
   on:
     all_branches: true

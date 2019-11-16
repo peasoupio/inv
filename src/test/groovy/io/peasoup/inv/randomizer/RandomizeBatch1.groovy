@@ -39,8 +39,6 @@ class RandomizeBatch1 {
             ]
         })
 
-
-
         // Randomize requirements and broadcasts
         def remainings = invs.values().collect()
         def index = 0

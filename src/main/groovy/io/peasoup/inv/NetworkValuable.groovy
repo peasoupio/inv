@@ -11,6 +11,8 @@ interface NetworkValuable {
     final static Manageable BROADCAST = new BroadcastValuable.Broadcast()
     final static Manageable REQUIRE = new RequireValuable.Require()
 
+    final static String DEFAULT_ID = "undefined"
+
     // Identification
     Object id
     String name

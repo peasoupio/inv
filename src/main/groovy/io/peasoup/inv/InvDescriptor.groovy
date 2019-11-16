@@ -33,7 +33,7 @@ class InvDescriptor {
 
         BroadcastValuable networkValuable = new BroadcastValuable()
 
-        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
         networkValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
@@ -58,7 +58,7 @@ class InvDescriptor {
 
         RequireValuable networkValuable = new RequireValuable()
 
-        networkValuable.id = networkValuableDescriptor.id ?: "undefined"
+        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
         networkValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
@@ -70,10 +70,16 @@ class InvDescriptor {
             if (delegate.id)
                 networkValuable.id = delegate.id
 
+            if (delegate.defaults != null)
+                networkValuable.defaults = delegate.defaults
+
+            if (delegate.unbloatable != null)
+                networkValuable.unbloatable = delegate.unbloatable
+
             networkValuable.resolved = delegate.resolved
             networkValuable.unresolved = delegate.unresolved
-            networkValuable.unbloatable = delegate.unbloatable
-            networkValuable.defaults = delegate.defaults
+
+
         }
         networkValuableDescriptor.intoDigestor = { String into ->
             networkValuable.into = into

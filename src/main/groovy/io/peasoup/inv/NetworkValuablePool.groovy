@@ -9,8 +9,6 @@ class NetworkValuablePool {
                         UNBLOATING = "UNBLOATING",
                         RUNNING = "RUNNING"
 
-
-
     final Set<String> names = []
 
     final Map<String, Map<Object, BroadcastValuable.Response>> availableValuables = [:]

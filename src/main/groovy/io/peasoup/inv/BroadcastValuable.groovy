@@ -44,12 +44,16 @@ class BroadcastValuable implements NetworkValuable {
             Closure<Map> defaultClosure = null
 
             if (networkValuable.ready && pool.runningState != pool.HALTING) {
-                response = networkValuable.ready()
+                def rawReponnse = networkValuable.ready()
 
-                // Resolve default closure
-                if (response && response["\$"] instanceof Closure) {
-                    defaultClosure = response["\$"] as Closure<Map>
-                    response.remove("\$")
+                if (rawReponnse instanceof Map) {
+                    response = rawReponnse as Map
+
+                    // Resolve default closure
+                    if (response && response["\$"] instanceof Closure) {
+                        defaultClosure = response["\$"] as Closure<Map>
+                        response.remove("\$")
+                    }
                 }
 
             }
@@ -66,9 +70,9 @@ class BroadcastValuable implements NetworkValuable {
     }
 
     static class Response {
+
         String resolvedBy
         Map response
-
         Closure defaultClosure
 
         /**
@@ -84,33 +88,40 @@ class BroadcastValuable implements NetworkValuable {
 
             // Defer properties into response
             delegate.metaClass.propertyMissing = { String propertyName ->
+
+                if (!response)
+                    return null
+
                 def property = response[propertyName]
 
-                if (property)
-                    return property
+                if (!property)
+                    return null
 
-                return null
+                return property
             }
 
             // Defer into response (if existing)
             delegate.metaClass.methodMissing = { String methodName, args ->
-                // Can't call default closure directly
-                if (methodName == "\$")
+
+                if (!response)
                     return null
 
                 def closure = response[methodName]
-                if (closure && closure instanceof Closure) {
-                    def copy = closure
-                            .dehydrate()
-                            .rehydrate(
-                                    caller.delegate,
-                                    closure.owner,
-                                    closure.thisObject)
-                    copy.resolveStrategy = Closure.DELEGATE_FIRST
-                    return copy.call(args)
-                }
 
-                return null
+                if (!closure)
+                    return null
+
+                if (!(closure instanceof Closure))
+                    return null
+
+                def copy = closure
+                        .dehydrate()
+                        .rehydrate(
+                                caller.delegate,
+                                closure.owner,
+                                closure.thisObject)
+                copy.resolveStrategy = Closure.DELEGATE_FIRST
+                return copy.call(args)
             }
 
             // If response has a default closure, call it right now
@@ -128,8 +139,6 @@ class BroadcastValuable implements NetworkValuable {
                     delegate.properties << defaultResponse
                 }
             }
-
-
 
             return delegate
         }

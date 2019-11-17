@@ -1,7 +1,10 @@
 package io.peasoup.inv
 
+import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
+
+import static org.junit.jupiter.api.Assertions.assertThrows
 
 class BroadcastValuableTest {
 
@@ -14,8 +17,10 @@ class BroadcastValuableTest {
     }
 
     @Test
-    void ok() {
-
+    void asdelegate_not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            new BroadcastValuable.Response().asDelegate(null, false)
+        })
     }
 
     @Test
@@ -31,7 +36,7 @@ class BroadcastValuableTest {
         }
 
         inv {
-            name "conusme"
+            name "consume"
 
             require inv.Element using {
 
@@ -39,6 +44,58 @@ class BroadcastValuableTest {
                     assert my
                     assert my instanceof Closure
                     assert my() == "method"
+                }
+            }
+        }
+
+        inv()
+    }
+
+    @Test
+    void not_existing() {
+        inv {
+            name "provide"
+
+            broadcast inv.Element using {
+                ready { return null }
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require inv.Element using {
+
+                resolved {
+                    assert my == null
+                    assert my() == null
+                }
+            }
+        }
+
+        inv()
+    }
+
+    @Test
+    void not_existing_2() {
+        inv {
+            name "provide"
+
+            broadcast inv.Element using {
+                ready {[
+                    something: "valuable"
+                ]}
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require inv.Element using {
+
+                resolved {
+                    assert my == null
+                    assert my() == null
                 }
             }
         }
@@ -59,7 +116,7 @@ class BroadcastValuableTest {
         }
 
         inv {
-            name "conusme"
+            name "consume"
 
             require inv.Element using {
 
@@ -92,7 +149,7 @@ class BroadcastValuableTest {
         }
 
         inv {
-            name "conusme"
+            name "consume"
 
             require inv.Element using {
 

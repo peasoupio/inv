@@ -82,7 +82,6 @@ class ScmDescriptor {
             hooksClosure.delegate = hooks
             hooksClosure()
         }
-
     }
 
     static class HookDescriptor {

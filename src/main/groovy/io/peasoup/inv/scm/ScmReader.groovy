@@ -44,16 +44,20 @@ class ScmReader {
     private void executeCommands(ScmDescriptor.MainDescriptor repository, String commands) {
 
         // If parent undefined, can do nothing
-        if (!repository.path.parent)
+        if (!repository.path)
             return
 
-        // Create file and dirs for the SH file
-        def shFile = new File(repository.path.parent, ".scm-sh")
-        shFile.mkdirs()
+        // Make sure cache is available with minimal accesses
+        if (!repository.path.exists()) {
+            repository.path.mkdirs()
+            repository.path.setExecutable(true)
+            repository.path.setWritable(true)
+            repository.path.setReadable(true)
+        }
 
-        // Make sure we're using the latest version of the commands
-        if (shFile.exists())
-            shFile.delete()
+        // Create file and dirs for the SH file
+        def shFile = new File(repository.path, "${repository.name}.scm-sh")
+        shFile.delete()
 
         // Write the commands into the script file
         shFile << commands
@@ -61,7 +65,8 @@ class ScmReader {
         // Calling the SH file with the commands in it
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
         def cmd = "sh ${shFile.canonicalPath}"
-        def process = cmd.execute(null, new File(repository.path.parent))
+        def envs = repository.env.collect { "${it.key}=${it.value}"}
+        def process = cmd.execute(envs, repository.path)
 
         Logger.debug cmd
 

@@ -9,7 +9,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
-    def invHome = new File(System.getenv('INV_HOME') ?: "./")
+    File invHome = new File(System.getenv('INV_HOME') ?: "./")
 
 /*
 INV - Generated a INV sequence and manage past generations
@@ -91,8 +91,7 @@ Options:
                 longOpt:'html',
                 'Output generates an HTML file')
 
-
-        if (args.length == 0 || consistencyFails()) {
+        if (args.length == 0 || new SystemChecks().consistencyFails(this)) {
             println "INV - Generated a INV sequence and manage past generations"
             println "Generate a new sequence:"
             commandsCli.usage()
@@ -103,23 +102,25 @@ Options:
 
         def commandsOptions = commandsCli.parse(args)
 
-        boolean hasDebug = commandsOptions.hasOption("x")
-        if (hasDebug)
+        if (commandsOptions.hasOption("x"))
             Logger.DebugModeEnabled = true
 
         def utilsOptions = utilsCli.parse(args)
         boolean hasHtml = utilsOptions.hasOption("h")
 
-
+        // Handling graph option
         if (utilsOptions.hasOption("g"))
             return buildGraph(utilsOptions.g, utilsOptions.arguments())
 
+        // Handling delta option
         if (utilsOptions.hasOption("d"))
             return delta(hasHtml: hasHtml, utilsOptions.d)
 
+        // Handling SCM option
         if (commandsOptions.hasOption("s"))
             return launchFromSCM(commandsOptions.s, commandsOptions.arguments())
 
+        // Otherwise, use default option : read inv files
         return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
     }
 
@@ -225,32 +226,6 @@ Options:
 
         return 0
     }
-
-    /*
-        Check whether or not the system fails to meet the minimal "consistency" requirements
-     */
-    boolean consistencyFails() {
-
-        Logger.debug "INV_HOME: ${invHome.absolutePath}"
-
-        if (!invHome.isDirectory()) {
-            Logger.fail "INV_HOME is not a directory"
-            return true
-        }
-
-        if (!invHome.exists()) {
-            Logger.fail "INV_HOME does not exists"
-            return true
-        }
-
-        if (!invHome.canRead()) {
-            Logger.fail "current user is not able to read from INV_HOME"
-            return true
-        }
-
-        return false
-    }
-
 
     static void main(String[] args) {
         InvokerHelper.runScript(Main, args)

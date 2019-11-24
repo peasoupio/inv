@@ -28,6 +28,27 @@ class InvInvokerTest {
         })
 
     }
+    @Test
+    void cache() {
+
+        def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
+        assert script
+
+        InvInvoker.Cache.deleteDir()
+
+        InvInvoker.cache(new File(script.path), "my-class")
+
+        assert InvInvoker.Cache.exists()
+        assert new File(InvInvoker.Cache, "my-class.groovy").exists()
+    }
+
+    @Test
+    void normalize() {
+        assert InvInvoker.normalizeClassName(new File("test.groovy")) == "test"
+        assert InvInvoker.normalizeClassName(new File("parent", "inv")) == "parent"
+        assert InvInvoker.normalizeClassName(new File("parent", "inv.groovy")) == "parent"
+        assert InvInvoker.normalizeClassName(new File("parent" ,"inv.groovy")) == "parent"
+    }
 
     @Test
     void invoke_not_ok() {

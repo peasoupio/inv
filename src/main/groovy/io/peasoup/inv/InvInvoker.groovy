@@ -10,10 +10,6 @@ class InvInvoker {
 
     static String Cache = "./.cache"
 
-    static {
-        ExpandoMetaClass.enableGlobally()
-    }
-
     static void invoke(InvHandler inv, File scriptPath) {
         assert inv
         assert scriptPath

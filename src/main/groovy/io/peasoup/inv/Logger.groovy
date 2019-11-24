@@ -44,6 +44,13 @@ class Logger {
         logger.addHandler(consoleHandler)
     }
 
+    static void fail(Object arg) {
+        logger.severe "[FAIL] ${arg}"
+    }
+
+    static void warn(Object arg) {
+        logger.info "[WARN] ${arg}"
+    }
 
     static void info(Object arg) {
         logger.info "[INV] ${arg}"
@@ -56,9 +63,9 @@ class Logger {
         logger.info "[DEBUG] ${arg}"
     }
 
-    static void warn(Object arg) {
-        logger.info "[WARN] ${arg}"
-    }
+
+
+
 
     static Object capture(Object value) {
 

@@ -49,7 +49,7 @@ class NetworkValuablePool {
      *
      * @return list of inv completed during this digestion cycle
      */
-    List<Inv> digest() {
+    PoolReport digest() {
 
         // Multithreading is allowed only in a RUNNING cycle
         if (!invExecutor)
@@ -57,10 +57,13 @@ class NetworkValuablePool {
 
         isDigesting = true
 
+        // All invs
         List<Inv> invsDone = []
-        List<RequireValuable> toResolve = []
+        List<Future<List<RequireValuable>>> futures = []
+        List<Exception> exceptions = []
 
-        List<Future> futures = []
+        // All requires
+        List<RequireValuable> toResolve = []
 
         // Use fori-loop for speed
         for (int i = 0; i < remainingsInv.size() ; i++) {
@@ -69,30 +72,34 @@ class NetworkValuablePool {
 
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
-            if (runningState == RUNNING) {
-
-                def pool = this
-
-                futures << invExecutor.submit( {
+            def pool = this
+            def eat = ({
+                try {
                     return inv.digest(pool)
-                } as Callable )
+                } catch (Exception ex) {
+                    exceptions.add(ex)
+                    return []
+                }
+            } as Callable<List<RequireValuable>>)
+
+            if (runningState == RUNNING) {
+                futures.add(invExecutor.submit(eat))
             } else {
-                // If so, execute right now
-                toResolve += inv.digest(this)
+                toResolve.addAll(eat())
             }
         }
 
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
             futures.each {
-                toResolve.addAll(it.get() as List<RequireValuable>)
+                toResolve.addAll(it.get())
             }
         }
 
         // If running in halted mode, no need to broadcasts
         // It is only required to unresolved requirements.
         if (runningState == HALTING) {
-            return []
+            return new PoolReport()
         }
 
         // Batch all require resolve at once
@@ -150,7 +157,11 @@ class NetworkValuablePool {
         // Update validation flag for ins
         isDigesting = false
 
-        return invsDone
+        return new PoolReport(
+                digested: invsDone,
+                exceptions: exceptions,
+                halted: runningState == HALTING
+        )
     }
 
     /**
@@ -247,6 +258,34 @@ class NetworkValuablePool {
         return this.isDigesting
     }
 
+    static class PoolReport {
+
+        List<Inv> digested = []
+        List<Exception> exceptions = []
+        boolean halted = false
+
+        void eat(PoolReport other) {
+            this.digested.addAll(other.digested)
+            this.exceptions.addAll(other.exceptions)
+
+            // Once halted, can't put it back on
+            if (other.halted)
+                this.halted = true
+        }
+
+        /*
+            Determines if report should be considered successful or not
+         */
+        boolean isOk() {
+            if (halted)
+                return false
+
+            if (!exceptions.isEmpty())
+                return false
+
+            return true
+        }
+    }
 
 
 }

@@ -30,10 +30,8 @@ class HttpTests {
             }
         }
 
-        def (digested, ok) =  inv()
-
-        assert digested
-        assert ok
+        def report = inv()
+        assert report.isOk()
     }
 
     @Test
@@ -61,9 +59,7 @@ class HttpTests {
             }
         }
 
-        def (digested, ok) =  inv()
-
-        assert digested
-        assert ok
+        def report = inv()
+        assert report.isOk()
     }
 }

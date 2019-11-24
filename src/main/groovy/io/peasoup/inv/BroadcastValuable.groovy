@@ -1,8 +1,9 @@
 package io.peasoup.inv
 
+// TODO @CompileStatic is a bit more complicated here
 class BroadcastValuable implements NetworkValuable {
 
-    final Manageable match = NetworkValuable.BROADCAST
+    final static Manageable BROADCAST = new BroadcastValuable.Broadcast()
 
     Object id
     String name
@@ -14,7 +15,9 @@ class BroadcastValuable implements NetworkValuable {
     Inv inv
 
     // When processed
-    int match_state = NOT_PROCESSED
+    int state = NOT_PROCESSED
+
+    Manageable getMatch() { BROADCAST }
 
     @Override
     String toString() {
@@ -23,28 +26,28 @@ class BroadcastValuable implements NetworkValuable {
 
     static class Broadcast implements NetworkValuable.Manageable<BroadcastValuable> {
 
-        void manage(NetworkValuablePool pool, BroadcastValuable networkValuable) {
+        void manage(NetworkValuablePool pool, BroadcastValuable broadcastValuable) {
 
             // Reset to make sure NV is fine
-            networkValuable.match_state = BroadcastValuable.NOT_PROCESSED
+            broadcastValuable.state = BroadcastValuable.NOT_PROCESSED
 
-            def channel = pool.availableValuables[networkValuable.name]
-            def staging = pool.stagingValuables[networkValuable.name]
+            def channel = pool.availableValuables[broadcastValuable.name]
+            def staging = pool.stagingValuables[broadcastValuable.name]
 
-            if (channel.containsKey(networkValuable.id) || staging.containsKey(networkValuable.id)) {
-                Logger.warn "${networkValuable.id} already broadcasted. Skipped"
+            if (channel.containsKey(broadcastValuable.id) || staging.containsKey(broadcastValuable.id)) {
+                Logger.warn "${broadcastValuable.id} already broadcasted. Skipped"
 
-                networkValuable.match_state = BroadcastValuable.ALREADY_BROADCAST
+                broadcastValuable.state = BroadcastValuable.ALREADY_BROADCAST
                 return
             }
 
-            Logger.info networkValuable
+            Logger.info broadcastValuable
 
             Map response = null
             Closure<Map> defaultClosure = null
 
-            if (networkValuable.ready && pool.runningState != pool.HALTING) {
-                def rawReponnse = networkValuable.ready()
+            if (broadcastValuable.ready && pool.runningState != pool.HALTING) {
+                def rawReponnse = broadcastValuable.ready()
 
                 if (rawReponnse instanceof Map) {
                     response = rawReponnse as Map
@@ -59,13 +62,13 @@ class BroadcastValuable implements NetworkValuable {
             }
 
             // Staging response
-            staging.put(networkValuable.id, new Response(
-                resolvedBy: networkValuable.inv.name,
+            staging.put(broadcastValuable.id, new Response(
+                resolvedBy: broadcastValuable.inv.name,
                 response: response,
                 defaultClosure: defaultClosure
             ))
 
-            networkValuable.match_state = BroadcastValuable.SUCCESSFUL
+            broadcastValuable.state = BroadcastValuable.SUCCESSFUL
         }
     }
 

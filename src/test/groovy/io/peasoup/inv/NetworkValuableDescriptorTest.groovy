@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.metaclass.MethodSelectionException
+
 import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
@@ -29,6 +29,11 @@ class NetworkValuableDescriptorTest {
 
     @Test
     void call_ok() {
+
+        assert myself == myself.call()
+        assert myself.id == null
+
+
         def id1 = "id1"
 
         assert myself == myself.call(id1)
@@ -42,9 +47,6 @@ class NetworkValuableDescriptorTest {
 
     @Test()
     void call_not_ok() {
-        assertThrows(MethodSelectionException.class, {
-            myself.call()
-        })
 
         assertThrows(PowerAssertionError.class, {
             myself.call(null)

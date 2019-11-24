@@ -10,7 +10,6 @@ class InvInvokerTest {
 
     @Test
     void invoke() {
-        ExpandoMetaClass.enableGlobally()
         Logger.DebugModeEnabled = true
 
         def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")

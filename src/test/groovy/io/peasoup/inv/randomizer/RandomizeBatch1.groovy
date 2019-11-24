@@ -11,7 +11,6 @@ class RandomizeBatch1 {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         inv = new InvHandler()
     }
 

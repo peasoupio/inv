@@ -10,7 +10,6 @@ class HttpTests {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         Logger.DebugModeEnabled = true
     }
 

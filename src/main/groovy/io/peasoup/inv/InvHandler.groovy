@@ -4,21 +4,6 @@ class InvHandler {
 
     private NetworkValuablePool pool = new NetworkValuablePool()
 
-    InvHandler() {
-
-        // When trying to invoke Name as property (w/o parameters)
-        InvHandler.metaClass.propertyMissing = { String propertyName ->
-            pool.checkAvailability(propertyName)
-            return new NetworkValuableDescriptor(propertyName)
-        }
-
-        InvHandler.metaClass.methodMissing = { String methodName, args ->
-            pool.checkAvailability(methodName)
-            //noinspection GroovyAssignabilityCheck
-            return new NetworkValuableDescriptor(methodName)(*args)
-        }
-    }
-
     void call(Closure body) {
 
         assert body
@@ -103,6 +88,20 @@ class InvHandler {
         Logger.info "---- [DIGEST] completed ----"
 
         return [digested, !haltInProgress]
+    }
+
+    //@Override
+    def propertyMissing(String propertyName) {
+        pool.checkAvailability(propertyName)
+        return new NetworkValuableDescriptor(propertyName)
+    }
+
+    //@Override
+    def methodMissing(String methodName, def args) {
+        pool.checkAvailability(methodName)
+
+        //noinspection GroovyAssignabilityCheck
+        return new NetworkValuableDescriptor(methodName)(*args)
     }
 }
 

@@ -12,7 +12,6 @@ class BroadcastValuableTest {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         inv = new InvHandler()
     }
 

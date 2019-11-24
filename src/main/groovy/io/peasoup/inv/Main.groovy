@@ -230,8 +230,6 @@ Options:
 
 
     static void main(String[] args) {
-        ExpandoMetaClass.enableGlobally()
-
         InvokerHelper.runScript(Main, args)
     }
 

@@ -1,5 +1,8 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class Inv {
 
     String name
@@ -77,10 +80,10 @@ class Inv {
 
             // Use fori-loop for speed
             for (int j = 0; j < this.remainingValuables.size(); j++) {
-                def networkValuable = this.remainingValuables[j]
-
+                NetworkValuable networkValuable = this.remainingValuables[j] as NetworkValuable
                 networkValuable.match.manage(pool, networkValuable)
-                int result = networkValuable.match_state
+
+                int result = networkValuable.state
 
                 if (result == NetworkValuable.FAILED) {
                     if (sync) {
@@ -90,13 +93,13 @@ class Inv {
                     }
                 }
 
-                toRemove << networkValuable
+                toRemove.add(networkValuable)
 
                 if (result >= NetworkValuable.SUCCESSFUL) {
 
                     // Resolved requirements later to make sure broadcasts are available
-                    if (networkValuable.match == NetworkValuable.REQUIRE) {
-                        toResolve << networkValuable
+                    if (networkValuable.match == RequireValuable.REQUIRE) {
+                        toResolve.add(networkValuable as RequireValuable)
                     }
 
                     // If we caught a successful broadcast during the unbloating cycle, we need to

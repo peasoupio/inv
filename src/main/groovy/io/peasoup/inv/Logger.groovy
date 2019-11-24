@@ -1,10 +1,13 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
 import java.util.logging.ConsoleHandler
 import java.util.logging.LogRecord
 import java.util.logging.SimpleFormatter
 
 
+@CompileStatic
 class Logger {
 
     /**
@@ -15,7 +18,7 @@ class Logger {
 
     private static List captureList = null
     private static Closure captureClosure = null
-    private static def logger = java.util.logging.Logger.getLogger("inv")
+    private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger("inv")
 
 
     static {

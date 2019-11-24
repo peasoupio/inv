@@ -11,7 +11,6 @@ class FilesTests {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         Logger.DebugModeEnabled = true
     }
 

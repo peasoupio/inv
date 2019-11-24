@@ -16,7 +16,6 @@ class InvHandlerTest {
     void setup() {
         Logger.DebugModeEnabled = true
 
-        ExpandoMetaClass.enableGlobally()
         inv = new InvHandler()
     }
 
@@ -176,7 +175,7 @@ class InvHandlerTest {
             .findAll { it.name.contains("my-webservice") }
             .collect { it.totalValuables }
             .any {
-                it.match_state == NetworkValuable.ALREADY_BROADCAST
+                it.state == NetworkValuable.ALREADY_BROADCAST
             }
     }
 

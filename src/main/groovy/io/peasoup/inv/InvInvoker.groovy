@@ -41,7 +41,7 @@ class InvInvoker {
         // Make sure cache is available with minimal accesses
         if (!Cache.exists()) {
             Cache.mkdirs()
-            Cache.setExecutable(false, false)
+            Cache.setExecutable(true)
             Cache.setWritable(true)
             Cache.setReadable(true)
         }

@@ -48,6 +48,11 @@ class SystemChecks {
 
         Logger.debug "Cache: ${cache.absolutePath}"
 
+        if (cache.exists() && !cache.isDirectory()) {
+            Logger.fail "Cache is not a directory"
+            return true
+        }
+
         if (!cache.canWrite()) {
             Logger.fail "current user is not able to write in cache"
             return true

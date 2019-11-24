@@ -3,6 +3,11 @@ package io.peasoup.inv
 class InvHandler {
 
     private NetworkValuablePool pool = new NetworkValuablePool()
+    private NetworkValuablePool.PoolReport report = new NetworkValuablePool.PoolReport()
+
+    static {
+        ExpandoMetaClass.enableGlobally()
+    }
 
     void call(Closure body) {
 
@@ -19,24 +24,25 @@ class InvHandler {
             inv.delegate.path =  body.binding.variables["pwd"]
 
         body.delegate = inv.delegate
-        body.call()
 
-        inv.dumpDelegate()
+        try {
+            body.call()
 
+            inv.dumpDelegate()
 
-
-        pool.totalInv << inv
-        pool.remainingsInv << inv
+            pool.totalInv << inv
+            pool.remainingsInv << inv
+        } catch (Exception ex) {
+            report.exceptions.add(ex)
+        }
     }
 
-    def call() {
+    NetworkValuablePool.PoolReport call() {
 
         int count = 0
-        List<Inv> digested = []
-        boolean haltInProgress = false
+        def haltingInProgress = false
 
         Logger.info "---- [DIGEST] started ----"
-
 
         try {
 
@@ -61,33 +67,35 @@ class InvHandler {
 
                 Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState()}) ----"
 
-                // Get the next digested invs and stack them in the list
-                digested.addAll(pool.digest())
+                // Get the next digested invs
+                report.eat(pool.digest())
 
-                // If we were running a HALTING cycle, break the eternity loop
-                if (haltInProgress) {
-                    // Reset state and break loop
-                    pool.runningState() == pool.RUNNING
+                if (haltingInProgress) {
                     break
                 }
 
-                // Has finish unbloating and halted
-                if (pool.runningState() == pool.HALTING) {
-                    haltInProgress = true
+                if (report.halted) {
+                    haltingInProgress = true
                 }
-
             }
         }
         catch (Exception ex) {
             ex.printStackTrace()
         }
 
-        // Shutdown pool executor if still running
-        pool.shutdown()
-
         Logger.info "---- [DIGEST] completed ----"
 
-        return [digested, !haltInProgress]
+        return reset()
+    }
+
+    private NetworkValuablePool.PoolReport  reset() {
+        def currentReport = report
+
+        report = new NetworkValuablePool.PoolReport()
+        pool.runningState() == pool.RUNNING
+        pool.shutdown()
+
+        return currentReport
     }
 
     //@Override

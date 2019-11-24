@@ -60,61 +60,13 @@ class InvHandlerTest {
         }
 
 
-        def (List digested, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
 
-        assert digested.size() == 3
-        assert digested[0].name == "my-server"
-        assert digested[1].name == "my-webservice"
-        assert digested[2].name == "my-app"
-    }
-
-    @Test
-    void call_not_ok() {
-
-        assertThrows(PowerAssertionError.class, {
-            inv.call(null)
-        })
-
-        inv {
-            name "my-webservice"
-
-            require inv.Server("my-server-id")
-
-            broadcast inv.Endpoint using {
-                id "my-webservice-id"
-                ready {
-                    println "my-webservice-id has been broadcast"
-                }
-            }
-        }
-
-        inv {
-            name "my-app"
-
-            require inv.Endpoint("my-webservice-id-not-existing")
-
-            broadcast inv.App("my-app-id")
-        }
-
-        inv {
-            name "my-server"
-
-            broadcast inv.Server using {
-                id "my-server-id"
-                ready {
-                    println "my-server-id has been broadcast"
-                }
-            }
-        }
-
-
-        def (List digested, Boolean success) = inv()
-        assert !success
-
-        assert digested.size() == 2
-        assert digested[0].name == "my-server"
-        assert digested[1].name == "my-webservice"
+        assert report.digested.size() == 3
+        assert report.digested[0].name == "my-server"
+        assert report.digested[1].name == "my-webservice"
+        assert report.digested[2].name == "my-app"
     }
 
     @Test
@@ -168,10 +120,10 @@ class InvHandlerTest {
         }
 
 
-        def (List digested, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
 
-        digested
+        report.digested
             .findAll { it.name.contains("my-webservice") }
             .collect { it.totalValuables }
             .any {
@@ -222,8 +174,8 @@ class InvHandlerTest {
             }
         }
 
-        def (List invs, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
     }
 
     @Test
@@ -275,8 +227,8 @@ class InvHandlerTest {
             }
         }
 
-        def (List invs, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
     }
 
     @Test
@@ -328,8 +280,8 @@ class InvHandlerTest {
             require inv.App("my-app-id")
         }
 
-        def (List invs, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
     }
 
     @Test
@@ -384,8 +336,8 @@ class InvHandlerTest {
             }
         }
 
-        def (List invs, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
     }
 
     @Test
@@ -418,7 +370,126 @@ class InvHandlerTest {
                     }
             }
 
-        def (List invs, Boolean success) = inv()
-        assert success
+        def report = inv()
+        assert report.isOk()
+    }
+
+    @Test
+    void call_not_ok() {
+
+        assertThrows(PowerAssertionError.class, {
+            inv.call(null)
+        })
+    }
+
+    @Test
+    void call_with_halting() {
+
+        assertThrows(PowerAssertionError.class, {
+            inv.call(null)
+        })
+
+        inv {
+            name "my-webservice"
+
+            require inv.Server("my-server-id")
+
+            broadcast inv.Endpoint using {
+                id "my-webservice-id"
+                ready {
+                    println "my-webservice-id has been broadcast"
+                }
+            }
+        }
+
+        inv {
+            name "my-app"
+
+            require inv.Endpoint("my-webservice-id-not-existing")
+
+            broadcast inv.App("my-app-id")
+        }
+
+        inv {
+            name "my-server"
+
+            broadcast inv.Server using {
+                id "my-server-id"
+                ready {
+                    println "my-server-id has been broadcast"
+                }
+            }
+        }
+
+
+        def report = inv()
+        assert !report.isOk()
+
+        assert report.halted
+        assert report.digested.size() == 2
+        assert report.digested[0].name == "my-server"
+        assert report.digested[1].name == "my-webservice"
+    }
+
+    @Test
+    void call_with_exception() {
+
+        inv {
+            name "my-exception"
+
+            throw new Exception("fail")
+        }
+
+        def report = inv()
+        assert !report.isOk()
+
+        assert !report.exceptions.isEmpty()
+        assert report.exceptions.find { it.message == "fail" }
+    }
+
+    @Test
+    void call_with_exception_2() {
+
+        inv {
+            name "my-exception"
+
+            broadcast inv.Exception using {
+                ready {
+                    throw new Exception("fail-broadcast")
+                }
+            }
+        }
+
+        def report = inv()
+        assert !report.isOk()
+
+        assert !report.exceptions.isEmpty()
+        assert report.exceptions.find { it.message == "fail-broadcast" }
+    }
+
+    @Test
+    void call_with_exception_3() {
+
+        inv {
+            name "provide"
+
+            broadcast inv.Something
+        }
+
+        inv {
+            name "my-exception"
+
+            require inv.Something using {
+                resolved {
+                    throw new Exception("fail-require")
+                }
+            }
+        }
+
+        def report = inv()
+        assert !report.isOk()
+
+        assert !report.exceptions.isEmpty()
+        assert report.exceptions.find { it.message == "fail-require" }
     }
 }

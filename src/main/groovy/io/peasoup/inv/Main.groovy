@@ -9,6 +9,8 @@ import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
+    def invHome = new File(System.getenv('INV_HOME') ?: "./")
+
 /*
 INV - Generated a INV sequence and manage past generations
 Generate a new sequence:
@@ -90,7 +92,7 @@ Options:
                 'Output generates an HTML file')
 
 
-        if (args.length == 0) {
+        if (args.length == 0 || consistencyFails()) {
             println "INV - Generated a INV sequence and manage past generations"
             println "Generate a new sequence:"
             commandsCli.usage()
@@ -133,9 +135,6 @@ Options:
                 InvInvoker.invoke(inv, lookupFile)
             else {
 
-                def invHome = System.getenv('INV_HOME') ?: "./"
-
-                Logger.debug "parent folder to pattern: ${invHome}"
                 Logger.debug "pattern without parent: ${lookupPattern}"
 
                 // Convert Ant pattern to regex
@@ -149,7 +148,7 @@ Options:
                 Logger.debug "resolved pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
-                new File(invHome).eachFileRecurse {
+                invHome.eachFileRecurse {
 
                     // Won't check directory
                     if (it.isDirectory())
@@ -173,7 +172,6 @@ Options:
                 }
             }
         }
-
 
         inv()
 
@@ -226,6 +224,31 @@ Options:
             print(delta.echo())
 
         return 0
+    }
+
+    /*
+        Check whether or not the system fails to meet the minimal "consistency" requirements
+     */
+    boolean consistencyFails() {
+
+        Logger.debug "INV_HOME: ${invHome.absolutePath}"
+
+        if (!invHome.isDirectory()) {
+            Logger.fail "INV_HOME is not a directory"
+            return true
+        }
+
+        if (!invHome.exists()) {
+            Logger.fail "INV_HOME does not exists"
+            return true
+        }
+
+        if (!invHome.canRead()) {
+            Logger.fail "current user is not able to read from INV_HOME"
+            return true
+        }
+
+        return false
     }
 
 

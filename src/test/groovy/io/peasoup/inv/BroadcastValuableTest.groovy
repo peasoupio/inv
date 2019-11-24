@@ -29,7 +29,7 @@ class BroadcastValuableTest {
 
             broadcast inv.Element using {
                 ready {[
-                        my: { return "method" }
+                    my: { return "method" }
                 ]}
             }
         }

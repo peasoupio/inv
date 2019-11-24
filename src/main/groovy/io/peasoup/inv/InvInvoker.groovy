@@ -61,7 +61,7 @@ class InvInvoker {
         return filename.absolutePath
     }
 
-    private static String normalizeClassName(File script) {
+    protected static String normalizeClassName(File script) {
         if (!script.parent)
             return script.name.split("\\.")[0]
 

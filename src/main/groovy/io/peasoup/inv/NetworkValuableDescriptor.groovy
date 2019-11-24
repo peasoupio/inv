@@ -1,7 +1,9 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
 import org.apache.commons.lang.StringUtils
 
+@CompileStatic
 class NetworkValuableDescriptor {
 
     final String name
@@ -16,6 +18,11 @@ class NetworkValuableDescriptor {
         assert StringUtils.isAlphanumeric(name)
 
         this.name = name
+    }
+
+    // it protects from involuntarily null name calling inv.Something() (instead of inv.Somathing)
+    NetworkValuableDescriptor call() {
+        return this
     }
 
     NetworkValuableDescriptor call(Object id) {

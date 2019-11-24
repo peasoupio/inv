@@ -1,10 +1,8 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
-
-import static org.junit.jupiter.api.Assertions.assertThrows
 
 class RequireValuableTest  {
 
@@ -12,7 +10,6 @@ class RequireValuableTest  {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         inv = new InvHandler()
     }
 

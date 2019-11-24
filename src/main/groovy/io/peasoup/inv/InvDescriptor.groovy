@@ -31,10 +31,10 @@ class InvDescriptor {
 
         assert networkValuableDescriptor
 
-        BroadcastValuable networkValuable = new BroadcastValuable()
+        BroadcastValuable broadcastValuable = new BroadcastValuable()
 
-        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
-        networkValuable.name = networkValuableDescriptor.name
+        broadcastValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
+        broadcastValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             BroadcastDescriptor delegate = new BroadcastDescriptor()
@@ -43,12 +43,12 @@ class InvDescriptor {
             usingBody.call()
 
             if (delegate.id)
-                networkValuable.id = delegate.id
+                broadcastValuable.id = delegate.id
 
-            networkValuable.ready = delegate.ready
+            broadcastValuable.ready = delegate.ready
         }
 
-        networkValuables << networkValuable
+        networkValuables << broadcastValuable
 
         return networkValuableDescriptor
     }
@@ -56,10 +56,10 @@ class InvDescriptor {
     NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
         assert networkValuableDescriptor
 
-        RequireValuable networkValuable = new RequireValuable()
+        RequireValuable requireValuable = new RequireValuable()
 
-        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
-        networkValuable.name = networkValuableDescriptor.name
+        requireValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
+        requireValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             RequireDescriptor delegate = new RequireDescriptor()
@@ -68,24 +68,24 @@ class InvDescriptor {
             usingBody.call()
 
             if (delegate.id)
-                networkValuable.id = delegate.id
+                requireValuable.id = delegate.id
 
             if (delegate.defaults != null)
-                networkValuable.defaults = delegate.defaults
+                requireValuable.defaults = delegate.defaults
 
             if (delegate.unbloatable != null)
-                networkValuable.unbloatable = delegate.unbloatable
+                requireValuable.unbloatable = delegate.unbloatable
 
-            networkValuable.resolved = delegate.resolved
-            networkValuable.unresolved = delegate.unresolved
+            requireValuable.resolved = delegate.resolved
+            requireValuable.unresolved = delegate.unresolved
 
 
         }
         networkValuableDescriptor.intoDigestor = { String into ->
-            networkValuable.into = into
+            requireValuable.into = into
         }
 
-        networkValuables << networkValuable
+        networkValuables << requireValuable
 
         return networkValuableDescriptor
     }

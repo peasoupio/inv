@@ -1,7 +1,10 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
 import java.util.concurrent.*
 
+@CompileStatic
 class NetworkValuablePool {
 
 
@@ -17,7 +20,7 @@ class NetworkValuablePool {
     final List<Inv> remainingsInv = [].asSynchronized()
     final List<Inv> totalInv = [].asSynchronized()
 
-    private String runningState = RUNNING
+    protected String runningState = RUNNING
     private boolean isDigesting = false
 
     private ExecutorService invExecutor
@@ -82,7 +85,7 @@ class NetworkValuablePool {
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
             futures.each {
-                toResolve += it.get()
+                toResolve.addAll(it.get() as List<RequireValuable>)
             }
         }
 
@@ -163,8 +166,8 @@ class NetworkValuablePool {
             return
 
         names << name
-        availableValuables.put(name, new ConcurrentHashMap<Object, Object>())
-        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>())
+        availableValuables.put(name, new ConcurrentHashMap<Object, Object>() as Map<Object, BroadcastValuable.Response>)
+        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>() as Map<Object, BroadcastValuable.Response>)
     }
 
     synchronized void startRunning() {
@@ -197,7 +200,7 @@ class NetworkValuablePool {
         assert isDigesting
 
         if (runningState != UNBLOATING ||
-            networkValuable.match != NetworkValuable.BROADCAST) {
+            networkValuable.match != BroadcastValuable.BROADCAST) {
             return false
         }
 

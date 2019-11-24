@@ -1,5 +1,8 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class RequireDescriptor {
 
     Object id

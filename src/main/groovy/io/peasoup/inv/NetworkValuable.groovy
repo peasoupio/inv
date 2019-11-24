@@ -1,5 +1,8 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 interface NetworkValuable {
 
     final static int NOT_PROCESSED = -1, // Not processed yet
@@ -8,22 +11,22 @@ interface NetworkValuable {
                      SUCCESSFUL = 2, // Positive match
                      ALREADY_BROADCAST = 3 // Positive match
 
-    final static Manageable BROADCAST = new BroadcastValuable.Broadcast()
-    final static Manageable REQUIRE = new RequireValuable.Require()
 
     final static String DEFAULT_ID = "undefined"
 
     // Identification
-    Object id
-    String name
+    Object getId()
+    String getName()
 
-    Manageable match
 
     // When assigned to a Inv
-    Inv inv
+    Inv getInv()
+    void setInv(Inv value)
 
     // When processed
-    int match_state
+    int getState()
+
+    Manageable getMatch()
 
     interface Manageable<N extends NetworkValuable> {
         void manage(NetworkValuablePool pool, N networkValuable)

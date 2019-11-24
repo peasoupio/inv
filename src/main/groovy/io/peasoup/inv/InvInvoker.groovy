@@ -1,11 +1,18 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
+@CompileStatic
 class InvInvoker {
 
     static String Cache = "./.cache"
+
+    static {
+        ExpandoMetaClass.enableGlobally()
+    }
 
     static void invoke(InvHandler inv, File scriptPath) {
         assert inv
@@ -44,7 +51,7 @@ class InvInvoker {
         //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
         Files.copy(Paths.get(scriptFile.absolutePath), Paths.get(filename.absolutePath))
 
-        Logger.debug "created symlink for ${classname} here: ${filename.absolutePath}"
+        Logger.debug "created copy for ${classname} here: ${filename.absolutePath}"
 
         return filename.absolutePath
     }

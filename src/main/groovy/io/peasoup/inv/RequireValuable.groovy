@@ -1,8 +1,9 @@
 package io.peasoup.inv
 
+// TODO @CompileStatic is a bit more complicated here
 class RequireValuable implements NetworkValuable {
 
-    final Manageable match = NetworkValuable.REQUIRE
+    final static Manageable REQUIRE = new RequireValuable.Require()
 
     // Idenfitication
     Object id
@@ -19,8 +20,9 @@ class RequireValuable implements NetworkValuable {
     Closure unresolved
 
     // When processed
-    int match_state = NOT_PROCESSED
+    int state = NOT_PROCESSED
 
+    Manageable getMatch() { REQUIRE }
 
     @Override
     String toString() {
@@ -32,13 +34,13 @@ class RequireValuable implements NetworkValuable {
         void manage(NetworkValuablePool pool, RequireValuable requireValuable) {
 
             // Reset to make sure NV is fine
-            requireValuable.match_state = RequireValuable.NOT_PROCESSED
+            requireValuable.state = RequireValuable.NOT_PROCESSED
 
             // Is it in cleaning state ?
             if (pool.runningState == pool.HALTING) {
 
                 if (requireValuable.unresolved)
-                    requireValuable.unresolved([
+                    requireValuable.unresolved.call([
                             name: requireValuable.name,
                             id: requireValuable.id,
                             owner: requireValuable.inv.name
@@ -46,7 +48,7 @@ class RequireValuable implements NetworkValuable {
 
                 Logger.warn requireValuable
 
-                requireValuable.match_state = RequireValuable.SUCCESSFUL
+                requireValuable.state = RequireValuable.SUCCESSFUL
                 return
             }
 
@@ -61,17 +63,17 @@ class RequireValuable implements NetworkValuable {
                     requireValuable.unbloatable) {
 
                     if (requireValuable.unresolved)
-                        requireValuable.unresolved([
+                        requireValuable.unresolved.call([
                                 name: requireValuable.name,
                                 id: requireValuable.id,
                                 owner: requireValuable.inv.name
                         ])
 
-                    requireValuable.match_state = RequireValuable.UNBLOADTING
+                    requireValuable.state = RequireValuable.UNBLOADTING
                     return
                 }
 
-                requireValuable.match_state = RequireValuable.FAILED
+                requireValuable.state = RequireValuable.FAILED
                 return
             }
 
@@ -87,13 +89,13 @@ class RequireValuable implements NetworkValuable {
             // Sends message to resolved (if defined)
             if (requireValuable.resolved) {
                 requireValuable.resolved.delegate = broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
-                requireValuable.resolved()
+                requireValuable.resolved.call()
             }
 
             // Check if NV would have dumped something
             requireValuable.inv.dumpDelegate()
 
-            requireValuable.match_state = RequireValuable.SUCCESSFUL
+            requireValuable.state = RequireValuable.SUCCESSFUL
         }
     }
 

@@ -10,7 +10,6 @@ class MavenTests {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
         Logger.capture(null)
         Logger.DebugModeEnabled = true
     }

@@ -8,7 +8,8 @@ import java.nio.file.Paths
 @CompileStatic
 class InvInvoker {
 
-    static String Cache = "./.cache"
+    // TODO Should be editable through options
+    static File Cache = new File("./.cache")
 
     static void invoke(InvHandler inv, File scriptPath) {
         assert inv
@@ -36,6 +37,14 @@ class InvInvoker {
     }
 
     static String cache(File scriptFile, String classname) {
+
+        // Make sure cache is available with minimal accesses
+        if (!Cache.exists()) {
+            Cache.mkdirs()
+            Cache.setExecutable(false, false)
+            Cache.setWritable(true)
+            Cache.setReadable(true)
+        }
 
         File filename = new File(Cache, classname + ".groovy")
         filename.mkdirs()

@@ -16,6 +16,7 @@ class NetworkValuablePool {
 
     final Map<String, Map<Object, BroadcastValuable.Response>> availableValuables = [:]
     final Map<String, Map<Object, BroadcastValuable.Response>> stagingValuables = [:]
+    final Map<String, Set<Object>> unbloatedValuables = [:]
 
     final List<Inv> remainingsInv = [].asSynchronized()
     final List<Inv> totalInv = [].asSynchronized()
@@ -24,7 +25,6 @@ class NetworkValuablePool {
     private boolean isDigesting = false
 
     private ExecutorService invExecutor
-
 
 
     /**
@@ -89,10 +89,16 @@ class NetworkValuablePool {
                 }
             } as Callable<Inv.Digestion>)
 
+
             if (runningState == RUNNING) {
                 futures.add(invExecutor.submit(eat))
             } else {
+                def currentState = runningState
                 digestion.concat(eat())
+
+                // If changed, quit
+                if (currentState != runningState)
+                    break
             }
         }
 
@@ -186,8 +192,9 @@ class NetworkValuablePool {
             return
 
         names << name
-        availableValuables.put(name, new ConcurrentHashMap<Object, Object>() as Map<Object, BroadcastValuable.Response>)
-        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>() as Map<Object, BroadcastValuable.Response>)
+        availableValuables.put(name, new ConcurrentHashMap<Object, BroadcastValuable.Response>())
+        stagingValuables.put(name, new ConcurrentHashMap<Object, BroadcastValuable.Response>())
+        unbloatedValuables.put(name, new HashSet<Object>())
     }
 
     synchronized void startRunning() {

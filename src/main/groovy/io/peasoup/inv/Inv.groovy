@@ -119,7 +119,7 @@ class Inv {
             // 3. has not (previously dumped something)
             // 4. has no more valuables
             while (!steps.isEmpty() &&
-                   digestion.requires == 0 &&
+                   //digestion.requires == 0 &&
                    !hasDumpedSomething &&
                    this.remainingValuables.isEmpty()) {
                 // Call next step

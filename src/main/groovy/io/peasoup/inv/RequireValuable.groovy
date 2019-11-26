@@ -55,12 +55,31 @@ class RequireValuable implements NetworkValuable {
             def channel = pool.availableValuables[requireValuable.name]
             def broadcast = channel[requireValuable.id]
 
+
             if (!broadcast) {
 
-                // Is it bloating ?
+                // By default
+                requireValuable.state = RequireValuable.FAILED
 
-                if (pool.runningState == pool.UNBLOATING &&
-                    requireValuable.unbloatable) {
+                boolean toUnbloat = false
+
+                // Did it already unbloated
+                if (pool.unbloatedValuables[requireValuable.name].contains(requireValuable.id)) {
+                    toUnbloat = true
+                }
+
+                // Does this one unbloats
+                if (pool.runningState == pool.UNBLOATING && requireValuable.unbloatable) {
+                    toUnbloat = true
+
+                    // Cache for later
+                    pool.unbloatedValuables[requireValuable.name].add(requireValuable.id)
+                }
+
+                if (toUnbloat) {
+
+                    requireValuable.state = RequireValuable.UNBLOADTING
+                    Logger.debug "[UNBLOATED] " + requireValuable
 
                     if (requireValuable.unresolved)
                         requireValuable.unresolved.call([
@@ -68,15 +87,9 @@ class RequireValuable implements NetworkValuable {
                                 id: requireValuable.id,
                                 owner: requireValuable.inv.name
                         ])
-
-                    requireValuable.state = RequireValuable.UNBLOADTING
-
-                    Logger.debug "[UNBLOATED] " + requireValuable
-
-                    return
                 }
 
-                requireValuable.state = RequireValuable.FAILED
+
                 return
             }
 

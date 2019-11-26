@@ -60,7 +60,7 @@ class NetworkValuablePool {
         // All invs
         List<Inv> invsDone = []
         List<Future<Inv.Digestion>> futures = []
-        List<Exception> exceptions = []
+        List<PoolException> exceptions = []
 
         // All digestions
         def digestion = new Inv.Digestion()
@@ -84,7 +84,7 @@ class NetworkValuablePool {
                 try {
                     return inv.digest(pool)
                 } catch (Exception ex) {
-                    exceptions.add(ex)
+                    exceptions.add(new PoolException(inv: inv, exception: ex))
                     return []
                 }
             } as Callable<Inv.Digestion>)
@@ -290,7 +290,7 @@ class NetworkValuablePool {
     static class PoolReport {
 
         List<Inv> digested = []
-        List<Exception> exceptions = []
+        List<PoolException> exceptions = []
         boolean halted = false
 
         void eat(PoolReport other) {
@@ -314,6 +314,11 @@ class NetworkValuablePool {
 
             return true
         }
+    }
+
+    static class PoolException {
+        Inv inv
+        Exception exception
     }
 
 

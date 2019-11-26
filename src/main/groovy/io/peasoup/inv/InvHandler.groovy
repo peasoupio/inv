@@ -33,7 +33,10 @@ class InvHandler {
             pool.totalInv << inv
             pool.remainingsInv << inv
         } catch (Exception ex) {
-            report.exceptions.add(ex)
+            // Atempt to dump delegate to get path or name
+            inv.dumpDelegate()
+
+            report.exceptions.add(new NetworkValuablePool.PoolException(inv: inv, exception: ex))
         }
     }
 

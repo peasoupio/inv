@@ -61,6 +61,7 @@ class InvHandlerTest {
 
 
         def report = inv()
+
         assert report.isOk()
 
         assert report.digested.size() == 3
@@ -277,7 +278,17 @@ class InvHandlerTest {
         inv {
             name "my-other-app"
 
-            require inv.App("my-app-id")
+            step {
+                require inv.App("my-app-id")
+            }
+
+            step {
+                require inv.Element("not-existing") using { unbloatable true }
+            }
+
+            step {
+                broadcast inv.Element("at-the-end")
+            }
         }
 
         def report = inv()
@@ -481,7 +492,16 @@ class InvHandlerTest {
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.message == "fail" }
+        assert report.exceptions.find { it.inv.name == "my-exception" }
+        assert report.exceptions.find { it.exception.message == "fail" }
+
+
+        report.exceptions.each {
+            println "=================="
+            println "INV: ${it.inv.name}"
+            it.exception.printStackTrace()
+            println "=================="
+        }
     }
 
     @Test
@@ -501,7 +521,7 @@ class InvHandlerTest {
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.message == "fail-broadcast" }
+        assert report.exceptions.find { it.exception.message == "fail-broadcast" }
     }
 
     @Test
@@ -527,6 +547,6 @@ class InvHandlerTest {
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.message == "fail-require" }
+        assert report.exceptions.find { it.exception.message == "fail-require" }
     }
 }

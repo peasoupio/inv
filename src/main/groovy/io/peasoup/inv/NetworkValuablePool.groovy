@@ -59,16 +59,23 @@ class NetworkValuablePool {
 
         // All invs
         List<Inv> invsDone = []
-        List<Future<List<RequireValuable>>> futures = []
+        List<Future<Inv.Digestion>> futures = []
         List<Exception> exceptions = []
 
-        // All requires
-        List<RequireValuable> toResolve = []
+        // All digestions
+        def digestion = new Inv.Digestion()
+
+        def sorted = remainingsInv
+
+        if (runningState == UNBLOATING)
+            sorted = remainingsInv.sort { a, b ->
+                a.digestionSummary.unbloats.compareTo(b.digestionSummary.unbloats)
+            }
 
         // Use fori-loop for speed
-        for (int i = 0; i < remainingsInv.size() ; i++) {
+        for (int i = 0; i < sorted.size() ; i++) {
 
-            def inv = remainingsInv[i]
+            def inv = sorted[i]
 
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
@@ -80,19 +87,19 @@ class NetworkValuablePool {
                     exceptions.add(ex)
                     return []
                 }
-            } as Callable<List<RequireValuable>>)
+            } as Callable<Inv.Digestion>)
 
             if (runningState == RUNNING) {
                 futures.add(invExecutor.submit(eat))
             } else {
-                toResolve.addAll(eat())
+                digestion.concat(eat())
             }
         }
 
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
             futures.each {
-                toResolve.addAll(it.get())
+                digestion.concat(it.get())
             }
         }
 
@@ -103,7 +110,7 @@ class NetworkValuablePool {
         }
 
         // Batch all require resolve at once
-        boolean hasResolvedSomething = !toResolve.isEmpty()
+        boolean hasResolvedSomething = digestion.requires != 0
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
         boolean hasStagedSomething = false
@@ -136,9 +143,11 @@ class NetworkValuablePool {
 
         remainingsInv.removeAll(invsDone)
 
+        /*
         Logger.debug "Has done something: ${hasDoneSomething}"
         Logger.debug "Has resolved something: ${hasResolvedSomething}"
         Logger.debug "Has staged something: ${hasStagedSomething}"
+        */
 
         if (hasDoneSomething) { // Has completed Invs
             startRunning()
@@ -205,13 +214,26 @@ class NetworkValuablePool {
         runningState = HALTING
     }
 
-    synchronized boolean stopUnbloating(NetworkValuable networkValuable) {
+    /**
+     * If we caught a successful broadcast during the unbloating cycle, we need to
+     * restart digest since this broadcasts can altered the remaining cycles
+     * @param networkValuable
+     * @return
+     */
+    synchronized boolean preventUnbloating(NetworkValuable networkValuable) {
 
         assert networkValuable
         assert isDigesting
 
-        if (runningState != UNBLOATING ||
-            networkValuable.match != BroadcastValuable.BROADCAST) {
+        if (runningState != UNBLOATING) {
+            return false
+        }
+
+        if (networkValuable.state != NetworkValuable.SUCCESSFUL) {
+            return false
+        }
+
+        if (networkValuable.match != BroadcastValuable.BROADCAST) {
             return false
         }
 

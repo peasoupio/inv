@@ -1,6 +1,7 @@
 package io.peasoup.inv
 
-import groovy.cli.commons.CliBuilder
+
+import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
@@ -109,8 +110,15 @@ Options:
         boolean hasHtml = utilsOptions.hasOption("h")
 
         // Handling graph option
-        if (utilsOptions.hasOption("g"))
-            return buildGraph(utilsOptions.g, utilsOptions.arguments())
+        if (utilsOptions.hasOption("g")) {
+
+            def graphType = utilsOptions.g
+
+            if (graphType instanceof Boolean)
+                graphType = "plain"
+
+            return buildGraph(graphType, utilsOptions.arguments())
+        }
 
         // Handling delta option
         if (utilsOptions.hasOption("d"))

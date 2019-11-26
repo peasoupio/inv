@@ -70,6 +70,9 @@ class RequireValuable implements NetworkValuable {
                         ])
 
                     requireValuable.state = RequireValuable.UNBLOADTING
+
+                    Logger.debug "[UNBLOATED] " + requireValuable
+
                     return
                 }
 

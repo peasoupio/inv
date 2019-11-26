@@ -10,6 +10,7 @@ class Inv {
     Closure ready
 
     boolean sync = true
+    final Digestion digestionSummary = new Digestion()
 
     final InvDescriptor delegate = new InvDescriptor()
 
@@ -65,12 +66,14 @@ class Inv {
      * @param pool the pool currently in digestion
      * @return
      */
-    synchronized List<RequireValuable> digest(NetworkValuablePool pool ) {
+    synchronized Digestion digest(NetworkValuablePool pool ) {
 
         assert pool
         assert pool.isDigesting()
 
-        List<RequireValuable> toResolve = []
+        boolean stopUnbloating = false
+
+        def digestion = new Digestion()
 
         // Loop because dump
         while (true) {
@@ -83,9 +86,10 @@ class Inv {
                 NetworkValuable networkValuable = this.remainingValuables[j] as NetworkValuable
                 networkValuable.match.manage(pool, networkValuable)
 
-                int result = networkValuable.state
+                // Process results for digestion
+                digestion.addResults(networkValuable)
 
-                if (result == NetworkValuable.FAILED) {
+                if (networkValuable.state == NetworkValuable.FAILED) {
                     if (sync) {
                         break
                     } else {
@@ -95,22 +99,17 @@ class Inv {
 
                 toRemove.add(networkValuable)
 
-                if (result >= NetworkValuable.SUCCESSFUL) {
-
-                    // Resolved requirements later to make sure broadcasts are available
-                    if (networkValuable.match == RequireValuable.REQUIRE) {
-                        toResolve.add(networkValuable as RequireValuable)
-                    }
-
-                    // If we caught a successful broadcast during the unbloating cycle, we need to
-                    // restart digest since this broadcasts can altered the remaining cycles
-                    if (pool.stopUnbloating(networkValuable))
-                        break
+                if (pool.preventUnbloating(networkValuable)) {
+                    stopUnbloating = true
+                    break
                 }
             }
 
             // Remove all NV meant to be deleted
             this.remainingValuables.removeAll(toRemove)
+
+            if (stopUnbloating)
+                break
 
             boolean hasDumpedSomething = false
 
@@ -120,7 +119,7 @@ class Inv {
             // 3. has not (previously dumped something)
             // 4. has no more valuables
             while (!steps.isEmpty() &&
-                   toResolve.isEmpty() &&
+                   digestion.requires == 0 &&
                    !hasDumpedSomething &&
                    this.remainingValuables.isEmpty()) {
                 // Call next step
@@ -136,7 +135,40 @@ class Inv {
                 break
         }
 
-        return toResolve
+        digestionSummary.concat(digestion)
+        return digestion
+    }
+
+    static class Digestion {
+        Integer requires = 0
+        Integer broadcasts = 0
+        Integer unbloats = 0
+
+        void addResults(NetworkValuable networkValuable) {
+            assert networkValuable
+
+            if (networkValuable.state >= NetworkValuable.SUCCESSFUL) {
+                if (networkValuable.match == RequireValuable.REQUIRE) {
+                    requires++
+                }
+
+                if (networkValuable.match == BroadcastValuable.BROADCAST) {
+                    broadcasts++
+                }
+            }
+
+            if (networkValuable.state == NetworkValuable.UNBLOADTING) {
+                unbloats++
+            }
+        }
+
+        void concat(Digestion digestion) {
+            assert digestion
+
+            this.requires += digestion.requires
+            this.broadcasts += digestion.broadcasts
+            this.unbloats += digestion.unbloats
+        }
     }
 
 }

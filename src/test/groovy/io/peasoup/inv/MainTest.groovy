@@ -16,7 +16,7 @@ class MainTest {
     @Test
     void main_no_args() {
         Stdout.capture ({ Main.main() }, {
-            assert it.contains("usage")
+            assert it.contains("Usage")
         })
     }
 

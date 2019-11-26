@@ -285,6 +285,43 @@ class InvHandlerTest {
     }
 
     @Test
+    void call_using_multiple_unbloating() {
+
+
+        inv {
+            name "my-app-1"
+
+            require inv.Artifact("A") using { unbloatable true }
+            broadcast inv.Artifact("B")
+            require inv.Artifact("B") using { unbloatable true }
+            require inv.Artifact("C") using { unbloatable true }
+            require inv.Artifact("D") using { unbloatable true }
+
+            require inv.Service("A") using { unbloatable true }
+            require inv.Service("B")
+            require inv.Service("C") using { unbloatable true }
+            require inv.Service("D") using { unbloatable true }
+        }
+
+        inv {
+            name "my-app-2"
+
+            require inv.Artifact("A") using { unbloatable true }
+            require inv.Artifact("B")
+            require inv.Artifact("C") using { unbloatable true }
+            require inv.Artifact("D") using { unbloatable true }
+
+            require inv.Service("A") using { unbloatable true }
+            broadcast inv.Service("B")
+            require inv.Service("C") using { unbloatable true }
+            require inv.Service("D") using { unbloatable true }
+        }
+
+        def report = inv()
+        assert report.isOk()
+    }
+
+    @Test
     void ready() {
 
         def value = 1

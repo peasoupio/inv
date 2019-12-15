@@ -32,7 +32,7 @@ class MainTest {
 
         Main.main(script.path)
 
-        assert logs.contains("[INV] file: ${canonicalPath}".toString())
+        assert logs.contains("[INV] [undefined] [${canonicalPath}] [mainTestScript]".toString())
     }
 
     @Test
@@ -54,9 +54,9 @@ class MainTest {
 
         Main.main("-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
+        assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
+
 
     }
 
@@ -72,9 +72,9 @@ class MainTest {
 
         Main.main("src/test/resources/mainTestScript*.*")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
+        assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
+
     }
 
     @Test
@@ -90,9 +90,9 @@ class MainTest {
 
         Main.main("src/test/resources/pattern/**/*.*")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
+        assert logs.contains("[INV] [undefined] [${files[0]}] [different-folder]".toString())
+        assert logs.contains("[INV] [undefined] [${files[1]}] [different-inside]".toString())
+
     }
 
     @Test
@@ -125,7 +125,7 @@ class MainTest {
         def scmFile = MainTest.class.getResource("/test-scm.groovy")
         assert scmFile
 
-        def comparable = new ScmReader(new File(scmFile.path).newReader())
+        def comparable = new ScmReader(new File(scmFile.path))
         assert comparable.scms["my-repository"]
 
         // Remove to make sure we trigger init

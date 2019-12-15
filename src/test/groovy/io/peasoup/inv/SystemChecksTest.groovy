@@ -44,6 +44,8 @@ class SystemChecksTest {
         notWritable.setWritable(false)
 
         assert checks.checkCache(new File(notWritable, "something/"))
+
+        notWritable.deleteDir()
     }
 
     @Test()

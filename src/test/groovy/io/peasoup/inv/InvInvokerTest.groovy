@@ -19,15 +19,10 @@ class InvInvokerTest {
 
         // Resolve with filename as classname
         Stdout.capture ({ InvInvoker.invoke(new InvHandler(), scriptFile) }, {
-            assert it.contains("From invokerTestScript")
+            assert it.contains("From invokertestscript")
         })
-
-        // Resolve with specified classname
-        Stdout.capture ({ InvInvoker.invoke(new InvHandler(), scriptFile.text, scriptFile,  "my-classname") }, {
-            assert it.contains("From my-classname")
-        })
-
     }
+
     @Test
     void cache() {
 
@@ -62,11 +57,15 @@ class InvInvokerTest {
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(new InvHandler(), "text", null, null)
+            InvInvoker.invoke(new InvHandler(), null, null)
         })
 
         assertThrows(PowerAssertionError.class, {
-            InvInvoker.invoke(null, "text", new File("filename"), null)
+            InvInvoker.invoke(null, new File("filename"), null)
+        })
+
+        assertThrows(PowerAssertionError.class, {
+            InvInvoker.invoke(new InvHandler(), new File("filename"), null)
         })
     }
 }

@@ -11,8 +11,10 @@ class DotGraph {
 
         def plainGraph = new PlainGraph(logs)
 
-        nodes += plainGraph.nodes
-        edges += plainGraph.edges
+        nodes += plainGraph.baseGraph.nodes
+        edges += plainGraph.baseGraph.edges
+
+
     }
 
     String echo() {
@@ -29,8 +31,8 @@ ${
 ${
     edges
         .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "\t\"${owner}\" -> \"${edge.owner}\" [ label = \"${edge.broadcast.replace("undefined", "").trim()}\" ];"
+            edges.collect { BaseGraph.Node edge ->
+                "\t\"${owner}\" -> \"${edge.owner}\" [ label = \"${edge.id.replace("undefined", "").trim()}\" ];"
             }
         }
         .join(lf)

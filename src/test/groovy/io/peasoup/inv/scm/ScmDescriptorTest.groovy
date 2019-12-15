@@ -15,7 +15,7 @@ class ScmDescriptorTest  {
         assert scmDescriptor.scms()["my-repository"]
 
         assertEquals scmDescriptor.scms()["my-repository"].src, "https://github.com/spring-guides/gs-spring-boot.git"
-        assertEquals scmDescriptor.scms()["my-repository"].entry, "inv.groovy"
+        assertEquals scmDescriptor.scms()["my-repository"].entry, new File("./src/test/resources/mainTestScript.groovy").absolutePath
         assertEquals scmDescriptor.scms()["my-repository"].timeout, 30000
 
         assert scmDescriptor.scms()["my-repository"].hooks

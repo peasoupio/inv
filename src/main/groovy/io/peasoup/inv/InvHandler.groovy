@@ -19,9 +19,13 @@ class InvHandler {
         // Set default name
         inv.delegate.name = body.owner.class.simpleName
 
-        // Set default path
-        if (body.owner.properties["binding"])
+        // Is loading from script ?
+        Boolean isScript = body.owner.properties["binding"]
+
+        if (isScript) {
+            // Set default path
             inv.delegate.path =  body.binding.variables["pwd"]
+        }
 
         body.delegate = inv.delegate
 
@@ -32,6 +36,14 @@ class InvHandler {
 
             pool.totalInv << inv
             pool.remainingsInv << inv
+
+            if (isScript) {
+                String scm =  body.binding.variables["scm"]
+                String file =  body.binding.variables["\$0"]
+
+                Logger.info "[$scm] [${file}] [${inv.name}]"
+            }
+
         } catch (Exception ex) {
             // Atempt to dump delegate to get path or name
             inv.dumpDelegate()

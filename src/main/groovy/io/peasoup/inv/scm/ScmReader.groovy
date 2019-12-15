@@ -6,16 +6,17 @@ class ScmReader {
 
     final Map<String, ScmDescriptor.MainDescriptor> scms
 
-    ScmReader(File scmFile) {
-        this(scmFile.newReader())
+    ScmReader(File scmFile, File externalProperties = null) {
+
+        def descriptor = new ScmDescriptor(scmFile.newReader())
+
+        if (externalProperties)
+            scms = descriptor.scms(externalProperties)
+        else
+            scms = descriptor.scms()
     }
 
-    ScmReader(Reader reader) {
-        // Resolve SCMS from groovy file
-        scms = new ScmDescriptor(reader).scms()
-    }
-
-    Map<String, File> execute() {
+    Map<String, List<File>> execute() {
 
         return scms.collectEntries { String name, ScmDescriptor.MainDescriptor repository ->
 
@@ -37,7 +38,17 @@ class ScmReader {
                 Logger.info("[SCM] ${name} [UPDATE] done")
             }
 
-            return [(name): new File(repository.path, repository.entry)]
+            // Manage entry points for SCM
+            List<File> scripts = repository.entry.split().collect {
+                def scriptFile = new File(it)
+
+                if (scriptFile.exists())
+                    return scriptFile
+
+                return new File(repository.path, it)
+            }
+
+            return [(name): scripts]
         }
     }
 

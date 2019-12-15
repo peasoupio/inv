@@ -1,97 +1,127 @@
 package io.peasoup.inv.graph
 
-import java.util.regex.Matcher
-
 class PlainGraph {
 
     final private static lf = System.properties['line.separator']
 
-    Map nodes = [:]
-    Map edges = [:]
+    def baseGraph = new BaseGraph()
+
+    final List<FileStatement> files = []
 
     PlainGraph(BufferedReader logs) {
 
         logs.eachLine { String line ->
 
+            // Don't bother process useless lines
             if (!line.startsWith("[INV]"))
                 return
 
-            Matcher broadcast = line =~ /\[INV\] \[(.*)\] => \[BROADCAST\] (.*)/
-            Matcher require = line =~ /\[INV\] \[(.*)\] => \[REQUIRE\] (.*)/
-
-            if (broadcast.matches()) {
-                String name = broadcast.group(1)
-
-                def node = [
-                    owner: name,
-                    broadcast: broadcast.group(2)
-                ]
-
-                // Add or override existing node
-                if (!nodes.containsKey(name))
-                    nodes << [(name): new HashSet<>()]
-
-                nodes[name] << node
+            def broadcast = BroadcastStatement.matches(line)
+            if (broadcast) {
+                baseGraph.addBroadcastNode(broadcast)
+                return
             }
 
-            if (require.matches()) {
-                String name = require.group(1)
+            def require = RequireStatement.matches(line)
+            if (require) {
+                baseGraph.addRequireNode(require)
+                return
+            }
 
-                def node = [
-                    owner: name,
-                    require: require.group(2)
-                ]
-
-                // Add or override existing node
-                if (!nodes.containsKey(name))
-                    nodes << [(name): new HashSet<>()]
-
-                nodes[name] << node
-
+            def file = FileStatement.matches(line)
+            if (file) {
+                files << file
+                return
             }
         }
 
-        // Get all broadcasts
-        List broadcasts = nodes.values().collectMany { it.findAll { it.broadcast } }
-        // Get all requires
-        List requires = nodes.values().collectMany { it.findAll { it.require } }
-
-        // Merge broadcasts them into an index
-        Map broadcasts_index = broadcasts.collectEntries { [(it.broadcast): it]}
-
-        // Create edges
-        (broadcasts + requires).each {
-            if (edges.containsKey(it.owner))
-                return
-
-            edges << [(it.owner): new HashSet<>()]
-        }
-
-        // Look requires to get matches with broadcasts
-        requires.each {
-            def match = broadcasts_index[it.require]
-
-            if (!match)
-                return
-
-            edges[it.owner] << match
-        }
-
+        baseGraph.linkEdges()
     }
 
     String echo() {
         return """    
 # Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
 ${
-    edges
+    baseGraph.edges
         .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "${owner} -> ${edge.owner} (${edge.broadcast})"
+            edges.collect { BaseGraph.Node edge ->
+                "${owner} -> ${edge.owner} (${edge.id})"
             }
         }
         .join(lf)
 }
 """
+    }
+
+    static class RequireStatement implements BaseGraph.Node {
+
+        private static def RE = /^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/
+
+        static RequireStatement matches(String line) {
+            def require = line =~ RE
+
+            if (!require.matches())
+                return null
+
+            return new RequireStatement(
+                owner: require[0][1],
+                id: require[0][2],
+            )
+        }
+
+        // Ctor
+        String owner
+        String id
+
+        private RequireStatement() { }
+    }
+
+    static class BroadcastStatement implements BaseGraph.Node {
+
+        private static def RE = /^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/
+
+        static BroadcastStatement matches(String line) {
+            def broadcast = line =~ RE
+
+            if (!broadcast.matches())
+                return null
+
+            return new BroadcastStatement(
+                owner: broadcast[0][1],
+                id: broadcast[0][2],
+            )
+        }
+
+        // Ctor
+        String owner
+        String id
+
+        private BroadcastStatement() {}
+    }
+
+    static class FileStatement {
+
+        private static def RE = /^\[INV\] \[(\S*)\] \[(\S*)\] \[(\S*)\]\u0024/
+
+        static FileStatement matches(String line) {
+            def file = line =~ RE
+
+            if (!file.matches())
+                return null
+
+            return new FileStatement(
+                scm: file[0][1],
+                file: file[0][2],
+                inv: file[0][3]
+            )
+        }
+
+        // Ctor
+        String scm
+        String file
+        String inv
+
+        private FileStatement() {}
     }
 
 }

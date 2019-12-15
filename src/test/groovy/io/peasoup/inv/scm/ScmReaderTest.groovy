@@ -8,17 +8,17 @@ class ScmReaderTest {
     void ok() {
 
         def scmFile =  new File(getClass().getResource('/test-scm.groovy').toURI())
-        def files = new ScmReader(scmFile.newReader()).execute()
+        def files = new ScmReader(scmFile).execute()
 
         assert files["my-repository"]
-        assert files["my-repository"].absolutePath.contains("inv.groovy")
+        assert files["my-repository"].find { it.absolutePath.contains("mainTestScript.groovy") }
     }
 
     @Test
     void multiple() {
 
         def scmFile =  new File(getClass().getResource('/test-scm-multiple.groovy').toURI())
-        def files = new ScmReader(scmFile.newReader()).execute()
+        def files = new ScmReader(scmFile).execute()
 
         assert files["my-first-repository"]
         assert files["my-second-repository"]

@@ -11,29 +11,29 @@ class PlainGraphTest {
         def plainGraph = new PlainGraph(logOutput1Txt.newReader())
 
         // test nodes
-        assert plainGraph.nodes["ServerA"]
-        assert plainGraph.nodes["ServerB"]
-        assert plainGraph.nodes["iis"]
-        assert plainGraph.nodes["Kubernetes"]
-        assert plainGraph.nodes["files"]
-        assert plainGraph.nodes["maven"]
-        assert plainGraph.nodes["my-app-1"]
-        assert plainGraph.nodes["my-app-2"]
-        assert plainGraph.nodes["appA"]
-        assert plainGraph.nodes["appB"]
+        assert plainGraph.baseGraph.nodes["ServerA"]
+        assert plainGraph.baseGraph.nodes["ServerB"]
+        assert plainGraph.baseGraph.nodes["iis"]
+        assert plainGraph.baseGraph.nodes["Kubernetes"]
+        assert plainGraph.baseGraph.nodes["files"]
+        assert plainGraph.baseGraph.nodes["maven"]
+        assert plainGraph.baseGraph.nodes["my-app-1"]
+        assert plainGraph.baseGraph.nodes["my-app-2"]
+        assert plainGraph.baseGraph.nodes["appA"]
+        assert plainGraph.baseGraph.nodes["appB"]
 
         // test edges
-        assert plainGraph.edges["iis"].find { it.owner == "ServerA" }
-        assert plainGraph.edges["Kubernetes"].find { it.owner == "ServerA" }
-        assert plainGraph.edges["maven"].find { it.owner == "files" }
-        assert plainGraph.edges["my-app-1"].find { it.owner == "maven" }
-        assert plainGraph.edges["my-app-2"].find { it.owner == "maven" }
-        assert plainGraph.edges["my-app-2"].find { it.owner == "my-app-1" }
-        assert plainGraph.edges["appA"].find { it.owner == "Kubernetes" }
-        assert plainGraph.edges["appB"].find { it.owner == "iis" }
+        assert plainGraph.baseGraph.edges["iis"].find { it.owner == "ServerA" }
+        assert plainGraph.baseGraph.edges["Kubernetes"].find { it.owner == "ServerA" }
+        assert plainGraph.baseGraph.edges["maven"].find { it.owner == "files" }
+        assert plainGraph.baseGraph.edges["my-app-1"].find { it.owner == "maven" }
+        assert plainGraph.baseGraph.edges["my-app-2"].find { it.owner == "maven" }
+        assert plainGraph.baseGraph.edges["my-app-2"].find { it.owner == "my-app-1" }
+        assert plainGraph.baseGraph.edges["appA"].find { it.owner == "Kubernetes" }
+        assert plainGraph.baseGraph.edges["appB"].find { it.owner == "iis" }
 
-        assert plainGraph.edges["ServerA"].isEmpty()
-        assert plainGraph.edges["ServerB"].isEmpty()
+        assert plainGraph.baseGraph.edges["ServerA"].isEmpty()
+        assert plainGraph.baseGraph.edges["ServerB"].isEmpty()
 
         plainGraph.echo()
     }

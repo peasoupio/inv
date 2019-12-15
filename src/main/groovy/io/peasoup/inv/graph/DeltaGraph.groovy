@@ -20,11 +20,11 @@ class DeltaGraph {
         def beforePlainGraph = new PlainGraph(previous)
         def afterPlainGraph = new PlainGraph(current)
 
-        previousNodes += beforePlainGraph.nodes
-        previousEdges += beforePlainGraph.edges
+        previousNodes += beforePlainGraph.baseGraph.nodes
+        previousEdges += beforePlainGraph.baseGraph.edges
 
-        currentNodes += afterPlainGraph.nodes
-        currentEdges += afterPlainGraph.edges
+        currentNodes += afterPlainGraph.baseGraph.nodes
+        currentEdges += afterPlainGraph.baseGraph.edges
 
 
         // Calculate shared nodes
@@ -38,8 +38,8 @@ class DeltaGraph {
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                Map previousEdge = edges[i]
-                Map afterEdge = currentNode[i]
+                BaseGraph.Node previousEdge = edges[i]
+                BaseGraph.Node afterEdge = currentNode[i]
 
                 if (!previousEdge.equals(afterEdge))
                     continue
@@ -62,10 +62,10 @@ class DeltaGraph {
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                Map currentEdge = edges[i]
-                Map previousEdge = previousNode[i]
+                BaseGraph.Node currentEdge = edges[i]
+                BaseGraph.Node previousEdge = previousNode[i]
 
-                if (!currentEdge.equals(previousEdge))
+                if (currentEdge.owner != previousEdge.owner && currentEdge.id != previousEdge.id)
                     continue
 
                 if (!sharedEdges.containsKey(name))
@@ -94,8 +94,8 @@ ${
     // Shared nodes and edges
     sharedEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "= ${owner} -> ${edge.owner} (${edge.broadcast})"
+            edges.collect { BaseGraph.Node edge ->
+                "= ${owner} -> ${edge.owner} (${edge.id})"
             }
         }
         .join(lf)
@@ -104,8 +104,8 @@ ${
     // Deleted nodes and edges (in previous, not in current)
     previousEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "- ${owner} -> ${edge.owner} (${edge.broadcast})"
+            edges.collect { BaseGraph.Node edge ->
+                "- ${owner} -> ${edge.owner} (${edge.id})"
             }
         }
         .join(lf)
@@ -114,8 +114,8 @@ ${
     // Added nodes and edges (not in previous, but in current)
     currentEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "+ ${owner} -> ${edge.owner} (${edge.broadcast})"
+            edges.collect { BaseGraph.Node edge ->
+                "+ ${owner} -> ${edge.owner} (${edge.id})"
             }
         }
         .join(lf)

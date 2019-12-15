@@ -5,7 +5,7 @@ Intertwined network valuables
 
 Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/releases/download/0.4-beta/inv-0.4-beta-SNAPSHOT.zip)  
 
-![Travis build Status](https://travis-ci.org/peasoupio/inv.svg?branch=feature%2F0.4-beta)
+![Travis build Status](https://travis-ci.org/peasoupio/inv.svg?branch=release%2F0.4-beta)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=peasoupio_inv&metric=alert_status)](https://sonarcloud.io/dashboard?id=peasoupio_inv)
 
 #### Maven coordinates:
@@ -229,7 +229,7 @@ digraph inv {
 ```
 
 This is an image represention of the dot file :  
-![Dotgraph image using WebGraphViz](https://github.com/peasoupio/inv/blob/feature/0.4-beta/src/main/example/graph/dotGraph.png "Dotgraph image using WebGraphViz")
+![Dotgraph image using WebGraphViz](src/main/example/graph/dotGraph.png "Dotgraph image using WebGraphViz")
 
 
 ### Defaults INV

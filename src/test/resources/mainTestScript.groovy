@@ -1,3 +1,9 @@
-println "From mainTestScript.groovy"
+inv {
+    assert inv
 
-assert inv
+    name "mainTestScript"
+
+    broadcast inv.Something
+}
+
+

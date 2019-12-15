@@ -1,6 +1,7 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
+import org.apache.commons.lang.RandomStringUtils
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -15,23 +16,33 @@ class InvInvoker {
         assert inv
         assert scriptPath
 
-        invoke(inv, scriptPath.text, scriptPath, normalizeClassName(scriptPath))
+        invoke(inv, scriptPath, "undefined")
     }
 
 
-    static void invoke(InvHandler inv, String text, File scriptFile, String classname) {
+    static void invoke(InvHandler inv, File scriptFile, String scm) {
         assert inv
-        assert text
-        assert classname
+        assert scriptFile
+        assert scm
 
-        Logger.info("file: ${scriptFile.canonicalPath}")
+        if (!scriptFile.exists()) {
+            Logger.warn "does not exists: ${scriptFile.absolutePath}"
+            return
+        }
 
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, cache(scriptFile, classname))
+        Logger.debug("file: ${scriptFile.canonicalPath}")
+
+        String preferredClassname = (normalizeClassName(scriptFile) + "#" + randomSuffix()).toLowerCase()
+        Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
 
         Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
+        myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)
         myNewScript.binding.setProperty("pwd", scriptFile.parentFile.canonicalPath)
+
+        if (scm)
+            myNewScript.binding.setProperty("scm", scm)
 
         myNewScript.run()
     }
@@ -74,4 +85,7 @@ class InvInvoker {
         return script.name.split("\\.")[0]
     }
 
+    protected static String randomSuffix() {
+        return RandomStringUtils.random(9, true, true)
+    }
 }

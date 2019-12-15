@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Inv Composer</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/octoshrimpy/bulma-o-steps/master/bulma-steps.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/display/autorefresh.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/groovy/groovy.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/edit/matchbrackets.min.js"></script>
+
+    <script src="base-layout.js"></script>
+    <script src="configure.js"></script>
+    <script src="choose.js"></script>
+    <script src="review.js"></script>
+    <script src="install.js"></script>
+
+    <style>
+
+        /*************** General ****************/
+
+        th {
+            vertical-align: middle !important;
+        }
+
+        /*************** Main view **************/
+
+        #container {
+            padding: 2em;
+        }
+
+        .sidebar {
+            padding: 1em;
+            background-color: lightgrey;
+        }
+
+        /*************** Choose *****************/
+
+        .checkbox_header {
+            text-align: center !important;
+        }
+
+        .whobroughtme_chosen {
+            background: lightgreen;
+        }
+
+        /************ Configuration *************/
+
+        .CodeMirror {
+          border: 1px solid #eee;
+
+        }
+
+        .code-edit-modal {
+            width: 80%;
+        }
+
+        .code-hidden {
+            visibility: hidden !important;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <base-layout v-model="shared" />
+    </div>
+
+
+    <script>
+new Vue({
+    el: '#container',
+    data: {
+        shared: {
+            scms: {},
+            availables: []
+        }
+    },
+    methods: {
+    },
+    created: function() {
+    }
+})
+
+var TimeAgo = (function() {
+  var self = {};
+
+  // Public Methods
+  self.locales = {
+    prefix: '',
+    sufix:  'ago',
+
+    seconds: 'less than a minute',
+    minute:  'about a minute',
+    minutes: '%d minutes',
+    hour:    'about an hour',
+    hours:   'about %d hours',
+    day:     'a day',
+    days:    '%d days',
+    month:   'about a month',
+    months:  '%d months',
+    year:    'about a year',
+    years:   '%d years'
+  };
+
+  self.inWords = function(timeAgo) {
+    var seconds = Math.floor((new Date() - parseInt(timeAgo)) / 1000),
+        separator = this.locales.separator || ' ',
+        words = this.locales.prefix + separator,
+        interval = 0,
+        intervals = {
+          year:   seconds / 31536000,
+          month:  seconds / 2592000,
+          day:    seconds / 86400,
+          hour:   seconds / 3600,
+          minute: seconds / 60
+        };
+
+    var distance = this.locales.seconds;
+
+    for (var key in intervals) {
+      interval = Math.floor(intervals[key]);
+
+      if (interval > 1) {
+        distance = this.locales[key + 's'];
+        break;
+      } else if (interval === 1) {
+        distance = this.locales[key];
+        break;
+      }
+    }
+
+    distance = distance.replace(/%d/i, interval);
+    words += distance + separator + this.locales.sufix;
+
+    return words.trim();
+  };
+
+  return self;
+}());
+
+function compareValues(key, order = 'asc') {
+  return function innerSort(a, b) {
+    if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) return 0;
+    const comparison = a[key].localeCompare(b[key]);
+
+    return (
+      (order === 'desc') ? (comparison * -1) : comparison
+    );
+  };
+}
+    </script>
+
+</body>
+</html>
+

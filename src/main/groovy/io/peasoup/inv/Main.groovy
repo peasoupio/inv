@@ -6,34 +6,12 @@ import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
 import io.peasoup.inv.scm.ScmReader
+import io.peasoup.inv.web.Routes
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
 
     File invHome = new File(System.getenv('INV_HOME') ?: "./")
-
-/*
-INV - Generated a INV sequence and manage past generations
-Generate a new sequence:
-usage: inv [options] <file>|<pattern>...
-Options:
- <pattern>   Execute an Ant-compatible file pattern
-             (p.e *.groovy, ...)
-
-    Pattern is expandable using a space-separator
-    (p.e myfile1.groovy myfile2.groovy)
-
-    -e,--exclude <label>   Exclude files if containing the label
-    -s,--from-scm <file>   Process the SCM file to extract or update sources
-    -x,--debug             Enable debug logs
-    Manage or view an old sequence:
-    usage: inv [options]
-    -d,--delta <previousFile>   Generate a delta from a recent execution in
-    STDIN compared to a previous execution
-    -g,--graph <type>           Print the graph from STDIN of a previous
-    execution
-    -h,--html                   Output generates an HTML file
-*/
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
@@ -46,7 +24,6 @@ Options:
              Pattern is expandable using a space-separator
              (p.e myfile1.groovy myfile2.groovy)                            
 ''')
-
 
 
         commandsCli.s(
@@ -92,6 +69,10 @@ Options:
                 longOpt:'html',
                 'Output generates an HTML file')
 
+        utilsCli.w(
+                longOpt:'web',
+                'Start web interface')
+
         if (args.length == 0 || new SystemChecks().consistencyFails(this)) {
             println "INV - Generated a INV sequence and manage past generations"
             println "Generate a new sequence:"
@@ -107,7 +88,6 @@ Options:
             Logger.DebugModeEnabled = true
 
         def utilsOptions = utilsCli.parse(args)
-        boolean hasHtml = utilsOptions.hasOption("h")
 
         // Handling graph option
         if (utilsOptions.hasOption("g")) {
@@ -117,19 +97,81 @@ Options:
             if (graphType instanceof Boolean)
                 graphType = "plain"
 
-            return buildGraph(graphType, utilsOptions.arguments())
+            return graph(graphType)
         }
+
+
 
         // Handling delta option
         if (utilsOptions.hasOption("d"))
-            return delta(hasHtml: hasHtml, utilsOptions.d)
+            return delta(hasHtml: utilsOptions.hasOption("h"), utilsOptions.d)
 
         // Handling SCM option
         if (commandsOptions.hasOption("s"))
-            return launchFromSCM(commandsOptions.s, commandsOptions.arguments())
+            return launchFromSCM(commandsOptions.s)
+
+        // Handling Web option
+        if (utilsOptions.hasOption("w"))
+            return web()
 
         // Otherwise, use default option : read inv files
         return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
+    }
+
+
+
+    int graph(String arg1) {
+
+        switch (arg1.toLowerCase()) {
+            case "plain" :
+                print(new PlainGraph(System.in.newReader()).echo())
+                return 0
+            case "dot":
+                print(new DotGraph(System.in.newReader()).echo())
+                return 0
+        }
+    }
+
+    int delta(Map args, File arg1) {
+
+        def delta = new DeltaGraph(arg1.newReader(), System.in.newReader())
+
+        if (args.hasHtml)
+            print(delta.html(arg1.name))
+        else
+            print(delta.echo())
+
+        return 0
+    }
+
+    int launchFromSCM(File arg1) {
+
+        def invFiles = new ScmReader(arg1).execute()
+
+        def inv = new InvHandler()
+
+        invFiles.each { String name, List<File> scripts ->
+
+            scripts.each { File script ->
+                if (!script.exists()) {
+                    Logger.warn "${script.absolutePath} does not exist. Won't run."
+                    return
+                }
+
+                Logger.info("file: ${script.absolutePath}")
+                InvInvoker.invoke(inv, script, name)
+            }
+        }
+
+        Logger.info("[SCM] done")
+
+        inv()
+
+        return 0
+    }
+
+    int web() {
+        return new Routes().map()
     }
 
     int executeScript(List<String> args, String exclude) {
@@ -183,54 +225,6 @@ Options:
         }
 
         inv()
-
-        return 0
-    }
-
-    int launchFromSCM(File arg1, List<String> args) {
-
-        def invFiles = new ScmReader(arg1).execute()
-
-        def inv = new InvHandler()
-
-        invFiles.each { String name, File script ->
-
-            if (!script.exists()) {
-                Logger.warn "${script.canonicalPath} does not exist. Won't run."
-                return
-            }
-
-            Logger.info("file: ${script.canonicalPath}")
-            InvInvoker.invoke(inv, script, name)
-        }
-
-        Logger.info("[SCM] done")
-
-        inv()
-
-        return 0
-    }
-
-    int buildGraph(String arg1, List<String> args) {
-
-        switch (arg1.toLowerCase()) {
-            case "plain" :
-                print(new PlainGraph(System.in.newReader()).echo())
-                return 0
-            case "dot":
-                print(new DotGraph(System.in.newReader()).echo())
-                return 0
-        }
-    }
-
-    int delta(Map args, File arg1) {
-
-        def delta = new DeltaGraph(arg1.newReader(), System.in.newReader())
-
-        if (args.hasHtml)
-            print(delta.html(arg1.name))
-        else
-            print(delta.echo())
 
         return 0
     }

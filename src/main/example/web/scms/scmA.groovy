@@ -1,6 +1,6 @@
 "scm1" {
   
-  path "${env.TEMP}/scm/${name}"
+  path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/spring-projects/spring-boot.git"
   entry 'appA.groovy'
   timeout 46000
@@ -29,7 +29,7 @@ echo "update branch ${branch}"
 
 "scm2" {
 
-  path "${env.TEMP}/scm/${name}"
+  path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/.../AppB.git"
   entry 'appB.groovy'
   timeout 30000

@@ -11,6 +11,7 @@ class Execution {
     private final File externalParametersFolder
 
     private Thread runningThread =  null
+    private List<List<String>> messages = []
 
     Execution(File scmFolder, File externalParametersFolder) {
         assert scmFolder
@@ -24,19 +25,21 @@ class Execution {
     }
 
     boolean isRunning() {
-        runningThread != null
+        runningThread != null && runningThread.isAlive()
     }
 
-    void start() {
+    void start(List<File> scms) {
 
-        if (runningThread)
+        if (isRunning())
             return
+
+        messages.clear()
 
         runningThread = Thread.start {
 
             def inv = new InvHandler()
 
-            scmFolder.eachFileRecurse { scmFile ->
+            scms.each { scmFile ->
                 def invFiles = new ScmReader(
                         scmFile,
                         new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".properties")
@@ -56,10 +59,22 @@ class Execution {
                 }
             }
 
-
             Logger.info("[SCM] done")
 
+            def currentMessages = []
+
+            Logger.capture { String message ->
+                if (currentMessages.size() > 1000) {
+                    messages << currentMessages
+                    currentMessages = []
+                }
+
+                currentMessages << message
+            }
+
             inv()
+
+            messages << currentMessages
         }
     }
 
@@ -69,8 +84,9 @@ class Execution {
 
     Map toMap() {
         return [
-            running: runningThread != null,
+            running: isRunning(),
             links: [
+                steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },
                 start: "/execution/start",
                 stop: "/execution/stop"
             ]

@@ -66,6 +66,29 @@ class BaseGraph {
         }
     }
 
+    Map flattenedEdges() {
+        return edges.collectEntries { String owner, Set<Node> _nodes ->
+            Closure<Set<Node>> recursive
+            recursive = { Set<Node> nodes ->
+
+                if (nodes.isEmpty())
+                    return []
+
+                return nodes.collectMany { Node node ->
+                    def myNodes = edges[node.owner]
+
+                    if (myNodes.isEmpty())
+                        return [node]
+
+                    return [node] + recursive.call(myNodes)
+                }
+
+            }
+
+            return [(owner): recursive(_nodes)]
+        }
+    }
+
     interface Node {
         String owner
         String id

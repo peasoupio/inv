@@ -23,89 +23,47 @@ Vue.component('base-layout', {
         </div>
     </div>
     <div class="column is-10" v-if="ready()">
-        <component v-bind:is="currentStep" v-model="value" />
+        <component v-bind:is="currentStep" v-model="shared" />
     </div>
 </div>
 `,
-    props: ['value'],
     data: function() {
         return {
-            currentStep: 'configure',
+            currentStep: 'choose',
             steps: [
-                { name: 'Configure', template: 'configure', description: 'Configure your parameters and scms' },
                 { name: 'Choose', template: 'choose', description: 'Choose your INVs' },
+                { name: 'Configure', template: 'configure', description: 'Configure your parameters and scms' },
                 { name: 'Review', template: 'review', description: 'Review everything' },
                 { name: 'Install', template: 'install', description: 'Generate and install your freshly new INV ecosystem' }
             ],
+            shared: {
+                scms: {},
+                invs: []
+            },
             loadState: {
                 scm: false,
-                availables: false
+                invs: false
             }
         }
     },
     methods: {
         ready: function() {
-            return this.loadState.scms && this.loadState.availables
+            return this.loadState.scms && this.loadState.invs
         }
     },
     created: function() {
         var vm = this
 
-        axios.get('/runs').then(response => {
+        axios.get('/run').then(response => {
 
-            var data = response.data
+            vm.shared.invs = response.data
 
-            var broadcasts = {}
-            var requires = {}
-
-            for (const [owner, node] of Object.entries(data.graph.nodes)) {
-
-                var matchedBroadcast = ''
-
-                data.graph.broadcasts.forEach(function(broadcast) {
-                    if (broadcast.owner != owner)
-                        return
-
-                    matchedBroadcast = broadcast.id
-                });
-
-                var matchedSCM = ''
-
-                data.files.forEach(function(file) {
-                    if (file.inv != owner)
-                        return
-
-                    matchedSCM = file.scm
-                });
-
-
-                var name = ''
-                var id = ''
-
-                if (matchedBroadcast != '') {
-                   name = matchedBroadcast.split(' ')[0].replace('[', '').replace(']', '')
-                   id = matchedBroadcast.split(' ')[1].replace('[', '').replace(']', '')
-                }
-
-
-                vm.value.availables.push({
-                    chosen: false,
-                    broughtBySomeone: false,
-                    owner: owner,
-                    name: name,
-                    id: id,
-                    scm: matchedSCM,
-                    required: data.flattenedEdges[owner]
-                })
-
-            }
-
-            vm.loadState.availables = true
+            vm.loadState.invs = true
             vm.$forceUpdate()
         });
 
         axios.get('/scms').then(response => {
-            vm.value.scms = response.data
+            vm.shared.scms = response.data
 
             vm.loadState.scms = true
             vm.$forceUpdate()

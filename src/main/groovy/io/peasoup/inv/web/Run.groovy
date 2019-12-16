@@ -1,64 +1,159 @@
 package io.peasoup.inv.web
 
-import groovy.json.JsonOutput
 import io.peasoup.inv.graph.BaseGraph
 import io.peasoup.inv.graph.PlainGraph
 
 class Run {
 
-    final File run
-    final PlainGraph plainGraph
+    final private File run
+    final private PlainGraph plainGraph
+    final private Map flattenedEdges
 
-    String cache
+    final Map<String, Map> invs = [:]
+    final Set<String> staging = []
+    final Set<String> propagatedStaging = []
 
     Run(File run) {
         assert run
         assert run.exists()
 
         this.run = run
-
         plainGraph = new PlainGraph(run.newReader())
-    }
+        flattenedEdges = plainGraph.baseGraph.flattenedEdges()
 
-    String toJson() {
-        if (cache)
-            return cache
+        invs = plainGraph.baseGraph.edges.keySet().collectEntries { String owner ->
 
-        def flattenedEdges = plainGraph.baseGraph.edges.collectEntries { String owner, Set<BaseGraph.Node> _nodes ->
-            Closure<Set<BaseGraph.Node>> recursive
-            recursive = { Set<BaseGraph.Node> nodes ->
+            // Someone broadcast'd it ?
+            def broadcast = plainGraph.baseGraph.broadcasts.find { it.owner == owner }
 
-                if (nodes.isEmpty())
-                    return []
+            def name = ''
+            def id = ''
 
-                return nodes.collectMany { BaseGraph.Node node ->
-                    def myNodes = plainGraph.baseGraph.edges[node.owner]
-
-                    if (myNodes.isEmpty())
-                        return [node]
-
-                    return [node] + recursive.call(myNodes)
-                }
-
+            if (broadcast) {
+                name = broadcast.id.split(' ')[0].replace('[', '').replace(']', '')
+                id = broadcast.id.split(' ')[1].replace('[', '').replace(']', '')
             }
 
-            return [(owner): recursive(_nodes)]
+            // Brought by an SCM ?
+            def scm = ''
+            plainGraph.files.each { PlainGraph.FileStatement file ->
+                if (file.inv != owner)
+                    return
+
+                scm = file.scm
+            }
+
+            return [(owner): [
+                chosen: false,
+                broughtBySomeone: new HashSet<String>(),
+                owner: owner,
+                name: name,
+                id: id,
+                scm: scm,
+                required: flattenedEdges[owner]
+            ]]
+        }
+    }
+
+    void stage(String name) {
+        staging << name
+
+        invs[name].chosen = true
+
+        propagate()
+    }
+
+    void unstage(String name) {
+        staging.remove(name)
+
+        invs[name].chosen = false
+
+        propagate()
+    }
+
+    private void propagate() {
+
+        // Reset
+        propagatedStaging.clear()
+        invs.values().each {
+            it.broughtBySomeone.clear()
+        }
+
+        flattenedEdges.each { String owner, List<BaseGraph.Node> edges ->
+
+            if (!staging.contains(owner))
+                return
+
+            def requires = edges
+                .collect { it.owner }
+                .findAll { !staging.contains(it) }
+
+            propagatedStaging.addAll(requires)
+
+            requires.each { require ->
+                invs[require].broughtBySomeone << owner
+
+                // Check from "inner-dependencies" into this current chain
+                flattenedEdges[require]
+                    .collect { it.owner }
+                    .each {
+                        invs[it].broughtBySomeone << require
+                    }
+            }
+
+
+        }
+    }
+
+    Map toMap() {
+        return [
+            //graph: plainGraph.baseGraph,
+            //files: plainGraph.files,
+            //flattenedEdges: flattenedEdges,
+            nodes: invs.values(),
+            staging: staging,
+            propagatedStaging: propagatedStaging,
+            links: [
+                stage: plainGraph.baseGraph.nodes.keySet().collectEntries {  [(it): "/run/stage/${it}"] },
+                unstage: plainGraph.baseGraph.nodes.keySet().collectEntries {  [(it): "/run/unstage/${it}"] },
+            ]
+        ]
+    }
+
+    /*
+    var matchedBroadcast = ''
+
+        data.graph.broadcasts.forEach(function(broadcast) {
+            if (broadcast.owner != owner)
+                return
+
+            matchedBroadcast = broadcast.id
+        });
+
+        var matchedSCM = ''
+
+
+
+
+        var name = ''
+        var id = ''
+
+        if (matchedBroadcast != '') {
+           name = matchedBroadcast.split(' ')[0].replace('[', '').replace(']', '')
+           id = matchedBroadcast.split(' ')[1].replace('[', '').replace(']', '')
         }
 
 
-        def output = [
-            graph: plainGraph.baseGraph,
-            files: plainGraph.files,
-            flattenedEdges: flattenedEdges
-        ]
-
-        cache = JsonOutput.toJson(output)
-
-        return cache
-    }
-
-
-
+        vm.value.availables.push({
+            chosen: false,
+            broughtBySomeone: false,
+            owner: owner,
+            name: name,
+            id: id,
+            scm: matchedSCM,
+            required: data.flattenedEdges[owner]
+        })
+     */
 
     /*
     private void process() {

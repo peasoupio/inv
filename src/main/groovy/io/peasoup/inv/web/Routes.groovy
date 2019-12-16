@@ -9,10 +9,11 @@ import static spark.Spark.*;
 class Routes {
 
     final String WEB = "../web"
-    final String RUNS = System.getenv('INV_RUNS') ?: "../runs"
+    final String RUN = System.getenv('INV_RUN') ?: "../runs"
     final String SCMS = System.getenv('INV_SCMS') ?: "../scms"
     final String PARAMETERS = System.getenv('INV_PARAMETERS') ?: "../parameters"
 
+    final Run baseRun
     final Map<String, ScmSourceFile.SourceFileElement> scmCache = [:]
 
     final Execution exec = new Execution(new File(SCMS), new File(PARAMETERS))
@@ -24,7 +25,6 @@ class Routes {
 
         // Static files
         staticFiles.externalLocation(WEB)
-        staticFiles.externalLocation(RUNS)
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
@@ -35,6 +35,7 @@ class Routes {
         })
 
         // Init
+        baseRun = new Run(new File(RUN, "run.txt"))
     }
 
     /**
@@ -62,15 +63,28 @@ class Routes {
 
     // Runs
     void runs() {
-        get("/runs", { req, res ->
+        get("/run", { req, res ->
+            return JsonOutput.toJson(baseRun.toMap())
+        })
 
-            String test
+        post("/run/stage/:name", { req, res ->
 
-            new File(RUNS).eachFileRecurse {
-                test = new Run(it).toJson()
-            }
+            def name = req.params("name")
+            assert name
 
-            return test
+            baseRun.stage(name)
+
+            return JsonOutput.toJson(baseRun.toMap())
+        })
+
+        post("/run/unstage/:name", { req, res ->
+
+            def name = req.params("name")
+            assert name
+
+            baseRun.unstage(name)
+
+            return JsonOutput.toJson(baseRun.toMap())
         })
     }
 
@@ -130,12 +144,12 @@ class Routes {
             ]
 
             scmReader.scms().each { String otherName, ScmDescriptor.MainDescriptor desc ->
-                scmCache[name] = new ScmSourceFile.SourceFileElement(
+                scmCache[otherName] = new ScmSourceFile.SourceFileElement(
                     descriptor: desc,
                     script: element.script
                 )
 
-                output.registry[name] = ScmSourceFile.toMap(element.script, desc)
+                output.registry[otherName] = ScmSourceFile.toMap(element.script, desc)
             }
 
             return JsonOutput.toJson(output)
@@ -170,11 +184,11 @@ class Routes {
             def parameterName = req.params("parameterName")
             assert parameterName
 
-            def payload = new JsonSlurper().parseText(req.body())
-            assert payload
+            def payload = req.body()
+            def parameterValue = payload
 
-            def parameterValue = payload.parameterValue
-            assert parameterValue
+            if (payload)
+                parameterValue = new JsonSlurper().parseText(payload).parameterValue
 
             def propertyFile = new File(PARAMETERS, element.simpleName() + ".properties")
 
@@ -186,7 +200,7 @@ class Routes {
             def propertyFileObject = new Properties()
             propertyFileObject.load(propertyFile.newReader())
 
-            propertyFileObject[parameterName] = parameterValue
+            propertyFileObject["${name}.${parameterName}".toString()] = parameterValue
 
             propertyFileObject.store(propertyFile.newWriter(), "My comments")
 
@@ -201,11 +215,23 @@ class Routes {
             return JsonOutput.toJson(exec.toMap())
         })
 
+        get("/execution/logs/:ìndex", { req, res ->
+
+            def index = req.params("ìndex")
+            assert index
+
+            return JsonOutput.toJson(exec.messages[Integer.parseInt(index)])
+        })
+
         post("/execution/start", { req, res ->
             if (exec.isRunning())
                 return "Already running"
 
-            exec.start()
+            def scmFiles = (baseRun.staging + baseRun.propagatedStaging)
+                    .collect { baseRun.invs[it].scm }
+                    .collect { new File(SCMS, scmCache[it].script) }
+
+            exec.start(scmFiles)
 
             return "Started"
         })

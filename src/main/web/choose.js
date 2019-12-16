@@ -5,12 +5,12 @@ Vue.component('choose', {
 
     <div class="tabs">
         <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='find' }"><a v-on:click="activeTab='find'">Find ({{value.availables.length}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='select' }"><a v-on:click="activeTab='select'">Select ({{value.invs.nodes.length}})</a></li>
             <li v-bind:class="{ 'is-active' : activeTab=='summary' }"><a v-on:click="activeTab='summary'">Summary ({{chosenSize()}})</a></li>
         </ul>
     </div>
 
-    <choose-find v-model="value" v-if="activeTab=='find'"></choose-find>
+    <choose-select v-model="value" v-if="activeTab=='select'"></choose-select>
     <choose-summary v-model="value" v-if="activeTab=='summary'"></choose-summary>
 
 </div>
@@ -18,7 +18,7 @@ Vue.component('choose', {
     props: ['value'],
     data: function() {
         return {
-            activeTab: 'find'
+            activeTab: 'select'
         }
     },
     methods: {
@@ -27,13 +27,13 @@ Vue.component('choose', {
 
             var count = 0
 
-            vm.value.availables.forEach(function(available) {
-                if (available.chosen) {
+            vm.value.invs.nodes.forEach(function(inv) {
+                if (inv.chosen) {
                     count++
                     return
                 }
 
-                if (available.broughtBySomeone) {
+                if (inv.broughtBySomeone.length > 0) {
                     count++
                     return
                 }
@@ -44,7 +44,7 @@ Vue.component('choose', {
     }
 })
 
-Vue.component('choose-find', {
+Vue.component('choose-select', {
     template: `
 <div>
     <table class="table is-fullwidth">
@@ -59,14 +59,14 @@ Vue.component('choose-find', {
         </tr>
         </thead>
         <tbody>
-        <tr v-for="available in filter()">
-            <td align="center"><input type="checkbox" v-model="available.chosen" v-on:change="traverseRequired()" /></td>
-            <td>{{available.owner}}</td>
-            <td>{{available.name}}</td>
-            <td>{{available.id}}</td>
+        <tr v-for="inv in filter()">
+            <td align="center"><input type="checkbox" v-model="inv.chosen" v-on:change="doSelect(inv)" /></td>
+            <td>{{inv.owner}}</td>
+            <td>{{inv.name}}</td>
+            <td>{{inv.id}}</td>
             <td>
-                <span v-if="value.scms.registry[available.scm]"><a v-on:click="viewScm = value.scms.registry[available.scm]">{{available.scm}}</a></span>
-                <span v-else>{{available.scm}}</span>
+                <span v-if="value.scms.registry[inv.scm]"><a v-on:click="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
+                <span v-else>{{inv.scm}}</span>
             </td>
             <td></td>
         </tr>
@@ -119,13 +119,13 @@ Vue.component('choose-find', {
 
             var filtered = []
 
-            vm.value.availables.forEach(function(available) {
-                if (vm.filters.name != '' && available.name.indexOf(vm.filters.name) < 0) return
-                if (vm.filters.id != '' && available.id.indexOf(vm.filters.id) < 0) return
-                if (vm.filters.owner != '' && available.owner.indexOf(vm.filters.owner) < 0) return
-                if (vm.filters.scm != '' && available.scm.indexOf(vm.filters.scm) < 0) return
+            vm.value.invs.nodes.forEach(function(inv) {
+                if (vm.filters.name != '' && inv.name.indexOf(vm.filters.name) < 0) return
+                if (vm.filters.id != '' && inv.id.indexOf(vm.filters.id) < 0) return
+                if (vm.filters.owner != '' && inv.owner.indexOf(vm.filters.owner) < 0) return
+                if (vm.filters.scm != '' && inv.scm.indexOf(vm.filters.scm) < 0) return
 
-                filtered.push(available)
+                filtered.push(inv)
             })
 
             return filtered.sort(compareValues('owner'))
@@ -136,46 +136,28 @@ Vue.component('choose-find', {
 
             vm.selectAll = !vm.selectAll
 
-            vm.value.availables.forEach(function(available) {
-                available.chosen = vm.selectAll
+            vm.value.invs.nodes.forEach(function(inv) {
+                inv.chosen = vm.selectAll
+
+                vm.doSelect(inv)
             })
 
-            // Overkill, but works for the moment
-            vm.traverseRequired()
         },
-        traverseRequired: function(){
+        doSelect: function(inv) {
             var vm = this
 
-            // reset
-            vm.value.availables.forEach(function(value) {
-                value.broughtBySomeone = false
-            })
-
-            vm.value.availables.forEach(function(value) {
-                if (!value.chosen)
-                    return
-
-                vm.bringPeopleWithMe(value).forEach(function(other) {
-                    other.broughtBySomeone = true
+            if (inv.chosen) {
+                axios.post(vm.value.invs.links.stage[inv.owner]).then(response => {
+                    vm.value.invs = response.data
+                    //vm.$forceUpdate()
                 })
-            })
-        },
-        bringPeopleWithMe: function(myself) {
-            var vm = this
-
-            var others = []
-
-            myself.required.forEach(function(require) {
-                vm.value.availables.forEach(function(available) {
-                    if (require.owner == available.owner) {
-                        others.push(available)
-                    }
+            } else {
+                axios.post(vm.value.invs.links.unstage[inv.owner]).then(response => {
+                    vm.value.invs = response.data
+                    //vm.$forceUpdate()
                 })
-            })
-
-            return others
+            }
         }
-
     }
 })
 
@@ -198,13 +180,13 @@ Vue.component('choose-summary', {
         </tr>
         </thead>
         <tbody>
-        <tr v-for="available in filter()">
-            <td v-if="available.chosen">Myself</td>
-            <td v-if="!available.chosen"><a v-on:click="showWhoBroughtBy = available.owner">Someone else</td>
-            <td>{{available.owner}}</td>
-            <td>{{available.name}}</td>
-            <td>{{available.id}}</td>
-            <td>{{available.scm}}</td>
+        <tr v-for="inv in filter()">
+            <td v-if="inv.chosen">Myself</td>
+            <td v-if="!inv.chosen"><a v-on:click="showWhoBroughtBy = inv.owner">Someone else</td>
+            <td>{{inv.owner}}</td>
+            <td>{{inv.name}}</td>
+            <td>{{inv.id}}</td>
+            <td>{{inv.scm}}</td>
             <td></td>
         </tr>
         </tbody>
@@ -257,16 +239,16 @@ Vue.component('choose-summary', {
 
             var filtered = []
 
-            vm.value.availables.forEach(function(available) {
+            vm.value.invs.nodes.forEach(function(inv) {
 
-                if (!available.chosen && !available.broughtBySomeone) return
+                if (!inv.chosen && inv.broughtBySomeone.length == 0) return
 
-                if (vm.filters.name != '' && available.name.indexOf(vm.filters.name) < 0) return
-                if (vm.filters.id != '' && available.id.indexOf(vm.filters.id) < 0) return
-                if (vm.filters.owner != '' && available.owner.indexOf(vm.filters.owner) < 0) return
-                if (vm.filters.scm != '' && available.scm.indexOf(vm.filters.scm) < 0) return
+                if (vm.filters.name != '' && inv.name.indexOf(vm.filters.name) < 0) return
+                if (vm.filters.id != '' && inv.id.indexOf(vm.filters.id) < 0) return
+                if (vm.filters.owner != '' && inv.owner.indexOf(vm.filters.owner) < 0) return
+                if (vm.filters.scm != '' && inv.scm.indexOf(vm.filters.scm) < 0) return
 
-                filtered.push(available)
+                filtered.push(inv)
             })
 
             vm.count = filtered.length
@@ -275,25 +257,29 @@ Vue.component('choose-summary', {
         },
 
 
-        whoBroughtMe: function(myself) {
+        whoBroughtMe: function(owner) {
             var vm = this
 
+            if (owner == '')
+                return
+
+            var cache = {}
+
+            vm.value.invs.nodes.forEach(function(inv) {
+                cache[inv.owner] = inv
+            })
+
+            var myself = cache[owner]
             var whoBroughtMe = []
 
-            vm.value.availables.forEach(function(chosen) {
+            myself.broughtBySomeone.forEach(function(otherName) {
 
-                if (!chosen.chosen && !chosen.broughtBySomeone)
+                var other = cache[otherName]
+
+                if (whoBroughtMe.indexOf(other) > -1)
                     return
 
-                chosen.required.forEach(function(required) {
-                    if (required.owner != myself)
-                        return
-
-                    if (whoBroughtMe.indexOf(chosen) > -1)
-                        return
-
-                    whoBroughtMe.push(chosen)
-                })
+                whoBroughtMe.push(other)
             })
 
             return whoBroughtMe.sort(compareValues('owner'))

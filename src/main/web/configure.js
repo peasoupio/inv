@@ -6,12 +6,12 @@ Vue.component('configure', {
 
     <div class="tabs">
         <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a v-on:click="activeTab='parameters'">Parameters</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a v-on:click="activeTab='scms'">Scms ({{Object.values(value.scms.registry).length}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a @click="activeTab='parameters'">Parameters</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{Object.values(value.scms.registry).length}})</a></li>
         </ul>
     </div>
 
-    <configure-parameters v-model="value" v-if="activeTab=='parameters'"></configure-scms>
+    <configure-parameters v-model="value" v-if="activeTab=='parameters'"></configure-parameters>
     <configure-scms v-model="value" v-if="activeTab=='scms'"></configure-scms>
 
 </div>
@@ -29,65 +29,112 @@ Vue.component('configure', {
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-for="scm in filter()" class="box">
-        <p class="subtitle is-5">
-            {{scm.name}}
-            <span class="icon is-medium" v-if="scm.loading">
-                <i class="fas fa-spinner fa-pulse"></i>
-            </span>
-        </p>
-        <div v-if="scm.hasParameters">
-            <div class="field is-horizontal" v-for="parameter in scm.parameters">
-                <div class="field-label is-normal">
-                    <label class="label">{{parameter.name}}</label>
+    <div class="columns is-multiline">
+        <div class="column is-one-quarter" v-for="scm in filter()" >
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        {{scm.name}}
+                        <span class="icon is-medium" v-if="scm.loading">
+                            <i class="fas fa-spinner fa-pulse"></i>
+                        </span>
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+                        {{scm.scm.descriptor.src}}
+                    </div>
                 </div>
-                <div class="field-body">
-                    <div class="field is-expanded">
-                        <div class="field has-addons">
-                            <div class="control">
-                                <div v-if="parameter.values.length > 0">
-                                    <div class="select" v-if="!areValuesUnavailable(parameter)">
-                                        <select v-model="parameter.value">
-                                            <option value="" disabled hidden selected>Select value</option>
-                                            <option v-for="value in parameter.values">{{value}}</option>
-                                        </select>
+
+                <footer class="card-footer">
+                    <p class="card-footer-item is-paddingless">
+                        <button class="button is-fullwidth is-success" @click.stop="expand(scm)" :disabled="!scm.hasParameters">Configure</button>
+                    </p>
+                    <p class="card-footer-item is-paddingless">
+                        <button class="button is-fullwidth" :disabled="!scm.hasParameters">Reset</button>
+                    </p>
+                </footer>
+            </div>
+        </div>
+
+    <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box" v-click-outside="close">
+                <div class="field is-horizontal" v-for="parameter in currentScmParameter.parameters">
+                    <div class="field-label is-normal">
+                        <label class="label">{{parameter.name}}</label>
+                    </div>
+                    <div class="field-body">
+                        <div class="field is-expanded">
+                            <div class="field has-addons">
+                                <div class="control">
+                                    <div v-if="parameter.values.length > 0">
+                                        <div class="select" v-if="!areValuesUnavailable(parameter)">
+                                            <select v-model="parameter.value">
+                                                <option value="" disabled hidden selected>Select value</option>
+                                                <option v-for="value in parameter.values">{{value}}</option>
+                                            </select>
+                                        </div>
+                                        <div class="field" v-else>
+                                            <input class="input" type="text" value="No match found" disabled></input>
+                                        </div>
                                     </div>
-                                    <div class="field" v-else>
-                                        <input class="input" type="text" value="No match found" disabled></input>
+
+                                    <div class="field" v-if="parameter.values.length == 0">
+                                        <input class="input" type="text" value="No values available" disabled></input>
                                     </div>
                                 </div>
 
-                                <div class="field" v-if="parameter.values.length == 0">
-                                    <input class="input" type="text" value="No values available" disabled></input>
-                                </div>
+                                <p class="control is-expanded">
+                                    <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
+                                </p>
+                                <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
+                                    <span>Saved</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </button>
                             </div>
-                            <p class="control is-expanded">
-                                <input class="input" type="text" placeholder="Value" v-model="parameter.value">
+                            <p class="help">
+                                {{parameter.usage}}.
+                                Default value:
+                                <a v-if="parameter.defaultValue !== ''" @click="setDefault(parameter)">{{parameter.defaultValue}}</a>
+                                <span v-else>(not defined)</span>
                             </p>
-                            <button class="control button is-success" v-on:click="saveParameter(parameter)" v-bind:class=" { 'is-loading': parameter.sending }">
-                                <span class="icon is-small" v-if="parameter.savedOnce">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                                <span>Save</span>
-                            </button>
                         </div>
-                        <p class="help">
-                            {{parameter.usage}}.
-                            Default value:
-                            <a v-if="parameter.defaultValue !== ''" v-on:click="parameter.value = parameter.defaultValue">{{parameter.defaultValue}}</a>
-                            <span v-else>(not defined)</span>
-                        </p>
                     </div>
                 </div>
+
+                <footer class="modal-card-foot">
+                  <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveAll(currentScmParameter)">Save all</button>
+                  <button class="button" @click="resetAll(currentScmParameter)">Reset all</button>
+                </footer>
+
             </div>
         </div>
-        <div v-else>
-            <p class="subtitle is-6 has-text-centered">Has no parameters. Yay!</p>
-        </div>
     </div>
+    <!--
+
     <div v-if="count == 0">
         No Scms chosen yet
     </div>
+<p class="subtitle is-5">
+            <button class="control button is-success" >
+
+                <span>{{scm.name}}</span>
+            </button>
+        </p>
+
+        <div v-else>
+            <p class="subtitle is-6 has-text-centered">Has no parameters. Yay!</p>
+        </div>
+
+<div v-if="scm.hasParameters && scm.expanded">
+
+</div>
+
+    -->
 </div>
 `,
     props: ['value'],
@@ -95,38 +142,12 @@ Vue.component('configure-parameters', {
         return {
             count: 0,
             scmParameters: [],
-            activeTab: 'find'
+            activeTab: 'find',
+            currentScmParameter: null
         }
     },
     methods: {
-        filter: function() {
-            var vm = this
 
-            var results = vm.scmParameters.filter(function(scm) {
-                return vm.isBroughtByAny(scm)
-            })
-
-            vm.count = results.length
-
-            return results
-
-        },
-        areValuesUnavailable: function(parameter) {
-            return parameter.value !== '' && parameter.values.indexOf(parameter.value) < 0
-        },
-        saveParameter: function(parameter) {
-            if (parameter.sending)
-                return
-
-            parameter.sending = true
-
-            axios.post(parameter.links.save,{
-                parameterValue: parameter.value
-            }).then(response => {
-                parameter.sending = false
-                parameter.savedOnce = true
-            })
-        },
         isBroughtByAny: function(owner) {
             var vm = this
 
@@ -143,6 +164,100 @@ Vue.component('configure-parameters', {
             })
 
             return any
+        },
+        filter: function() {
+            var vm = this
+
+            var results = vm.scmParameters.filter(function(scm) {
+                return vm.isBroughtByAny(scm)
+            })
+
+            vm.count = results.length
+
+            return results
+
+        },
+        areValuesUnavailable: function(parameter) {
+            return parameter.value !== '' && parameter.values.indexOf(parameter.value) < 0
+        },
+        expand: function(scmParameters) {
+
+            var vm = this
+
+            if (!scmParameters.hasParameters)
+                return
+
+            vm.currentScmParameter = scmParameters
+
+            if (scmParameters.loaded)
+                return
+
+            scmParameters.loading = true
+
+            axios.get(scmParameters.scm.links.parameters).then(response => {
+
+                var owner = response.data.owner
+
+                response.data.parameters.forEach(function(parameter) {
+                    parameter.open = false
+
+                    if (parameter.value == null)
+                        parameter.value = parameter.defaultValue
+
+                    parameter.sending = false
+                    parameter.saved = false
+                    parameter.changed = false
+
+                    scmParameters.parameters.push(parameter)
+                })
+
+                scmParameters.loaded = true
+                scmParameters.loading = false
+            })
+        },
+        hasAnyChanged: function(scmParameters) {
+            return scmParameters.parameters.filter(function(parameter) {
+                return parameter.changed
+            }).length > 0
+        },
+        saveAll: function(scmParameters) {
+            var vm = this
+
+            scmParameters.parameters.forEach(function(parameter) {
+                if (!parameter.changed)
+                    return
+
+                vm.saveParameter(parameter)
+            })
+        },
+        resetAll: function(scmParameters) {
+            var vm = this
+
+            scmParameters.parameters.forEach(function(parameter) {
+                vm.setDefault(parameter)
+                vm.saveParameter(parameter)
+            })
+        },
+        setDefault: function(parameter) {
+            parameter.value = parameter.defaultValue
+            parameter.changed = true
+        },
+        saveParameter: function(parameter) {
+            if (parameter.sending)
+                return
+
+            parameter.sending = true
+
+            axios.post(parameter.links.save,{
+                parameterValue: parameter.value
+            }).then(response => {
+                parameter.sending = false
+                parameter.saved = true
+                parameter.changed = false
+            })
+        },
+        close: function() {
+            this.currentScmParameter = null
         }
     },
     created: function() {
@@ -160,39 +275,15 @@ Vue.component('configure-parameters', {
                 scm: scm,
                 name: key,
                 loading: false,
+                loaded: false,
                 parameters: []
             }
 
             vm.scmParameters.push(scmParameters)
 
-            if (!scm.descriptor.hasParameters) {
-                continue
-            }
 
-            scmParameters.loading = true
 
-            axios.get(scm.links.parameters).then(response => {
 
-                var owner = response.data.owner
-
-                var myScmParameters = vm.scmParameters.filter(function(other) {
-                    return other.name == owner
-                })[0]
-
-                response.data.parameters.forEach(function(parameter) {
-                    parameter.open = false
-
-                    if (parameter.value == null)
-                        parameter.value = parameter.defaultValue
-
-                    parameter.sending = false
-                    parameter.savedOnce = false
-
-                    myScmParameters.parameters.push(parameter)
-                })
-
-                myScmParameters.loading = false
-            })
 
             vm.scmParameters.sort(compareValues('name'))
         }
@@ -219,14 +310,14 @@ Vue.component('configure-scms', {
         <tbody>
         <tr v-for="scm in filter()">
             <td>
-                <span v-if="whoBroughtMe(scm).length > 0"><a v-on:click="showWhoBroughtMe = scm">Yes</a></span>
+                <span v-if="whoBroughtMe(scm).length > 0"><a @click.stop="showWhoBroughtMe = scm">Yes</a></span>
                 <span v-else>No</span>
             </td>
             <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{getRelativeTimestamp(scm)}}</span></td>
             <td>{{scm.descriptor.src}}</td>
             <td>{{scm.descriptor.entry}}</td>
             <td>{{scm.descriptor.timeout}}</td>
-            <td><button class="button is-success" v-on:click="openEdit(scm)">Edit</button></td>
+            <td><button class="button is-success" @click.stop="openEdit(scm)">Edit</button></td>
         </tr>
         </tbody>
     </table>
@@ -234,7 +325,7 @@ Vue.component('configure-scms', {
     <div class="modal is-active" v-bind:class=" { 'code-hidden': !editScript } ">
         <div class="modal-background"></div>
         <div class="modal-content code-edit-modal">
-            <div class="box">
+            <div class="box" v-click-outside="closeEdit">
                 <div class="columns" v-if="editScript">
                     <div class="column is-half">
                         <h1 class="title is-3">Edit</h1>
@@ -242,8 +333,8 @@ Vue.component('configure-scms', {
                     </div>
                     <div class="column is-half">
                         <div class="buttons has-addons is-right">
-                            <button class="button is-success" v-on:click="saveSource()" v-bind:class=" { 'is-loading': sending }">
-                                <span class="icon is-small">
+                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }">
+                                <span class="icon is-small" v-if="saved">
                                     <i class="fas fa-check"></i>
                                 </span>
                                 <span>Save</span>
@@ -256,13 +347,12 @@ Vue.component('configure-scms', {
 
             </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" v-on:click="editScript = null"></button>
     </div>
 
     <div class="modal is-active" v-if="showWhoBroughtMe">
         <div class="modal-background"></div>
         <div class="modal-content">
-            <div class="box">
+            <div class="box" v-click-outside="closeWhoBroughtMe">
                 <h1 class="subtitle is-1">Who brought me?</h1>
                 <table class="table is-fullwidth is-bordered">
                     <thead>
@@ -282,7 +372,6 @@ Vue.component('configure-scms', {
                 </table>
             </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" v-on:click="showWhoBroughtMe = null"></button>
     </div>
 
 </div>
@@ -296,6 +385,7 @@ Vue.component('configure-scms', {
             editScript: '',
             showWhoBroughtMe: null,
             sending: false,
+            saved: false,
             filters: {
                 name: '',
                 src: '',
@@ -371,6 +461,8 @@ Vue.component('configure-scms', {
             }).then(response => {
 
                 vm.sending = false
+                vm.saved = true
+
                 var data = response.data
                 var registry = vm.value.scms.registry
 
@@ -430,32 +522,15 @@ Vue.component('configure-scms', {
             })
 
             return whoBroughtMe.sort(compareValues('owner'))
+        },
+        closeEdit: function() {
+            this.editScript = null
+
+            this.sending = false
+            this.saved = false
+        },
+        closeWhoBroughtMe: function() {
+            this.showWhoBroughtMe = ''
         }
-    }
-})
-
-Vue.component('review', {
-    template: `
-<div>
-    <p class="title is-1">Choose: </p>
-
-    <div class="tabs">
-        <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='parameter' }"><a v-on:click="activeTab='parameter'">Parameters</a></li>
-        </ul>
-    </div>
-
-    <review-parameter v-model="value" v-if="activeTab=='parameter'"></choose-find>
-
-</div>
-`,
-    props: ['value'],
-    data: function() {
-        return {
-            activeTab: 'parameter'
-        }
-    },
-    methods: {
-
     }
 })

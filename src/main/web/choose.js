@@ -5,8 +5,8 @@ Vue.component('choose', {
 
     <div class="tabs">
         <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='select' }"><a v-on:click="activeTab='select'">Select ({{value.invs.nodes.length}})</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='summary' }"><a v-on:click="activeTab='summary'">Summary ({{chosenSize()}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='select' }"><a @click="activeTab='select'">Select ({{value.invs.nodes.length}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='summary' }"><a @click="activeTab='summary'">Summary ({{chosenSize()}})</a></li>
         </ul>
     </div>
 
@@ -50,7 +50,7 @@ Vue.component('choose-select', {
     <table class="table is-fullwidth">
         <thead>
         <tr class="field">
-            <th class="checkbox_header"><input type="checkbox" v-model="selectAll" v-on:click="doSelectAll()" /></th>
+            <th class="checkbox_header"><input type="checkbox" v-model="selectAll" @click="doSelectAll()" /></th>
             <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner"></th>
             <th><input class="input" type="text" v-model="filters.name" placeholder="Name"></th>
             <th><input class="input" type="text" v-model="filters.id" placeholder="ID"></th>
@@ -60,12 +60,12 @@ Vue.component('choose-select', {
         </thead>
         <tbody>
         <tr v-for="inv in filter()">
-            <td align="center"><input type="checkbox" v-model="inv.chosen" v-on:change="doSelect(inv)" /></td>
+            <td align="center"><input type="checkbox" v-model="inv.chosen" @change="doSelect(inv)" /></td>
             <td>{{inv.owner}}</td>
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
             <td>
-                <span v-if="value.scms.registry[inv.scm]"><a v-on:click="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
+                <span v-if="value.scms.registry[inv.scm]"><a @click.stop="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
                 <span v-else>{{inv.scm}}</span>
             </td>
             <td></td>
@@ -76,7 +76,7 @@ Vue.component('choose-select', {
     <div class="modal is-active" v-if="viewScm">
         <div class="modal-background"></div>
         <div class="modal-content">
-            <div class="box">
+            <div class="box" v-click-outside="close">
                 <h1 class="subtitle is-1">My scm</h1>
                 <table class="table is-fullwidth is-bordered">
                     <thead>
@@ -96,7 +96,6 @@ Vue.component('choose-select', {
                 </table>
             </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" v-on:click="viewScm = null"></button>
     </div>
 </div>
 `,
@@ -157,6 +156,9 @@ Vue.component('choose-select', {
                     //vm.$forceUpdate()
                 })
             }
+        },
+        close: function() {
+            this.viewScm = null
         }
     }
 })
@@ -182,7 +184,7 @@ Vue.component('choose-summary', {
         <tbody>
         <tr v-for="inv in filter()">
             <td v-if="inv.chosen">Myself</td>
-            <td v-if="!inv.chosen"><a v-on:click="showWhoBroughtBy = inv.owner">Someone else</td>
+            <td v-if="!inv.chosen"><a @click.stop="showWhoBroughtBy = inv.owner">Someone else</td>
             <td>{{inv.owner}}</td>
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
@@ -192,10 +194,10 @@ Vue.component('choose-summary', {
         </tbody>
     </table>
 
-    <div class="modal" v-bind:class="{ 'is-active': showWhoBroughtBy != '' }">
+    <div class="modal is-active" v-if="showWhoBroughtBy != ''">
         <div class="modal-background"></div>
         <div class="modal-content">
-            <div class="box">
+            <div class="box" v-click-outside="close">
                 <h1 class="subtitle is-1">Who brought me?</h1>
                 <table class="table is-fullwidth is-bordered">
                     <thead>
@@ -215,7 +217,6 @@ Vue.component('choose-summary', {
                 </table>
             </div>
         </div>
-        <button class="modal-close is-large" aria-label="close" v-on:click="showWhoBroughtBy = ''"></button>
     </div>
 </div>
 `,
@@ -284,6 +285,9 @@ Vue.component('choose-summary', {
 
             return whoBroughtMe.sort(compareValues('owner'))
         },
+        close: function() {
+            this.showWhoBroughtBy = ''
+        }
 
     }
 })

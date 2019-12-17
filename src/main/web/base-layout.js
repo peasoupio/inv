@@ -14,7 +14,7 @@ Vue.component('base-layout', {
 
                     <span href="#" class="steps-marker">{{index + 1}}</span>
                     <div class="steps-content">
-                        <p class="is-size-4"><a v-on:click="currentStep = step.template">{{step.name}}</a></p>
+                        <p class="is-size-4"><a @click="currentStep = step.template">{{step.name}}</a></p>
                         <p>{{step.description}}</p>
                     </div>
                 </li>

@@ -5,7 +5,7 @@ Vue.component('install', {
 
     <div>
         <span>Ready to run ? </span>
-        <button class="button is-info" :disabled="execution.running" v-on:click="start()" v-bind:class=" { 'is-loading': execution.running }">Ready</button>
+        <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">Ready</button>
     </div>
 
     <div>

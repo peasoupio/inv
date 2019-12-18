@@ -33,7 +33,7 @@ class InvInvoker {
 
         Logger.debug("file: ${scriptFile.canonicalPath}")
 
-        String preferredClassname = (normalizeClassName(scriptFile) + "#" + randomSuffix()).toLowerCase()
+        String preferredClassname = (normalizeClassName(scriptFile) + '$' + randomSuffix()).toLowerCase()
         Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
 
         Script myNewScript = (Script)groovyClass.newInstance()

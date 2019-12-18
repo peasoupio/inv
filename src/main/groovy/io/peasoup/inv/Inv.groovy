@@ -115,13 +115,13 @@ class Inv {
 
             // Check for new steps if :
             // 1. has a remaining step
-            // 2. has nothing to resolve (might glitch because of $into)
-            // 3. has not (previously dumped something)
-            // 4. has no more valuables
-            while (!steps.isEmpty() &&
-                   //digestion.requires == 0 &&
-                   !hasDumpedSomething &&
-                   this.remainingValuables.isEmpty()) {
+            // 2. has not (previously dumped something)
+            // 3. has no more valuables
+            // 4. Is not halting
+            while ( !steps.isEmpty() &&
+                    !hasDumpedSomething &&
+                    this.remainingValuables.isEmpty() &&
+                    pool.runningState != NetworkValuablePool.HALTING) {
                 // Call next step
                 steps.pop().call()
 

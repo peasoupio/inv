@@ -41,12 +41,23 @@ class BroadcastValuable implements NetworkValuable {
                 return
             }
 
+            if (pool.runningState == pool.HALTING) {
+
+                broadcastValuable.state = RequireValuable.HALTING
+
+                Logger.warn broadcastValuable
+                return
+            }
+
+
+            broadcastValuable.state = BroadcastValuable.SUCCESSFUL
+
             Logger.info broadcastValuable
 
             Map response = null
             Closure<Map> defaultClosure = null
 
-            if (broadcastValuable.ready && pool.runningState != pool.HALTING) {
+            if (broadcastValuable.ready) {
                 def rawReponnse = broadcastValuable.ready()
 
                 if (rawReponnse instanceof Map) {
@@ -67,8 +78,6 @@ class BroadcastValuable implements NetworkValuable {
                 response: response,
                 defaultClosure: defaultClosure
             ))
-
-            broadcastValuable.state = BroadcastValuable.SUCCESSFUL
         }
     }
 

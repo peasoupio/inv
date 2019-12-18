@@ -5,6 +5,7 @@ import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
+import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 import org.codehaus.groovy.runtime.InvokerHelper
 
@@ -193,15 +194,27 @@ Options:
 
         def inv = new InvHandler()
 
-        invFiles.each { String name, File script ->
+        invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
 
-            if (!script.exists()) {
-                Logger.warn "${script.canonicalPath} does not exist. Won't run."
-                return
+            // Manage entry points for SCM
+            repository.entry.split().each {
+
+                def scriptFile = new File(it)
+                def path = repository.path
+
+                if (!scriptFile.exists()) {
+                    scriptFile = new File(path, it)
+                    path = scriptFile.parentFile
+                }
+
+                if (!scriptFile.exists()) {
+                    Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
+                    return
+                }
+
+                Logger.info("file: ${scriptFile.canonicalPath}")
+                InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
             }
-
-            Logger.info("file: ${script.canonicalPath}")
-            InvInvoker.invoke(inv, script, name)
         }
 
         Logger.info("[SCM] done")

@@ -36,25 +36,17 @@ class RequireValuable implements NetworkValuable {
             // Reset to make sure NV is fine
             requireValuable.state = RequireValuable.NOT_PROCESSED
 
-            // Is it in cleaning state ?
+            // Is it halting ?
             if (pool.runningState == pool.HALTING) {
 
-                if (requireValuable.unresolved)
-                    requireValuable.unresolved.call([
-                            name: requireValuable.name,
-                            id: requireValuable.id,
-                            owner: requireValuable.inv.name
-                    ])
+                requireValuable.state = RequireValuable.HALTING
 
                 Logger.warn requireValuable
-
-                requireValuable.state = RequireValuable.SUCCESSFUL
                 return
             }
 
             def channel = pool.availableValuables[requireValuable.name]
             def broadcast = channel[requireValuable.id]
-
 
             if (!broadcast) {
 
@@ -89,14 +81,6 @@ class RequireValuable implements NetworkValuable {
                         ])
                 }
 
-                return
-            }
-
-            if (pool.runningState == pool.HALTING) {
-
-                requireValuable.state = RequireValuable.HALTING
-
-                Logger.warn requireValuable
                 return
             }
 

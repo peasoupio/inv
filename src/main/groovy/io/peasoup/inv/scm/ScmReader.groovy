@@ -1,6 +1,7 @@
 package io.peasoup.inv.scm
 
 import io.peasoup.inv.Logger
+import org.apache.commons.lang.RandomStringUtils
 
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
@@ -34,7 +35,12 @@ class ScmReader {
                 if (!repository.hooks)
                     return
 
-                if (repository.hooks.init && !repository.path.exists()) {
+                Boolean doesPathExistsAndNotEmpty = repository.path.exists() && repository.path.list().size() > 0
+
+                if (repository.hooks.init && !doesPathExistsAndNotEmpty) {
+
+                    // Make sure path is clean before init
+                    repository.path.deleteDir()
 
                     Logger.info("[SCM] ${name} [INIT] start")
                     executeCommands repository, repository.hooks.init
@@ -51,6 +57,8 @@ class ScmReader {
         futures.each {
             it.get()
         }
+
+        pool.shutdown()
 
         return scms
     }
@@ -70,7 +78,7 @@ class ScmReader {
         }
 
         // Create file and dirs for the SH file
-        def shFile = new File(repository.path, '.scm-sh')
+        def shFile = new File(repository.path, randomSuffix() + '.scm-sh')
         shFile.delete()
 
         // Write the commands into the script file
@@ -87,5 +95,11 @@ class ScmReader {
         // Consome output and wait until done.
         process.consumeProcessOutput(System.out, System.err)
         process.waitForOrKill(repository.timeout ?: 60000)
+
+        shFile.delete()
+    }
+
+    private String randomSuffix() {
+        return RandomStringUtils.random(9, true, true)
     }
 }

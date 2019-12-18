@@ -5,6 +5,7 @@ import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.DotGraph
 import io.peasoup.inv.graph.PlainGraph
+import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 import io.peasoup.inv.web.Routes
 import org.codehaus.groovy.runtime.InvokerHelper
@@ -118,8 +119,6 @@ Options:
         return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
     }
 
-
-
     int graph(String arg1) {
 
         switch (arg1.toLowerCase()) {
@@ -144,22 +143,32 @@ Options:
         return 0
     }
 
-    int launchFromSCM(File arg1) {
+     int launchFromSCM(File arg1) {
 
         def invFiles = new ScmReader(arg1).execute()
 
         def inv = new InvHandler()
 
-        invFiles.each { String name, List<File> scripts ->
+        invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
 
-            scripts.each { File script ->
-                if (!script.exists()) {
-                    Logger.warn "${script.absolutePath} does not exist. Won't run."
+            // Manage entry points for SCM
+            repository.entry.split().each {
+
+                def scriptFile = new File(it)
+                def path = repository.path
+
+                if (!scriptFile.exists()) {
+                    scriptFile = new File(path, it)
+                    path = scriptFile.parentFile
+                }
+
+                if (!scriptFile.exists()) {
+                    Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
                     return
                 }
 
-                Logger.info("file: ${script.absolutePath}")
-                InvInvoker.invoke(inv, script, name)
+                Logger.info("file: ${scriptFile.canonicalPath}")
+                InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
             }
         }
 

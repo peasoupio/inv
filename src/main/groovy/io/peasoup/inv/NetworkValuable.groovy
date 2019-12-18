@@ -8,8 +8,9 @@ interface NetworkValuable {
     final static int NOT_PROCESSED = -1, // Not processed yet
                      FAILED = 0, // Negative match
                      UNBLOADTING = 1, // No match verified
-                     SUCCESSFUL = 2, // Positive match
-                     ALREADY_BROADCAST = 3 // Positive match
+                     HALTING = 2, // Processed during halting
+                     SUCCESSFUL = 3, // Positive match
+                     ALREADY_BROADCAST = 4 // Positive match
 
 
     final static String DEFAULT_ID = "undefined"

@@ -16,12 +16,13 @@ class InvInvoker {
         assert inv
         assert scriptPath
 
-        invoke(inv, scriptPath, "undefined")
+        invoke(inv, scriptPath.parent, scriptPath, "undefined")
     }
 
 
-    static void invoke(InvHandler inv, File scriptFile, String scm) {
+    static void invoke(InvHandler inv, String pwd, File scriptFile, String scm, Map<String, Object> inject = [:]) {
         assert inv
+        assert pwd
         assert scriptFile
         assert scm
 
@@ -32,17 +33,23 @@ class InvInvoker {
 
         Logger.debug("file: ${scriptFile.canonicalPath}")
 
-        String preferredClassname = (normalizeClassName(scriptFile) + "#" + randomSuffix()).toLowerCase()
+        String preferredClassname = (normalizeClassName(scriptFile) + '$' + randomSuffix()).toLowerCase()
         Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
 
         Script myNewScript = (Script)groovyClass.newInstance()
 
         myNewScript.binding.setProperty("inv", inv)
         myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)
-        myNewScript.binding.setProperty("pwd", scriptFile.parentFile.canonicalPath)
+        myNewScript.binding.setProperty("pwd", checkSubordinateSlash(pwd))
 
         if (scm)
             myNewScript.binding.setProperty("scm", scm)
+
+        if (!inject.isEmpty())
+            // Insert user-defined instances within the script itself
+            inject.each { String className, Object instance ->
+                myNewScript.binding.setProperty(className, instance)
+            }
 
         myNewScript.run()
     }
@@ -87,5 +94,14 @@ class InvInvoker {
 
     protected static String randomSuffix() {
         return RandomStringUtils.random(9, true, true)
+    }
+
+    protected static String checkSubordinateSlash(String path) {
+        assert path
+
+        if (path.charAt(path.length() - 1) == '/')
+            return path
+
+        return path + '/'
     }
 }

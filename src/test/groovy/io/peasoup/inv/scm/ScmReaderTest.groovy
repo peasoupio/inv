@@ -11,7 +11,8 @@ class ScmReaderTest {
         def files = new ScmReader(scmFile).execute()
 
         assert files["my-repository"]
-        assert files["my-repository"].find { it.absolutePath.contains("mainTestScript.groovy") }
+        assert files["my-repository"].entry.contains("mainTestScript.groovy")
+        assert files["my-repository"].path.absolutePath.contains("scm")
     }
 
     @Test

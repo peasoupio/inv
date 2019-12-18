@@ -2,6 +2,11 @@ package io.peasoup.inv.scm
 
 import io.peasoup.inv.Logger
 
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+
 class ScmReader {
 
     final Map<String, ScmDescriptor.MainDescriptor> scms
@@ -16,40 +21,38 @@ class ScmReader {
             scms = descriptor.scms()
     }
 
-    Map<String, List<File>> execute() {
+    Map<String, ScmDescriptor.MainDescriptor> execute() {
 
-        return scms.collectEntries { String name, ScmDescriptor.MainDescriptor repository ->
+        ExecutorService pool = Executors.newFixedThreadPool(4)
+        List<Future> futures = []
 
-            if (!repository.path)
-                Logger.warn "path not define for scm ${name}"
+        scms.collectEntries { String name, ScmDescriptor.MainDescriptor repository ->
+            futures << pool.submit({
+                if (!repository.path)
+                    Logger.warn "path not define for scm ${name}"
 
-            if (!repository.hooks)
-                return
+                if (!repository.hooks)
+                    return
 
-            if (repository.hooks.init && !repository.path.exists()) {
+                if (repository.hooks.init && !repository.path.exists()) {
 
-                Logger.info("[SCM] ${name} [INIT] start")
-                executeCommands repository, repository.hooks.init
-                Logger.info("[SCM] ${name} [INIT] done")
-            } else if (repository.hooks.update) {
+                    Logger.info("[SCM] ${name} [INIT] start")
+                    executeCommands repository, repository.hooks.init
+                    Logger.info("[SCM] ${name} [INIT] done")
+                } else if (repository.hooks.update) {
 
-                Logger.info("[SCM] ${name} [UPDATE] start")
-                executeCommands repository, repository.hooks.update
-                Logger.info("[SCM] ${name} [UPDATE] done")
-            }
-
-            // Manage entry points for SCM
-            List<File> scripts = repository.entry.split().collect {
-                def scriptFile = new File(it)
-
-                if (scriptFile.exists())
-                    return scriptFile
-
-                return new File(repository.path, it)
-            }
-
-            return [(name): scripts]
+                    Logger.info("[SCM] ${name} [UPDATE] start")
+                    executeCommands repository, repository.hooks.update
+                    Logger.info("[SCM] ${name} [UPDATE] done")
+                }
+            } as Callable)
         }
+
+        futures.each {
+            it.get()
+        }
+
+        return scms
     }
 
     private void executeCommands(ScmDescriptor.MainDescriptor repository, String commands) {

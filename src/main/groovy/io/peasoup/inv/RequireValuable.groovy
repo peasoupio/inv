@@ -89,9 +89,18 @@ class RequireValuable implements NetworkValuable {
                         ])
                 }
 
-
                 return
             }
+
+            if (pool.runningState == pool.HALTING) {
+
+                requireValuable.state = RequireValuable.HALTING
+
+                Logger.warn requireValuable
+                return
+            }
+
+            requireValuable.state = RequireValuable.SUCCESSFUL
 
             Logger.info requireValuable
 
@@ -111,7 +120,6 @@ class RequireValuable implements NetworkValuable {
             // Check if NV would have dumped something
             requireValuable.inv.dumpDelegate()
 
-            requireValuable.state = RequireValuable.SUCCESSFUL
         }
     }
 

@@ -22,7 +22,7 @@ class RequireValuableTest  {
             name "consume"
 
             require inv.Bloatable using {
-                unbloatable false
+                unbloatable true
 
                 unresolved {
                     unresolvedRaised = true
@@ -37,6 +37,28 @@ class RequireValuableTest  {
         inv()
 
         assert unresolvedRaised
+    }
+
+    @Test
+    void ok_with_halting() {
+
+        boolean unresolvedRaised = false
+
+        inv {
+            name "consume"
+
+            require inv.Bloatable using {
+                unbloatable false
+
+                unresolved {
+                    unresolvedRaised = true
+                }
+            }
+        }
+
+        inv()
+
+        assert !unresolvedRaised
     }
 
     @Test

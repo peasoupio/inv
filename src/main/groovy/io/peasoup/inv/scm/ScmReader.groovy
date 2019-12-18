@@ -70,7 +70,7 @@ class ScmReader {
         }
 
         // Create file and dirs for the SH file
-        def shFile = new File(repository.path, "${repository.name}.scm-sh")
+        def shFile = new File(repository.path, '.scm-sh')
         shFile.delete()
 
         // Write the commands into the script file

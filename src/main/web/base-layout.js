@@ -38,7 +38,8 @@ Vue.component('base-layout', {
             ],
             shared: {
                 scms: {},
-                invs: []
+                invs: [],
+                requiredInvs: []
             },
             loadState: {
                 scm: false,
@@ -54,6 +55,7 @@ Vue.component('base-layout', {
     created: function() {
         var vm = this
 
+
         axios.get('/run').then(response => {
 
             vm.shared.invs = response.data
@@ -61,6 +63,7 @@ Vue.component('base-layout', {
             vm.loadState.invs = true
             vm.$forceUpdate()
         });
+
 
         axios.get('/scms').then(response => {
             vm.shared.scms = response.data

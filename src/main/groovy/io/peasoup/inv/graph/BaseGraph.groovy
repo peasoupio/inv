@@ -1,12 +1,17 @@
 package io.peasoup.inv.graph
 
+import org.jgrapht.Graph
+import org.jgrapht.alg.util.NeighborCache
+import org.jgrapht.graph.DefaultDirectedGraph
+import org.jgrapht.graph.DefaultEdge
+
 class BaseGraph {
 
-    List<Node> requires = []
-    List<Node> broadcasts = []
+    private final Graph<Linkable, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class)
+    private final NeighborCache nc = new NeighborCache(g)
 
-    Map<String, Set<Node>> nodes = [:]
-    Map<String, Set<Node>> edges = [:]
+
+    final Map<String, Node> nodes = [:]
 
     BaseGraph() {
 
@@ -18,13 +23,15 @@ class BaseGraph {
         assert node.owner
         assert node.id
 
-        // Add or override existing node
-        if (!nodes.containsKey(node.owner))
-            nodes << [(node.owner): new HashSet<>()]
+        def owner = new Owner(value: node.owner)
+        def id = new Id(value: node.id)
 
-        nodes[node.owner] << node
+        g.addVertex(owner)
+        g.addVertex(id)
+        g.addEdge(id, owner)
 
-        broadcasts << node
+        nodes.put(node.owner, node)
+        nodes.put(node.id, node)
     }
 
     def addRequireNode(Node node) {
@@ -33,64 +40,144 @@ class BaseGraph {
         assert node.owner
         assert node.id
 
-        // Add or override existing node
-        if (!nodes.containsKey(node.owner))
-            nodes << [(node.owner): new HashSet<>()]
+        def owner = new Owner(value: node.owner)
+        def id = new Id(value: node.id)
 
-        nodes[node.owner] << node
+        g.addVertex(owner)
+        g.addVertex(id)
+        g.addEdge(owner, id)
 
-        requires << node
+        nodes.put(node.owner, node)
     }
 
-    def linkEdges() {
+    def requiredByAll(Linkable linkable) {
 
-        // Merge broadcasts them into an index
-        Map<String, List<Node>> broadcasts_index = broadcasts.collectEntries { [(it.id): it]}
+        Set<Linkable> total = []
+        List<Linkable> predecessors = []
 
-        // Create edges
-        (broadcasts + requires).each {
-            if (edges.containsKey(it.owner))
-                return
+        if (!g.containsVertex(linkable))
+            return
 
-            edges << [(it.owner): new HashSet<>()]
+        predecessors.addAll(nc.predecessorsOf(linkable))
+
+        if (predecessors.isEmpty())
+            return []
+
+        while(!predecessors.isEmpty()) {
+            def predecessor = predecessors.pop()
+
+            if (total.contains(predecessor))
+                continue
+
+            total << predecessor
+
+            predecessors.addAll(nc.predecessorsOf(predecessor))
         }
 
-        // Look requires to get matches with broadcasts
-        requires.each {
-            def match = broadcasts_index[it.id]
-
-            if (!match)
-                return
-
-            edges[it.owner] << match
-        }
+        return total
     }
 
-    Map flattenedEdges() {
-        return edges.collectEntries { String owner, Set<Node> _nodes ->
-            Closure<Set<Node>> recursive
-            recursive = { Set<Node> nodes ->
+    def requiresAll(Linkable linkable) {
 
-                if (nodes.isEmpty())
-                    return []
+        Set<Linkable> total = []
+        List<Linkable> successors = []
 
-                return nodes.collectMany { Node node ->
-                    def myNodes = edges[node.owner]
+        if (!g.containsVertex(linkable))
+            return
 
-                    if (myNodes.isEmpty())
-                        return [node]
+        successors.addAll(nc.successorsOf(linkable))
 
-                    return [node] + recursive.call(myNodes)
-                }
+        if (successors.isEmpty())
+            return []
 
-            }
+        while(!successors.isEmpty()) {
+            def successor = successors.pop()
 
-            return [(owner): recursive(_nodes)]
+            if (total.contains(successor))
+                continue
+
+            total << successor
+
+            successors.addAll(nc.successorsOf(successor))
         }
+
+        return total
     }
 
     interface Node {
-        String owner
-        String id
+        String getOwner()
+        String getId()
+    }
+
+    interface Linkable {
+        String getValue()
+        boolean isId()
+        boolean isOwner()
+    }
+
+    static class Owner implements Linkable {
+        String value
+
+        boolean isId() {
+            return false
+        }
+
+        boolean isOwner() {
+            return true
+        }
+
+        @Override
+        boolean equals(Object obj) {
+            if (!value)
+                false
+
+            if (obj instanceof Owner)
+                return value == ((Owner) obj).value
+
+            return false
+        }
+
+        @Override
+        int hashCode() {
+            return value.hashCode()
+        }
+
+        @Override
+        String toString() {
+            return "Owner=${value}"
+        }
+    }
+
+    static class Id implements Linkable {
+        String value
+
+        boolean isId() {
+            return true
+        }
+
+        boolean isOwner() {
+            return false
+        }
+
+        @Override
+        boolean equals(Object obj) {
+            if (!value)
+                false
+
+            if (obj instanceof Id)
+                return value == ((Id) obj).value
+
+            return false
+        }
+
+        @Override
+        int hashCode() {
+            return value.hashCode()
+        }
+
+        @Override
+        String toString() {
+            return "ID=${value}"
+        }
     }
 }

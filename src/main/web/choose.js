@@ -5,13 +5,13 @@ Vue.component('choose', {
 
     <div class="tabs">
         <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='select' }"><a @click="activeTab='select'">Select ({{value.invs.nodes.length}})</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='summary' }"><a @click="activeTab='summary'">Summary ({{chosenSize()}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='select' }"><a @click="activeTab='select'">Select ({{value.invs.count}}/{{value.invs.total}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='summary' }"><a @click="activeTab='summary'">Summary ({{value.invs.selected + value.invs.requiredByAssociation}}/{{value.invs.total}})</a></li>
         </ul>
     </div>
 
-    <choose-select v-model="value" v-if="activeTab=='select'"></choose-select>
-    <choose-summary v-model="value" v-if="activeTab=='summary'"></choose-summary>
+    <choose-select v-model="value" v-show="activeTab=='select'"></choose-select>
+    <choose-summary v-model="value" v-show="activeTab=='summary'"></choose-summary>
 
 </div>
 `,
@@ -22,51 +22,34 @@ Vue.component('choose', {
         }
     },
     methods: {
-        chosenSize: function() {
-            var vm = this
-
-            var count = 0
-
-            vm.value.invs.nodes.forEach(function(inv) {
-                if (inv.chosen) {
-                    count++
-                    return
-                }
-
-                if (inv.broughtBySomeone.length > 0) {
-                    count++
-                    return
-                }
-            })
-
-            return count
-        }
     }
 })
 
 Vue.component('choose-select', {
     template: `
 <div>
-    <table class="table is-fullwidth">
+    <table class="table is-fullwidth" v-if="value.invs.nodes">
         <thead>
         <tr class="field">
             <th class="checkbox_header"><input type="checkbox" v-model="selectAll" @click="doSelectAll()" /></th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"></th>
-            <th><input class="input" type="text" v-model="filters.id" placeholder="ID"></th>
-            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source"></th>
+            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes()"></th>
             <th>Options</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="inv in filter()">
-            <td align="center"><input type="checkbox" v-model="inv.chosen" @change="doSelect(inv)" /></td>
+            <td align="center"><input type="checkbox" v-model="inv.selected" @change="doSelect(inv)" :disabled="inv.required" /></td>
             <td>{{inv.owner}}</td>
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
             <td>
+            <!--
                 <span v-if="value.scms.registry[inv.scm]"><a @click.stop="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
                 <span v-else>{{inv.scm}}</span>
+            -->
             </td>
             <td></td>
         </tr>
@@ -112,23 +95,33 @@ Vue.component('choose-select', {
             }
         }
     },
+    created: function(){
+        this.searchNodes()
+    },
     methods: {
         filter: function() {
             var vm = this
 
             var filtered = []
 
-            vm.value.invs.nodes.forEach(function(inv) {
-                if (vm.filters.name != '' && inv.name.indexOf(vm.filters.name) < 0) return
-                if (vm.filters.id != '' && inv.id.indexOf(vm.filters.id) < 0) return
-                if (vm.filters.owner != '' && inv.owner.indexOf(vm.filters.owner) < 0) return
-                if (vm.filters.scm != '' && inv.scm.indexOf(vm.filters.scm) < 0) return
-
-                filtered.push(inv)
+            vm.value.invs.nodes.forEach(function(node) {
+                filtered.push(node)
             })
 
             return filtered.sort(compareValues('owner'))
+        },
+        searchNodes: function() {
+            var vm = this
 
+            var link = "/run"
+
+            if (vm.value.invs.links != undefined)
+                link = vm.value.invs.links.search
+
+            axios.post(link, vm.filters).then(response => {
+                vm.value.invs = response.data
+                //vm.$forceUpdate()
+            })
         },
         doSelectAll: function() {
             var vm = this
@@ -136,7 +129,10 @@ Vue.component('choose-select', {
             vm.selectAll = !vm.selectAll
 
             vm.value.invs.nodes.forEach(function(inv) {
-                inv.chosen = vm.selectAll
+                if (inv.required)
+                    return
+
+                inv.selected = vm.selectAll
 
                 vm.doSelect(inv)
             })
@@ -145,15 +141,15 @@ Vue.component('choose-select', {
         doSelect: function(inv) {
             var vm = this
 
-            if (inv.chosen) {
-                axios.post(vm.value.invs.links.stage[inv.owner]).then(response => {
+            if (inv.selected) {
+                axios.post(inv.links.stage, vm.filters).then(response => {
                     vm.value.invs = response.data
-                    //vm.$forceUpdate()
+                    vm.value.requiredInvs = response.data
                 })
             } else {
-                axios.post(vm.value.invs.links.unstage[inv.owner]).then(response => {
+                axios.post(inv.links.unstage, vm.filters).then(response => {
                     vm.value.invs = response.data
-                    //vm.$forceUpdate()
+                    vm.value.requiredInvs = response.data
                 })
             }
         },
@@ -167,24 +163,24 @@ Vue.component('choose-select', {
 Vue.component('choose-summary', {
     template: `
 <div>
-    <div v-if="count == 0">
+    <div v-if="value.invs.selected == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-fullwidth">
-        <thead v-if="count > 0">
+    <table class="table is-fullwidth" v-else>
+        <thead>
         <tr class="field">
             <th>Brought by</th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"></th>
-            <th><input class="input" type="text" v-model="filters.id" placeholder="ID"></th>
-            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source"></th>
+            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes()"></th>
             <th>Options</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="inv in filter()">
-            <td v-if="inv.chosen">Myself</td>
-            <td v-if="!inv.chosen"><a @click.stop="showWhoBroughtBy = inv.owner">Someone else</td>
+            <td v-if="inv.selected">Myself</td>
+            <td v-if="inv.required"><a @click.stop="showRequiredBy(inv)">Someone else</td>
             <td>{{inv.owner}}</td>
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
@@ -194,11 +190,16 @@ Vue.component('choose-summary', {
         </tbody>
     </table>
 
-    <div class="modal is-active" v-if="showWhoBroughtBy != ''">
+    <div class="modal is-active" v-if="requiredBy">
         <div class="modal-background"></div>
-        <div class="modal-content">
+        <div class="modal-content" style="width: 80%">
             <div class="box" v-click-outside="close">
-                <h1 class="subtitle is-1">Who brought me?</h1>
+                <h1 class="subtitle is-1">
+                    Required by:
+                    <span class="icon is-small" v-if="requiredByLoading">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                    </span>
+                </h1>
                 <table class="table is-fullwidth is-bordered">
                     <thead>
                     <tr class="field">
@@ -208,7 +209,7 @@ Vue.component('choose-summary', {
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="other in whoBroughtMe(showWhoBroughtBy)" v-bind:class="{ 'whobroughtme_chosen' : other.chosen }">
+                    <tr v-for="other in requiredByInvs.nodes" v-bind:class="{ 'whobroughtme_chosen' : other.selected }">
                         <td>{{other.owner}}</td>
                         <td>{{other.name}}</td>
                         <td>{{other.id}}</td>
@@ -223,9 +224,9 @@ Vue.component('choose-summary', {
     props: ['value'],
     data: function() {
         return {
-            count: 0,
-            showWhoBroughtBy: '',
-            selectAll: false,
+            requiredBy: null,
+            requiredByLoading: false,
+            requiredByInvs: [],
             filters: {
                 name: '',
                 id: '',
@@ -234,59 +235,57 @@ Vue.component('choose-summary', {
             }
         }
     },
+    created: function() {
+        this.searchNodes()
+    },
     methods: {
         filter: function() {
             var vm = this
 
+            var vm = this
+
             var filtered = []
 
-            vm.value.invs.nodes.forEach(function(inv) {
+            if (vm.value.requiredInvs.nodes == undefined)
+                return []
 
-                if (!inv.chosen && inv.broughtBySomeone.length == 0) return
-
-                if (vm.filters.name != '' && inv.name.indexOf(vm.filters.name) < 0) return
-                if (vm.filters.id != '' && inv.id.indexOf(vm.filters.id) < 0) return
-                if (vm.filters.owner != '' && inv.owner.indexOf(vm.filters.owner) < 0) return
-                if (vm.filters.scm != '' && inv.scm.indexOf(vm.filters.scm) < 0) return
-
-                filtered.push(inv)
+            vm.value.requiredInvs.nodes.forEach(function(node) {
+                filtered.push(node)
             })
-
-            vm.count = filtered.length
 
             return filtered.sort(compareValues('owner'))
         },
-
-
-        whoBroughtMe: function(owner) {
+        searchNodes: function() {
             var vm = this
 
-            if (owner == '')
-                return
+            var link = "/run/selected"
 
-            var cache = {}
+            if (vm.value.invs.links != undefined)
+                link = vm.value.invs.links.selected
 
-            vm.value.invs.nodes.forEach(function(inv) {
-                cache[inv.owner] = inv
+            axios.post(link, vm.filters).then(response => {
+                vm.value.requiredInvs = response.data
+                //vm.$forceUpdate()
             })
+        },
+        showRequiredBy: function(inv) {
+            var vm = this
 
-            var myself = cache[owner]
-            var whoBroughtMe = []
+            vm.requiredBy = inv
 
-            myself.broughtBySomeone.forEach(function(otherName) {
+            vm.requiredByLoading = true
 
-                var other = cache[otherName]
+            axios.get(inv.links.requiredBy).then(response => {
+                vm.requiredByInvs = response.data
+                //vm.$forceUpdate()
 
-                if (whoBroughtMe.indexOf(other) > -1)
-                    return
+                vm.requiredByInvs.nodes.sort(compareValues('owner'))
 
-                whoBroughtMe.push(other)
+                vm.requiredByLoading = false
             })
-
-            return whoBroughtMe.sort(compareValues('owner'))
         },
         close: function() {
-            this.showWhoBroughtBy = ''
+            this.requiredBy = null
         }
 
     }

@@ -4,7 +4,7 @@ class PlainGraph {
 
     final private static lf = System.properties['line.separator']
 
-    def baseGraph = new BaseGraph()
+    final def graph = new BaseGraph()
 
     final List<FileStatement> files = []
 
@@ -18,13 +18,13 @@ class PlainGraph {
 
             def broadcast = BroadcastStatement.matches(line)
             if (broadcast) {
-                baseGraph.addBroadcastNode(broadcast)
+                graph.addBroadcastNode(broadcast)
                 return
             }
 
             def require = RequireStatement.matches(line)
             if (require) {
-                baseGraph.addRequireNode(require)
+                graph.addRequireNode(require)
                 return
             }
 
@@ -34,15 +34,13 @@ class PlainGraph {
                 return
             }
         }
-
-        baseGraph.linkEdges()
     }
 
     String echo() {
         return """    
 # Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
 ${
-    baseGraph.edges
+    graph.edges
         .collectMany { String owner, Set edges ->
             edges.collect { BaseGraph.Node edge ->
                 "${owner} -> ${edge.owner} (${edge.id})"

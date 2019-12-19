@@ -7,11 +7,8 @@ class Run {
 
     final private File run
     final private PlainGraph plainGraph
-    final private Map flattenedEdges
 
-    final Map<String, Map> invs = [:]
-    final Set<String> staging = []
-    final Set<String> propagatedStaging = []
+    final Map<String, Map> selected = [:]
 
     Run(File run) {
         assert run
@@ -19,31 +16,158 @@ class Run {
 
         this.run = run
         plainGraph = new PlainGraph(run.newReader())
-        flattenedEdges = plainGraph.baseGraph.flattenedEdges()
+    }
 
-        invs = plainGraph.baseGraph.edges.keySet().collectEntries { String owner ->
+    synchronized void stage(String id) {
+        selected.put(id, [
+            selected: true,
+            link: new BaseGraph.Id(value: id)
+        ])
 
-            // Someone broadcast'd it ?
-            def broadcast = plainGraph.baseGraph.broadcasts.find { it.owner == owner }
+        propagate()
+    }
 
-            def name = ''
-            def id = ''
+    synchronized void unstage(String id) {
+        selected.remove(id)
 
-            if (broadcast) {
-                name = broadcast.id.split(' ')[0].replace('[', '').replace(']', '')
-                id = broadcast.id.split(' ')[1].replace('[', '').replace(']', '')
+        propagate()
+    }
+    private  void propagate() {
+
+        def checkRequiresByAll = selected.findAll { it.value.selected }
+
+        selected.clear()
+
+        for(Map.Entry<String, Map> chosen : checkRequiresByAll) {
+            selected.put(chosen.key, chosen.value)
+
+            for(BaseGraph.Linkable link : plainGraph.graph.requiresAll(chosen.value.link)) {
+                if (selected.containsKey(link.value))
+                    continue
+
+                selected.put(link.value, [
+                    required: true,
+                    link: link
+                ])
             }
+        }
+    }
 
-            // Brought by an SCM ?
-            def scm = ''
-            plainGraph.files.each { PlainGraph.FileStatement file ->
-                if (file.inv != owner)
-                    return
+    Map getNodes(String source = "all", Map filter = [:], Integer from = 0, Integer to = 20) {
 
-                scm = file.scm
+        List<BaseGraph.Linkable> links
+
+        switch (source) {
+            case "all":
+                links = (plainGraph.graph.g.vertexSet() as List).findAll { it.isId() }
+                break
+
+            case "selected":
+                links = selected.values().collect { it.link }.findAll { it.isId() }
+                break
+        }
+
+        List<Map> reduced = links
+                .findAll { !filter.id || it.value.contains(filter.id)}
+                .collect{[
+                    link: it,
+                    node: plainGraph.graph.nodes[it.value],
+                    name: it.value.split(' ')[0].replace('[', '').replace(']', ''),
+                    subId: it.value.split(' ')[1].replace('[', '').replace(']', '')
+                ]}
+                .findAll { it.node }
+
+        if (filter.owner)
+            reduced = reduced.findAll { it.node.owner.contains(filter.owner)}
+
+        if (filter.name)
+            reduced = reduced.findAll { it.name.contains(filter.name)}
+
+
+        if (reduced.size() > to)
+            reduced = reduced[from..to - 1]
+
+        return [
+            count: reduced.size(),
+            total: links.size(),
+            selected: selected.values().findAll { it.link.isId() }.size(),
+            requiredByAssociation: selected.values().findAll { !it }.size(),
+            nodes: reduced.collect {
+
+                    String value = it.link.value as String
+                    String owner = it.node.owner as String
+
+                    def scm = ''
+
+                    //TODO NOT PERFORMANT!!
+                    plainGraph.files.each { PlainGraph.FileStatement file ->
+                        if (file.inv != owner)
+                            return
+
+                        scm = file.scm
+                    }
+
+                    return [
+                        required: selected[value] && selected[value].required,
+                        selected: selected[value] && selected[value].selected,
+                        //broughtBySomeone: new HashSet<String>(),
+                        owner: owner,
+                        name: it.name,
+                        id: it.subId,
+                        scm: scm,
+                        links: [
+                            requiredBy: "/run/requiredBy?id=${value}",
+                            stage: "/run/stage?id=${value}",
+                            unstage: "/run/unstage?id=${value}"
+                        ]
+                        //required: flattenedEdges[owner]
+                    ]
+                },
+            links: [
+                search: "/run",
+                selected: "/run/selected"
+            ]
+        ]
+    }
+
+    Map getRequiredBy(String id) {
+
+        def nodes = []
+        def linkableToCheck = selected.find { it.value.link.value == id }
+
+        if (linkableToCheck) {
+            for (BaseGraph.Linkable link : plainGraph.graph.requiredByAll(linkableToCheck.value.link)) {
+                if (!link.isOwner())
+                    continue
+
+                String value = link.value
+
+                if (!selected.containsKey(value))
+                    continue
+
+                def node = plainGraph.graph.nodes[value]
+
+                String name = node.id.split(' ')[0].replace('[', '').replace(']', '')
+                String subId = node.id.split(' ')[1].replace('[', '').replace(']', '')
+
+                nodes.add([
+                    name: name,
+                    id: subId,
+                    owner: node.owner,
+                    required: selected[node.id] && selected[node.id].required,
+                    selected: selected[node.id] && selected[node.id].selected,
+                ])
             }
+        }
 
-            return [(owner): [
+        return [
+            nodes: nodes
+        ]
+
+    }
+
+    /*
+    return [(owner): [
                 chosen: false,
                 broughtBySomeone: new HashSet<String>(),
                 owner: owner,
@@ -52,73 +176,7 @@ class Run {
                 scm: scm,
                 required: flattenedEdges[owner]
             ]]
-        }
-    }
-
-    void stage(String name) {
-        staging << name
-
-        invs[name].chosen = true
-
-        propagate()
-    }
-
-    void unstage(String name) {
-        staging.remove(name)
-
-        invs[name].chosen = false
-
-        propagate()
-    }
-
-    private void propagate() {
-
-        // Reset
-        propagatedStaging.clear()
-        invs.values().each {
-            it.broughtBySomeone.clear()
-        }
-
-        flattenedEdges.each { String owner, List<BaseGraph.Node> edges ->
-
-            if (!staging.contains(owner))
-                return
-
-            def requires = edges
-                .collect { it.owner }
-                .findAll { !staging.contains(it) }
-
-            propagatedStaging.addAll(requires)
-
-            requires.each { require ->
-                invs[require].broughtBySomeone << owner
-
-                // Check from "inner-dependencies" into this current chain
-                flattenedEdges[require]
-                    .collect { it.owner }
-                    .each {
-                        invs[it].broughtBySomeone << require
-                    }
-            }
-
-
-        }
-    }
-
-    Map toMap() {
-        return [
-            //graph: plainGraph.baseGraph,
-            //files: plainGraph.files,
-            //flattenedEdges: flattenedEdges,
-            nodes: invs.values(),
-            staging: staging,
-            propagatedStaging: propagatedStaging,
-            links: [
-                stage: plainGraph.baseGraph.nodes.keySet().collectEntries {  [(it): "/run/stage/${it}"] },
-                unstage: plainGraph.baseGraph.nodes.keySet().collectEntries {  [(it): "/run/unstage/${it}"] },
-            ]
-        ]
-    }
+     */
 
     /*
     var matchedBroadcast = ''

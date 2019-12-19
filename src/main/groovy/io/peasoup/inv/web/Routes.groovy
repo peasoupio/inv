@@ -64,27 +64,73 @@ class Routes {
     // Runs
     void runs() {
         get("/run", { req, res ->
-            return JsonOutput.toJson(baseRun.toMap())
+            return JsonOutput.toJson(baseRun.getNodes())
         })
 
-        post("/run/stage/:name", { req, res ->
+        post("/run", { req, res ->
 
-            def name = req.params("name")
-            assert name
+            String body = req.body()
 
-            baseRun.stage(name)
+            if (!body)
+                return JsonOutput.toJson(baseRun.getNodes())
 
-            return JsonOutput.toJson(baseRun.toMap())
+            Map filter = new JsonSlurper().parseText(body)
+
+            return JsonOutput.toJson(baseRun.getNodes('all', filter))
         })
 
-        post("/run/unstage/:name", { req, res ->
+        get("/run/requiredBy", { req, res ->
 
-            def name = req.params("name")
-            assert name
+            def id = req.queryParams("id")
+            assert id
 
-            baseRun.unstage(name)
+            return JsonOutput.toJson(baseRun.getRequiredBy(id))
+        })
 
-            return JsonOutput.toJson(baseRun.toMap())
+        post("/run/selected", { req, res ->
+
+            String body = req.body()
+
+            if (!body)
+                return JsonOutput.toJson(baseRun.getNodes('selected'))
+
+            Map filter = new JsonSlurper().parseText(body)
+
+            return JsonOutput.toJson(baseRun.getNodes('selected', filter))
+        })
+
+        post("/run/stage", { req, res ->
+
+            def id = req.queryParams("id")
+            assert id
+
+            baseRun.stage(id)
+
+            String body = req.body()
+
+            if (!body)
+                return JsonOutput.toJson(baseRun.getNodes())
+
+            Map filter = new JsonSlurper().parseText(body)
+
+            return JsonOutput.toJson(baseRun.getNodes('all', filter))
+        })
+
+        post("/run/unstage", { req, res ->
+
+            def id = req.queryParams("id")
+            assert id
+
+            baseRun.unstage(id)
+
+            String body = req.body()
+
+            if (!body)
+                return JsonOutput.toJson(baseRun.getNodes())
+
+            Map filter = new JsonSlurper().parseText(body)
+
+            return JsonOutput.toJson(baseRun.getNodes('all', filter))
         })
     }
 

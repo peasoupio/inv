@@ -46,10 +46,8 @@ Vue.component('choose-select', {
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
             <td>
-            <!--
                 <span v-if="value.scms.registry[inv.scm]"><a @click.stop="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
                 <span v-else>{{inv.scm}}</span>
-            -->
             </td>
             <td></td>
         </tr>
@@ -58,7 +56,7 @@ Vue.component('choose-select', {
 
     <div class="modal is-active" v-if="viewScm">
         <div class="modal-background"></div>
-        <div class="modal-content">
+        <div class="modal-content" style="width: 50%">
             <div class="box" v-click-outside="close">
                 <h1 class="subtitle is-1">My scm</h1>
                 <table class="table is-fullwidth is-bordered">

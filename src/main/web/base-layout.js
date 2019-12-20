@@ -38,6 +38,7 @@ Vue.component('base-layout', {
             ],
             shared: {
                 scms: {},
+                selectedInvs: [],
                 invs: [],
                 requiredInvs: []
             },

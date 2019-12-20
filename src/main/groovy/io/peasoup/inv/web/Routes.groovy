@@ -2,6 +2,7 @@ package io.peasoup.inv.web
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import me.tongfei.progressbar.ProgressBar
 
 import static spark.Spark.*
 
@@ -36,10 +37,16 @@ class Routes {
         // Init
         baseRun = new Run(new File(RUN, "run.txt"))
 
-        new File(SCMS).eachFileRecurse {
-            println "Reading... ${it}"
-            scms << new ScmSourceFile(it, baseRun)
+        def files = new File(SCMS).listFiles()
+
+        ProgressBar pb = new ProgressBar("Reading scm files", files.size())
+
+        files.each {
+            pb.step()
+            scms << new ScmSourceFile(it)
         }
+
+        pb.close()
     }
 
     /**
@@ -74,13 +81,12 @@ class Routes {
         post("/run", { req, res ->
 
             String body = req.body()
+            Map filter = [:]
 
-            if (!body)
-                return JsonOutput.toJson(baseRun.getNodes())
+            if (body)
+                filter = new JsonSlurper().parseText(body)
 
-            Map filter = new JsonSlurper().parseText(body)
-
-            return JsonOutput.toJson(baseRun.getNodes('all', filter))
+            return JsonOutput.toJson(baseRun.getNodes('all', filter, filter.from ?: 0, filter.step ?: 20))
         })
 
         get("/run/requiredBy", { req, res ->
@@ -94,13 +100,12 @@ class Routes {
         post("/run/selected", { req, res ->
 
             String body = req.body()
+            Map filter = [:]
 
-            if (!body)
-                return JsonOutput.toJson(baseRun.getNodes('selected'))
+            if (body)
+                filter = new JsonSlurper().parseText(body)
 
-            Map filter = new JsonSlurper().parseText(body)
-
-            return JsonOutput.toJson(baseRun.getNodes('selected', filter))
+            return JsonOutput.toJson(baseRun.getNodes('selected', filter,  filter.from ?: 0, filter.step ?: 20))
         })
 
         post("/run/stage", { req, res ->
@@ -110,14 +115,7 @@ class Routes {
 
             baseRun.stage(id)
 
-            String body = req.body()
-
-            if (!body)
-                return JsonOutput.toJson(baseRun.getNodes())
-
-            Map filter = new JsonSlurper().parseText(body)
-
-            return JsonOutput.toJson(baseRun.getNodes('all', filter))
+            return "Ok"
         })
 
         post("/run/unstage", { req, res ->
@@ -127,14 +125,7 @@ class Routes {
 
             baseRun.unstage(id)
 
-            String body = req.body()
-
-            if (!body)
-                return JsonOutput.toJson(baseRun.getNodes())
-
-            Map filter = new JsonSlurper().parseText(body)
-
-            return JsonOutput.toJson(baseRun.getNodes('all', filter))
+            return "Ok"
         })
     }
 
@@ -144,7 +135,12 @@ class Routes {
 
             Map output = [
                 scripts : [:],
-                registry: [:]
+                registry: [],
+                total: scms.sum { it.scmElements.size() },
+                links: [
+                    search: "/scms",
+                    selected: "/scms/selected"
+                ]
             ]
 
             scms.each {
@@ -153,7 +149,86 @@ class Routes {
                     lastEdit: it.lastEdit
                 ]
 
-                output.registry.putAll(it.toMap())
+                it.elements().each {
+                    output.registry << it.toMap()
+                }
+            }
+
+            if (output.registry.size() > 20)
+                output.registry = output.registry[0..19]
+
+            return JsonOutput.toJson(output)
+        })
+
+        post("/scms", { req, res ->
+
+            Map output = [
+                scripts : [:],
+                registry: [],
+                total: scms.sum { it.scmElements.size() },
+                links: [
+                    search: "/scms",
+                    selected: "/scms/selected"
+                ]
+            ]
+
+            String body = req.body()
+            Map filter = [:]
+
+            if (body)
+                filter = new JsonSlurper().parseText(body)
+
+            Integer from = filter.from ?: 0
+            Integer to = filter.to ?: 20
+
+            scms.each {
+                if (output.registry.size() > from + to)
+                    return
+
+                output.scripts[it.sourceFile.name] = [
+                    text    : it.text,
+                    lastEdit: it.lastEdit
+                ]
+
+                it.elements().each {
+                    def element = it.toMap(filter)
+
+                    if (!element)
+                        return
+
+                    output.registry << element
+                }
+            }
+
+            if (output.registry.size() > from + to)
+                output.registry = output.registry[from..to - 1]
+
+            return JsonOutput.toJson(output)
+        })
+
+        get("/scm/view", { req, res ->
+
+            def name = req.queryParams("name")
+            assert name
+
+            def output = ScmSourceFile.scmCache[name].toMap()
+
+            return JsonOutput.toJson(output)
+        })
+
+        get("/scms/selected", { req, res ->
+
+            Map output = [
+                scms: []
+            ]
+
+            scms.each {
+                it.elements().each {
+                    if (!baseRun.isSelected(it.descriptor.name))
+                        return
+
+                    output.scms << it.toMap()
+                }
             }
 
             return JsonOutput.toJson(output)
@@ -164,9 +239,9 @@ class Routes {
             def name = req.queryParams("name")
             assert name
 
-            def element = ScmSourceFile.scmCache[name]
+            def currentElement = ScmSourceFile.scmCache[name]
 
-            def sourceFile = new File(SCMS, element.script)
+            def sourceFile = new File(SCMS, currentElement.script)
             sourceFile.delete()
             sourceFile << req.body()
 
@@ -176,21 +251,7 @@ class Routes {
 
             scms << new ScmSourceFile(sourceFile, baseRun)
 
-            Map output = [
-                scripts : [:],
-                registry: [:]
-            ]
-
-            scms.each {
-                output.scripts[it.sourceFile.name] = [
-                        text    : it.text,
-                        lastEdit: it.lastEdit
-                ]
-
-                output.registry.putAll(it.toMap())
-            }
-
-            return JsonOutput.toJson(output)
+            return "Ok"
         })
     }
 

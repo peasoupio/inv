@@ -62,14 +62,13 @@ Vue.component('base-layout', {
 
             vm.loadState.invs = true
             vm.$forceUpdate()
-        });
-
+        })
 
         axios.get('/scms').then(response => {
             vm.shared.scms = response.data
 
             vm.loadState.scms = true
             vm.$forceUpdate()
-        });
+        })
     }
 })

@@ -2,9 +2,8 @@ package io.peasoup.inv.web
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import io.peasoup.inv.scm.ScmDescriptor
 
-import static spark.Spark.*;
+import static spark.Spark.*
 
 class Routes {
 
@@ -14,7 +13,7 @@ class Routes {
     final String PARAMETERS = System.getenv('INV_PARAMETERS') ?: "../parameters"
 
     final Run baseRun
-    final Map<String, ScmSourceFile.SourceFileElement> scmCache = [:]
+    final List<ScmSourceFile> scms = []
 
     final Execution exec = new Execution(new File(SCMS), new File(PARAMETERS))
 
@@ -36,6 +35,11 @@ class Routes {
 
         // Init
         baseRun = new Run(new File(RUN, "run.txt"))
+
+        new File(SCMS).eachFileRecurse {
+            println "Reading... ${it}"
+            scms << new ScmSourceFile(it, baseRun)
+        }
     }
 
     /**
@@ -139,63 +143,51 @@ class Routes {
         get("/scms", { req, res ->
 
             Map output = [
-                scripts:[:],
+                scripts : [:],
                 registry: [:]
             ]
 
-            new File(SCMS).eachFileRecurse {
-                def file = it
-                def scmReader = new ScmDescriptor(file.newReader())
-
-                output.scripts[file.name] = [
-                    text: file.text,
-                    lastEdit: file.lastModified()
+            scms.each {
+                output.scripts[it.sourceFile.name] = [
+                    text    : it.text,
+                    lastEdit: it.lastEdit
                 ]
 
-                scmReader.scms().each { String name, ScmDescriptor.MainDescriptor desc ->
-                    scmCache[name] = new ScmSourceFile.SourceFileElement(
-                        descriptor: desc,
-                        script: file.name
-                    )
-
-                    output.registry[name] = ScmSourceFile.toMap(file.name, desc)
-                }
+                output.registry.putAll(it.toMap())
             }
 
             return JsonOutput.toJson(output)
         })
 
-        post("/scms/:name/source", { req, res ->
+        post("/scms/source", { req, res ->
 
-            def name = req.params("name")
+            def name = req.queryParams("name")
             assert name
 
-            def element = scmCache[name]
+            def element = ScmSourceFile.scmCache[name]
 
             def sourceFile = new File(SCMS, element.script)
             sourceFile.delete()
             sourceFile << req.body()
 
-            scmCache.removeAll { String otherName, ScmSourceFile.SourceFileElement otherElement ->
-                otherElement.script == element.script
+            scms.removeAll {
+                it.sourceFile == sourceFile
             }
 
-            def scmReader = new ScmDescriptor(sourceFile.newReader())
+            scms << new ScmSourceFile(sourceFile, baseRun)
 
-            def output = [
-                registry:[:],
-                scripts: [(sourceFile.name): [
-                        lastEdit: sourceFile.lastModified()]
-                ]
+            Map output = [
+                scripts : [:],
+                registry: [:]
             ]
 
-            scmReader.scms().each { String otherName, ScmDescriptor.MainDescriptor desc ->
-                scmCache[otherName] = new ScmSourceFile.SourceFileElement(
-                    descriptor: desc,
-                    script: element.script
-                )
+            scms.each {
+                output.scripts[it.sourceFile.name] = [
+                        text    : it.text,
+                        lastEdit: it.lastEdit
+                ]
 
-                output.registry[otherName] = ScmSourceFile.toMap(element.script, desc)
+                output.registry.putAll(it.toMap())
             }
 
             return JsonOutput.toJson(output)
@@ -204,31 +196,29 @@ class Routes {
 
     void scmsParameters() {
 
-        get("/scms/:name/parameters", { req, res ->
+        get("/scms/parameters", { req, res ->
 
-            def name = req.params("name")
+            def name = req.queryParams("name")
             assert name
 
-            def element = scmCache[name]
+            def element = ScmSourceFile.scmCache[name]
 
             if (!element)
                 return JsonOutput.toJson([:])
 
-            return JsonOutput.toJson(ScmSourceFile.getParameters(
-                    element.descriptor,
-                    new File(PARAMETERS, element.simpleName() + ".properties")))
+            return JsonOutput.toJson(element.getParameters(new File(PARAMETERS, element.simpleName() + ".properties")))
         })
 
-        post("/scms/:name/parameters/:parameterName", { req, res ->
+        post("/scms/parameters", { req, res ->
 
-            def name = req.params("name")
+            def name = req.queryParams("name")
             assert name
 
-            def element = scmCache[name]
-            assert element
+            def parameter = req.queryParams("parameter")
+            assert parameter
 
-            def parameterName = req.params("parameterName")
-            assert parameterName
+            def element = ScmSourceFile.scmCache[name]
+            assert element
 
             def payload = req.body()
             def parameterValue = payload
@@ -239,14 +229,14 @@ class Routes {
             def propertyFile = new File(PARAMETERS, element.simpleName() + ".properties")
 
             if (!propertyFile.exists()) {
-                propertyFile << "${name}.${parameterName}=${parameterValue}".toString()
+                propertyFile << "${name}.${parameter}=${parameterValue}".toString()
                 return "ok"
             }
 
             def propertyFileObject = new Properties()
             propertyFileObject.load(propertyFile.newReader())
 
-            propertyFileObject["${name}.${parameterName}".toString()] = parameterValue
+            propertyFileObject["${name}.${parameter}".toString()] = parameterValue
 
             propertyFileObject.store(propertyFile.newWriter(), "My comments")
 

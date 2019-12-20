@@ -29,7 +29,10 @@ Vue.component('configure', {
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div class="columns is-multiline">
+    <div v-if="scmParameters.length == 0">
+        Nothing selected yet...
+    </div>
+    <div class="columns is-multiline" v-else>
         <div class="column is-one-quarter" v-for="scm in filter()" >
             <div class="card">
                 <header class="card-header">
@@ -148,33 +151,18 @@ Vue.component('configure-parameters', {
     },
     methods: {
 
-        isBroughtByAny: function(owner) {
-            var vm = this
-
-            var any = false
-
-            vm.value.invs.nodes.forEach(function(inv) {
-                if (!inv.chosen && inv.broughtBySomeone.length == 0)
-                    return
-
-                if (inv.scm != owner.name)
-                    return
-
-                any = true
-            })
-
-            return any
-        },
         filter: function() {
             var vm = this
 
-            var results = vm.scmParameters.filter(function(scm) {
-                return vm.isBroughtByAny(scm)
+            var filtered = []
+
+            vm.scmParameters.filter(function(scm) {
+                filtered.push(scm)
             })
 
-            vm.count = results.length
+            vm.count = filtered.length
 
-            return results
+            return filtered.sort(compareValues('owner'))
 
         },
         areValuesUnavailable: function(parameter) {
@@ -263,30 +251,34 @@ Vue.component('configure-parameters', {
     created: function() {
         var vm = this
 
-        var registry = this.value.scms.registry
+        axios.get('/scms').then(response => {
+            vm.value.scms = response.data
 
-        for(var key in registry) {
-            if (!registry.hasOwnProperty(key)) continue
+            var registry = vm.value.scms.registry
 
-            var scm = registry[key]
+            for(var key in registry) {
+                if (!registry.hasOwnProperty(key)) continue
 
-            var scmParameters = {
-                hasParameters: scm.descriptor.hasParameters,
-                scm: scm,
-                name: key,
-                loading: false,
-                loaded: false,
-                parameters: []
+                var scm = registry[key]
+
+                if (!scm.descriptor.selected)
+                    continue
+
+                var scmParameters = {
+                    hasParameters: scm.descriptor.hasParameters,
+                    scm: scm,
+                    name: key,
+                    loading: false,
+                    loaded: false,
+                    parameters: []
+                }
+
+                vm.scmParameters.push(scmParameters)
+                vm.scmParameters.sort(compareValues('name'))
             }
-
-            vm.scmParameters.push(scmParameters)
-
+        })
 
 
-
-
-            vm.scmParameters.sort(compareValues('name'))
-        }
     }
 })
 
@@ -296,8 +288,8 @@ Vue.component('configure-scms', {
     <div v-if="count == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-fullwidth">
-        <thead v-if="count > 0">
+    <table class="table is-fullwidth" v-else>
+        <thead>
         <tr class="field">
             <th>Picked up ?</th>
             <th><input class="input" type="text" v-model="filters.name" placeholder="Name"></th>
@@ -327,11 +319,11 @@ Vue.component('configure-scms', {
         <div class="modal-content code-edit-modal">
             <div class="box" v-click-outside="closeEdit">
                 <div class="columns" v-if="editScript">
-                    <div class="column is-half">
+                    <div class="column">
                         <h1 class="title is-3">Edit</h1>
                         <h4 class="subtitle is-6">file: {{editScript.source}}, source: {{editScript.descriptor.src}}</h4>
                     </div>
-                    <div class="column is-half">
+                    <div class="column is-one-fifth">
                         <div class="buttons has-addons is-right">
                             <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }">
                                 <span class="icon is-small" v-if="saved">
@@ -344,7 +336,6 @@ Vue.component('configure-scms', {
                 </div>
 
                 <div id="editArea"></div>
-
             </div>
         </div>
     </div>

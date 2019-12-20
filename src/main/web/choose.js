@@ -46,13 +46,27 @@ Vue.component('choose-select', {
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
             <td>
-                <span v-if="value.scms.registry[inv.scm]"><a @click.stop="viewScm = value.scms.registry[inv.scm]">{{inv.scm}}</a></span>
-                <span v-else>{{inv.scm}}</span>
+                <span v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
+                <span v-else>Not defined</span>
             </td>
             <td></td>
         </tr>
         </tbody>
     </table>
+    {{value.invs.total}}
+    {{filters.from}}
+    {{filters.step}}
+
+    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+      <button class="pagination-previous" title="This is the first page" :disabled="filters.from <= 0" @click="seePrevious()">Previous</button>
+      <button class="pagination-next" :disabled="filters.from + filters.step > value.invs.total" @click="seeNext()">Next page</button>
+
+      <ul class="pagination-list ">
+        <li v-for="index in indexes()">
+          <a class="pagination-link " aria-current="page" @click="seeAt(index)" v-bind:class="{ 'is-current' : index == currentIndex }">{{index}}</a>
+        </li>
+      </ul>
+    </nav>
 
     <div class="modal is-active" v-if="viewScm">
         <div class="modal-background"></div>
@@ -85,7 +99,10 @@ Vue.component('choose-select', {
         return {
             selectAll: false,
             viewScm: null,
+            currentIndex:  1,
             filters: {
+                from: 0,
+                step: 20,
                 name: '',
                 id: '',
                 owner: '',
@@ -118,9 +135,57 @@ Vue.component('choose-select', {
 
             axios.post(link, vm.filters).then(response => {
                 vm.value.invs = response.data
+                //vm.value.requiredInvs = response.data
                 //vm.$forceUpdate()
             })
         },
+        seeNext: function() {
+            var vm = this
+
+            ++vm.currentIndex
+            vm.filters.from += vm.filters.step
+            vm.searchNodes()
+        },
+        seePrevious: function() {
+            var vm = this
+
+            --vm.currentIndex
+            vm.filters.from -= vm.filters.step
+            vm.searchNodes()
+        },
+        indexes: function() {
+            var vm = this
+
+            var indexes = []
+
+            var remainings = Math.floor (vm.value.invs.total / vm.filters.step)
+
+            for(var i = 0; i < remainings; i++) {
+                indexes.push(i + 1)
+            }
+
+            var startSlice = 0
+            if (vm.currentIndex - 10 > 0)
+                startSlice = vm.currentIndex - 10
+
+            var endSlice = remainings
+
+            if (vm.currentIndex + 10 < remainings)
+                endSlice = Math.max(20, vm.currentIndex + 10)
+
+            return indexes.slice(startSlice, endSlice)
+        },
+        seeAt: function(index) {
+            var vm = this
+
+            vm.currentIndex = index
+            vm.filters.from = index * vm.filters.step
+
+            vm.searchNodes()
+        },
+
+
+
         doSelectAll: function() {
             var vm = this
 
@@ -141,15 +206,21 @@ Vue.component('choose-select', {
 
             if (inv.selected) {
                 axios.post(inv.links.stage, vm.filters).then(response => {
-                    vm.value.invs = response.data
-                    vm.value.requiredInvs = response.data
+                    vm.searchNodes()
                 })
             } else {
                 axios.post(inv.links.unstage, vm.filters).then(response => {
-                    vm.value.invs = response.data
-                    vm.value.requiredInvs = response.data
+                    vm.searchNodes()
                 })
             }
+        },
+
+        showScm: function(inv) {
+            var vm = this
+
+            axios.get(inv.links.scm).then(response => {
+                vm.viewScm = response.data
+            })
         },
         close: function() {
             this.viewScm = null
@@ -165,6 +236,7 @@ Vue.component('choose-summary', {
         Nothing selected yet...
     </div>
     <table class="table is-fullwidth" v-else>
+        {{searchNodes()}}
         <thead>
         <tr class="field">
             <th>Brought by</th>
@@ -238,8 +310,6 @@ Vue.component('choose-summary', {
     },
     methods: {
         filter: function() {
-            var vm = this
-
             var vm = this
 
             var filtered = []

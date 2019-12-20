@@ -67,7 +67,7 @@ class Run {
         return selected.containsKey(node.id) && selected[node.id].selected
     }
 
-    Map getNodes(String source = "all", Map filter = [:], Integer from = 0, Integer to = 20) {
+    Map getNodes(String source = "all", Map filter = [:], Integer from = 0, Integer step = 20) {
 
         List<BaseGraph.Linkable> links
 
@@ -98,8 +98,8 @@ class Run {
             reduced = reduced.findAll { it.name.contains(filter.name)}
 
 
-        if (reduced.size() > to)
-            reduced = reduced[from..to - 1]
+        if (reduced.size() > from + step)
+            reduced = reduced[from..(from + step - 1)]
 
         return [
             count: reduced.size(),
@@ -122,6 +122,7 @@ class Run {
                         id: it.subId,
                         scm: scm,
                         links: [
+                            scm: "/scm/view?name=${scm}",
                             requiredBy: "/run/requiredBy?id=${value}",
                             stage: "/run/stage?id=${value}",
                             unstage: "/run/unstage?id=${value}"

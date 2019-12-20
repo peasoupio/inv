@@ -7,7 +7,7 @@ Vue.component('configure', {
     <div class="tabs">
         <ul>
             <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a @click="activeTab='parameters'">Parameters</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{Object.values(value.scms.registry).length}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{value.scms.registry.length}}/{{value.scms.total}})</a></li>
         </ul>
     </div>
 
@@ -117,27 +117,6 @@ Vue.component('configure-parameters', {
             </div>
         </div>
     </div>
-    <!--
-
-    <div v-if="count == 0">
-        No Scms chosen yet
-    </div>
-<p class="subtitle is-5">
-            <button class="control button is-success" >
-
-                <span>{{scm.name}}</span>
-            </button>
-        </p>
-
-        <div v-else>
-            <p class="subtitle is-6 has-text-centered">Has no parameters. Yay!</p>
-        </div>
-
-<div v-if="scm.hasParameters && scm.expanded">
-
-</div>
-
-    -->
 </div>
 `,
     props: ['value'],
@@ -251,19 +230,10 @@ Vue.component('configure-parameters', {
     created: function() {
         var vm = this
 
-        axios.get('/scms').then(response => {
-            vm.value.scms = response.data
+        axios.get(vm.value.scms.links.selected).then(response => {
+            vm.value.selectedInvs = response.data
 
-            var registry = vm.value.scms.registry
-
-            for(var key in registry) {
-                if (!registry.hasOwnProperty(key)) continue
-
-                var scm = registry[key]
-
-                if (!scm.descriptor.selected)
-                    continue
-
+            vm.value.selectedInvs.scms.forEach(function(scm) {
                 var scmParameters = {
                     hasParameters: scm.descriptor.hasParameters,
                     scm: scm,
@@ -274,11 +244,10 @@ Vue.component('configure-parameters', {
                 }
 
                 vm.scmParameters.push(scmParameters)
-                vm.scmParameters.sort(compareValues('name'))
-            }
+            })
+
+            vm.scmParameters.sort(compareValues('name'))
         })
-
-
     }
 })
 
@@ -292,9 +261,9 @@ Vue.component('configure-scms', {
         <thead>
         <tr class="field">
             <th>Picked up ?</th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"></th>
-            <th><input class="input" type="text" v-model="filters.src" placeholder="Source"></th>
-            <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm()"></th>
+            <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm()"></th>
+            <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm()"></th>
             <th>Timeout</th>
             <th>Options</th>
         </tr>
@@ -302,7 +271,7 @@ Vue.component('configure-scms', {
         <tbody>
         <tr v-for="scm in filter()">
             <td>
-                <span v-if="whoBroughtMe(scm).length > 0"><a @click.stop="showWhoBroughtMe = scm">Yes</a></span>
+                <!--<span v-if="whoBroughtMe(scm).length > 0"><a @click.stop="showWhoBroughtMe = scm">Yes</a></span>-->
                 <span v-else>No</span>
             </td>
             <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{getRelativeTimestamp(scm)}}</span></td>
@@ -410,16 +379,24 @@ Vue.component('configure-scms', {
 
             var filtered = []
 
-            Object.values(vm.value.scms.registry).forEach(function(scm) {
-                if (vm.filters.name != '' && scm.name.indexOf(vm.filters.name) < 0) return
-                if (vm.filters.src != '' && scm.descriptor.src.indexOf(vm.filters.src) < 0) return
-                if (vm.filters.entry != '' && scm.descriptor.entry.indexOf(vm.filters.entry) < 0) return
-
-
+            vm.value.scms.registry.forEach(function(scm) {
                 filtered.push(scm)
             })
 
             return filtered.sort(compareValues('name'))
+        },
+        searchScm: function() {
+            var vm = this
+
+            var link = "/scms"
+
+            if (vm.value.scms.links != undefined)
+                link = vm.value.scms.links.search
+
+            axios.post(link, vm.filters).then(response => {
+                vm.value.scms = response.data
+                //vm.$forceUpdate()
+            })
         },
         getRelativeTimestamp: function(scm) {
             var vm = this
@@ -461,58 +438,8 @@ Vue.component('configure-scms', {
                 vm.value.scms.scripts[vm.editScript.source].text = content
                 vm.value.scms.scripts[vm.editScript.source].lastEdit = data.scripts[vm.editScript.source].lastEdit
 
-                var tmp = []
-                for(var key in registry) {
-                    if (!registry.hasOwnProperty(key)) { continue }
-
-                    var desc = vm.value.scms.registry[key]
-
-                    if (desc.source != vm.editScript.source) { continue }
-
-                    tmp.push(key)
-                }
-
-                tmp.forEach(function(remove) {
-                    delete registry[remove]
-                })
-
-
-                for(var key in data.registry) {
-                    if (!data.registry.hasOwnProperty(key)) { continue }
-
-                    registry[key] = data.registry[key]
-
-                    vm.editScript = registry[key]
-                }
+                vm.searchScm()
             })
-        },
-        whoBroughtMe: function(scm) {
-            var vm = this
-
-            if (!scm)
-                return
-
-            var whoBroughtMe = []
-
-            vm.value.invs.nodes.forEach(function(chosen) {
-
-                if (!chosen.chosen && !chosen.broughtBySomeone)
-                    return
-
-                if (chosen.scm != scm.name)
-                    return
-
-                whoBroughtMe.push(chosen)
-
-                chosen.required.forEach(function(required) {
-                    if (whoBroughtMe.indexOf(chosen) > -1)
-                        return
-
-                    whoBroughtMe.push(required)
-                })
-            })
-
-            return whoBroughtMe.sort(compareValues('owner'))
         },
         closeEdit: function() {
             this.editScript = null

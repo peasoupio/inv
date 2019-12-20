@@ -6,7 +6,6 @@ class ScmSourceFile {
 
     final static Map<String, ScmSourceFile.SourceFileElement> scmCache = [:]
 
-    final Run baseRun
     final File sourceFile
     final ScmDescriptor scmDescriptor
     final Map<String, ScmSourceFile.SourceFileElement> scmElements = [:]
@@ -14,9 +13,8 @@ class ScmSourceFile {
     String text
     Long lastEdit
 
-    ScmSourceFile(File file, Run baseRun) {
+    ScmSourceFile(File file) {
 
-        this.baseRun = baseRun
         sourceFile = file
         scmDescriptor = new ScmDescriptor(file.newReader())
 
@@ -34,32 +32,8 @@ class ScmSourceFile {
         }
     }
 
-    Map toMap(Map filter = [:], Integer from = 0, Integer to = 20) {
-
-        def filtered = scmElements.values()
-            .findAll { !filter.name || it.descriptor.name.contains(filter.name) }
-            .findAll { !filter.src || it.descriptor.src.contains(filter.src) }
-            .findAll { !filter.entry || it.descriptor.entry.contains(filter.entry) }
-
-        filtered.collectEntries {[
-                (it.descriptor.name): [
-                    name: it.descriptor.name,
-                    source: sourceFile.name,
-                    descriptor: [
-                        selected: baseRun.isSelected(it.descriptor.name),
-                        name: it.descriptor.name,
-                        entry: it.descriptor.entry,
-                        hooks: it.descriptor.hooks,
-                        hasParameters: !it.descriptor.ask.parameters.isEmpty(),
-                        src: it.descriptor.src,
-                        timeout: it.descriptor.timeout
-                    ],
-                    links: [
-                        save: "/scms/source?name=${it.descriptor.name}",
-                        parameters: "/scms/parameters?name=${it.descriptor.name}"
-                    ]
-                ]
-            ]}
+    Collection<ScmSourceFile.SourceFileElement> elements() {
+        return scmElements.values()
     }
 
     static class SourceFileElement {
@@ -68,6 +42,30 @@ class ScmSourceFile {
 
         String simpleName() {
             return script.split('\\.')[0]
+        }
+
+        Map toMap(Map filter = [:]) {
+
+            if (filter.name && !descriptor.name.contains(filter.name)) return null
+            if (filter.src && !descriptor.src.contains(filter.src)) return null
+            if (filter.entry && !descriptor.entry.contains(filter.entry)) return null
+
+            return [
+                    name      : descriptor.name,
+                    source    : script,
+                    descriptor: [
+                            name         : descriptor.name,
+                            entry        : descriptor.entry,
+                            hooks        : descriptor.hooks,
+                            hasParameters: !descriptor.ask.parameters.isEmpty(),
+                            src          : descriptor.src,
+                            timeout      : descriptor.timeout
+                    ],
+                    links     : [
+                            save      : "/scms/source?name=${descriptor.name}",
+                            parameters: "/scms/parameters?name=${descriptor.name}"
+                    ]
+            ]
         }
 
         Map getParameters(File externalPropertyFile = null) {

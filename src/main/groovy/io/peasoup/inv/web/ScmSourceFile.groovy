@@ -44,15 +44,57 @@ class ScmSourceFile {
             return script.split('\\.')[0]
         }
 
-        Map toMap(Map filter = [:]) {
+        Map toMap(Map filter = [:], File externalPropertyFile = null) {
 
             if (filter.name && !descriptor.name.contains(filter.name)) return null
             if (filter.src && !descriptor.src.contains(filter.src)) return null
             if (filter.entry && !descriptor.entry.contains(filter.entry)) return null
 
+            def externalProperties = [:]
+            def lastModified = 0
+            def saved = false
+
+            if (externalPropertyFile && externalPropertyFile.exists()) {
+
+                saved = true
+                lastModified = externalPropertyFile.lastModified()
+
+                def props = new Properties()
+                props.load(externalPropertyFile.newReader())
+
+                externalProperties = props
+            }
+
+            def parameters = []
+            def completedParameters = 0
+
+            descriptor.ask.parameters.each { Map parameter ->
+
+                def savedValue = externalProperties[(descriptor.name + "." + parameter.name)]
+
+                if (savedValue)
+                    completedParameters++
+
+                parameters << [
+                        name: parameter.name,
+                        usage: parameter.usage,
+                        value: savedValue,
+                        defaultValue: parameter.defaultValue,
+                        values: [],
+                        links: [
+                                values: "/scms/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
+                                save: "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
+                        ]
+                ]
+            }
+
             return [
                     name      : descriptor.name,
                     source    : script,
+                    parameters: parameters,
+                    lastModified: lastModified,
+                    saved: saved,
+                    completed: completedParameters == parameters.size(),
                     descriptor: [
                             name         : descriptor.name,
                             entry        : descriptor.entry,
@@ -62,24 +104,16 @@ class ScmSourceFile {
                             timeout      : descriptor.timeout
                     ],
                     links     : [
+                            scm       : "/scm/view?name=${descriptor.name}",
                             save      : "/scms/source?name=${descriptor.name}",
-                            parameters: "/scms/parameters?name=${descriptor.name}"
+                            parameters: "/scms/parametersValues?name=${descriptor.name}"
                     ]
             ]
         }
 
-        Map getParameters(File externalPropertyFile = null) {
+        Map getParametersValues() {
 
-            def externalProperties = [:]
-
-            if (externalPropertyFile && externalPropertyFile.exists()) {
-                def props = new Properties()
-                props.load(externalPropertyFile.newReader())
-
-                externalProperties = props
-            }
-
-            def parameters = []
+            Map output = [:]
 
             descriptor.ask.parameters.each { Map parameter ->
 
@@ -100,22 +134,10 @@ class ScmSourceFile {
                     values = parameter.values
                 }
 
-                parameters << [
-                        name: parameter.name,
-                        usage: parameter.usage,
-                        value: externalProperties[(descriptor.name + "." + parameter.name)],
-                        defaultValue: parameter.defaultValue,
-                        values: values,
-                        links: [
-                            save: "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
-                        ]
-                ]
+                output << [(parameter.name): values]
             }
 
-            return [
-                owner: descriptor.name,
-                parameters: parameters
-            ]
+            return output
         }
     }
 }

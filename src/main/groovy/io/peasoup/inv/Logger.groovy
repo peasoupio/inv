@@ -63,10 +63,6 @@ class Logger {
         logger.info "[DEBUG] ${arg}"
     }
 
-
-
-
-
     static Object capture(Object value) {
 
         // Reset both so only one works at the time

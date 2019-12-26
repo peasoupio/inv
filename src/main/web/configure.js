@@ -29,36 +29,64 @@ Vue.component('configure', {
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="scmParameters.length == 0">
+    <div v-if="value.selectedInvs.length == 0">
         Nothing selected yet...
     </div>
-    <div class="columns is-multiline" v-else>
-        <div class="column is-one-quarter" v-for="scm in filter()" >
-            <div class="card">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        {{scm.name}}
-                        <span class="icon is-medium" v-if="scm.loading">
-                            <i class="fas fa-spinner fa-pulse"></i>
-                        </span>
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-                        {{scm.scm.descriptor.src}}
-                    </div>
-                </div>
+    <div  v-else>
 
-                <footer class="card-footer">
-                    <p class="card-footer-item is-paddingless">
-                        <button class="button is-fullwidth is-success" @click.stop="expand(scm)" :disabled="!scm.hasParameters">Configure</button>
-                    </p>
-                    <p class="card-footer-item is-paddingless">
-                        <button class="button is-fullwidth" :disabled="!scm.hasParameters">Reset</button>
-                    </p>
-                </footer>
+        <div class="columns is-multiline">
+
+            <div class="column is-half">
+                <p>Filers: </p>
+                <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button">
+                    Hide when completed
+                </button>
+            </div>
+
+            <div class="column is-half">
+                <p>Options: </p>
+                <button @click="completeDefault()" class="button">
+                    Apply default to all
+                </button>
+
+                <button @click="completeReset()" class="button">
+                    Reset all
+                </button>
+            </div>
+
+            <hr />
+
+            <div class="column is-one-quarter" v-for="scm in filter()" >
+                <div class="card">
+                    <div class="card-content">
+                        <p class="title is-5">
+                            {{scm.name}}
+                            <span class="icon is-medium" v-if="scm.loading">
+                                <i class="fas fa-spinner fa-pulse"></i>
+                            </span>
+                        </p>
+                        <p class="subtitle is-6" style="color: lightgrey">
+                            <span  v-if="scm.saved">Last edit: {{getRelativeTimestamp(scm)}}</span>
+                            <span v-else>never saved</span>
+                        </p>
+                        <div class="content">
+                            <p># of parameters ? <span class="has-text-weight-bold">{{scm.parameters.length}}</span></p>
+                            <p>Completed ? <span class="has-text-weight-bold">{{scm.completed ? "Yes": "No"}}</span></p>
+                        </div>
+                    </div>
+
+                    <footer class="card-footer">
+                        <p class="card-footer-item is-paddingless">
+                            <button class="button is-fullwidth is-success" @click.stop="expand(scm)" :disabled="scm.parameters.length == 0">Configure</button>
+                        </p>
+                        <p class="card-footer-item is-paddingless">
+                            <button class="button is-fullwidth" :disabled="scm.parameters.length == 0">Reset</button>
+                        </p>
+                    </footer>
+                </div>
             </div>
         </div>
+    </div>
 
     <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
         <div class="modal-background"></div>
@@ -123,9 +151,11 @@ Vue.component('configure-parameters', {
     data: function() {
         return {
             count: 0,
-            scmParameters: [],
             activeTab: 'find',
-            currentScmParameter: null
+            currentScmParameter: null,
+            filters: {
+                hideWhenCompleted: true
+            }
         }
     },
     methods: {
@@ -135,7 +165,11 @@ Vue.component('configure-parameters', {
 
             var filtered = []
 
-            vm.scmParameters.filter(function(scm) {
+            vm.value.selectedInvs.filter(function(scm) {
+
+                if (vm.filters.hideWhenCompleted && scm.completed)
+                    return
+
                 filtered.push(scm)
             })
 
@@ -144,14 +178,19 @@ Vue.component('configure-parameters', {
             return filtered.sort(compareValues('owner'))
 
         },
-        areValuesUnavailable: function(parameter) {
+        areValuesUnavailable: function(scmParameters) {
             return parameter.value !== '' && parameter.values.indexOf(parameter.value) < 0
+        },
+        getRelativeTimestamp: function(scmParameters) {
+            var vm = this
+
+            return TimeAgo.inWords(scmParameters.lastModified)
         },
         expand: function(scmParameters) {
 
             var vm = this
 
-            if (!scmParameters.hasParameters)
+            if (scmParameters.parameters.length == 0)
                 return
 
             vm.currentScmParameter = scmParameters
@@ -161,31 +200,29 @@ Vue.component('configure-parameters', {
 
             scmParameters.loading = true
 
-            axios.get(scmParameters.scm.links.parameters).then(response => {
+            axios.get(scmParameters.links.parameters).then(response => {
 
-                var owner = response.data.owner
-
-                response.data.parameters.forEach(function(parameter) {
-                    parameter.open = false
-
-                    if (parameter.value == null)
-                        parameter.value = parameter.defaultValue
-
-                    parameter.sending = false
-                    parameter.saved = false
-                    parameter.changed = false
-
-                    scmParameters.parameters.push(parameter)
+                scmParameters.parameters.forEach(function(parameter) {
+                    parameter.values = response.data[parameter.name]
                 })
 
+                scmParameters.changed = false
                 scmParameters.loaded = true
                 scmParameters.loading = false
+
+                vm.$forceUpdate()
             })
         },
         hasAnyChanged: function(scmParameters) {
             return scmParameters.parameters.filter(function(parameter) {
                 return parameter.changed
             }).length > 0
+        },
+        completeDefaultAll: function() {
+            axios.post(vm.value.scms.links.defaultAll)
+        },
+        completeResetAll: function() {
+            axios.post(vm.value.scms.links.resetAll)
         },
         saveAll: function(scmParameters) {
             var vm = this
@@ -210,6 +247,8 @@ Vue.component('configure-parameters', {
             parameter.changed = true
         },
         saveParameter: function(parameter) {
+            var vm = this
+
             if (parameter.sending)
                 return
 
@@ -221,32 +260,29 @@ Vue.component('configure-parameters', {
                 parameter.sending = false
                 parameter.saved = true
                 parameter.changed = false
+
+                vm.$forceUpdate()
             })
         },
         close: function() {
-            this.currentScmParameter = null
+            var vm = this
+
+            axios.get(vm.currentScmParameter.links.scm).then(response => {
+
+                vm.currentScmParameter.saved = response.data.saved
+                vm.currentScmParameter.lastModified = response.data.lastModified
+
+                vm.currentScmParameter = null
+            })
         }
     },
     created: function() {
         var vm = this
 
         axios.get(vm.value.scms.links.selected).then(response => {
-            vm.value.selectedInvs = response.data
+            vm.value.selectedInvs = response.data.scms
 
-            vm.value.selectedInvs.scms.forEach(function(scm) {
-                var scmParameters = {
-                    hasParameters: scm.descriptor.hasParameters,
-                    scm: scm,
-                    name: key,
-                    loading: false,
-                    loaded: false,
-                    parameters: []
-                }
-
-                vm.scmParameters.push(scmParameters)
-            })
-
-            vm.scmParameters.sort(compareValues('name'))
+            vm.value.selectedInvs.sort(compareValues('name'))
         })
     }
 })
@@ -257,23 +293,18 @@ Vue.component('configure-scms', {
     <div v-if="count == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-fullwidth" v-else>
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
-            <th>Picked up ?</th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm()"></th>
-            <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm()"></th>
-            <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm()"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
+            <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm(true)"></th>
+            <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm(true)"></th>
             <th>Timeout</th>
             <th>Options</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="scm in filter()">
-            <td>
-                <!--<span v-if="whoBroughtMe(scm).length > 0"><a @click.stop="showWhoBroughtMe = scm">Yes</a></span>-->
-                <span v-else>No</span>
-            </td>
             <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{getRelativeTimestamp(scm)}}</span></td>
             <td>{{scm.descriptor.src}}</td>
             <td>{{scm.descriptor.entry}}</td>
@@ -282,6 +313,8 @@ Vue.component('configure-scms', {
         </tr>
         </tbody>
     </table>
+
+    <pagination v-model="paginationSettings" />
 
     <div class="modal is-active" v-bind:class=" { 'code-hidden': !editScript } ">
         <div class="modal-background"></div>
@@ -339,7 +372,7 @@ Vue.component('configure-scms', {
     props: ['value'],
     data: function() {
         return {
-            count: Object.values(this.value.scms).length,
+            count: this.value.scms.length,
 
             codeMirror: null,
             editScript: '',
@@ -347,6 +380,9 @@ Vue.component('configure-scms', {
             sending: false,
             saved: false,
             filters: {
+                selected: true,
+                from: 0,
+                step: 20,
                 name: '',
                 src: '',
                 entry: ''
@@ -373,6 +409,22 @@ Vue.component('configure-scms', {
 
         this.codeMirror = codeMirror
     },
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.searchScm()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.step,
+                    total: vm.value.scms.total
+                }
+            }
+        }
+    },
     methods: {
         filter: function() {
             var vm = this
@@ -385,10 +437,13 @@ Vue.component('configure-scms', {
 
             return filtered.sort(compareValues('name'))
         },
-        searchScm: function() {
+        searchScm: function(fromFilter) {
             var vm = this
 
             var link = "/scms"
+
+            if (fromFilter)
+                vm.filters.from = 0
 
             if (vm.value.scms.links != undefined)
                 link = vm.value.scms.links.search

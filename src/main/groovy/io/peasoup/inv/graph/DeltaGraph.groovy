@@ -17,8 +17,8 @@ class DeltaGraph {
 
     DeltaGraph(BufferedReader previous, BufferedReader current) {
 
-        def beforePlainGraph = new PlainGraph(previous)
-        def afterPlainGraph = new PlainGraph(current)
+        def beforePlainGraph = new RunGraph(previous)
+        def afterPlainGraph = new RunGraph(current)
 
         previousNodes += beforePlainGraph.baseGraph.nodes
         previousEdges += beforePlainGraph.baseGraph.edges
@@ -38,8 +38,8 @@ class DeltaGraph {
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                BaseGraph.Node previousEdge = edges[i]
-                BaseGraph.Node afterEdge = currentNode[i]
+                GraphNavigator.Node previousEdge = edges[i]
+                GraphNavigator.Node afterEdge = currentNode[i]
 
                 if (!previousEdge.equals(afterEdge))
                     continue
@@ -62,8 +62,8 @@ class DeltaGraph {
                 return
 
             for (def i = 0; i < edges.size(); i++) {
-                BaseGraph.Node currentEdge = edges[i]
-                BaseGraph.Node previousEdge = previousNode[i]
+                GraphNavigator.Node currentEdge = edges[i]
+                GraphNavigator.Node previousEdge = previousNode[i]
 
                 if (currentEdge.owner != previousEdge.owner && currentEdge.id != previousEdge.id)
                     continue
@@ -94,7 +94,7 @@ ${
     // Shared nodes and edges
     sharedEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { BaseGraph.Node edge ->
+            edges.collect { GraphNavigator.Node edge ->
                 "= ${owner} -> ${edge.owner} (${edge.id})"
             }
         }
@@ -104,7 +104,7 @@ ${
     // Deleted nodes and edges (in previous, not in current)
     previousEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { BaseGraph.Node edge ->
+            edges.collect { GraphNavigator.Node edge ->
                 "- ${owner} -> ${edge.owner} (${edge.id})"
             }
         }
@@ -114,7 +114,7 @@ ${
     // Added nodes and edges (not in previous, but in current)
     currentEdges
         .collectMany { String owner, Set edges ->
-            edges.collect { BaseGraph.Node edge ->
+            edges.collect { GraphNavigator.Node edge ->
                 "+ ${owner} -> ${edge.owner} (${edge.id})"
             }
         }

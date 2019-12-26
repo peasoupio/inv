@@ -3,13 +3,13 @@ package io.peasoup.inv.graph
 import org.junit.Before
 import org.junit.Test
 
-class BaseGraphTest {
+class GraphNavigatorTest {
 
-    BaseGraph baseGraph
+    GraphNavigator baseGraph
 
     @Before
     void setup() {
-        baseGraph = new BaseGraph()
+        baseGraph = new GraphNavigator()
     }
 
     @Test
@@ -40,12 +40,12 @@ class BaseGraphTest {
         baseGraph.addBroadcastNode(new TestNode(owner: "AA", id: "id4"))
 
 
-        println baseGraph.requiredByAll(new BaseGraph.Owner (value: "A"))
-        println baseGraph.requiresAll(new BaseGraph.Owner (value: "A"))
+        println baseGraph.requiredByAll(new GraphNavigator.Owner (value: "A"))
+        println baseGraph.requiresAll(new GraphNavigator.Owner (value: "A"))
 
     }
 
-    class TestNode implements BaseGraph.Node {
+    class TestNode implements GraphNavigator.Node {
         String owner
         String id
     }

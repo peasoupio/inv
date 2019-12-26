@@ -1,14 +1,23 @@
 package io.peasoup.inv.graph
 
-class PlainGraph {
+import org.jgrapht.Graph
+import org.jgrapht.graph.DefaultDirectedGraph
+import org.jgrapht.graph.DefaultEdge
+import org.jgrapht.io.ComponentNameProvider
+import org.jgrapht.io.DOTExporter
+import org.jgrapht.io.IntegerComponentNameProvider
 
-    final private static lf = System.properties['line.separator']
+class RunGraph {
 
-    final def graph = new BaseGraph()
+    final Graph<GraphNavigator.Linkable, DefaultEdge> g
+    final GraphNavigator navigator
 
     final List<FileStatement> files = []
 
-    PlainGraph(BufferedReader logs) {
+    RunGraph(BufferedReader logs) {
+
+        g = new DefaultDirectedGraph<> (DefaultEdge.class)
+        navigator = new GraphNavigator(g)
 
         logs.eachLine { String line ->
 
@@ -18,13 +27,13 @@ class PlainGraph {
 
             def broadcast = BroadcastStatement.matches(line)
             if (broadcast) {
-                graph.addBroadcastNode(broadcast)
+                navigator.addBroadcastNode(broadcast)
                 return
             }
 
             def require = RequireStatement.matches(line)
             if (require) {
-                graph.addRequireNode(require)
+                navigator.addRequireNode(require)
                 return
             }
 
@@ -36,22 +45,25 @@ class PlainGraph {
         }
     }
 
-    String echo() {
-        return """    
-# Regex rule:^(?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
-${
-    graph.edges
-        .collectMany { String owner, Set edges ->
-            edges.collect { BaseGraph.Node edge ->
-                "${owner} -> ${edge.owner} (${edge.id})"
-            }
-        }
-        .join(lf)
-}
-"""
+    String toDotGraph() {
+        StringWriter writer = new StringWriter()
+
+        DOTExporter<GraphNavigator.Linkable, DefaultEdge> dotExporter = new DOTExporter<>(
+                new IntegerComponentNameProvider<GraphNavigator.Linkable>(),
+                new ComponentNameProvider<GraphNavigator.Linkable>() {
+                    String getName(GraphNavigator.Linkable linkable) {
+                        return linkable.value
+                    }
+                },
+                null
+        )
+
+        dotExporter.exportGraph(g, writer)
+
+        return writer.toString()
     }
 
-    static class RequireStatement implements BaseGraph.Node {
+    static class RequireStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/
 
@@ -74,7 +86,7 @@ ${
         private RequireStatement() { }
     }
 
-    static class BroadcastStatement implements BaseGraph.Node {
+    static class BroadcastStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/
 

@@ -39,8 +39,8 @@ Vue.component('base-layout', {
             shared: {
                 scms: {},
                 selectedInvs: [],
-                invs: [],
-                requiredInvs: []
+                invs: {},
+                requiredInvs: {}
             },
             loadState: {
                 scm: false,

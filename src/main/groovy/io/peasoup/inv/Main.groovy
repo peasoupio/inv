@@ -3,8 +3,7 @@ package io.peasoup.inv
 
 import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
-import io.peasoup.inv.graph.DotGraph
-import io.peasoup.inv.graph.PlainGraph
+import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 import io.peasoup.inv.web.Routes
@@ -123,10 +122,10 @@ Options:
 
         switch (arg1.toLowerCase()) {
             case "plain" :
-                print(new PlainGraph(System.in.newReader()).echo())
+                print(new RunGraph(System.in.newReader()).echo())
                 return 0
             case "dot":
-                print(new DotGraph(System.in.newReader()).echo())
+                //print(new DotGraph(System.in.newReader()).echo())
                 return 0
         }
     }

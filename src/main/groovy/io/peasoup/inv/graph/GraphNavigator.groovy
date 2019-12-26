@@ -2,19 +2,18 @@ package io.peasoup.inv.graph
 
 import org.jgrapht.Graph
 import org.jgrapht.alg.util.NeighborCache
-import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 
-class BaseGraph {
+class GraphNavigator {
 
-    private final Graph<Linkable, DefaultEdge> g = new DefaultDirectedGraph<>(DefaultEdge.class)
-    private final NeighborCache nc = new NeighborCache(g)
-
+    private final Graph<Linkable, DefaultEdge> g
+    private final NeighborCache nc
 
     final Map<String, Node> nodes = [:]
 
-    BaseGraph() {
-
+    GraphNavigator(Graph<Linkable, DefaultEdge> graph) {
+        g = graph
+        nc = new NeighborCache(g)
     }
 
     def addBroadcastNode(Node node) {

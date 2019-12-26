@@ -2,13 +2,13 @@ package io.peasoup.inv.graph
 
 import org.junit.Test
 
-class PlainGraphTest {
+class RunGraphTest {
 
     @Test
     void ctor() {
         def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
 
-        def plainGraph = new PlainGraph(logOutput1Txt.newReader())
+        def plainGraph = new RunGraph(logOutput1Txt.newReader())
 
         // test nodes
         assert plainGraph.baseGraph.nodes["ServerA"]

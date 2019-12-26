@@ -13,7 +13,7 @@ class Routes {
     final String SCMS = System.getenv('INV_SCMS') ?: "../scms"
     final String PARAMETERS = System.getenv('INV_PARAMETERS') ?: "../parameters"
 
-    final Run baseRun
+    final Run run
     final List<ScmSourceFile> scms = []
 
     final Execution exec = new Execution(new File(SCMS), new File(PARAMETERS))
@@ -35,7 +35,7 @@ class Routes {
         })
 
         // Init
-        baseRun = new Run(new File(RUN, "run.txt"))
+        run = new Run(new File(RUN, "run.txt"))
 
         def files = new File(SCMS).listFiles()
 
@@ -75,7 +75,7 @@ class Routes {
     // Runs
     void runs() {
         get("/run", { req, res ->
-            return JsonOutput.toJson(baseRun.getNodes())
+            return JsonOutput.toJson(run.getNodes())
         })
 
         post("/run", { req, res ->
@@ -86,7 +86,7 @@ class Routes {
             if (body)
                 filter = new JsonSlurper().parseText(body)
 
-            return JsonOutput.toJson(baseRun.getNodes('all', filter, filter.from ?: 0, filter.step ?: 20))
+            return JsonOutput.toJson(run.getNodes(filter, filter.from ?: 0, filter.step ?: 20))
         })
 
         get("/run/requiredBy", { req, res ->
@@ -94,7 +94,7 @@ class Routes {
             def id = req.queryParams("id")
             assert id
 
-            return JsonOutput.toJson(baseRun.getRequiredBy(id))
+            return JsonOutput.toJson(run.getRequiredBy(id))
         })
 
         post("/run/selected", { req, res ->
@@ -105,7 +105,7 @@ class Routes {
             if (body)
                 filter = new JsonSlurper().parseText(body)
 
-            return JsonOutput.toJson(baseRun.getNodes('selected', filter,  filter.from ?: 0, filter.step ?: 20))
+            return JsonOutput.toJson(run.getNodes(filter,  filter.from ?: 0, filter.step ?: 20))
         })
 
         post("/run/stage", { req, res ->
@@ -113,7 +113,7 @@ class Routes {
             def id = req.queryParams("id")
             assert id
 
-            baseRun.stage(id)
+            run.stage(id)
 
             return "Ok"
         })
@@ -123,7 +123,7 @@ class Routes {
             def id = req.queryParams("id")
             assert id
 
-            baseRun.unstage(id)
+            run.unstage(id)
 
             return "Ok"
         })
@@ -133,6 +133,7 @@ class Routes {
     void scms() {
         get("/scms", { req, res ->
 
+            // Prepare output object
             Map output = [
                 scripts : [:],
                 registry: [],
@@ -143,6 +144,7 @@ class Routes {
                 ]
             ]
 
+            // Process basic search
             scms.each {
                 output.scripts[it.sourceFile.name] = [
                     text    : it.text,
@@ -154,6 +156,7 @@ class Routes {
                 }
             }
 
+            // Filter
             if (output.registry.size() > 20)
                 output.registry = output.registry[0..19]
 
@@ -162,6 +165,7 @@ class Routes {
 
         post("/scms", { req, res ->
 
+            // Prepare output object
             Map output = [
                 scripts : [:],
                 registry: [],
@@ -178,9 +182,8 @@ class Routes {
             if (body)
                 filter = new JsonSlurper().parseText(body)
 
-            Integer from = filter.from ?: 0
-            Integer to = filter.to ?: 20
 
+            // Process complex search
             scms.each {
                 if (output.registry.size() > from + to)
                     return
@@ -200,8 +203,13 @@ class Routes {
                 }
             }
 
+
+            // Filter
+            Integer from = filter.from ?: 0
+            Integer to = filter.to ?: 20
+
             if (output.registry.size() > from + to)
-                output.registry = output.registry[from..to - 1]
+                output.registry = output.registry[from..(from + to - 1)]
 
             return JsonOutput.toJson(output)
         })
@@ -211,7 +219,12 @@ class Routes {
             def name = req.queryParams("name")
             assert name
 
-            def output = ScmSourceFile.scmCache[name].toMap()
+            def element = ScmSourceFile.scmCache[name]
+
+            if (!element)
+                return "Oups"
+
+            def output = element.toMap([:], new File(PARAMETERS, element.simpleName() + ".properties"))
 
             return JsonOutput.toJson(output)
         })
@@ -224,10 +237,10 @@ class Routes {
 
             scms.each {
                 it.elements().each {
-                    if (!baseRun.isSelected(it.descriptor.name))
+                    if (!run.isSelected(it.descriptor.name))
                         return
 
-                    output.scms << it.toMap()
+                    output.scms << it.toMap([:], new File(PARAMETERS, it.simpleName() + ".properties"))
                 }
             }
 
@@ -249,7 +262,7 @@ class Routes {
                 it.sourceFile == sourceFile
             }
 
-            scms << new ScmSourceFile(sourceFile, baseRun)
+            scms << new ScmSourceFile(sourceFile, run)
 
             return "Ok"
         })
@@ -257,7 +270,7 @@ class Routes {
 
     void scmsParameters() {
 
-        get("/scms/parameters", { req, res ->
+        get("/scms/parametersValues", { req, res ->
 
             def name = req.queryParams("name")
             assert name
@@ -267,7 +280,7 @@ class Routes {
             if (!element)
                 return JsonOutput.toJson([:])
 
-            return JsonOutput.toJson(element.getParameters(new File(PARAMETERS, element.simpleName() + ".properties")))
+            return JsonOutput.toJson(element.getParametersValues())
         })
 
         post("/scms/parameters", { req, res ->
@@ -324,9 +337,14 @@ class Routes {
             if (exec.isRunning())
                 return "Already running"
 
-            def scmFiles = (baseRun.staging + baseRun.propagatedStaging)
-                    .collect { baseRun.invs[it].scm }
-                    .collect { new File(SCMS, scmCache[it].script) }
+            // invOfScm[owner]
+            // run.selected.values().findAll { it.link.isOwner() }
+
+            def scmFiles = run.selected.values()
+                    .findAll { it.link.isOwner() }
+                    .collect { run.invOfScm[it.link.value]}
+                    .unique()
+                    .collect { new File(SCMS, io.peasoup.inv.web.ScmSourceFile.scmCache[it].script) }
 
             exec.start(scmFiles)
 

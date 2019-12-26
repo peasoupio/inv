@@ -3,6 +3,7 @@ package io.peasoup.inv.web
 import io.peasoup.inv.InvHandler
 import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
+import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 
 class Execution {
@@ -45,41 +46,58 @@ class Execution {
                         new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".properties")
                 ).execute()
 
-                invFiles.each { String name, List<File> scripts ->
+                Logger.capture { String message ->
+                    addMessage(message, messages)
+                }
 
-                    scripts.each { File script ->
-                        if (!script.exists()) {
-                            Logger.warn "${script.absolutePath} does not exist. Won't run."
+                invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
+
+                    // Manage entry points for SCM
+                    repository.entry.split().each {
+
+                        def scriptFile = new File(it)
+                        def path = repository.path
+
+                        if (!scriptFile.exists()) {
+                            scriptFile = new File(path, it)
+                            path = scriptFile.parentFile
+                        }
+
+                        if (!scriptFile.exists()) {
+                            Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
                             return
                         }
 
-                        Logger.info("file: ${script.absolutePath}")
-                        InvInvoker.invoke(inv, script, name)
+                        Logger.info("file: ${scriptFile.canonicalPath}")
+                        InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
                     }
                 }
             }
 
             Logger.info("[SCM] done")
 
-            def currentMessages = []
 
-            Logger.capture { String message ->
-                if (currentMessages.size() > 1000) {
-                    messages << currentMessages
-                    currentMessages = []
-                }
-
-                currentMessages << message
-            }
 
             inv()
-
-            messages << currentMessages
         }
     }
 
     void stop() {
 
+    }
+
+    private void addMessage(String message, List<String> messages) {
+        if (messages.isEmpty())
+            messages << []
+
+        def currentMessages = messages.last()
+
+        if (currentMessages.size() > 50) {
+            messages << []
+            currentMessages = messages.last()
+        }
+
+        currentMessages << message
     }
 
     Map toMap() {

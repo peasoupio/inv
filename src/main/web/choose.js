@@ -28,15 +28,38 @@ Vue.component('choose', {
 Vue.component('choose-select', {
     template: `
 <div>
-    <table class="table is-fullwidth" v-if="value.invs.nodes">
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
         <thead>
         <tr class="field">
-            <th class="checkbox_header"><input type="checkbox" v-model="selectAll" @click="doSelectAll()" /></th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes()"></th>
-            <th>Options</th>
+            <!--<th class="checkbox_header"><input type="checkbox" v-model="selectAll" @click="doSelectAll()" /></th>-->
+            <th>
+                <div class="dropdown is-hoverable">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Options</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-active': filters.selected}" class="dropdown-item">
+                                Filter: selected
+                            </a>
+                        </div>
+                        <div class="dropdown-content">
+                            <a @click="toggleSearchOptions('required')" v-bind:class="{ 'is-active': filters.required}" class="dropdown-item">
+                                Filter: required
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </th>
+            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
         </tr>
         </thead>
         <tbody>
@@ -49,24 +72,11 @@ Vue.component('choose-select', {
                 <span v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
                 <span v-else>Not defined</span>
             </td>
-            <td></td>
         </tr>
         </tbody>
     </table>
-    {{value.invs.total}}
-    {{filters.from}}
-    {{filters.step}}
 
-    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-      <button class="pagination-previous" title="This is the first page" :disabled="filters.from <= 0" @click="seePrevious()">Previous</button>
-      <button class="pagination-next" :disabled="filters.from + filters.step > value.invs.total" @click="seeNext()">Next page</button>
-
-      <ul class="pagination-list ">
-        <li v-for="index in indexes()">
-          <a class="pagination-link " aria-current="page" @click="seeAt(index)" v-bind:class="{ 'is-current' : index == currentIndex }">{{index}}</a>
-        </li>
-      </ul>
-    </nav>
+    <pagination v-model="paginationSettings" />
 
     <div class="modal is-active" v-if="viewScm">
         <div class="modal-background"></div>
@@ -99,19 +109,33 @@ Vue.component('choose-select', {
         return {
             selectAll: false,
             viewScm: null,
-            currentIndex:  1,
             filters: {
                 from: 0,
                 step: 20,
                 name: '',
                 id: '',
                 owner: '',
-                scm: ''
+                scm: '',
+                required: false,
+                selected: false
             }
         }
     },
-    created: function(){
-        this.searchNodes()
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.searchNodes()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.step,
+                    total: vm.value.invs.count
+                }
+            }
+        }
     },
     methods: {
         filter: function() {
@@ -125,67 +149,27 @@ Vue.component('choose-select', {
 
             return filtered.sort(compareValues('owner'))
         },
-        searchNodes: function() {
+
+        searchNodes: function(fromFilter) {
             var vm = this
 
             var link = "/run"
+
+            if (fromFilter)
+                vm.filters.from = 0
 
             if (vm.value.invs.links != undefined)
                 link = vm.value.invs.links.search
 
             axios.post(link, vm.filters).then(response => {
                 vm.value.invs = response.data
-                //vm.value.requiredInvs = response.data
-                //vm.$forceUpdate()
+                vm.value.requiredInvs = {}
             })
         },
-        seeNext: function() {
-            var vm = this
-
-            ++vm.currentIndex
-            vm.filters.from += vm.filters.step
-            vm.searchNodes()
+        toggleSearchOptions: function(option) {
+            this.filters[option] = !this.filters[option]
+            this.searchNodes(true)
         },
-        seePrevious: function() {
-            var vm = this
-
-            --vm.currentIndex
-            vm.filters.from -= vm.filters.step
-            vm.searchNodes()
-        },
-        indexes: function() {
-            var vm = this
-
-            var indexes = []
-
-            var remainings = Math.floor (vm.value.invs.total / vm.filters.step)
-
-            for(var i = 0; i < remainings; i++) {
-                indexes.push(i + 1)
-            }
-
-            var startSlice = 0
-            if (vm.currentIndex - 10 > 0)
-                startSlice = vm.currentIndex - 10
-
-            var endSlice = remainings
-
-            if (vm.currentIndex + 10 < remainings)
-                endSlice = Math.max(20, vm.currentIndex + 10)
-
-            return indexes.slice(startSlice, endSlice)
-        },
-        seeAt: function(index) {
-            var vm = this
-
-            vm.currentIndex = index
-            vm.filters.from = index * vm.filters.step
-
-            vm.searchNodes()
-        },
-
-
-
         doSelectAll: function() {
             var vm = this
 
@@ -235,22 +219,21 @@ Vue.component('choose-summary', {
     <div v-if="value.invs.selected == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-fullwidth" v-else>
-        {{searchNodes()}}
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
             <th>Brought by</th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes()"></th>
-            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes()"></th>
+            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
+            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
             <th>Options</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="inv in filter()">
             <td v-if="inv.selected">Myself</td>
-            <td v-if="inv.required"><a @click.stop="showRequiredBy(inv)">Someone else</td>
+            <td v-if="inv.required"><a @click.stop="showRequiredBy(inv)">Someone else</a></td>
             <td>{{inv.owner}}</td>
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
@@ -259,6 +242,8 @@ Vue.component('choose-summary', {
         </tr>
         </tbody>
     </table>
+
+    <pagination v-model="paginationSettings" />
 
     <div class="modal is-active" v-if="requiredBy">
         <div class="modal-background"></div>
@@ -298,6 +283,9 @@ Vue.component('choose-summary', {
             requiredByLoading: false,
             requiredByInvs: [],
             filters: {
+                required: true,
+                from: 0,
+                step: 20,
                 name: '',
                 id: '',
                 owner: '',
@@ -308,14 +296,35 @@ Vue.component('choose-summary', {
     created: function() {
         this.searchNodes()
     },
+     computed: {
+         paginationSettings: {
+             get() {
+                 var vm = this
+                 return {
+                     refresh: function(from) {
+                         vm.filters.from = from
+                         vm.searchNodes()
+                     },
+                     from: vm.filters.from,
+                     step: vm.filters.step,
+                     total: vm.value.requiredInvs.count
+                 }
+             }
+         }
+     },
     methods: {
         filter: function() {
             var vm = this
 
             var filtered = []
 
-            if (vm.value.requiredInvs.nodes == undefined)
+            if (vm.value.invs.selected == 0)
                 return []
+
+            if (vm.value.requiredInvs == undefined || vm.value.invs.selected != vm.value.requiredInvs.selected) {
+                vm.searchNodes()
+                return
+            }
 
             vm.value.requiredInvs.nodes.forEach(function(node) {
                 filtered.push(node)
@@ -323,17 +332,22 @@ Vue.component('choose-summary', {
 
             return filtered.sort(compareValues('owner'))
         },
-        searchNodes: function() {
+        searchNodes: function(fromFilter) {
             var vm = this
 
+            if (vm.value.invs.selected == 0)
+                return
+
             var link = "/run/selected"
+
+            if (fromFilter)
+                vm.filters.from = 0
 
             if (vm.value.invs.links != undefined)
                 link = vm.value.invs.links.selected
 
             axios.post(link, vm.filters).then(response => {
                 vm.value.requiredInvs = response.data
-                //vm.$forceUpdate()
             })
         },
         showRequiredBy: function(inv) {

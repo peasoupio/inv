@@ -8,17 +8,22 @@ Vue.component('install', {
         <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">Ready</button>
     </div>
 
-    <div>
-        <p class="title is-5">Output: </p>
-        <p v-for="(message, index) in messages">
-            <pre style="padding: 0">{{message}}</pre>
-        </p>
+    <p class="title is-5">
+        Output
+        <span class="icon is-small" v-if="loadingMessages">
+            <i class="fas fa-spinner fa-pulse"></i>
+        </span>
+    </p>
+    <div style="overflow-y: scroll; height: 600px; width: 100%" ref="logContainer">
+        <pre style="padding: 0; white-space: pre-wrap" v-for="(message, index) in messages">{{message}}</pre>
     </div>
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
+            loaded: false,
+            loadingMessages: true,
             execution: {},
             lastIndex: 0,
             messages: []
@@ -33,6 +38,7 @@ Vue.component('install', {
 
             vm.messages = []
             vm.lastIndex = 0
+            vm.loadingMessages = true
             vm.execution.running = true
 
             axios.post(vm.execution.links.start)
@@ -47,26 +53,36 @@ Vue.component('install', {
         refresh: function() {
             var vm = this
 
+
+            if (vm.loaded && vm.lastIndex == vm.execution.links.steps.length && !vm.execution.running) {
+                vm.loadingMessages = false
+
+                return
+            }
+/*
             if (vm.execution.running != null && !vm.execution.running)
                 return
+*/
 
             axios.get("/execution").then(response => {
                 vm.execution = response.data
 
-                if (vm.lastIndex == vm.execution.links.steps.length)
-                    return
+                vm.loaded = true
 
-                for(var i = vm.lastIndex; i < vm.execution.links.steps.length; i++) {
-                    axios.get(vm.execution.links.steps[i]).then(response => {
+                //for(var i = vm.lastIndex; i < vm.execution.links.steps.length; i++) {
+                ++vm.lastIndex
+                axios.get(vm.execution.links.steps[vm.lastIndex]).then(response => {
 
-                        response.data.forEach(function(message) {
-                            vm.messages.push(message)
-                        })
-
+                    response.data.forEach(function(message) {
+                        vm.messages.push(message)
                     })
-                }
+                })
 
-                vm.lastIndex = vm.execution.links.steps.length
+
+
+                //}
+
+                //vm.lastIndex = vm.execution.links.steps.length
             })
         }
     },
@@ -78,6 +94,10 @@ Vue.component('install', {
 
         setInterval(function() {
             vm.refresh()
-        }, 1500)
+        }, 500)
+    },
+    updated: function() {
+        var element = this.$refs.logContainer
+        element.scrollTop = element.scrollHeight
     }
 })

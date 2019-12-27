@@ -33,12 +33,14 @@ Vue.component('base-layout', {
             steps: [
                 { name: 'Choose', template: 'choose', description: 'Choose your INVs' },
                 { name: 'Configure', template: 'configure', description: 'Configure your parameters and scms' },
-                { name: 'Review', template: 'review', description: 'Review everything' },
-                { name: 'Install', template: 'install', description: 'Generate and install your freshly new INV ecosystem' }
+                { name: 'Install', template: 'install', description: 'Generate and install your freshly new INV ecosystem' },
+                { name: 'Review', template: 'review', description: 'Review everything' }
+
             ],
             shared: {
+                api: {},
                 scms: {},
-                selectedInvs: [],
+                selectedScms: [],
                 invs: {},
                 requiredInvs: {}
             },
@@ -56,20 +58,27 @@ Vue.component('base-layout', {
     created: function() {
         var vm = this
 
+        axios.get('/api').then(response => {
 
-        axios.get('/run').then(response => {
+            vm.shared.api = response.data
 
-            vm.shared.invs = response.data
+            axios.get(vm.shared.api.links.run.default).then(response => {
 
-            vm.loadState.invs = true
-            vm.$forceUpdate()
+                vm.shared.invs = response.data
+
+                vm.loadState.invs = true
+                vm.$forceUpdate()
+            })
+
+            axios.get(vm.shared.api.links.scms.default).then(response => {
+                vm.shared.scms = response.data
+
+                vm.loadState.scms = true
+                vm.$forceUpdate()
+            })
         })
 
-        axios.get('/scms').then(response => {
-            vm.shared.scms = response.data
 
-            vm.loadState.scms = true
-            vm.$forceUpdate()
-        })
+
     }
 })

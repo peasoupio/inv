@@ -6,7 +6,7 @@ import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
-import io.peasoup.inv.web.Routes
+import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
 
 class Main extends Script {
@@ -179,7 +179,7 @@ Options:
     }
 
     int web() {
-        return new Routes().map()
+        return new Routing().map()
     }
 
     int executeScript(List<String> args, String exclude) {

@@ -1,6 +1,6 @@
 package io.peasoup.inv.scm
 
-
+import groovy.json.JsonSlurper
 import org.codehaus.groovy.control.CompilerConfiguration
 
 class ScmDescriptor {
@@ -51,13 +51,13 @@ class ScmDescriptor {
         final HookDescriptor hooks = new HookDescriptor()
         final AskDescriptor ask = new AskDescriptor()
 
-        private File externalProperties
+        private File parametersFile
 
-        MainDescriptor(String name, File externalProperties = null) {
+        MainDescriptor(String name, File parametersFile = null) {
             assert name
 
             this.name = name
-            this.externalProperties = externalProperties
+            this.parametersFile = parametersFile
         }
 
         File path
@@ -82,17 +82,9 @@ class ScmDescriptor {
             safeProperties.remove("ask")
             safeProperties.remove("class")
 
-            if (externalProperties && externalProperties.exists()) {
-                def props = new Properties()
-                props.load(externalProperties.newReader())
-
-                safeProperties += props
-                        .findAll { it.key.toString().startsWith(name +".") }
-                        .collectEntries {
-                            def newKey = it.key.toString().replace(name +".", '')
-
-                            return [(newKey): it.value]
-                        }
+            if (parametersFile && parametersFile.exists()) {
+                Map parameters = new JsonSlurper().parseText(parametersFile.text) as Map
+                safeProperties += parameters[name]
             }
 
             // Bind missing properties with our main ones
@@ -142,22 +134,30 @@ class ScmDescriptor {
 
     static class AskDescriptor {
 
-        def parameters = []
+        List<AskParameter> parameters = []
 
-        def parameter(String name, String usage, String defaultValue = "", def values = null, def filter = null) {
+        def parameter(String name, String usage, String defaultValue = "", def values = null, String filter = null) {
 
             assert name
             assert usage
 
-            parameters << [
+            parameters << new AskParameter(
                 name: name,
                 usage: usage,
                 defaultValue: defaultValue,
-                values: values,
+                commandValues: (values != null && values instanceof CharSequence)? values as String : null,
+                staticValues: (values != null && values instanceof Collection<String>)? values as List<String> : [],
                 filter: filter
-            ]
+            )
         }
+    }
 
-
+    static class AskParameter {
+        String name
+        String usage
+        String defaultValue
+        String commandValues
+        List<String> staticValues
+        String filter
     }
 }

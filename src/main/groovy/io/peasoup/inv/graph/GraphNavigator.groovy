@@ -1,9 +1,11 @@
 package io.peasoup.inv.graph
 
+import groovy.transform.CompileStatic
 import org.jgrapht.Graph
 import org.jgrapht.alg.util.NeighborCache
 import org.jgrapht.graph.DefaultEdge
 
+@CompileStatic
 class GraphNavigator {
 
     private final Graph<Linkable, DefaultEdge> g
@@ -49,10 +51,11 @@ class GraphNavigator {
         nodes.put(node.owner, node)
     }
 
-    def requiredByAll(Linkable linkable) {
+    Map<Linkable, Integer> requiredByAll(Linkable linkable) {
 
-        Set<Linkable> total = []
+        Map<Linkable, Integer> total = [:]
         List<Linkable> predecessors = []
+        List<Linkable> nextPredecessors = []
 
         if (!g.containsVertex(linkable))
             return
@@ -60,26 +63,36 @@ class GraphNavigator {
         predecessors.addAll(nc.predecessorsOf(linkable))
 
         if (predecessors.isEmpty())
-            return []
+            return [:] as Map<Linkable, Integer>
 
-        while(!predecessors.isEmpty()) {
+        Integer iteration = 0
+        while(!predecessors.isEmpty() || !nextPredecessors.isEmpty()) {
+
+            if (predecessors.isEmpty()) {
+                predecessors = nextPredecessors
+                nextPredecessors = []
+
+                iteration++
+            }
+
             def predecessor = predecessors.pop()
 
-            if (total.contains(predecessor))
+            if (total.containsKey(predecessor))
                 continue
 
-            total << predecessor
+            total.put(predecessor, iteration)
 
-            predecessors.addAll(nc.predecessorsOf(predecessor))
+            nextPredecessors.addAll(nc.predecessorsOf(predecessor))
         }
 
         return total
     }
 
-    def requiresAll(Linkable linkable) {
+    Map<Linkable, Integer> requiresAll(Linkable linkable) {
 
-        Set<Linkable> total = []
+        Map<Linkable, Integer> total = [:]
         List<Linkable> successors = []
+        List<Linkable> nextSuccessors = []
 
         if (!g.containsVertex(linkable))
             return
@@ -87,17 +100,26 @@ class GraphNavigator {
         successors.addAll(nc.successorsOf(linkable))
 
         if (successors.isEmpty())
-            return []
+            return [:] as Map<Linkable, Integer>
 
-        while(!successors.isEmpty()) {
+        Integer iteration = 0
+        while(!successors.isEmpty() || !nextSuccessors.isEmpty()) {
+
+            if (successors.isEmpty()) {
+                successors = nextSuccessors
+                nextSuccessors = []
+
+                iteration++
+            }
+
             def successor = successors.pop()
 
-            if (total.contains(successor))
+            if (total.containsKey(successor))
                 continue
 
-            total << successor
+            total.put(successor, iteration)
 
-            successors.addAll(nc.successorsOf(successor))
+            nextSuccessors.addAll(nc.successorsOf(successor))
         }
 
         return total

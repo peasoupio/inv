@@ -6,8 +6,8 @@ Vue.component('configure', {
 
     <div class="tabs">
         <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a @click="activeTab='parameters'">Parameters</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{value.scms.registry.length}}/{{value.scms.total}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a @click="activeTab='parameters'">Parameters ({{completedCount()}}/{{value.selectedScms.length}})</a></li>
+            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{value.scms.total}})</a></li>
         </ul>
     </div>
 
@@ -23,39 +23,68 @@ Vue.component('configure', {
         }
     },
     methods: {
+        completedCount: function() {
+            var vm = this
+
+            if (vm.value.selectedScms.length == 0)
+                return 0
+
+            var count = 0
+
+            vm.value.selectedScms.forEach(function(scm) {
+                if (!scm.completed) return
+
+                count++
+            })
+
+            return count
+        }
     }
 })
 
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="value.selectedInvs.length == 0">
+    <div v-if="value.selectedScms.length == 0">
         Nothing selected yet...
     </div>
-    <div  v-else>
+    <div v-else>
 
-        <div class="columns is-multiline">
-
-            <div class="column is-half">
-                <p>Filers: </p>
+        <div class="field is-grouped is-grouped-right">
+            <div class="field">
                 <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button">
                     Hide when completed
                 </button>
             </div>
-
-            <div class="column is-half">
-                <p>Options: </p>
-                <button @click="completeDefault()" class="button">
-                    Apply default to all
-                </button>
-
-                <button @click="completeReset()" class="button">
-                    Reset all
-                </button>
+            <div class="field">
+                <div class="dropdown is-hoverable">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Options</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a @click="applyDefaultToAll()" class="dropdown-item">
+                                Apply default to all
+                            </a>
+                        </div>
+                        <div class="dropdown-content">
+                            <a @click="resetAll()" class="dropdown-item">
+                                Reset all
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <hr />
+        <hr />
 
+        <div class="columns is-multiline">
             <div class="column is-one-quarter" v-for="scm in filter()" >
                 <div class="card">
                     <div class="card-content">
@@ -84,6 +113,9 @@ Vue.component('configure-parameters', {
                         </p>
                     </footer>
                 </div>
+            </div>
+            <div v-if="count == 0" class="container">
+                <p class="has-text-centered">Nothing to show</p>
             </div>
         </div>
     </div>
@@ -139,7 +171,7 @@ Vue.component('configure-parameters', {
 
                 <footer class="modal-card-foot">
                   <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveAll(currentScmParameter)">Save all</button>
-                  <button class="button" @click="resetAll(currentScmParameter)">Reset all</button>
+                  <button class="button" @click="resetParameters(currentScmParameter)">Reset all</button>
                 </footer>
 
             </div>
@@ -165,10 +197,8 @@ Vue.component('configure-parameters', {
 
             var filtered = []
 
-            vm.value.selectedInvs.filter(function(scm) {
-
-                if (vm.filters.hideWhenCompleted && scm.completed)
-                    return
+            vm.value.selectedScms.filter(function(scm) {
+                if (scm.completed && vm.filters.hideWhenCompleted) return
 
                 filtered.push(scm)
             })
@@ -177,6 +207,14 @@ Vue.component('configure-parameters', {
 
             return filtered.sort(compareValues('owner'))
 
+        },
+        searchSelectedScm: function() {
+            var vm = this
+
+            axios.get(vm.value.scms.links.selected).then(response => {
+                vm.value.selectedScms = response.data.scms
+                vm.value.selectedScms.sort(compareValues('name'))
+            })
         },
         areValuesUnavailable: function(scmParameters) {
             return parameter.value !== '' && parameter.values.indexOf(parameter.value) < 0
@@ -218,11 +256,19 @@ Vue.component('configure-parameters', {
                 return parameter.changed
             }).length > 0
         },
-        completeDefaultAll: function() {
-            axios.post(vm.value.scms.links.defaultAll)
+        applyDefaultToAll: function() {
+            var vm = this
+
+            axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
+                vm.searchSelectedScm()
+           })
         },
-        completeResetAll: function() {
-            axios.post(vm.value.scms.links.resetAll)
+        resetAll: function() {
+            var vm = this
+
+            axios.post(vm.value.api.links.scms.resetAll).then(response => {
+                vm.searchSelectedScm()
+            })
         },
         saveAll: function(scmParameters) {
             var vm = this
@@ -234,7 +280,7 @@ Vue.component('configure-parameters', {
                 vm.saveParameter(parameter)
             })
         },
-        resetAll: function(scmParameters) {
+        resetParameters: function(scmParameters) {
             var vm = this
 
             scmParameters.parameters.forEach(function(parameter) {
@@ -267,10 +313,11 @@ Vue.component('configure-parameters', {
         close: function() {
             var vm = this
 
-            axios.get(vm.currentScmParameter.links.scm).then(response => {
+            axios.get(vm.currentScmParameter.links.view).then(response => {
 
                 vm.currentScmParameter.saved = response.data.saved
                 vm.currentScmParameter.lastModified = response.data.lastModified
+                vm.currentScmParameter.completed = response.data.completed
 
                 vm.currentScmParameter = null
             })
@@ -279,11 +326,8 @@ Vue.component('configure-parameters', {
     created: function() {
         var vm = this
 
-        axios.get(vm.value.scms.links.selected).then(response => {
-            vm.value.selectedInvs = response.data.scms
+        vm.searchSelectedScm()
 
-            vm.value.selectedInvs.sort(compareValues('name'))
-        })
     }
 })
 
@@ -293,7 +337,7 @@ Vue.component('configure-scms', {
     <div v-if="count == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-else>
+    <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
             <th><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
@@ -327,7 +371,7 @@ Vue.component('configure-scms', {
                     </div>
                     <div class="column is-one-fifth">
                         <div class="buttons has-addons is-right">
-                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }">
+                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }" :disabled="!edited">
                                 <span class="icon is-small" v-if="saved">
                                     <i class="fas fa-check"></i>
                                 </span>
@@ -372,13 +416,9 @@ Vue.component('configure-scms', {
     props: ['value'],
     data: function() {
         return {
+            // Table
             count: this.value.scms.length,
-
-            codeMirror: null,
-            editScript: '',
             showWhoBroughtMe: null,
-            sending: false,
-            saved: false,
             filters: {
                 selected: true,
                 from: 0,
@@ -386,7 +426,14 @@ Vue.component('configure-scms', {
                 name: '',
                 src: '',
                 entry: ''
-            }
+            },
+
+            // Code editing
+            codeMirror: null,
+            editScript: '',
+            edited: false,
+            sending: false,
+            saved: false
         }
     },
     mounted: function() {
@@ -440,17 +487,11 @@ Vue.component('configure-scms', {
         searchScm: function(fromFilter) {
             var vm = this
 
-            var link = "/scms"
-
             if (fromFilter)
                 vm.filters.from = 0
 
-            if (vm.value.scms.links != undefined)
-                link = vm.value.scms.links.search
-
-            axios.post(link, vm.filters).then(response => {
+            axios.post(vm.value.api.links.scms.default, vm.filters).then(response => {
                 vm.value.scms = response.data
-                //vm.$forceUpdate()
             })
         },
         getRelativeTimestamp: function(scm) {
@@ -465,9 +506,22 @@ Vue.component('configure-scms', {
         openEdit: function(scm) {
             var vm = this
 
+
+
             vm.codeMirror.setValue(vm.value.scms.scripts[scm.source].text)
             vm.codeMirror.refresh()
+
+            vm.codeMirror.on("change",function(cm,change){
+                // Wait for script to be available since setValue will trigger change
+                if (vm.editScript == null)
+                    return
+
+                vm.saved = false
+                vm.edited = true
+            })
+
             vm.editScript = scm
+
         },
         saveSource: function() {
             var vm = this
@@ -485,22 +539,32 @@ Vue.component('configure-scms', {
 
                 vm.sending = false
                 vm.saved = true
+                vm.edited = false
 
                 var data = response.data
                 var registry = vm.value.scms.registry
 
-                // udpate fields
                 vm.value.scms.scripts[vm.editScript.source].text = content
-                vm.value.scms.scripts[vm.editScript.source].lastEdit = data.scripts[vm.editScript.source].lastEdit
 
                 vm.searchScm()
             })
         },
         closeEdit: function() {
-            this.editScript = null
 
-            this.sending = false
-            this.saved = false
+            var vm = this
+
+            if (vm.edited && !vm.saved) {
+                var ok = confirm("Clear unsaved work ?")
+
+                if (!ok)
+                    return
+            }
+
+            vm.editScript = null
+
+            vm.sending = false
+            vm.saved = false
+            vm.edited = false
         },
         closeWhoBroughtMe: function() {
             this.showWhoBroughtMe = ''

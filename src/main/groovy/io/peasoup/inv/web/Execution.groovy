@@ -1,11 +1,13 @@
 package io.peasoup.inv.web
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.InvHandler
 import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 
+@CompileStatic
 class Execution {
 
     private final File scmFolder
@@ -35,6 +37,11 @@ class Execution {
             return
 
         messages.clear()
+        List<String> currentChunkOfMessages = [].asSynchronized()
+        Logger.capture { String message ->
+            currentChunkOfMessages << message
+            sendMessages(currentChunkOfMessages)
+        }
 
         runningThread = Thread.start {
 
@@ -46,9 +53,6 @@ class Execution {
                         new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".properties")
                 ).execute()
 
-                Logger.capture { String message ->
-                    addMessage(message, messages)
-                }
 
                 invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
 
@@ -76,9 +80,9 @@ class Execution {
 
             Logger.info("[SCM] done")
 
-
-
             inv()
+
+            messages << currentChunkOfMessages
         }
     }
 
@@ -86,18 +90,12 @@ class Execution {
 
     }
 
-    private void addMessage(String message, List<String> messages) {
-        if (messages.isEmpty())
-            messages << []
+    private void sendMessages(List<String> currentMessages) {
+        if (currentMessages.size() < 50)
+            return
 
-        def currentMessages = messages.last()
-
-        if (currentMessages.size() > 50) {
-            messages << []
-            currentMessages = messages.last()
-        }
-
-        currentMessages << message
+        messages << currentMessages.collect()
+        currentMessages.clear()
     }
 
     Map toMap() {

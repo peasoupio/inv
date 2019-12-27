@@ -53,36 +53,33 @@ Vue.component('install', {
         refresh: function() {
             var vm = this
 
+            if (vm.loaded) {
 
-            if (vm.loaded && vm.lastIndex == vm.execution.links.steps.length && !vm.execution.running) {
-                vm.loadingMessages = false
+                var running = vm.execution.running
+                var missingSteps = vm.lastIndex != vm.execution.links.steps.length
 
-                return
+                if (!running && !missingSteps) {
+                    vm.loadingMessages = false
+                    return
+                }
             }
-/*
-            if (vm.execution.running != null && !vm.execution.running)
-                return
-*/
 
-            axios.get("/execution").then(response => {
+            axios.get(vm.value.api.links.execution.default).then(response => {
                 vm.execution = response.data
 
                 vm.loaded = true
 
-                //for(var i = vm.lastIndex; i < vm.execution.links.steps.length; i++) {
-                ++vm.lastIndex
+                if (vm.lastIndex == vm.execution.links.steps.length)
+                    return
+
                 axios.get(vm.execution.links.steps[vm.lastIndex]).then(response => {
+
+                    vm.lastIndex++
 
                     response.data.forEach(function(message) {
                         vm.messages.push(message)
                     })
                 })
-
-
-
-                //}
-
-                //vm.lastIndex = vm.execution.links.steps.length
             })
         }
     },
@@ -94,7 +91,7 @@ Vue.component('install', {
 
         setInterval(function() {
             vm.refresh()
-        }, 500)
+        }, 1000)
     },
     updated: function() {
         var element = this.$refs.logContainer

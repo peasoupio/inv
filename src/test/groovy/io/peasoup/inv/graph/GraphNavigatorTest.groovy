@@ -1,5 +1,7 @@
 package io.peasoup.inv.graph
 
+import org.jgrapht.graph.DefaultDirectedGraph
+import org.jgrapht.graph.DefaultEdge
 import org.junit.Before
 import org.junit.Test
 
@@ -9,7 +11,7 @@ class GraphNavigatorTest {
 
     @Before
     void setup() {
-        baseGraph = new GraphNavigator()
+        baseGraph = new GraphNavigator(new DefaultDirectedGraph<>(DefaultEdge.class))
     }
 
     @Test

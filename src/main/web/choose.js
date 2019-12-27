@@ -28,34 +28,46 @@ Vue.component('choose', {
 Vue.component('choose-select', {
     template: `
 <div>
-    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
-        <thead>
-        <tr class="field">
-            <!--<th class="checkbox_header"><input type="checkbox" v-model="selectAll" @click="doSelectAll()" /></th>-->
-            <th>
-                <div class="dropdown is-hoverable">
-                    <div class="dropdown-trigger">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                            <span>Options</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-angle-down" aria-hidden="true"></i>
-                            </span>
-                        </button>
+
+    <div class="field is-grouped is-grouped-right">
+        <div class="field">
+            <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button">
+                Show only selected
+            </button>
+            <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button">
+                Show all required
+            </button>
+        </div>
+        <div class="field">
+            <div class="dropdown is-hoverable">
+                <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span>Options</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <a @click="setStageAll(true)" class="dropdown-item">
+                            Select all
+                        </a>
                     </div>
-                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                            <a @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-active': filters.selected}" class="dropdown-item">
-                                Filter: selected
-                            </a>
-                        </div>
-                        <div class="dropdown-content">
-                            <a @click="toggleSearchOptions('required')" v-bind:class="{ 'is-active': filters.required}" class="dropdown-item">
-                                Filter: required
-                            </a>
-                        </div>
+                    <div class="dropdown-content">
+                        <a @click="setStageAll(false)" class="dropdown-item">
+                            Un-select all
+                        </a>
                     </div>
                 </div>
-            </th>
+            </div>
+        </div>
+    </div>
+
+    <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
+        <thead>
+        <tr class="field">
+            <th>Selected</th>
             <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
             <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
             <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
@@ -107,7 +119,6 @@ Vue.component('choose-select', {
     props: ['value'],
     data: function() {
         return {
-            selectAll: false,
             viewScm: null,
             filters: {
                 from: 0,
@@ -153,15 +164,10 @@ Vue.component('choose-select', {
         searchNodes: function(fromFilter) {
             var vm = this
 
-            var link = "/run"
-
             if (fromFilter)
                 vm.filters.from = 0
 
-            if (vm.value.invs.links != undefined)
-                link = vm.value.invs.links.search
-
-            axios.post(link, vm.filters).then(response => {
+            axios.post(vm.value.api.links.run.search, vm.filters).then(response => {
                 vm.value.invs = response.data
                 vm.value.requiredInvs = {}
             })
@@ -170,19 +176,24 @@ Vue.component('choose-select', {
             this.filters[option] = !this.filters[option]
             this.searchNodes(true)
         },
-        doSelectAll: function() {
+        setStageAll: function(stage) {
             var vm = this
-
-            vm.selectAll = !vm.selectAll
 
             vm.value.invs.nodes.forEach(function(inv) {
                 if (inv.required)
                     return
 
-                inv.selected = vm.selectAll
-
-                vm.doSelect(inv)
+                inv.selected = stage
             })
+
+            if (stage)
+                axios.post(vm.value.api.links.run.stageAll, vm.filters).then(response => {
+                    vm.searchNodes()
+                })
+            else
+                axios.post(vm.value.api.links.run.unstageAll, vm.filters).then(response => {
+                    vm.searchNodes()
+                })
 
         },
         doSelect: function(inv) {
@@ -202,7 +213,7 @@ Vue.component('choose-select', {
         showScm: function(inv) {
             var vm = this
 
-            axios.get(inv.links.scm).then(response => {
+            axios.get(inv.links.view).then(response => {
                 vm.viewScm = response.data
             })
         },
@@ -219,7 +230,7 @@ Vue.component('choose-summary', {
     <div v-if="value.invs.selected == 0">
         Nothing selected yet...
     </div>
-    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" v-else>
+    <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
             <th>Brought by</th>
@@ -245,29 +256,40 @@ Vue.component('choose-summary', {
 
     <pagination v-model="paginationSettings" />
 
-    <div class="modal is-active" v-if="requiredBy">
+    <div class="modal is-active" v-if="requiredBy && requiredByInvs.nodes">
         <div class="modal-background"></div>
         <div class="modal-content" style="width: 80%">
             <div class="box" v-click-outside="close">
-                <h1 class="subtitle is-1">
-                    Required by:
-                    <span class="icon is-small" v-if="requiredByLoading">
-                        <i class="fas fa-spinner fa-pulse"></i>
-                    </span>
+                <h1 class="title is-5"> {{requiredByInvs.nodes.length}} require(s)
+                    {{requiredBy.name}} (id={{requiredBy.id}})
                 </h1>
-                <table class="table is-fullwidth is-bordered">
+
+                <div class="field is-grouped is-grouped-right">
+                    <div class="field">
+                        <button @click="requiredByFilters.selected = !requiredByFilters.selected" v-bind:class="{ 'is-link': requiredByFilters.selected}" class="button">
+                            Show selected only
+                        </button>
+                    </div>
+                </div>
+
+                <table class="table is-narrow is-fullwidth">
                     <thead>
                     <tr class="field">
-                        <th>Owner</th>
-                        <th>Name</th>
-                        <th>ID</th>
+                        <th>Level</th>
+                        <th><input class="input" type="text" v-model="requiredByFilters.owner" placeholder="Owner"></th>
+                        <th><input class="input" type="text" v-model="requiredByFilters.name" placeholder="Name"></th>
+                        <th><input class="input" type="text" v-model="requiredByFilters.id" placeholder="ID"></th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="other in requiredByInvs.nodes" v-bind:class="{ 'whobroughtme_chosen' : other.selected }">
+                    <tr v-for="other in filterRequiredBy()" v-bind:class="{ 'whobroughtme_chosen' : other.selected }">
+                        <td>{{(other.iteration / 2) + 1}}</td>
                         <td>{{other.owner}}</td>
                         <td>{{other.name}}</td>
                         <td>{{other.id}}</td>
+                    </tr>
+                    <tr v-if="requiredByFilteredCount == 0">
+                        <td>No matches</td>
                     </tr>
                     </tbody>
                 </table>
@@ -290,28 +312,32 @@ Vue.component('choose-summary', {
                 id: '',
                 owner: '',
                 scm: ''
+            },
+            requiredByFilteredCount: 0,
+            requiredByFilters: {
+                selected: false,
+                name: '',
+                id: '',
+                owner: '',
             }
         }
     },
-    created: function() {
-        this.searchNodes()
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.searchNodes()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.step,
+                    total: vm.value.requiredInvs.count
+                }
+            }
+        }
     },
-     computed: {
-         paginationSettings: {
-             get() {
-                 var vm = this
-                 return {
-                     refresh: function(from) {
-                         vm.filters.from = from
-                         vm.searchNodes()
-                     },
-                     from: vm.filters.from,
-                     step: vm.filters.step,
-                     total: vm.value.requiredInvs.count
-                 }
-             }
-         }
-     },
     methods: {
         filter: function() {
             var vm = this
@@ -338,15 +364,10 @@ Vue.component('choose-summary', {
             if (vm.value.invs.selected == 0)
                 return
 
-            var link = "/run/selected"
-
             if (fromFilter)
                 vm.filters.from = 0
 
-            if (vm.value.invs.links != undefined)
-                link = vm.value.invs.links.selected
-
-            axios.post(link, vm.filters).then(response => {
+            axios.post(vm.value.api.links.run.selected, vm.filters).then(response => {
                 vm.value.requiredInvs = response.data
             })
         },
@@ -359,15 +380,31 @@ Vue.component('choose-summary', {
 
             axios.get(inv.links.requiredBy).then(response => {
                 vm.requiredByInvs = response.data
-                //vm.$forceUpdate()
-
-                vm.requiredByInvs.nodes.sort(compareValues('owner'))
-
                 vm.requiredByLoading = false
             })
         },
+        filterRequiredBy: function() {
+            var vm = this
+
+            var filtered = []
+
+            vm.requiredByInvs.nodes.forEach(function(node) {
+
+                if (vm.requiredByFilters.selected && !node.selected) return false
+                if (vm.requiredByFilters.owner != '' && node.owner.indexOf(vm.requiredByFilters.owner) < 0) return false
+                if (vm.requiredByFilters.name != '' && node.name.indexOf(vm.requiredByFilters.name) < 0) return false
+                if (vm.requiredByFilters.id != '' && node.id.indexOf(vm.requiredByFilters.id) < 0) return false
+
+                filtered.push(node)
+            })
+
+            vm.requiredByFilteredCount = filtered.length
+
+            return filtered.sort((a, b) => (a.iteration - b.iteration))
+        },
         close: function() {
             this.requiredBy = null
+            this.requiredByInvs = null
         }
 
     }

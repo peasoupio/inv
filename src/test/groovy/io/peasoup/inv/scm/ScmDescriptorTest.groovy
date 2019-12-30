@@ -26,6 +26,15 @@ class ScmDescriptorTest  {
     }
 
     @Test
+    void invalid_scm() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' null
+""")))
+
+        assert scmDescriptor.scms().isEmpty()
+    }
+
+    @Test
     void invalid_path() {
         def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
 'test' {

@@ -25,13 +25,13 @@ class ScmDescriptor {
 
         delegate.metaClass.methodMissing = { String methodName, args ->
 
+            if (args.size() != 1 || !(args[0] instanceof Closure))
+                return null
+
             if (externalProperties)
                 delegate[methodName] = new MainDescriptor(methodName, externalProperties)
             else
                 delegate[methodName] = new MainDescriptor(methodName)
-
-            if (args.size() != 1 || !(args[0] instanceof Closure))
-                return null
 
             Closure body = args[0] as Closure
 

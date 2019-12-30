@@ -11,7 +11,7 @@ class DeltaGraphTest {
 
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
 
-        deltaGraph.echo()
+        println deltaGraph.echo()
     }
 
     @Test

@@ -85,6 +85,10 @@ class NetworkValuablePool {
                     return inv.digest(pool)
                 } catch (Exception ex) {
                     exceptions.add(new PoolException(inv: inv, exception: ex))
+
+                    // issues:8
+                    remainingsInv.remove(inv)
+
                     return []
                 }
             } as Callable<Inv.Digestion>)

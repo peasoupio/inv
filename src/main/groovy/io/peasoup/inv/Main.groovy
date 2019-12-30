@@ -122,10 +122,10 @@ Options:
 
         switch (arg1.toLowerCase()) {
             case "plain" :
-                print(new RunGraph(System.in.newReader()).echo())
+                print(new RunGraph(System.in.newReader()).toPlainList())
                 return 0
             case "dot":
-                //print(new DotGraph(System.in.newReader()).echo())
+                print(new RunGraph(System.in.newReader()).toDotGraph())
                 return 0
         }
     }

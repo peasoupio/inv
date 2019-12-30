@@ -6,84 +6,26 @@ class DeltaGraph {
 
     final private static lf = System.properties['line.separator']
 
-    Map previousNodes = [:]
-    Map previousEdges = [:]
-
-    Map currentNodes = [:]
-    Map currentEdges = [:]
-
-    Map sharedNodes = [:]
-    Map sharedEdges = [:]
-
-    DeltaGraph(BufferedReader previous, BufferedReader current) {
-
-        def beforePlainGraph = new RunGraph(previous)
-        def afterPlainGraph = new RunGraph(current)
-
-        previousNodes += beforePlainGraph.baseGraph.nodes
-        previousEdges += beforePlainGraph.baseGraph.edges
-
-        currentNodes += afterPlainGraph.baseGraph.nodes
-        currentEdges += afterPlainGraph.baseGraph.edges
+    Map<GraphNavigator.Linkable, String> deltaStates = [:]
 
 
-        // Calculate shared nodes
-        previousNodes.each { String name, HashSet<Map> edges ->
-            if (!currentNodes[name])
-                return
+    DeltaGraph(BufferedReader base, BufferedReader other) {
 
-            def currentNode = currentNodes[name] as List<Map>
+        def baseGraph = new RunGraph(base)
+        def otherGraph = new RunGraph(other)
 
-            if (edges.size() != currentNode.size())
-                return
-
-            for (def i = 0; i < edges.size(); i++) {
-                GraphNavigator.Node previousEdge = edges[i]
-                GraphNavigator.Node afterEdge = currentNode[i]
-
-                if (!previousEdge.equals(afterEdge))
-                    continue
-
-                if (!sharedNodes.containsKey(name))
-                    sharedNodes << [(name): new HashSet<>()]
-
-                sharedNodes[name] << previousEdge
+        for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
+            if (otherGraph.g.containsVertex(link)) {
+                deltaStates.put(link, '=')
+            } else {
+                deltaStates.put(link, '-')
             }
         }
 
-        // Calculate shared edges
-        previousEdges.clone().each { String name, HashSet<Map> edges ->
-            if (!currentEdges[name])
-                return
-
-            def previousNode = currentEdges[name] as List<Map>
-
-            if (edges.size() != previousNode.size())
-                return
-
-            for (def i = 0; i < edges.size(); i++) {
-                GraphNavigator.Node currentEdge = edges[i]
-                GraphNavigator.Node previousEdge = previousNode[i]
-
-                if (currentEdge.owner != previousEdge.owner && currentEdge.id != previousEdge.id)
-                    continue
-
-                if (!sharedEdges.containsKey(name))
-                    sharedEdges << [(name): new HashSet<>()]
-
-                sharedEdges[name] << currentEdge
+        for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
+            if (!baseGraph.g.containsVertex(link)) {
+                deltaStates.put(link, '+')
             }
-
-            // Remove all matched
-            edges.removeAll(sharedEdges[name])
-            previousNode.removeAll(sharedEdges[name])
-
-            // Delete if empty - no need
-            if (edges.isEmpty())
-                previousEdges.remove(name)
-
-            if (previousNode.isEmpty())
-                currentEdges.remove(name)
         }
     }
 
@@ -92,31 +34,9 @@ class DeltaGraph {
         return """    
 ${
     // Shared nodes and edges
-    sharedEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { GraphNavigator.Node edge ->
-                "= ${owner} -> ${edge.owner} (${edge.id})"
-            }
-        }
-        .join(lf)
-}
-${
-    // Deleted nodes and edges (in previous, not in current)
-    previousEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { GraphNavigator.Node edge ->
-                "- ${owner} -> ${edge.owner} (${edge.id})"
-            }
-        }
-        .join(lf)
-}
-${
-    // Added nodes and edges (not in previous, but in current)
-    currentEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { GraphNavigator.Node edge ->
-                "+ ${owner} -> ${edge.owner} (${edge.id})"
-            }
+    deltaStates
+        .collect { GraphNavigator.Linkable link, String state ->
+            "${state} ${link.value}"
         }
         .join(lf)
 }
@@ -145,5 +65,4 @@ ${
 
         return "Report generated at: ${htmlOutput.canonicalPath}"
     }
-
 }

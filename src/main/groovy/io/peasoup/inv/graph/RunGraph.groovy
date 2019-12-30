@@ -9,6 +9,8 @@ import org.jgrapht.io.IntegerComponentNameProvider
 
 class RunGraph {
 
+    final private static lf = System.properties['line.separator']
+
     final Graph<GraphNavigator.Linkable, DefaultEdge> g
     final GraphNavigator navigator
 
@@ -43,6 +45,12 @@ class RunGraph {
                 return
             }
         }
+    }
+
+    String toPlainList() {
+        return g.vertexSet().collect {
+            it.value
+        }.join(lf)
     }
 
     String toDotGraph() {

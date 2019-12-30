@@ -205,24 +205,28 @@ class NetworkValuablePool {
         runningState = RUNNING
     }
 
-    synchronized void startUnbloating() {
+    synchronized boolean startUnbloating() {
 
         if (runningState != RUNNING) {
             Logger.warn "cannot start unbloating from a non running state. Make sure pool is in running state before starting to unbloat"
-            return
+            return false
         }
 
         runningState = UNBLOATING
+
+        return true
     }
 
-    synchronized void startHalting() {
+    synchronized boolean startHalting() {
 
         if (runningState == RUNNING) {
             Logger.warn "cannot start halting from a running state. Start unbloating first"
-            return
+            return false
         }
 
         runningState = HALTING
+
+        return true
     }
 
     /**

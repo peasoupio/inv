@@ -33,8 +33,16 @@ class ScmDescriptor {
             if (args.size() != 1 || !(args[0] instanceof Closure))
                 return null
 
-            args[0].delegate = delegate[methodName]
-            args[0]()
+            Closure body = args[0] as Closure
+
+            body.resolveStrategy = Closure.DELEGATE_ONLY
+            body.delegate = delegate[methodName]
+
+            try {
+                body()
+            } catch (MissingMethodException ex) {
+                throw new Exception("Scm instruction '${ex.method}' not found for arguments: ${ex.arguments.collect { "${it} (${it.class.name})"}.join(',') }")
+            }
         }
 
         script.setDelegate(delegate)
@@ -42,6 +50,8 @@ class ScmDescriptor {
 
         return delegate.properties
     }
+
+
 
     static class MainDescriptor {
 
@@ -76,11 +86,7 @@ class ScmDescriptor {
             assert hooksClosure
 
             // Make sure we're calling only safe properties
-            def safeProperties = [:]
-            safeProperties << this.properties
-            safeProperties.remove("hooks")
-            safeProperties.remove("ask")
-            safeProperties.remove("class")
+            Map safeProperties = whitelistProperties()
 
             if (parametersFile && parametersFile.exists()) {
                 Map parameters = new JsonSlurper().parseText(parametersFile.text) as Map
@@ -106,19 +112,30 @@ class ScmDescriptor {
             assert askClosure
 
             // Make sure we're calling only safe properties
-            def safeProperties = [:]
-            safeProperties << this.properties
-            safeProperties.remove("hooks")
-            safeProperties.remove("class")
+            Map safeProperties = whitelistProperties()
 
             // Bind missing properties with our main ones
             ask.metaClass.propertyMissing = { String propertyName ->
-                safeProperties[propertyName]
+                if (safeProperties[propertyName])
+                    return safeProperties[propertyName]
+
+                throw new Exception("Scm property '${propertyName}' not found")
             }
 
             askClosure.resolveStrategy = Closure.DELEGATE_ONLY
             askClosure.delegate = ask
             askClosure()
+        }
+
+        private Map whitelistProperties() {
+            def safeProperties = [:]
+            safeProperties << this.properties
+
+            safeProperties.remove("hooks")
+            safeProperties.remove("ask")
+            safeProperties.remove("class")
+
+            return safeProperties
         }
     }
 

@@ -91,6 +91,8 @@ class Routing {
                     run: [
                         default: "/run",
                         search: "/run",
+                        owners: "/run/owners",
+                        names: "/run/names",
                         selected: "/run/selected",
                         stageAll: "/run/stageAll",
                         unstageAll: "/run/unstageAll",
@@ -113,6 +115,16 @@ class Routing {
         get("/run", { req, res ->
             return JsonOutput.toJson(run.nodesToMap())
         })
+
+        get("/run/owners", { req, res ->
+            return JsonOutput.toJson(run.owners)
+        })
+
+        get("/run/names", { req, res ->
+            return JsonOutput.toJson(run.names)
+        })
+
+
 
         post("/run", { req, res ->
 

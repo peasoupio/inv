@@ -67,9 +67,41 @@ Vue.component('choose-select', {
     <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
         <thead>
         <tr class="field">
-            <th>Selected</th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
+            <th style="width: 5%">Selected</th>
+            <th style="width: 20%">
+            <div class="dropdown" v-bind:class="{ 'is-active': filterOwners().length > 0 }" style="width: 100%">
+                <div class="dropdown-trigger" style="width: 100%">
+                    <div class="field">
+                        <p class="control is-expanded has-icons-right">
+                            <input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)">
+                            <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <a v-for="owner in filterOwners().slice(0,5)" @click="selectOwnerFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
+                    </div>
+                </div>
+            </div>
+            </th>
+            <th style="width: 15%">
+            <div class="dropdown" v-bind:class="{ 'is-active': filterNames().length > 0 }" style="width: 100%">
+                <div class="dropdown-trigger" style="width: 100%">
+                    <div class="field">
+                        <p class="control is-expanded has-icons-right">
+                            <input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)">
+                            <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        <a v-for="owner in filterNames().slice(0,5)" @click="selectNameFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
+                    </div>
+                </div>
+            </div>
+            </th>
             <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
             <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
         </tr>
@@ -98,9 +130,9 @@ Vue.component('choose-select', {
                 <table class="table is-fullwidth is-bordered">
                     <thead>
                     <tr class="field">
-                        <th>Name</th>
+                        <th style="width: 30%">Name</th>
                         <th>Source</th>
-                        <th>Entry</th>
+                        <th style="width: 20%">Entry</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -119,6 +151,8 @@ Vue.component('choose-select', {
     props: ['value'],
     data: function() {
         return {
+            owners: [],
+            names: [],
             viewScm: null,
             filters: {
                 from: 0,
@@ -176,6 +210,65 @@ Vue.component('choose-select', {
             this.filters[option] = !this.filters[option]
             this.searchNodes(true)
         },
+
+        filterOwners: function() {
+            var vm = this
+
+            if (vm.owners.length == 0)
+                return []
+
+            if (vm.filters.owner == '')
+                return []
+
+            var filtered = []
+
+            vm.owners.filter(function(owner) {
+                if (vm.filters.owner && owner.indexOf(vm.filters.owner) < 0) return
+
+                filtered.push(owner)
+            })
+
+            if (filtered.length == 1)
+                return []
+
+            return filtered
+        },
+        selectOwnerFilterRecommendation: function(owner) {
+            var vm = this
+
+            vm.filters.owner = owner
+            vm.searchNodes(true)
+        },
+
+        filterNames: function() {
+            var vm = this
+
+            if (vm.names.length == 0)
+                return []
+
+            if (vm.filters.name == '')
+                return []
+
+            var filtered = []
+
+            vm.names.filter(function(name) {
+                if (vm.filters.name && name.indexOf(vm.filters.name) < 0) return
+
+                filtered.push(name)
+            })
+
+            if (filtered.length == 1)
+                return []
+
+            return filtered
+        },
+        selectNameFilterRecommendation: function(name) {
+            var vm = this
+
+            vm.filters.name = name
+            vm.searchNodes(true)
+        },
+
         setStageAll: function(stage) {
             var vm = this
 
@@ -213,13 +306,27 @@ Vue.component('choose-select', {
         showScm: function(inv) {
             var vm = this
 
-            axios.get(inv.links.view).then(response => {
+            axios.get(inv.links.viewScm).then(response => {
                 vm.viewScm = response.data
             })
         },
         close: function() {
             this.viewScm = null
         }
+    },
+    created: function() {
+        var vm = this
+
+        axios.get(vm.value.api.links.run.names).then(response => {
+            vm.names = response.data
+            vm.names.sort()
+        })
+
+        axios.get(vm.value.api.links.run.owners).then(response => {
+            vm.owners = response.data
+            vm.owners.sort()
+        })
+
     }
 })
 
@@ -233,12 +340,11 @@ Vue.component('choose-summary', {
     <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
-            <th>Brought by</th>
-            <th><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
+            <th style="width: 8%">Brought by</th>
+            <th style="width: 20%"><input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)"></th>
+            <th style="width: 15%"><input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)"></th>
             <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
             <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
-            <th>Options</th>
         </tr>
         </thead>
         <tbody>
@@ -249,7 +355,6 @@ Vue.component('choose-summary', {
             <td>{{inv.name}}</td>
             <td>{{inv.id}}</td>
             <td>{{inv.scm}}</td>
-            <td></td>
         </tr>
         </tbody>
     </table>
@@ -275,9 +380,9 @@ Vue.component('choose-summary', {
                 <table class="table is-narrow is-fullwidth">
                     <thead>
                     <tr class="field">
-                        <th>Level</th>
-                        <th><input class="input" type="text" v-model="requiredByFilters.owner" placeholder="Owner"></th>
-                        <th><input class="input" type="text" v-model="requiredByFilters.name" placeholder="Name"></th>
+                        <th style="width: 5%">Level</th>
+                        <th style="width: 30%"><input class="input" type="text" v-model="requiredByFilters.owner" placeholder="Owner"></th>
+                        <th style="width: 15%"><input class="input" type="text" v-model="requiredByFilters.name" placeholder="Name"></th>
                         <th><input class="input" type="text" v-model="requiredByFilters.id" placeholder="ID"></th>
                     </tr>
                     </thead>

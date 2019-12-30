@@ -18,6 +18,9 @@ class RunFile {
     final Map<String, Selected> selected = [:]
     final List<GraphNavigator.Linkable> nodes = []
 
+    final Set<String> owners = new HashSet<>()
+    final Set<String> names = new HashSet<>()
+
     RunFile(File runFile) {
         assert runFile
         assert runFile.exists()
@@ -29,6 +32,12 @@ class RunFile {
         invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
 
         nodes = (runGraph.g.vertexSet() as List<GraphNavigator.Linkable>).findAll { it.isId() }
+
+        nodes.each {
+            def node = runGraph.navigator.nodes[it.value]
+            owners.add(node.owner)
+            names.add(it.value.split(' ')[0].replace('[', '').replace(']', ''))
+        }
     }
 
     synchronized void stage(String id) {
@@ -180,7 +189,7 @@ class RunFile {
                         id: it.subId,
                         scm: scm,
                         links: [
-                            scm: "/scm/view?name=${scm}",
+                            viewScm: "/scm/view?name=${scm}",
                             requiredBy: "/run/requiredBy?id=${value}",
                             stage: "/run/stage?id=${value}",
                             unstage: "/run/unstage?id=${value}"

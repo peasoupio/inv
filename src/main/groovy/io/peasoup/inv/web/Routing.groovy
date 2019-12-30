@@ -22,14 +22,12 @@ class Routing {
     Routing(Map args) {
 
         def configs = [
-            webLocation: "../web",
             runLocation: "../runs",
             scmsLocation: "../scms",
             parametersLocation: "../parameters",
             port: 8080
         ] + args
 
-        webLocation = configs.webLocation
         runLocation = configs.runLocation
         scmsLocation = configs.scmsLocation
         parametersLocation = configs.parametersLocation
@@ -38,7 +36,7 @@ class Routing {
         port(configs.port)
 
         // Static files
-        staticFiles.externalLocation(webLocation)
+        staticFiles.location("/public")
 
         // Exception handling
         exception(Exception.class, { e, request, response ->

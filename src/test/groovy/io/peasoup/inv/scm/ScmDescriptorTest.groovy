@@ -1,8 +1,10 @@
 package io.peasoup.inv.scm
 
+import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Test
 
 import static junit.framework.Assert.assertEquals
+import static org.junit.jupiter.api.Assertions.assertThrows
 
 class ScmDescriptorTest  {
 
@@ -22,4 +24,102 @@ class ScmDescriptorTest  {
         assert scmDescriptor.scms()["my-repository"].hooks.init.contains("mkdir my-repository")
         assert scmDescriptor.scms()["my-repository"].hooks.update.contains("echo 'update'")
     }
+
+    @Test
+    void invalid_path() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    path 1
 }
+""")))
+
+        assertThrows(Exception.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_src() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    src 1
+}
+""")))
+
+        assertThrows(Exception.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_entry() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    entry 1
+}
+""")))
+
+        assertThrows(Exception.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_timeout() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    timeout "0"
+}
+""")))
+
+        assertThrows(Exception.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_hooks() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    hooks null
+}
+""")))
+
+        assertThrows(PowerAssertionError.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_ask() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    ask null
+}
+    """)))
+
+        assertThrows(PowerAssertionError.class, {
+            scmDescriptor.scms()
+        })
+    }
+
+    @Test
+    void invalid_ask_2() {
+        def scmDescriptor = new ScmDescriptor(new BufferedReader(new StringReader("""
+'test' {
+    ask {
+        def test = hooks
+    }
+}
+    """)))
+
+        assertThrows(Exception.class, {
+            scmDescriptor.scms()
+        })
+    }
+}
+
+
+
+
+

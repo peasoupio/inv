@@ -22,6 +22,13 @@ class RunGraphTest {
         assert runGraph.g.containsVertex(new GraphNavigator.Owner(value: "appA"))
         assert runGraph.g.containsVertex(new GraphNavigator.Owner(value: "appB"))
 
+        assert runGraph.files.size() == 6
+        assert runGraph.files.any {it.scm == "scm1"}
+        assert runGraph.files.any {it.scm == "scm2"}
+        assert runGraph.files.any {it.scm == "scm3"}
+        assert runGraph.files.any {it.scm == "scm4"}
+        assert runGraph.files.any {it.scm == "scm5"}
+        assert runGraph.files.any {it.scm == "scm6"}
 
         assert runGraph.toPlainList()
         assert runGraph.toDotGraph()

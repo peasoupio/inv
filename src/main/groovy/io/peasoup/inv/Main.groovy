@@ -179,7 +179,11 @@ Options:
     }
 
     int web() {
-        return new Routing().map()
+        return new Routing(
+                runLocation: System.getenv('INV_RUN'),
+                scmsLocation: System.getenv('INV_SCMS'),
+                parametersLocation: System.getenv('INV_PARAMETERS'))
+                .map()
     }
 
     int executeScript(List<String> args, String exclude) {

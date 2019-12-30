@@ -17,12 +17,15 @@ class ScmFileCollection {
         def files = scmFolder.listFiles()
 
         ProgressBar pb = new ProgressBar("Reading scm files", files.size())
-        files.each {
-            pb.step()
 
-            load(it)
+        try {
+            files.each {
+                load(it)
+                pb.step()
+            }
+        } finally {
+            pb.close()
         }
-        pb.close()
     }
 
     void load(File file) {

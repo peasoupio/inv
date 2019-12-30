@@ -9,31 +9,36 @@ import static spark.Spark.*
 
 class Routing {
 
-    final String WEB = "../web"
-    final String RUN = System.getenv('INV_RUN') ?: "../runs"
-    final String SCMS = System.getenv('INV_SCMS') ?: "../scms"
-    final String PARAMETERS = System.getenv('INV_PARAMETERS') ?: "../parameters"
+    private final String webLocation
+    private final String runLocation
+    private final String scmsLocation
+    private final String parametersLocation
 
-    final Settings settings
-    final RunFile run
-    final ScmFileCollection scms
-    final Execution exec
+    final private Settings settings
+    final private RunFile run
+    final private ScmFileCollection scms
+    final private Execution exec
 
-    static {
-        Map.metaClass.addNested = { Map rhs ->
-            def lhs = delegate
-            rhs.each { k, v -> lhs[k] = lhs[k] in Map ? lhs[k].addNested(v) : v }
-            lhs
-        }
-    }
+    Routing(Map args) {
 
-    Routing() {
+        def configs = [
+            webLocation: "../web",
+            runLocation: "../runs",
+            scmsLocation: "../scms",
+            parametersLocation: "../parameters",
+            port: 8080
+        ] + args
 
-        // Browser cnofigs
-        port(8080);
+        webLocation = configs.webLocation
+        runLocation = configs.runLocation
+        scmsLocation = configs.scmsLocation
+        parametersLocation = configs.parametersLocation
+
+        // Browser configs
+        port(configs.port)
 
         // Static files
-        staticFiles.externalLocation(WEB)
+        staticFiles.externalLocation(webLocation)
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
@@ -44,10 +49,10 @@ class Routing {
         })
 
         // Init
-        settings = new Settings(new File(RUN, "settings.json"))
-        run = new RunFile(new File(RUN, "run.txt"))
-        scms = new ScmFileCollection(new File(SCMS))
-        exec = new Execution(new File(SCMS), new File(PARAMETERS))
+        settings = new Settings(new File(runLocation, "settings.json"))
+        run = new RunFile(new File(runLocation, "run.txt"))
+        scms = new ScmFileCollection(new File(scmsLocation))
+        exec = new Execution(new File(scmsLocation), new File(parametersLocation))
 
 
         // Process SETTINGS
@@ -123,8 +128,6 @@ class Routing {
         get("/run/names", { req, res ->
             return JsonOutput.toJson(run.names)
         })
-
-
 
         post("/run", { req, res ->
 
@@ -236,7 +239,7 @@ class Routing {
                 if (!run.isSelected(it.descriptor.name))
                     return
 
-                output.scms << it.toMap([:], new File(PARAMETERS, it.simpleName() + ".properties"))
+                output.scms << it.toMap([:], new File(parametersLocation, it.simpleName() + ".json"))
             }
 
             return JsonOutput.toJson(output)
@@ -248,7 +251,7 @@ class Routing {
                 if (!run.isSelected(element.descriptor.name))
                     return
 
-                def parametersFile = new File(PARAMETERS, element.simpleName() + ".properties")
+                def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
                 element.descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
                     element.writeParameterDefaultValue(parametersFile, element, parameter)
@@ -265,7 +268,7 @@ class Routing {
                 if (!run.isSelected(element.descriptor.name))
                     return
 
-                def parametersFile = new File(PARAMETERS, element.simpleName() + ".properties")
+                def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
                 if (!parametersFile.exists())
                     return
@@ -290,7 +293,7 @@ class Routing {
             if (!element)
                 return "Oups"
 
-            def output = element.toMap([:], new File(PARAMETERS, element.simpleName() + ".properties"))
+            def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
 
             return JsonOutput.toJson(output)
         })
@@ -341,7 +344,7 @@ class Routing {
             if (payload)
                 parameterValue = new JsonSlurper().parseText(payload).parameterValue
 
-            def parametersFile = new File(PARAMETERS, element.simpleName() + ".properties")
+            def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
             element.writeParameterValue(parametersFile, element, parameter, parameterValue)
 

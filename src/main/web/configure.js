@@ -340,11 +340,11 @@ Vue.component('configure-scms', {
     <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
         <thead>
         <tr class="field">
-            <th><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
+            <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
             <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm(true)"></th>
             <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm(true)"></th>
-            <th>Timeout</th>
-            <th>Options</th>
+            <th style="width: 5%">Timeout</th>
+            <th style="width: 5%">Options</th>
         </tr>
         </thead>
         <tbody>

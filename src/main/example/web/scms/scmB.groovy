@@ -5,6 +5,10 @@
   entry 'iis.groovy'
   timeout 30000
 
+  ask {
+    parameter "branch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
+  }
+
   hooks {
 
     init """
@@ -23,6 +27,10 @@ echo 'update'
   src "https://github.com/.../kubernetes.git"
   entry 'kubernetes.groovy'
   timeout 30000
+
+  ask {
+    parameter "branch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
+  }
 
   hooks {
 

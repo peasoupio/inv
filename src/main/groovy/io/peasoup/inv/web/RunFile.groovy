@@ -93,7 +93,14 @@ class RunFile {
         while(!checkRequiresByAllList.isEmpty()) {
             def chosen = checkRequiresByAllList.pop()
 
-            for(GraphNavigator.Linkable link : runGraph.navigator.requiresAll(chosen.value.link as GraphNavigator.Linkable).keySet()) {
+            def links = runGraph.navigator.requiresAll(chosen.value.link as GraphNavigator.Linkable)
+
+            if (!links) {
+                println "${chosen.value.link.value} is not a valid id"
+                continue
+            }
+
+            for(GraphNavigator.Linkable link : links.keySet()) {
 
                 if (selected.containsKey(link.value)) {
                     // If already selected, remove from queue
@@ -189,7 +196,7 @@ class RunFile {
                         id: it.subId,
                         scm: scm,
                         links: [
-                            viewScm: "/scm/view?name=${scm}",
+                            viewScm: "/scms/view?name=${scm}",
                             requiredBy: "/run/requiredBy?id=${value}",
                             stage: "/run/stage?id=${value}",
                             unstage: "/run/unstage?id=${value}"
@@ -215,9 +222,6 @@ class RunFile {
                     continue
 
                 String value = link.value
-
-                if (!selected.containsKey(value))
-                    continue
 
                 def node = runGraph.navigator.nodes[value]
 

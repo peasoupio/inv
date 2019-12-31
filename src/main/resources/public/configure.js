@@ -478,7 +478,7 @@ Vue.component('configure-scms', {
 
             var filtered = []
 
-            vm.value.scms.registry.forEach(function(scm) {
+            vm.value.scms.descriptors.forEach(function(scm) {
                 filtered.push(scm)
             })
 
@@ -495,20 +495,13 @@ Vue.component('configure-scms', {
             })
         },
         getRelativeTimestamp: function(scm) {
-            var vm = this
 
-            if (vm.value.scms.scripts[scm.source] == undefined)
-                return "undefined"
-
-            var lastEdit = vm.value.scms.scripts[scm.source].lastEdit
-            return TimeAgo.inWords(lastEdit)
+            return TimeAgo.inWords(scm.script.lastEdit)
         },
         openEdit: function(scm) {
             var vm = this
 
-
-
-            vm.codeMirror.setValue(vm.value.scms.scripts[scm.source].text)
+            vm.codeMirror.setValue(scm.script.text)
             vm.codeMirror.refresh()
 
             vm.codeMirror.on("change",function(cm,change){
@@ -540,11 +533,6 @@ Vue.component('configure-scms', {
                 vm.sending = false
                 vm.saved = true
                 vm.edited = false
-
-                var data = response.data
-                var registry = vm.value.scms.registry
-
-                vm.value.scms.scripts[vm.editScript.source].text = content
 
                 vm.searchScm()
             })

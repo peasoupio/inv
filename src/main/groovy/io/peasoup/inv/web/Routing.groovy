@@ -146,6 +146,8 @@ class Routing {
             if (body)
                 filter = new JsonSlurper().parseText(body)
 
+            filter.selected = true
+
             return JsonOutput.toJson(run.nodesToMap(filter,  filter.from ?: 0, filter.step ?: settings.filters().defaultStep))
         })
 
@@ -227,22 +229,6 @@ class Routing {
             return JsonOutput.toJson(scms.toMap(filter, from, to))
         })
 
-        get("/scms/selected", { req, res ->
-
-            Map output = [
-                    scms: []
-            ]
-
-            scms.elements.values().each {
-                if (!run.isSelected(it.descriptor.name))
-                    return
-
-                output.scms << it.toMap([:], new File(parametersLocation, it.simpleName() + ".json"))
-            }
-
-            return JsonOutput.toJson(output)
-        })
-
         post("/scms/applyDefaultAll", { req, res ->
             scms.elements.values().each { ScmFile.SourceFileElement element ->
 
@@ -281,7 +267,7 @@ class Routing {
 
     void scmsSpecific() {
 
-        get("/scm/view", { req, res ->
+        get("/scms/view", { req, res ->
 
             def name = req.queryParams("name")
             assert name
@@ -303,11 +289,10 @@ class Routing {
 
             def element = scms.elements[name]
 
-            def sourceFile = new File(SCMS, element.script)
-            sourceFile.delete()
-            sourceFile << req.body()
+            element.script.delete()
+            element.script << req.body()
 
-            scms.load(sourceFile)
+            scms.load(element.script)
 
             return "Ok"
         })
@@ -344,7 +329,7 @@ class Routing {
 
             def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
-            element.writeParameterValue(parametersFile, element, parameter, parameterValue)
+            element.writeParameterValue(parametersFile, element, parameter, parameterValue.toString())
 
             return "ok"
         })

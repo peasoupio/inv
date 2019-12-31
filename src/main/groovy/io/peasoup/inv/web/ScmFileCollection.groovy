@@ -50,14 +50,11 @@ class ScmFileCollection {
     }
 
     Map toMap(Map filter = [:], Integer from = 0, Integer to = 0) {
-        // Prepare output object
 
-        List<Map> registry = []
-        Map<String, Map> scripts = [:]
+        List<Map> filtered = []
 
         Map output = [
-                scripts : scripts,
-                registry: registry,
+                descriptors: filtered,
                 total: scms.sum { it.elements.size() },
                 links: [
                         search: "/scms",
@@ -65,26 +62,17 @@ class ScmFileCollection {
                 ]
         ]
 
-        // Process complex search
-        scms.each {
+        elements.values().each {
+            def element = it.toMap(filter)
 
-            scripts[it.sourceFile.name] = [
-                    text    : it.text,
-                    lastEdit: it.lastEdit
-            ]
+            if (!element)
+                return
 
-            it.elements.values().each {
-                def element = it.toMap(filter)
-
-                if (!element)
-                    return
-
-                registry.add(element)
-            }
+            filtered.add(element)
         }
 
-        if (registry.size() > from + to)
-            output.registry = registry[from..(from + to - 1)]
+        if (filtered.size() > from + to)
+            output.descriptors = filtered[from..(from + to - 1)]
 
         return output
     }

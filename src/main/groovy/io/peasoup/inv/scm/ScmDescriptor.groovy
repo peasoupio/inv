@@ -153,6 +153,7 @@ class ScmDescriptor {
 
         List<AskParameter> parameters = []
 
+        // TODO Maybe parameters should be gathered within a map, it could be clearer ?
         def parameter(String name, String usage, String defaultValue = "", def values = null, String filter = null) {
 
             assert name
@@ -175,6 +176,6 @@ class ScmDescriptor {
         String defaultValue
         String commandValues
         List<String> staticValues
-        String filter
+        String filter // TODO Should filter also accepts a closure ?
     }
 }

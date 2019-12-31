@@ -6,8 +6,6 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmDescriptor.AskParameter
 
-import java.util.regex.Matcher
-
 @CompileStatic
 class ScmFile {
 
@@ -29,7 +27,7 @@ class ScmFile {
         scmDescriptor.scms().each { String name, ScmDescriptor.MainDescriptor desc ->
             def element = new ScmFile.SourceFileElement(
                 descriptor: desc,
-                script: file.name
+                script: file
             )
 
             elements[name] = element
@@ -38,10 +36,10 @@ class ScmFile {
 
     static class SourceFileElement {
         ScmDescriptor.MainDescriptor descriptor
-        String script
+        File script
 
         String simpleName() {
-            return script.split('\\.')[0]
+            return script.name.split('\\.')[0]
         }
 
         Map toMap(Map filter = [:], File parametersFile = null) {
@@ -93,7 +91,11 @@ class ScmFile {
 
             return [
                     name      : descriptor.name,
-                    source    : script,
+                    script: [
+                        source    : simpleName(),
+                        text      : script.text,
+                        lastEdit  : script.lastModified()
+                    ],
                     parameters: parameters,
                     lastModified: lastModified,
                     saved: saved,
@@ -107,7 +109,7 @@ class ScmFile {
                             timeout      : descriptor.timeout
                     ],
                     links     : [
-                            view       : "/scm/view?name=${descriptor.name}",
+                            view       : "/scms/view?name=${descriptor.name}",
                             save      : "/scms/source?name=${descriptor.name}",
                             parameters: "/scms/parametersValues?name=${descriptor.name}"
                     ]
@@ -165,8 +167,15 @@ class ScmFile {
 
                     if (parameter.filter) {
                         def matches = stdout =~ parameter.filter
-                        matches.each { Matcher match ->
-                            values.add(match[1] as String)
+
+                        matches.each { match ->
+                            if (match instanceof String) {
+                                values.add(match.toString())
+                            }
+
+                            if (match instanceof ArrayList) {
+                                values.add((match as ArrayList<String>)[1].toString())
+                            }
                         }
                     } else {
                         values = stdout.split() as List<String>

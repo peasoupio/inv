@@ -197,7 +197,7 @@ Vue.component('configure-parameters', {
 
             var filtered = []
 
-            vm.value.selectedScms.filter(function(scm) {
+            vm.value.selectedScms.forEach(function(scm) {
                 if (scm.completed && vm.filters.hideWhenCompleted) return
 
                 filtered.push(scm)
@@ -211,8 +211,8 @@ Vue.component('configure-parameters', {
         searchSelectedScm: function() {
             var vm = this
 
-            axios.get(vm.value.scms.links.selected).then(response => {
-                vm.value.selectedScms = response.data.scms
+            axios.get(vm.value.api.links.scms.selected).then(response => {
+                vm.value.selectedScms = response.data.descriptors
                 vm.value.selectedScms.sort(compareValues('name'))
             })
         },
@@ -490,12 +490,11 @@ Vue.component('configure-scms', {
             if (fromFilter)
                 vm.filters.from = 0
 
-            axios.post(vm.value.api.links.scms.default, vm.filters).then(response => {
+            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
                 vm.value.scms = response.data
             })
         },
         getRelativeTimestamp: function(scm) {
-
             return TimeAgo.inWords(scm.script.lastEdit)
         },
         openEdit: function(scm) {

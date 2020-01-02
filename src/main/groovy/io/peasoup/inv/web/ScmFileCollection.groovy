@@ -55,11 +55,7 @@ class ScmFileCollection {
 
         Map output = [
                 descriptors: filtered,
-                total: scms.sum { it.elements.size() },
-                links: [
-                        search: "/scms",
-                        selected: "/scms/selected"
-                ]
+                total: scms.sum { it.elements.size() }
         ]
 
         elements.values().each {

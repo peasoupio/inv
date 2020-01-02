@@ -13,6 +13,7 @@ class Routing {
     private final String runLocation
     private final String scmsLocation
     private final String parametersLocation
+    private final String executionsLocation
 
     final private Settings settings
     final private RunFile run
@@ -21,22 +22,26 @@ class Routing {
 
     Routing(Map args) {
 
-        def configs = [
-            runLocation: "../runs",
-            scmsLocation: "../scms",
-            parametersLocation: "../parameters",
+         def configs = [
             port: 8080
         ] + args
 
-        runLocation = configs.runLocation
-        scmsLocation = configs.scmsLocation
-        parametersLocation = configs.parametersLocation
+        assert configs.workspace
+
+        runLocation = configs.workspace
+        scmsLocation = configs.workspace + "/scms"
+        parametersLocation = configs.workspace + "/parameters"
+        executionsLocation = configs.workspace + "/executions"
 
         // Browser configs
         port(configs.port)
 
         // Static files
-        staticFiles.location("/public")
+        def localWeb = System.getenv()["INV_LOCAL_WEB"]
+        if (localWeb)
+            staticFiles.externalLocation(localWeb)
+        else
+            staticFiles.location("/public")
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
@@ -50,7 +55,7 @@ class Routing {
         settings = new Settings(new File(runLocation, "settings.json"))
         run = new RunFile(new File(runLocation, "run.txt"))
         scms = new ScmFileCollection(new File(scmsLocation))
-        exec = new Execution(new File(scmsLocation), new File(parametersLocation))
+        exec = new Execution(new File(executionsLocation), new File(scmsLocation), new File(parametersLocation))
 
 
         // Process SETTINGS
@@ -81,6 +86,8 @@ class Routing {
 
         execution()
 
+        review()
+
         return 0
     }
 
@@ -102,11 +109,16 @@ class Routing {
                     ],
                     scms: [
                         default: "/scms",
+                        search: "/scms",
+                        selected: "/scms/selected",
                         applyDefaultAll: "/scms/applyDefaultAll",
                         resetAll: "/scms/resetAll"
                     ],
                     execution: [
                         default: "/execution"
+                    ],
+                    review: [
+                        default: "/review"
                     ]
                 ]
             ])
@@ -227,6 +239,22 @@ class Routing {
             Integer to = filter.to ?: settings.filters().defaultStep
 
             return JsonOutput.toJson(scms.toMap(filter, from, to))
+        })
+
+        get("/scms/selected", { req, res ->
+
+            Map output = [
+                    descriptors: []
+            ]
+
+            scms.elements.values().each {
+                if (!run.isSelected(it.descriptor.name))
+                    return
+
+                output.descriptors << it.toMap([:], new File(parametersLocation, it.simpleName() + ".json"))
+            }
+
+            return JsonOutput.toJson(output)
         })
 
         post("/scms/applyDefaultAll", { req, res ->
@@ -358,7 +386,7 @@ class Routing {
                     .findAll { it.link.isOwner() }
                     .collect { run.invOfScm[it.link.value]}
                     .unique()
-                    .collect { new File(SCMS, scms.elements[it].script) }
+                    .collect { scms.elements[it].script }
 
             exec.start(scmFiles)
 
@@ -372,6 +400,18 @@ class Routing {
             exec.stop()
 
             return "Stopped"
+        })
+    }
+
+    void review() {
+        get("/review", { req, res ->
+
+            if (!exec.latestLog().exists())
+                return "Oups"
+
+            def review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
+
+            return JsonOutput.toJson(review.toMap())
         })
     }
 

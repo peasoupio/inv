@@ -7,24 +7,58 @@ import io.peasoup.inv.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmReader
 
+import java.nio.file.Files
+
 @CompileStatic
 class Execution {
 
+    private static Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
+    private static Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
+
+    private final File executionsLocation
     private final File scmFolder
     private final File externalParametersFolder
 
     private Thread runningThread =  null
     private List<List<String>> messages = []
+    private File executionLog
 
-    Execution(File scmFolder, File externalParametersFolder) {
+    Execution(File executionsLocation, File scmFolder, File externalParametersFolder) {
+        assert executionsLocation
+        if (!executionsLocation.exists())
+            executionsLocation.mkdir()
+
         assert scmFolder
-        assert scmFolder.exists()
+        if (!scmFolder.exists())
+            scmFolder.mkdir()
 
         assert externalParametersFolder
-        assert externalParametersFolder.exists()
+        if (!externalParametersFolder.exists())
+            externalParametersFolder.mkdir()
 
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
+        this.executionsLocation = executionsLocation
+
+        executionLog = new File(executionsLocation, "execution.log")
+
+        if (executionLog.exists()) {
+            def currentBatch = []
+
+            executionLog.eachLine {
+                if (currentBatch.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
+                    messages << currentBatch.collect()
+                    currentBatch.clear()
+                }
+
+                currentBatch << it
+            }
+            messages << currentBatch.collect()
+        }
+    }
+
+    File latestLog() {
+        return executionLog
     }
 
     boolean isRunning() {
@@ -35,6 +69,9 @@ class Execution {
 
         if (isRunning())
             return
+
+        if (executionLog.exists())
+            Files.move(executionLog.toPath(), new File(executionsLocation, "execution.log." + executionLog.lastModified()).toPath())
 
         messages.clear()
         List<String> currentChunkOfMessages = [].asSynchronized()
@@ -50,7 +87,7 @@ class Execution {
             scms.each { scmFile ->
                 def invFiles = new ScmReader(
                         scmFile,
-                        new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".properties")
+                        new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json")
                 ).execute()
 
 
@@ -80,26 +117,58 @@ class Execution {
 
             Logger.info("[SCM] done")
 
+            // Do the actual sequencing work
             inv()
 
-            messages << currentChunkOfMessages
+            sendMessages(currentChunkOfMessages, false)
+
+            List<List<String>> reorganizedMessages = []
+            reorganizedMessages << []
+
+            messages.each {
+                def last = reorganizedMessages.last()
+
+                if (last.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
+                    reorganizedMessages << []
+                    last = reorganizedMessages.last()
+                }
+
+                last.addAll(it)
+            }
+
+            messages = reorganizedMessages
         }
     }
 
     void stop() {
-
+        if (isRunning())
+            runningThread.interrupt()
     }
 
-    private void sendMessages(List<String> currentMessages) {
-        if (currentMessages.size() < 50)
+    private void sendMessages(List<String> currentMessages, boolean validateSize = true) {
+        if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
             return
 
-        messages << currentMessages.collect()
-        currentMessages.clear()
+        synchronized (messages) {
+
+            // Double lock-checking
+            if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
+                return
+
+
+            currentMessages.each {
+                executionLog << it + System.lineSeparator()
+            }
+
+            messages << currentMessages.collect()
+            currentMessages.clear()
+        }
     }
 
     Map toMap() {
         return [
+            lastExecution: executionLog.lastModified(),
+            executions: executionsLocation.listFiles().collect { it.lastModified() },
             running: isRunning(),
             links: [
                 steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },

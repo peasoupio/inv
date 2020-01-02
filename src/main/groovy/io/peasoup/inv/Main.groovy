@@ -179,10 +179,7 @@ Options:
     }
 
     int web() {
-        return new Routing(
-                runLocation: System.getenv('INV_RUN'),
-                scmsLocation: System.getenv('INV_SCMS'),
-                parametersLocation: System.getenv('INV_PARAMETERS'))
+        return new Routing(workspace: invHome.absolutePath)
                 .map()
     }
 

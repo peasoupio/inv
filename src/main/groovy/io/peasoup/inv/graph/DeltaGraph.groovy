@@ -6,41 +6,56 @@ class DeltaGraph {
 
     final private static lf = System.properties['line.separator']
 
-    Map<GraphNavigator.Linkable, String> deltaStates = [:]
-
+    final List<DeltaLine> deltaLines = []
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
 
         def baseGraph = new RunGraph(base)
         def otherGraph = new RunGraph(other)
 
+        Map<String, Integer> baseIndexes = baseGraph.navigator.nodes.keySet().withIndex().collectEntries()
+        Map<String, Integer> otherIndexes = otherGraph.navigator.nodes.keySet().withIndex().collectEntries()
+
         for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
+
+            if (link.isOwner())
+                continue
+
+            Integer index = baseIndexes[link.value]
+            String owner = baseGraph.navigator.nodes[link.value].owner
+
             if (otherGraph.g.containsVertex(link)) {
-                deltaStates.put(link, '=')
+                deltaLines << new DeltaLine(index: index, state: '=', link: link, owner: owner)
             } else {
-                deltaStates.put(link, '-')
+                deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: owner)
             }
         }
 
-        for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
+        for(GraphNavigator.Linkable link : otherGraph.g.vertexSet()) {
+
+            if (link.isOwner())
+                continue
+
             if (!baseGraph.g.containsVertex(link)) {
-                deltaStates.put(link, '+')
+                Integer index = otherIndexes[link.value]
+                String owner = otherGraph.navigator.nodes[link.value].owner
+
+                deltaLines << new DeltaLine(index: index, state: '+', link: link, owner: owner)
             }
         }
     }
 
     String echo() {
         // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
-        return """    
-${
+        return """${
     // Shared nodes and edges
-    deltaStates
-        .collect { GraphNavigator.Linkable link, String state ->
-            "${state} ${link.value}"
+    deltaLines
+        .sort { it.index }
+        .collect { DeltaLine line ->
+            "${line.state} ${line.link.value}"
         }
         .join(lf)
-}
-"""
+}"""
 
     }
 
@@ -64,5 +79,14 @@ ${
         ])
 
         return "Report generated at: ${htmlOutput.canonicalPath}"
+    }
+
+    static private class DeltaLine {
+
+        Integer index
+        String state
+        GraphNavigator.Linkable link
+        String owner
+
     }
 }

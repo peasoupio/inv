@@ -44,9 +44,7 @@ class RoutingTest {
 
         new Routing(
             port: port,
-            runLocation: base,
-            scmsLocation: base + "scms",
-            parametersLocation: base + "parameters"
+            workspace: base
         ).map()
     }
 
@@ -165,6 +163,30 @@ class RoutingTest {
         assert json.total == 7
         assert json.descriptors.size() == 1
         assert json.descriptors.any { it.name == "scm1"}
+    }
+
+    @Test
+    void scms_selected() {
+
+        def responseBeforeStage = get("scms/selected")
+        assert responseBeforeStage
+
+        def jsonBeforeStage = new JsonSlurper().parseText(responseBeforeStage)
+
+        assert jsonBeforeStage
+        assert jsonBeforeStage.descriptors.size() == 0
+
+        post("run/stage?id=[Kubernetes]%20undefined")
+
+        def responseAfterStage = get("scms/selected")
+        assert responseAfterStage
+
+        def jsonAfterStage = new JsonSlurper().parseText(responseAfterStage)
+
+        assert jsonAfterStage
+        assert jsonAfterStage.descriptors.size() > 0
+
+        post("run/unstage?id=[Kubernetes]%20undefined")
     }
 
     @Test

@@ -3,16 +3,23 @@ Vue.component('install', {
 <div>
     <p class="title is-1">Install: </p>
 
-    <div>
-        <span>Ready to run ? </span>
-        <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">Ready</button>
+
+    <div class="field is-grouped is-grouped-right">
+        <div class="field">
+            <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
+                Execute
+            </button>
+        </div>
     </div>
+
+    <hr />
 
     <p class="title is-5">
         Output
         <span class="icon is-small" v-if="loadingMessages">
             <i class="fas fa-spinner fa-pulse"></i>
         </span>
+        <p class="subtitle is-6" v-if="!execution.running">Last execution: {{getRelativeTimestamp()}}</p>
     </p>
     <div style="overflow-y: scroll; height: 600px; width: 100%" ref="logContainer">
         <pre style="padding: 0; white-space: pre-wrap" v-for="(message, index) in messages">{{message}}</pre>
@@ -43,13 +50,11 @@ Vue.component('install', {
 
             axios.post(vm.execution.links.start)
         },
-
         stop: function() {
             var vm = this
 
             axios.post(execution.links.stop)
         },
-
         refresh: function() {
             var vm = this
 
@@ -72,6 +77,11 @@ Vue.component('install', {
                 if (vm.lastIndex == vm.execution.links.steps.length)
                     return
 
+                if (vm.lastIndex > vm.execution.links.steps.length) {
+                    vm.lastIndex = 0
+                    vm.messages = []
+                }
+
                 axios.get(vm.execution.links.steps[vm.lastIndex]).then(response => {
 
                     vm.lastIndex++
@@ -81,7 +91,10 @@ Vue.component('install', {
                     })
                 })
             })
-        }
+        },
+        getRelativeTimestamp: function() {
+            return TimeAgo.inWords(this.execution.lastExecution)
+        },
     },
     created: function() {
 

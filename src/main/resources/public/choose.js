@@ -222,7 +222,7 @@ Vue.component('choose-select', {
 
             var filtered = []
 
-            vm.owners.filter(function(owner) {
+            vm.owners.forEach(function(owner) {
                 if (vm.filters.owner && owner.indexOf(vm.filters.owner) < 0) return
 
                 filtered.push(owner)
@@ -251,7 +251,7 @@ Vue.component('choose-select', {
 
             var filtered = []
 
-            vm.names.filter(function(name) {
+            vm.names.forEach(function(name) {
                 if (vm.filters.name && name.indexOf(vm.filters.name) < 0) return
 
                 filtered.push(name)

@@ -1,154 +1,123 @@
 package io.peasoup.inv
 
 
-import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.docopt.Docopt
+import org.docopt.DocoptExitException
 
 class Main extends Script {
+
+
+    String usage = """Inv.
+
+Usage:
+  inv load [-x] [-e <label>] <pattern>...
+  inv scm [-x] <scmFile>
+  inv delta <base> <other>
+  inv graph (plain|dot) <base>
+  inv web [-x]
+  
+Options:
+  load         Load and execute INV files.
+  scm          Load and execute a SCM file.
+  delta        Generate delta between two run files.
+  graph        Generate a graph representation.
+  web          Start the web interface.
+  -x --debug   Debug out. Excellent for troubleshooting.
+  -e --exclude Exclude files from loading.
+  -h --help    Show this screen.
+  
+Parameters:
+  <label>      Label not to be included in the loaded file path
+  <pattern>    An Ant-compatible file pattern
+               (p.e *.groovy, ./**/*.groovy, ...)
+               Also, it is expandable using a space-separator
+               (p.e myfile1.groovy myfile2.groovy)
+  <scmFile>    The SCM file location
+  <base>       Base file location
+  <other>      Other file location
+  plain        No specific output structure
+  dot          Graph Description Language (DOT) output structure 
+"""
 
     File invHome = new File(System.getenv('INV_HOME') ?: "./")
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
-        def commandsCli = new CliBuilder(usage:'''inv [options] <file>|<pattern>...
-Options: 
- <pattern>   Execute an Ant-compatible file pattern
-             (p.e *.groovy, ...)
-             
-             Pattern is expandable using a space-separator
-             (p.e myfile1.groovy myfile2.groovy)                            
-''')
+        Map<String, Object> arguments
 
-
-        commandsCli.s(
-                longOpt:'from-scm',
-                convert: {
-                    new File(it)
-                },
-                argName:'file',
-                'Process the SCM file to extract or update sources')
-
-        commandsCli.e(
-                longOpt:'exclude',
-                args:1,
-                argName:'label',
-                defaultValue: '',
-                optionalArg: true,
-                'Exclude files if containing the label')
-
-        commandsCli.x(
-                longOpt:'debug',
-                'Enable debug logs')
-
-        def utilsCli = new CliBuilder(usage: '''inv [options]''')
-
-        utilsCli.g(
-            type: String,
-            longOpt:'graph',
-            args:1,
-            argName:'type',
-            defaultValue: 'plain',
-            optionalArg: true,
-            'Print the graph from STDIN of a previous execution')
-
-        utilsCli.d(
-                longOpt:'delta',
-                convert: {
-                    new File(it)
-                },
-                argName:'previousFile',
-                'Generate a delta from a recent execution in STDIN compared to a previous execution')
-
-        utilsCli.h(
-                longOpt:'html',
-                'Output generates an HTML file')
-
-        utilsCli.w(
-                longOpt:'web',
-                'Start web interface')
-
-        if (args.length == 0 || new SystemChecks().consistencyFails(this)) {
-            println "INV - Generated a INV sequence and manage past generations"
-            println "Generate a new sequence:"
-            commandsCli.usage()
-            println "Manage or view an old sequence:"
-            utilsCli.usage()
+        try {
+            arguments = new Docopt(usage)
+                    .withExit(false)
+                    .parse(args)
+        } catch(DocoptExitException ex) {
+            println usage
             return -1
         }
 
-        def commandsOptions = commandsCli.parse(args)
-
-        if (commandsOptions.hasOption("x"))
+        if (arguments["--debug"])
             Logger.DebugModeEnabled = true
 
-        def utilsOptions = utilsCli.parse(args)
+        if (arguments["load"])
+            return executeScript(arguments["<pattern>"], arguments["--exclude"] ?: "")
 
-        // Handling graph option
-        if (utilsOptions.hasOption("g")) {
+        if (arguments["scm"])
+            return launchFromSCM(arguments["<scmFile>"])
 
-            def graphType = utilsOptions.g
+        if (arguments["delta"])
+            return delta(arguments["<base>"], arguments["<other>"])
 
-            if (graphType instanceof Boolean)
-                graphType = "plain"
+        if (arguments["graph"])
+            return graph(arguments)
 
-            return graph(graphType)
-        }
-
-
-
-        // Handling delta option
-        if (utilsOptions.hasOption("d"))
-            return delta(hasHtml: utilsOptions.hasOption("h"), utilsOptions.d)
-
-        // Handling SCM option
-        if (commandsOptions.hasOption("s"))
-            return launchFromSCM(commandsOptions.s)
-
-        // Handling Web option
-        if (utilsOptions.hasOption("w"))
-            return web()
-
-        // Otherwise, use default option : read inv files
-        return executeScript(commandsOptions.arguments(), commandsOptions.e ?: "")
+        if (arguments["web"])
+            return launchWeb()
     }
 
-    int graph(String arg1) {
+    int graph(Map arguments) {
 
-        switch (arg1.toLowerCase()) {
-            case "plain" :
-                print(new RunGraph(System.in.newReader()).toPlainList())
-                return 0
-            case "dot":
-                print(new RunGraph(System.in.newReader()).toDotGraph())
-                return 0
-        }
-    }
+        def base = arguments["<base>"]
+        def run = new RunGraph(new File(base).newReader())
 
-    int delta(Map args, File arg1) {
+        if (arguments["plain"])
+            println run.toPlainList()
 
-        def delta = new DeltaGraph(arg1.newReader(), System.in.newReader())
-
-        if (args.hasHtml)
-            print(delta.html(arg1.name))
-        else
-            print(delta.echo())
+        if (arguments["dot"])
+            println run.toDotGraph()
 
         return 0
     }
 
-     int launchFromSCM(File arg1) {
+    int delta(String base, String other) {
+
+        def delta = new DeltaGraph(
+                new File(base).newReader(),
+                new File(other).newReader())
+
+        /*
+        if (args.hasHtml)
+            print(delta.html(arg1.name))
+        else
+        */
+
+        print(delta.echo())
+
+        return 0
+    }
+
+    int launchFromSCM(String arg1) {
 
         def invExecutor = new InvExecutor()
         def invFiles = []
 
         new ScmExecutor().with {
-            read(arg1)
+            read(new File(arg1))
             invFiles = execute()
         }
 
@@ -182,7 +151,7 @@ Options:
         return 0
     }
 
-    int web() {
+    int launchWeb() {
         return new Routing(workspace: invHome.absolutePath)
                 .map()
     }
@@ -241,6 +210,7 @@ Options:
 
         return 0
     }
+
 
     static void main(String[] args) {
         InvokerHelper.runScript(Main, args)

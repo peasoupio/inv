@@ -3,10 +3,10 @@ Intertwined network valuables
 
 *Inv* allows **sequencing** between **intertwined** objects. These objects can be databases, apps, webservices, servers, etc. Anything that need sequencing.
 
-Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/releases/download/0.4-beta/inv-0.4-beta-SNAPSHOT.zip)  
+Get latest version here : [Version 0.5-beta](https://github.com/peasoupio/inv/releases/download/0.5-beta/inv-0.5-beta-SNAPSHOT.zip)  
 
-![Travis build Status](https://travis-ci.org/peasoupio/inv.svg?branch=release%2F0.4-beta)
-[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=peasoupio_inv&metric=alert_status)](https://sonarcloud.io/dashboard?id=peasoupio_inv)
+![Travis build Status](https://travis-ci.org/peasoupio/inv.svg?branch=release%2F0.5-beta)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=inv&metric=alert_status)](https://sonarcloud.io/dashboard?id=inv)
 
 #### Maven coordinates:
 
@@ -14,7 +14,7 @@ Get latest version here : [Version 0.4-beta](https://github.com/peasoupio/inv/re
 <dependency>
     <groupId>io.peasoup</groupId>
     <artifactId>inv</artifactId>
-    <version>0.4-beta-SNAPSHOT</version>
+    <version>0.5-beta-SNAPSHOT</version>
 </dependency>
 ```
 (NOTE : Snapshots need to be downloaded from this repository: https://oss.sonatype.org/content/repositories/snapshots/) 
@@ -24,26 +24,36 @@ JDK 8 or higher
 
 ## Avaiable commands:  
 ```
-INV - Generated a INV sequence and manage past generations
-Generate a new sequence:
-usage: inv [options] <pattern>...
-Options:
- <pattern>   Execute an Ant-compatible file pattern
-             (p.e *.groovy, ./**/*.groovy, ...)
+Inv.
 
-             Pattern is expandable using a space-separator
-             (p.e myfile1.groovy myfile2.groovy)
-           
- -e,--exclude <label>   Exclude files if containing the label
- -s,--from-scm <file>   Process the SCM file to extract or update sources
- -x,--debug             Enable debug logs
-Manage or view an old sequence:
-usage: inv [options]
- -d,--delta <previousFile>   Generate a delta from a recent execution in
-                             STDIN compared to a previous execution
- -g,--graph <type>           Print the graph from STDIN of a previous
-                             execution
- -h,--html                   Output generates an HTML file
+Usage:
+  inv load [-x] [-e <label>] <pattern>...
+  inv scm [-x] <scmFile>
+  inv delta <base> <other>
+  inv graph (plain|dot) <base>
+  inv web [-x]
+  
+Options:
+  load         Load and execute INV files.
+  scm          Load and execute a SCM file.
+  delta        Generate delta between two run files.
+  graph        Generate a graph representation.
+  web          Start the web interface.
+  -x --debug   Debug out. Excellent for troubleshooting.
+  -e --exclude Exclude files from loading.
+  -h --help    Show this screen.
+  
+Parameters:
+  <label>      Label not to be included in the loaded file path
+  <pattern>    An Ant-compatible file pattern
+               (p.e *.groovy, ./**/*.groovy, ...)
+               Also, it is expandable using a space-separator
+               (p.e myfile1.groovy myfile2.groovy)
+  <scmFile>    The SCM file location
+  <base>       Base file location
+  <other>      Other file location
+  plain        No specific output structure
+  dot          Graph Description Language (DOT) output structure 
 ```
 
 ## Quick example:

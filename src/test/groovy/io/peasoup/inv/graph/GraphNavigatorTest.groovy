@@ -41,9 +41,18 @@ class GraphNavigatorTest {
         baseGraph.addRequireNode(new TestNode(owner: "BB", id: "id4"))
         baseGraph.addBroadcastNode(new TestNode(owner: "AA", id: "id4"))
 
+        def requiredBy = baseGraph.requiredByAll(new GraphNavigator.Owner (value: "A"))
+        assert requiredBy.containsKey(new GraphNavigator.Id(value: "id1"))
+        assert requiredBy.containsKey(new GraphNavigator.Id(value: "id2"))
+        assert requiredBy.containsKey(new GraphNavigator.Owner(value: "A"))
+        assert requiredBy.containsKey(new GraphNavigator.Owner(value: "B"))
 
-        println baseGraph.requiredByAll(new GraphNavigator.Owner (value: "A"))
-        println baseGraph.requiresAll(new GraphNavigator.Owner (value: "A"))
+        def requires = baseGraph.requiresAll(new GraphNavigator.Owner (value: "A"))
+
+        assert requires.containsKey(new GraphNavigator.Id(value: "id1"))
+        assert requires.containsKey(new GraphNavigator.Id(value: "id3"))
+        assert requires.containsKey(new GraphNavigator.Owner(value: "A"))
+        assert requires.containsKey(new GraphNavigator.Owner(value: "B"))
 
     }
 

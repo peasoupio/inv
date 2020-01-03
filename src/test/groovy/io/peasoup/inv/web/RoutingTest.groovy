@@ -47,6 +47,8 @@ scm {
             port: port,
             workspace: base
         ).map()
+
+        sleep(3000)
     }
 
     @AfterClass

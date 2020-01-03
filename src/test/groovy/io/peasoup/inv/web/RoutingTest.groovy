@@ -12,7 +12,7 @@ import java.nio.charset.Charset
 class RoutingTest {
 
     static String base = "./src/main/example/web/"
-    static Integer port = 62314
+    static Integer port = 5555
 
     static void clean() {
         def settingsFile = new File(base, "settings.json")

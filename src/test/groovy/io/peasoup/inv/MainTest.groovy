@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import io.peasoup.inv.scm.ScmReader
+import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Stdout
 import org.junit.After
 import org.junit.Test
@@ -125,7 +125,9 @@ class MainTest {
         def scmFile = MainTest.class.getResource("/test-scm.groovy")
         assert scmFile
 
-        def comparable = new ScmReader(new File(scmFile.path))
+        def comparable = new ScmExecutor()
+        comparable.read(new File(scmFile.path))
+
         assert comparable.scms["my-repository"]
 
         // Remove to make sure we trigger init

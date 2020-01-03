@@ -5,7 +5,7 @@ import io.peasoup.inv.InvHandler
 import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import io.peasoup.inv.scm.ScmDescriptor
-import io.peasoup.inv.scm.ScmReader
+import io.peasoup.inv.scm.ScmExecutor
 
 import java.nio.file.Files
 
@@ -80,38 +80,36 @@ class Execution {
             sendMessages(currentChunkOfMessages)
         }
 
+        def executor = new ScmExecutor()
+
         runningThread = Thread.start {
 
             def inv = new InvHandler()
 
             scms.each { scmFile ->
-                def invFiles = new ScmReader(
-                        scmFile,
-                        new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json")
-                ).execute()
+                executor.read(scmFile, new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json"))
+            }
 
+            executor.execute().each { String name, ScmDescriptor repository ->
 
-                invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
+                // Manage entry points for SCM
+                repository.entry.split().each {
 
-                    // Manage entry points for SCM
-                    repository.entry.split().each {
+                    def scriptFile = new File(it)
+                    def path = repository.path
 
-                        def scriptFile = new File(it)
-                        def path = repository.path
-
-                        if (!scriptFile.exists()) {
-                            scriptFile = new File(path, it)
-                            path = scriptFile.parentFile
-                        }
-
-                        if (!scriptFile.exists()) {
-                            Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
-                            return
-                        }
-
-                        Logger.info("file: ${scriptFile.canonicalPath}")
-                        InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
+                    if (!scriptFile.exists()) {
+                        scriptFile = new File(path, it)
+                        path = scriptFile.parentFile
                     }
+
+                    if (!scriptFile.exists()) {
+                        Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
+                        return
+                    }
+
+                    Logger.info("file: ${scriptFile.canonicalPath}")
+                    InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
                 }
             }
 

@@ -2,6 +2,7 @@ package io.peasoup.inv.web
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
@@ -33,6 +34,8 @@ class RoutingTest {
     @BeforeClass
     static void setup() {
 
+        Logger.DebugModeEnabled = true
+
         clean()
 
         def scm7 = new File(base + "scms/", "scm7.groovy")
@@ -58,6 +61,8 @@ scm {
 
         // Spark stop
         Spark.stop()
+
+        Logger.DebugModeEnabled = false
     }
 
     @Test

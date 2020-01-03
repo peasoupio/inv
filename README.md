@@ -210,31 +210,46 @@ These are the elements we can determine :
 
 You could also generate a graph from a previous execution. Per example :
 
-    cat myprevious.log | ./inv graph dot
+    inv graph dot myprevious.log
 
 could generate this dot file
 
 ```
-digraph inv {
-	"ServerA";
-	"ServerB";
-	"iis";
-	"Kubernetes";
-	"files";
-	"maven";
-	"my-app-1";
-	"my-app-2";
-	"appA";
-	"appB";
-    
-	"iis" -> "ServerA" [ label = "[Server] [name:server-a]" ];
-	"Kubernetes" -> "ServerA" [ label = "[Server] [name:server-a]" ];
-	"maven" -> "files" [ label = "[Files]" ];
-	"my-app-1" -> "maven" [ label = "[Maven]" ];
-	"my-app-2" -> "maven" [ label = "[Maven]" ];
-	"my-app-2" -> "my-app-1" [ label = "[Artifact] com.mycompany.app:my-app-1" ];
-	"appA" -> "Kubernetes" [ label = "[Kubernetes]" ];
-	"appB" -> "iis" [ label = "[IIS]" ];
+strict digraph G {
+  1 [ label="ServerA" ];
+  2 [ label="[Server] [name:server-a]" ];
+  3 [ label="ServerB" ];
+  4 [ label="[Server] [name:server-b]" ];
+  5 [ label="iis" ];
+  6 [ label="[IIS] undefined" ];
+  7 [ label="Kubernetes" ];
+  8 [ label="[Kubernetes] undefined" ];
+  9 [ label="appA" ];
+  10 [ label="appB" ];
+  11 [ label="files" ];
+  12 [ label="[Files] undefined" ];
+  13 [ label="maven" ];
+  14 [ label="[Maven] undefined" ];
+  15 [ label="my-app-1" ];
+  16 [ label="my-app-2" ];
+  17 [ label="[Artifact] com.mycompany.app:my-app-1" ];
+  18 [ label="[Artifact] com.mycompany.app:my-app-2" ];
+  2 -> 1;
+  4 -> 3;
+  5 -> 2;
+  6 -> 5;
+  7 -> 2;
+  8 -> 7;
+  9 -> 8;
+  10 -> 6;
+  12 -> 11;
+  13 -> 12;
+  14 -> 13;
+  15 -> 14;
+  16 -> 14;
+  17 -> 15;
+  18 -> 16;
+  16 -> 17;
 }
 ```
 

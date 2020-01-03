@@ -3,6 +3,7 @@ package io.peasoup.inv.web
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 
@@ -161,11 +162,14 @@ class ScmFile {
             Map<String, List<String>> output = [:]
 
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
+                Logger.debug "Resolving '${parameter.name}'forf ${descriptor.name}"
 
                 List<String> values = parameter.staticValues
 
                 if (parameter.commandValues) {
                     String stdout = parameter.commandValues.execute().in.text
+
+                    Logger.debug "Command: ${parameter.commandValues}:\n${stdout}"
 
                     if (parameter.filter) {
                         def matches = stdout =~ parameter.filter

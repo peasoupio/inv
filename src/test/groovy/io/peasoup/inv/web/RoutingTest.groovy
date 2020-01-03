@@ -309,7 +309,7 @@ scm {
     }
 
     String post(String context, byte[] data = new byte[]{}) {
-        def connection = new URL("http://127.0.0.1:${port}/${context}".toString()).openConnection() as HttpURLConnection
+        def connection = new URL("http://0.0.0.0:${port}/${context}".toString()).openConnection() as HttpURLConnection
 
         return connection.with {
             setDoOutput(true)

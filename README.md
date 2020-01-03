@@ -284,6 +284,11 @@ NOTE: Using the same "path" allows you to do a single extraction
 ### Contribution
 First and only global rule : use your common sense - we help each other :)
 
+### Our friends
+#### Java Profiler
+Providing a free open-source licence to improve SIGNIFICANTLY Inv performances   
+[![Java Profiler](https://www.ej-technologies.com/images/product_banners/jprofiler_large.png "Java Profiler")](https://www.ej-technologies.com/products/jprofiler/overview.html)
+
 ### Known issues
 #### Create symlink under Windows
 Please enable SeCreateSymbolicLinkPrivilege (using Developer mode OR look at https://superuser.com/questions/124679/how-do-i-create-a-link-in-windows-7-home-premium-as-a-regular-user/125981#125981)

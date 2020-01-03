@@ -387,6 +387,11 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
+
+        report.exceptions.each {
+            it.exception.printStackTrace()
+        }
+
         assert report.isOk()
     }
 

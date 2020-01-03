@@ -1,6 +1,9 @@
 package io.peasoup.inv
 
-// TODO @CompileStatic is a bit more complicated here
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class BroadcastValuable implements NetworkValuable {
 
     final static Manageable BROADCAST = new BroadcastValuable.Broadcast()
@@ -58,7 +61,7 @@ class BroadcastValuable implements NetworkValuable {
             Closure<Map> defaultClosure = null
 
             if (broadcastValuable.ready) {
-                def rawReponnse = broadcastValuable.ready()
+                Object rawReponnse = broadcastValuable.ready.call()
 
                 if (rawReponnse instanceof Map) {
                     response = rawReponnse as Map
@@ -93,6 +96,7 @@ class BroadcastValuable implements NetworkValuable {
          * @param caller the actual inv requiring this response
          * @return an expando object gathering all the delegate information
          */
+        @CompileDynamic
         Expando asDelegate(Inv caller, boolean defaults) {
             assert caller
 

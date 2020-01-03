@@ -39,6 +39,7 @@ class InvDescriptor {
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             BroadcastDescriptor delegate = new BroadcastDescriptor()
 
+            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
             usingBody.delegate = delegate
             usingBody.call()
 
@@ -64,6 +65,7 @@ class InvDescriptor {
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
             RequireDescriptor delegate = new RequireDescriptor()
 
+            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
             usingBody.delegate = delegate
             usingBody.call()
 
@@ -78,8 +80,6 @@ class InvDescriptor {
 
             requireValuable.resolved = delegate.resolved
             requireValuable.unresolved = delegate.unresolved
-
-
         }
         networkValuableDescriptor.intoDigestor = { String into ->
             requireValuable.into = into

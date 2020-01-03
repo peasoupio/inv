@@ -1,3 +1,4 @@
+import org.apache.maven.model.Dependency
 @Grab("org.apache.maven:maven-model:3.0.2")
 import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
@@ -25,10 +26,10 @@ inv {
                     def poms = []
 
                     // Using find makes it faster
-                    $files.find(pwd, "pom.xml", exclude).each {
+                    for(File file : $files.find(pwd, "pom.xml", exclude)) {
 
                         MavenXpp3Reader reader = new MavenXpp3Reader()
-                        Model model = reader.read(new FileReader(it))
+                        Model model = reader.read(new FileReader(file))
 
                         broadcast inv.Artifact using {
                             id model.groupId + ":" + model.artifactId
@@ -36,8 +37,8 @@ inv {
                             ready { [model: model] }
                         }
 
-                        model.dependencies.each {
-                            require inv.Artifact(it.groupId + ":" + it.artifactId)
+                        for(Dependency dep : model.dependencies) {
+                            require inv.Artifact(dep.groupId + ":" + dep.artifactId)
                         }
 
                         poms << model

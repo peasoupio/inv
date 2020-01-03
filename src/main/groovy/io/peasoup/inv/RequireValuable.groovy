@@ -1,6 +1,9 @@
 package io.peasoup.inv
 
-// TODO @CompileStatic is a bit more complicated here
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class RequireValuable implements NetworkValuable {
 
     final static Manageable REQUIRE = new RequireValuable.Require()
@@ -90,10 +93,10 @@ class RequireValuable implements NetworkValuable {
 
             // Implement variable into NV inv (if defined)
             if (requireValuable.into)
-                requireValuable.inv.delegate.metaClass.setProperty(
+                setPropertyToDelegate(
+                        requireValuable.inv.delegate,
                         requireValuable.into,
-                        broadcast.asDelegate(requireValuable.inv, requireValuable.defaults)
-                )
+                        broadcast.asDelegate(requireValuable.inv, requireValuable.defaults))
 
             // Sends message to resolved (if defined)
             if (requireValuable.resolved) {
@@ -103,9 +106,15 @@ class RequireValuable implements NetworkValuable {
 
             // Check if NV would have dumped something
             requireValuable.inv.dumpDelegate()
+        }
 
+        @CompileDynamic
+        def setPropertyToDelegate(Object delegate, String propertyName, Object value) {
+            delegate.metaClass.setProperty(propertyName, value)
         }
     }
+
+
 
 
 }

@@ -144,11 +144,13 @@ Options:
 
      int launchFromSCM(File arg1) {
 
-        def executor = new ScmExecutor()
-        executor.read(arg1)
+        def invExecutor = new InvExecutor()
+        def invFiles = []
 
-        def invFiles = executor.execute()
-        def inv = new InvHandler()
+        new ScmExecutor().with {
+            read(arg1)
+            invFiles = execute()
+        }
 
         invFiles.each { String name, ScmDescriptor repository ->
 
@@ -169,13 +171,13 @@ Options:
                 }
 
                 Logger.info("file: ${scriptFile.canonicalPath}")
-                InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
+                invExecutor.read(path.canonicalPath, scriptFile, name)
             }
         }
 
         Logger.info("[SCM] done")
 
-        inv()
+        invExecutor.execute()
 
         return 0
     }
@@ -186,7 +188,7 @@ Options:
     }
 
     int executeScript(List<String> args, String exclude) {
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
 
         args.each {
             def lookupPattern = it
@@ -194,7 +196,7 @@ Options:
             def lookupFile = new File(lookupPattern)
 
             if (!lookupFile.isDirectory() && lookupFile.exists())
-                InvInvoker.invoke(inv, lookupFile)
+                executor.read(lookupFile)
             else {
 
                 Logger.debug "pattern without parent: ${lookupPattern}"
@@ -230,12 +232,12 @@ Options:
                 }
 
                 invFiles.each {
-                    InvInvoker.invoke(inv, it)
+                    executor.read(it)
                 }
             }
         }
 
-        inv()
+        executor.execute()
 
         return 0
     }

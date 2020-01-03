@@ -18,7 +18,8 @@ class InvInvokerTest {
         def scriptFile = new File(script.path)
 
         // Resolve with filename as classname
-        Stdout.capture ({ InvInvoker.invoke(new InvHandler(), scriptFile) }, {
+        def inv = new InvHandler(new InvExecutor())
+        Stdout.capture ({ InvInvoker.invoke(inv, scriptFile) }, {
             assert it.contains("From invokertestscript")
         })
     }

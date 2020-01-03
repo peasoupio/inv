@@ -8,11 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 
 class BroadcastValuableTest {
 
+    InvExecutor executor
     InvHandler inv
 
     @Before
     void setup() {
-        inv = new InvHandler()
+        executor = new InvExecutor()
+        inv = new InvHandler(executor)
     }
 
     @Test
@@ -47,7 +49,7 @@ class BroadcastValuableTest {
             }
         }
 
-        inv()
+        executor.execute()
     }
 
     @Test
@@ -72,7 +74,7 @@ class BroadcastValuableTest {
             }
         }
 
-        inv()
+        executor.execute()
     }
 
     @Test
@@ -99,7 +101,7 @@ class BroadcastValuableTest {
             }
         }
 
-        inv()
+        executor.execute()
     }
 
     @Test
@@ -128,7 +130,7 @@ class BroadcastValuableTest {
             }
         }
 
-        inv()
+        executor.execute()
     }
 
     @Test
@@ -159,6 +161,6 @@ class BroadcastValuableTest {
             }
         }
 
-        inv()
+        executor.execute()
     }
 }

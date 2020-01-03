@@ -10,13 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 
 class InvHandlerTest {
 
+    InvExecutor executor
     InvHandler inv
 
     @Before
     void setup() {
         Logger.DebugModeEnabled = true
 
-        inv = new InvHandler()
+        executor = new InvExecutor()
+        inv = new InvHandler(executor)
     }
 
     @Test
@@ -60,7 +62,7 @@ class InvHandlerTest {
         }
 
 
-        def report = inv()
+        def report = executor.execute()
 
         assert report.isOk()
 
@@ -121,7 +123,7 @@ class InvHandlerTest {
         }
 
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
 
         report.digested
@@ -175,7 +177,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -228,7 +230,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -291,7 +293,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -328,7 +330,7 @@ class InvHandlerTest {
             require inv.Service("D") using { unbloatable true }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -384,7 +386,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -418,7 +420,7 @@ class InvHandlerTest {
                     }
             }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
@@ -470,7 +472,7 @@ class InvHandlerTest {
         }
 
 
-        def report = inv()
+        def report = executor.execute()
         assert !report.isOk()
 
         assert report.halted
@@ -488,7 +490,7 @@ class InvHandlerTest {
             throw new Exception("fail")
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()
@@ -517,7 +519,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()
@@ -543,7 +545,7 @@ class InvHandlerTest {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert !report.isOk()
 
         assert !report.exceptions.isEmpty()

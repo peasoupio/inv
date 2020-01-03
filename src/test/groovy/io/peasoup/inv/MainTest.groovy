@@ -14,13 +14,6 @@ class MainTest {
     }
 
     @Test
-    void main_no_args() {
-        Stdout.capture ({ Main.main() }, {
-            assert it.contains("Usage")
-        })
-    }
-
-    @Test
     void main() {
         // Enable capture
         def logs = Logger.capture([])
@@ -30,9 +23,16 @@ class MainTest {
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main(script.path)
+        Main.main("load", script.path)
 
         assert logs.contains("[INV] [undefined] [${canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
+    void main_no_args() {
+        Stdout.capture ({ Main.main() }, {
+            assert it.contains("Usage")
+        })
     }
 
     @Test
@@ -52,12 +52,10 @@ class MainTest {
             getFile("/mainTestScript2.groovy")
         ]
 
-        Main.main("-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
+        Main.main("load", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
 
         assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
-
-
     }
 
     @Test
@@ -70,7 +68,7 @@ class MainTest {
                 new File("./", "src/test/resources/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("src/test/resources/mainTestScript*.*")
+        Main.main("load", "src/test/resources/mainTestScript*.*")
 
         assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
@@ -88,7 +86,7 @@ class MainTest {
             new File("./", "src/test/resources/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("src/test/resources/pattern/**/*.*")
+        Main.main("load", "src/test/resources/pattern/**/*.*")
 
         assert logs.contains("[INV] [undefined] [${files[0]}] [different-folder]".toString())
         assert logs.contains("[INV] [undefined] [${files[1]}] [different-inside]".toString())
@@ -101,21 +99,11 @@ class MainTest {
 
         assert logOutput
 
-        println "\nTest default graph: "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("-g")
-
-        println "\nTest default graph: "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph")
-
         println "\nTest selecting 'plain': "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph", "plain")
+        Main.main("graph", "plain", logOutput.path)
 
         println "\nTest selecting 'dot': "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph", "dot")
+        Main.main("graph", "dot", logOutput.path)
     }
 
     @Test
@@ -134,11 +122,11 @@ class MainTest {
         if (comparable.scms["my-repository"].path.exists())
             comparable.scms["my-repository"].path.deleteDir()
 
-        Stdout.capture ({ Main.main("-s", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
             assert it.contains("init")
         })
 
-        Stdout.capture ({ Main.main("--from-scm", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
             assert it.contains("update")
         })
     }
@@ -153,13 +141,6 @@ class MainTest {
         assert logOutputAfter
 
         println "\nTest selecting 'delta': "
-        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
-        Main.main("-d", logOutput.path)
-
-        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
-        Main.main("--delta", logOutput.path)
+        Main.main("delta", logOutput.path, logOutputAfter.path)
     }
-
-
-
 }

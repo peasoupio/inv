@@ -133,7 +133,8 @@ class BroadcastValuable implements NetworkValuable {
                                 closure.owner,
                                 closure.thisObject)
                 copy.resolveStrategy = Closure.DELEGATE_FIRST
-                return copy.call(args)
+                //noinspection GroovyAssignabilityCheck
+                return copy.call(*args)
             }
 
             // If response has a default closure, call it right now

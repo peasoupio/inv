@@ -122,8 +122,11 @@ class Inv {
                     !hasDumpedSomething &&
                     this.remainingValuables.isEmpty() &&
                     pool.runningState != NetworkValuablePool.HALTING) {
+
                 // Call next step
-                steps.pop().call()
+                Closure step = steps.pop()
+                step.resolveStrategy = Closure.DELEGATE_FIRST
+                step.call()
 
                 // If the step dumped something, remainingValuables won't be empty and exit loop
                 hasDumpedSomething = dumpDelegate()

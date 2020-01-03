@@ -1,7 +1,7 @@
 package io.peasoup.inv.defaults
 
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import org.junit.Before
 import org.junit.Test
@@ -16,9 +16,10 @@ class HttpTests {
     @Test
     void get() {
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/http/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/http/inv.groovy"))
+        def inv = new InvHandler(executor)
 
         inv {
             require inv.HTTP into '$http'
@@ -30,16 +31,17 @@ class HttpTests {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 
     @Test
     void post() {
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/http/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/http/inv.groovy"))
+        def inv = new InvHandler(executor)
 
         inv {
             require inv.HTTP into '$http'
@@ -59,7 +61,7 @@ class HttpTests {
             }
         }
 
-        def report = inv()
+        def report = executor.execute()
         assert report.isOk()
     }
 }

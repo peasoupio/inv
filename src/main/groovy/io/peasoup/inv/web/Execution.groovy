@@ -1,8 +1,7 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
@@ -80,17 +79,16 @@ class Execution {
             sendMessages(currentChunkOfMessages)
         }
 
-        def executor = new ScmExecutor()
+        def invExecutor = new InvExecutor()
+        def scmExecutor = new ScmExecutor()
 
         runningThread = Thread.start {
 
-            def inv = new InvHandler()
-
             scms.each { scmFile ->
-                executor.read(scmFile, new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json"))
+                scmExecutor.read(scmFile, new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json"))
             }
 
-            executor.execute().each { String name, ScmDescriptor repository ->
+            scmExecutor.execute().each { String name, ScmDescriptor repository ->
 
                 // Manage entry points for SCM
                 repository.entry.split().each {
@@ -109,14 +107,14 @@ class Execution {
                     }
 
                     Logger.info("file: ${scriptFile.canonicalPath}")
-                    InvInvoker.invoke(inv, path.canonicalPath, scriptFile, name)
+                    invExecutor.read(path.canonicalPath, scriptFile, name)
                 }
             }
 
             Logger.info("[SCM] done")
 
             // Do the actual sequencing work
-            inv()
+            invExecutor.execute()
 
             sendMessages(currentChunkOfMessages, false)
 

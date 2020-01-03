@@ -6,11 +6,13 @@ import org.junit.Test
 
 class RequireValuableTest  {
 
+    InvExecutor executor
     InvHandler inv
 
     @Before
     void setup() {
-        inv = new InvHandler()
+        executor = new InvExecutor()
+        inv = new InvHandler(executor)
     }
 
     @Test
@@ -34,7 +36,7 @@ class RequireValuableTest  {
             }
         }
 
-        inv()
+        executor.execute()
 
         assert unresolvedRaised
     }
@@ -56,7 +58,7 @@ class RequireValuableTest  {
             }
         }
 
-        inv()
+        executor.execute()
 
         assert !unresolvedRaised
     }
@@ -80,6 +82,6 @@ class RequireValuableTest  {
             }
         }
 
-        inv()
+        executor.execute()
     }
 }

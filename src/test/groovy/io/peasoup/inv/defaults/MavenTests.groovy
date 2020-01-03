@@ -1,7 +1,7 @@
 package io.peasoup.inv.defaults
 
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import org.junit.Before
 import org.junit.Test
@@ -23,10 +23,11 @@ class MavenTests {
         def app1 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app1").path).absolutePath
         def app2 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app2").path).absolutePath
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/files/inv.groovy"))
+        executor.read(new File("./defaults/maven/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/files/inv.groovy"))
-        InvInvoker.invoke(inv, new File("./defaults/maven/inv.groovy"))
+        def inv = new InvHandler(executor)
 
         inv {
             name "app1"
@@ -54,7 +55,12 @@ class MavenTests {
             }
         }
 
-        inv()
+        def report = executor.execute()
+
+        report.exceptions.each {
+            it.exception.printStackTrace()
+        }
+        assert report.isOk()
 
         def flattenLogs = logs.join()
 

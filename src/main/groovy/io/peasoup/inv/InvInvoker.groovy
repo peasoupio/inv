@@ -1,10 +1,11 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
-import org.apache.commons.lang.RandomStringUtils
 
+import javax.xml.bind.DatatypeConverter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.MessageDigest
 
 @CompileStatic
 class InvInvoker {
@@ -19,7 +20,6 @@ class InvInvoker {
         invoke(inv, scriptPath.parent, scriptPath, "undefined")
     }
 
-
     static void invoke(InvHandler inv, String pwd, File scriptFile, String scm, Map<String, Object> inject = [:]) {
         assert inv
         assert pwd
@@ -33,7 +33,7 @@ class InvInvoker {
 
         Logger.debug("file: ${scriptFile.canonicalPath}")
 
-        String preferredClassname = (normalizeClassName(scriptFile) + '$' + randomSuffix()).toLowerCase()
+        String preferredClassname = (normalizeClassName(scriptFile) + '_' + checksum(scriptFile)).toLowerCase()
         Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
 
         Script myNewScript = (Script)groovyClass.newInstance()
@@ -92,8 +92,27 @@ class InvInvoker {
         return script.name.split("\\.")[0]
     }
 
+    /*
     protected static String randomSuffix() {
         return RandomStringUtils.random(9, true, true)
+    }
+
+     */
+
+    private static String checksum(File path) {
+        ByteArrayOutputStream baos = null
+        ObjectOutputStream oos = null
+        try {
+            baos = new ByteArrayOutputStream()
+            oos = new ObjectOutputStream(baos)
+            oos.writeObject(path.absolutePath)
+            MessageDigest md = MessageDigest.getInstance("MD5")
+            byte[] thedigest = md.digest(baos.toByteArray())
+            return DatatypeConverter.printHexBinary(thedigest)
+        } finally {
+            oos.close()
+            baos.close()
+        }
     }
 
     protected static String checkSubordinateSlash(String path) {

@@ -8,26 +8,34 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
-class ScmReader {
+class ScmExecutor {
 
-    final Map<String, ScmDescriptor.MainDescriptor> scms
+    final Map<String, ScmDescriptor> scms = [:]
 
-    ScmReader(File scmFile, File externalProperties = null) {
-
-        def descriptor = new ScmDescriptor(scmFile.newReader())
-
-        if (externalProperties)
-            scms = descriptor.scms(externalProperties)
-        else
-            scms = descriptor.scms()
+    ScmExecutor() {
     }
 
-    Map<String, ScmDescriptor.MainDescriptor> execute() {
+    void read(File scriptFile, File parametersFile = null) {
+        ScmInvoker.invoke(new ScmHandler(this, parametersFile), scriptFile)
+    }
+
+    void add(ScmDescriptor descriptor) {
+        assert descriptor
+
+        if (!descriptor.name) {
+            Logger.warn("No scm name provided. Skipped")
+            return
+        }
+
+        scms.put(descriptor.name, descriptor)
+    }
+
+    Map<String, ScmDescriptor> execute() {
 
         ExecutorService pool = Executors.newFixedThreadPool(4)
         List<Future> futures = []
 
-        scms.collectEntries { String name, ScmDescriptor.MainDescriptor repository ->
+        scms.collectEntries { String name, ScmDescriptor repository ->
             futures << pool.submit({
                 if (!repository.path)
                     Logger.warn "path not define for scm ${name}"
@@ -63,7 +71,7 @@ class ScmReader {
         return scms
     }
 
-    private void executeCommands(ScmDescriptor.MainDescriptor repository, String commands) {
+    private void executeCommands(ScmDescriptor repository, String commands) {
 
         // If parent undefined, can do nothing
         if (!repository.path)

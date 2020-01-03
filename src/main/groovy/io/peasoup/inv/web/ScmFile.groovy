@@ -4,13 +4,12 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.scm.ScmDescriptor
-import io.peasoup.inv.scm.ScmDescriptor.AskParameter
+import io.peasoup.inv.scm.ScmExecutor
 
 @CompileStatic
 class ScmFile {
 
     final File sourceFile
-    final ScmDescriptor scmDescriptor
     final Map<String, ScmFile.SourceFileElement> elements = [:]
 
     String text
@@ -19,23 +18,26 @@ class ScmFile {
     ScmFile(File file) {
 
         sourceFile = file
-        scmDescriptor = new ScmDescriptor(file.newReader())
 
         text = file.text
         lastEdit = file.lastModified()
 
-        scmDescriptor.scms().each { String name, ScmDescriptor.MainDescriptor desc ->
-            def element = new ScmFile.SourceFileElement(
-                descriptor: desc,
-                script: file
-            )
+        new ScmExecutor().with {
+            read(file)
 
-            elements[name] = element
+            scms.each { String name, ScmDescriptor desc ->
+                def element = new ScmFile.SourceFileElement(
+                        descriptor: desc,
+                        script: file
+                )
+
+                elements[name] = element
+            }
         }
     }
 
     static class SourceFileElement {
-        ScmDescriptor.MainDescriptor descriptor
+        ScmDescriptor descriptor
         File script
 
         String simpleName() {
@@ -116,7 +118,7 @@ class ScmFile {
             ]
         }
 
-        void writeParameterDefaultValue(File parametersFile, SourceFileElement element, AskParameter parameter) {
+        void writeParameterDefaultValue(File parametersFile, SourceFileElement element, ScmDescriptor.AskParameter parameter) {
             writeParameterValue(parametersFile, element, parameter.name, parameter.defaultValue)
         }
 

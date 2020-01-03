@@ -1,4 +1,6 @@
-"my-repository" {
+scm {
+
+  name "my-repository"
 
   path "${env.TEMP}/scm/${name}"
   src "https://github.com/spring-guides/gs-spring-boot.git"

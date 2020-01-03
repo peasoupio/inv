@@ -1,10 +1,12 @@
-"scm1" {
-  
+scm {
+
+  name "scm1"
+
   path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/spring-projects/spring-boot.git"
   entry 'appA.groovy'
   timeout 46000
-  
+
   ask {
     // variable, description, default value, how to get values, filter values
     //parameter "test", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
@@ -28,7 +30,9 @@ echo "update branch ${branch}"
   }
 }
 
-"scm2" {
+scm {
+
+  name "scm2"
 
   path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/.../AppB.git"

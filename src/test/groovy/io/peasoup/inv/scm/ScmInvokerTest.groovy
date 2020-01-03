@@ -2,13 +2,16 @@ package io.peasoup.inv.scm
 
 import org.junit.Test
 
-class ScmReaderTest {
+class ScmInvokerTest {
 
     @Test
     void ok() {
 
         def scmFile =  new File(getClass().getResource('/test-scm.groovy').toURI())
-        def files = new ScmReader(scmFile).execute()
+        def executor = new ScmExecutor()
+        executor.read(scmFile)
+
+        def files = executor.execute()
 
         assert files["my-repository"]
         assert files["my-repository"].entry.contains("mainTestScript.groovy")
@@ -19,7 +22,10 @@ class ScmReaderTest {
     void multiple() {
 
         def scmFile =  new File(getClass().getResource('/test-scm-multiple.groovy').toURI())
-        def files = new ScmReader(scmFile).execute()
+        def executor = new ScmExecutor()
+        executor.read(scmFile)
+
+        def files = executor.execute()
 
         assert files["my-first-repository"]
         assert files["my-second-repository"]

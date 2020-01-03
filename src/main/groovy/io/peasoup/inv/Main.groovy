@@ -5,7 +5,7 @@ import groovy.cli.picocli.CliBuilder
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmDescriptor
-import io.peasoup.inv.scm.ScmReader
+import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
 
@@ -144,11 +144,13 @@ Options:
 
      int launchFromSCM(File arg1) {
 
-        def invFiles = new ScmReader(arg1).execute()
+        def executor = new ScmExecutor()
+        executor.read(arg1)
 
+        def invFiles = executor.execute()
         def inv = new InvHandler()
 
-        invFiles.each { String name, ScmDescriptor.MainDescriptor repository ->
+        invFiles.each { String name, ScmDescriptor repository ->
 
             // Manage entry points for SCM
             repository.entry.split().each {

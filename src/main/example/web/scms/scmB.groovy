@@ -1,4 +1,6 @@
-"scm3" {
+scm {
+
+  name "scm3"
 
   path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/.../iis.git"
@@ -21,7 +23,9 @@ echo 'update'
   }
 }
 
-"scm4" {
+scm {
+
+  name "scm4"
 
   path "D:/workspace/inv/src/main/example/githubHomepage"
   src "https://github.com/.../kubernetes.git"

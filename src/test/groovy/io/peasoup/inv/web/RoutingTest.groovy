@@ -38,7 +38,8 @@ class RoutingTest {
         def scm7 = new File(base + "scms/", "scm7.groovy")
 
         scm7 << """
-'scm7' {
+scm {
+    name 'scm7'
 }
 """
 
@@ -204,7 +205,8 @@ class RoutingTest {
     void scm_source() {
 
         def sourceText = """
-'scm7' {
+scm {
+    name 'scm7'
     src 'my-src'
 }
 """.getBytes(Charset.forName("UTF-8"))

@@ -77,4 +77,9 @@ class Logger {
 
         return value
     }
+
+    static void resetCapture() {
+        captureList = null
+        captureClosure = null
+    }
 }

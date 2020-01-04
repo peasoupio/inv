@@ -2,7 +2,7 @@ scm {
 
   name "scm1"
 
-  path "D:/workspace/inv/src/main/example/githubHomepage"
+  path "./src/main/example/githubHomepage"
   src "https://github.com/spring-projects/spring-boot.git"
   entry 'appA.groovy'
   timeout 46000
@@ -33,7 +33,7 @@ scm {
 
   name "scm2"
 
-  path "D:/workspace/inv/src/main/example/githubHomepage"
+  path "./src/main/example/githubHomepage"
   src "https://github.com/.../AppB.git"
   entry 'appB.groovy'
   timeout 30000

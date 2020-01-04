@@ -54,6 +54,7 @@ scm {
         Spark.stop()
 
         Logger.DebugModeEnabled = false
+        Logger.resetCapture()
     }
 
     @Test

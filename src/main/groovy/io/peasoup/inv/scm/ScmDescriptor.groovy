@@ -14,14 +14,11 @@ class ScmDescriptor {
     final HookDescriptor hooks = new HookDescriptor()
     final AskDescriptor ask = new AskDescriptor()
 
+    private File parametersFile = null
     private Map<String, Object> parametersProperties = [:]
 
     ScmDescriptor(File parametersFile = null) {
-
-        if (parametersFile && parametersFile.exists()) {
-            Map<String, Map> parameters = new JsonSlurper().parseText(parametersFile.text) as Map<String, Map>
-            parametersProperties.putAll(parameters[name])
-        }
+        this.parametersFile = parametersFile
     }
 
     String name
@@ -57,10 +54,19 @@ class ScmDescriptor {
 
     //@Override
     def propertyMissing(String propertyName) {
+        // Loading parameters only when need - since name is not available at ctor
+        if (parametersFile && parametersFile.exists() && parametersProperties == null)
+            loadParametersProperties()
+
         if (!parametersProperties[propertyName])
             return '\${' + propertyName + '}'
 
         return parametersProperties[propertyName]
+    }
+
+    private void loadParametersProperties() {
+        Map<String, Map> parameters = new JsonSlurper().parseText(parametersFile.text) as Map<String, Map>
+        parametersProperties.putAll(parameters[name])
     }
 
     class HookDescriptor {

@@ -18,7 +18,7 @@ class GraphNavigator {
         nc = new NeighborCache(g)
     }
 
-    def addBroadcastNode(Node node) {
+    void addBroadcastNode(Node node) {
 
         assert node != null
         assert node.owner
@@ -35,7 +35,7 @@ class GraphNavigator {
         nodes.put(node.id, node)
     }
 
-    def addRequireNode(Node node) {
+    void addRequireNode(Node node) {
 
         assert node != null
         assert node.owner

@@ -22,7 +22,7 @@ class ScmHandlerTest {
     @Test
     void ok() {
 
-        def testScm = ScmHandlerTest.class.getResource("/test-scm.groovy")
+        def testScm = ScmHandlerTest.class.getResource("/scm.groovy")
         executor.read(new File(testScm.path))
 
         assert executor.scms["my-repository"]

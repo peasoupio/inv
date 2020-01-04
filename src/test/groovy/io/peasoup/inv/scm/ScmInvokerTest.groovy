@@ -7,7 +7,7 @@ class ScmInvokerTest {
     @Test
     void ok() {
 
-        def scmFile =  new File(getClass().getResource('/test-scm.groovy').toURI())
+        def scmFile =  new File(getClass().getResource('/scm.groovy').toURI())
         def executor = new ScmExecutor()
         executor.read(scmFile)
 
@@ -21,7 +21,7 @@ class ScmInvokerTest {
     @Test
     void multiple() {
 
-        def scmFile =  new File(getClass().getResource('/test-scm-multiple.groovy').toURI())
+        def scmFile =  new File(getClass().getResource('/scm-multiple.groovy').toURI())
         def executor = new ScmExecutor()
         executor.read(scmFile)
 

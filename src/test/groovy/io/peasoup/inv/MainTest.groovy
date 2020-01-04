@@ -110,7 +110,7 @@ class MainTest {
     void main_launchScm() {
         Logger.DebugModeEnabled = true
 
-        def scmFile = MainTest.class.getResource("/test-scm.groovy")
+        def scmFile = MainTest.class.getResource("/scm.groovy")
         assert scmFile
 
         def comparable = new ScmExecutor()

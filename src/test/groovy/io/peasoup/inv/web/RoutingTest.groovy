@@ -330,7 +330,7 @@ scm {
         assert jsonAfter
         assert jsonAfter.running
 
-        sleep(3000)
+        sleep(10000)
 
         def responseEnd = get("execution")
         assert responseEnd

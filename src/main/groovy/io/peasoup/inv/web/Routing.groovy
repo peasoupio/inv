@@ -382,15 +382,17 @@ class Routing {
             if (exec.isRunning())
                 return "Already running"
 
-            def scmFiles = run.selected.values()
+            List<File> scmFiles = run.selected.values()
                     .findAll { it.link.isOwner() }
                     .collect { run.invOfScm[it.link.value]}
                     .unique()
-                    .collect { scms.elements[it].script }
+                    .collect { scms.elements[it].script } as List<File>
 
             exec.start(scmFiles)
 
-            return "Started"
+            return JsonOutput.toJson([
+                files: scmFiles.collect { it.name }
+            ])
         })
 
         post("/execution/stop", { req, res ->

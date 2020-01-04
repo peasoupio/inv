@@ -25,15 +25,15 @@ class Execution {
     Execution(File executionsLocation, File scmFolder, File externalParametersFolder) {
         assert executionsLocation
         if (!executionsLocation.exists())
-            executionsLocation.mkdirs()
+            executionsLocation.mkdir()
 
         assert scmFolder
         if (!scmFolder.exists())
-            scmFolder.mkdirs()
+            scmFolder.mkdir()
 
         assert externalParametersFolder
         if (!externalParametersFolder.exists())
-            externalParametersFolder.mkdirs()
+            externalParametersFolder.mkdir()
 
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder

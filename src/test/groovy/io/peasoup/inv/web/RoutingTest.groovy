@@ -16,19 +16,10 @@ class RoutingTest {
     static Integer port = 5555
 
     static void clean() {
-        def settingsFile = new File(base, "settings.json")
-        if (settingsFile.exists())
-            settingsFile.delete()
-
-        def parametersFolder = new File(base, "parameters/")
-        if (parametersFolder.exists())
-            parametersFolder.deleteDir()
-
-        parametersFolder.mkdir()
-
-        def scm7 = new File(base + "scms/", "scm7.groovy")
-        if (scm7.exists())
-            scm7.delete()
+        new File(base, "executions/").deleteDir()
+        new File(base, "settings.json").delete()
+        new File(base, "parameters/").deleteDir()
+        new File(base + "scms/", "scm7.groovy").delete()
     }
 
     @BeforeClass
@@ -308,6 +299,48 @@ scm {
         assert json["param2"]
         assert json["param2"].size() == 2
         assert json["param2"].any { it == "my" }
+    }
+
+    @Test
+    void execution() {
+        def responseBefore = get("execution")
+        assert responseBefore
+
+        def jsonBefore = new JsonSlurper().parseText(responseBefore)
+
+        assert jsonBefore
+        assert jsonBefore.lastExecution == 0
+        assert jsonBefore.executions.isEmpty()
+
+        post("run/stage?id=[Kubernetes]%20undefined")
+        def responseStart = post("execution/start")
+        assert responseStart
+
+        def jsonStart = new JsonSlurper().parseText(responseStart)
+
+        assert jsonStart
+        assert jsonStart.files
+        assert jsonStart.files.any { it.contains("scmB.groovy") }
+
+        def responseAfter = get("execution")
+        assert responseAfter
+
+        def jsonAfter = new JsonSlurper().parseText(responseAfter)
+
+        assert jsonAfter
+        assert jsonAfter.running
+
+        sleep(3000)
+
+        def responseEnd = get("execution")
+        assert responseEnd
+
+        def jsonEnd = new JsonSlurper().parseText(responseEnd)
+
+        assert jsonEnd
+        assert !jsonEnd.running
+        assert jsonEnd.lastExecution > 0
+        assert !jsonEnd.executions.isEmpty()
     }
 
     String get(String context) {

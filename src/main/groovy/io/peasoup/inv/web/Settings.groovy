@@ -25,21 +25,21 @@ class Settings {
         return settings.filters
     }
 
-    def stage(String id) {
+    void stage(String id) {
         if (settings.staged.contains(id))
             return
 
         settings.staged << id
     }
 
-    def unstage(String id) {
+    void unstage(String id) {
         if (!settings.staged.contains(id))
             return
 
         settings.staged.remove(id)
     }
 
-    def unstageAll() {
+    void unstageAll() {
         settings.staged.clear()
     }
 

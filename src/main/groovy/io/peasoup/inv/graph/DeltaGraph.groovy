@@ -10,6 +10,9 @@ class DeltaGraph {
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
 
+        assert base
+        assert other
+
         def baseGraph = new RunGraph(base)
         def otherGraph = new RunGraph(other)
 

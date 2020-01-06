@@ -433,6 +433,10 @@ class InvHandlerTest {
     void call_not_ok() {
 
         assertThrows(PowerAssertionError.class, {
+            new InvHandler(null)
+        })
+
+        assertThrows(PowerAssertionError.class, {
             inv.call(null)
         })
     }

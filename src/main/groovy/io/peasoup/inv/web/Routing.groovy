@@ -384,14 +384,14 @@ class Routing {
 
             List<File> scmFiles = run.selected.values()
                     .findAll { it.link.isOwner() }
-                    .collect { run.invOfScm[it.link.value]}
+                    .collect { run.invOfScm[it.link.value] }
                     .unique()
                     .collect { scms.elements[it].script } as List<File>
 
             exec.start(scmFiles)
 
             return JsonOutput.toJson([
-                files: scmFiles.collect { it.name }
+                    files: scmFiles.collect { it.name }
             ])
         })
 

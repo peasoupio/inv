@@ -1,5 +1,8 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileDynamic
+
+@CompileDynamic
 class InvHandler {
 
     private final InvExecutor executor
@@ -56,13 +59,13 @@ class InvHandler {
     }
 
     //@Override
-    def propertyMissing(String propertyName) {
+    Object propertyMissing(String propertyName) {
         executor.pool.checkAvailability(propertyName)
         return new NetworkValuableDescriptor(propertyName)
     }
 
     //@Override
-    def methodMissing(String methodName, def args) {
+    Object methodMissing(String methodName, def args) {
         executor.pool.checkAvailability(methodName)
 
         //noinspection GroovyAssignabilityCheck

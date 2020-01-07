@@ -268,7 +268,7 @@ scm {
     void scm_parameters() {
         def parameterValue = new Date().time.toString()
 
-        postJson("scms/parameters?name=scm1&parameter=branch", [parameterValue: parameterValue])
+        postJson("scms/parameters?name=scm1&parameter=staticList", [parameterValue: parameterValue])
 
         def response = get("scms/view?name=scm1")
         assert response
@@ -277,7 +277,7 @@ scm {
 
         assert json
 
-        def parameter = json.parameters.find {it.name == "branch" }
+        def parameter = json.parameters.find {it.name == "staticList" }
 
         assert parameter
         assert parameter.value == parameterValue
@@ -291,19 +291,20 @@ scm {
         def json = new JsonSlurper().parseText(response)
 
         assert json
-        // TODO Echos do not work right now in Travis, ignore that specific assert
-        /*
-        assert json["branch"]
-        assert json["branch"].size() == 2
-        assert json["branch"].any { it == "1" }
-         */
-        assert json["param2"]
-        assert json["param2"].size() == 2
-        assert json["param2"].any { it == "my" }
+
+        assert json["command"]
+        assert json["command"].size() > 0
+
+        assert json["commandFilter"]
+        assert json["commandFilter"].size() > 0
+
+        assert json["staticList"]
+        assert json["staticList"].size() == 2
+        assert json["staticList"].any { it == "my" }
     }
 
     @Test
-    void execution() {
+    void execution_start() {
         def responseBefore = get("execution")
         assert responseBefore
 
@@ -342,6 +343,33 @@ scm {
         assert !jsonEnd.running
         assert jsonEnd.lastExecution > 0
         assert !jsonEnd.executions.isEmpty()
+    }
+
+    @Test
+    void execution_stop() {
+        def responseBefore = get("execution")
+        assert responseBefore
+
+        def jsonBefore = new JsonSlurper().parseText(responseBefore)
+
+        assert jsonBefore
+        assert jsonBefore.lastExecution == 0
+        assert jsonBefore.executions.isEmpty()
+
+        post("run/stage?id=[Kubernetes]%20undefined")
+        post("execution/start")
+        sleep(50)
+        post("execution/stop")
+
+        def responseEnd = get("execution")
+        assert responseEnd
+
+        def jsonEnd = new JsonSlurper().parseText(responseEnd)
+
+        assert jsonEnd
+        assert !jsonEnd.running
+        assert jsonEnd.lastExecution == 0
+        assert jsonEnd.executions.isEmpty()
     }
 
     String get(String context) {

@@ -73,6 +73,20 @@ class InvHandlerTest {
     }
 
     @Test
+    void not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            new InvHandler(null)
+        })
+    }
+
+    @Test
+    void call_not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            inv.call(null)
+        })
+    }
+
+    @Test
     void call_broadcast_twice() {
 
         inv {
@@ -427,18 +441,6 @@ class InvHandlerTest {
 
         def report = executor.execute()
         assert report.isOk()
-    }
-
-    @Test
-    void call_not_ok() {
-
-        assertThrows(PowerAssertionError.class, {
-            new InvHandler(null)
-        })
-
-        assertThrows(PowerAssertionError.class, {
-            inv.call(null)
-        })
     }
 
     @Test

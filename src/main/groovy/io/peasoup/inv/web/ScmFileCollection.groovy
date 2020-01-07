@@ -6,7 +6,7 @@ import me.tongfei.progressbar.ProgressBar
 @CompileStatic
 class ScmFileCollection {
 
-    private final List<ScmFile> scms = [].asSynchronized()
+    private final List<ScmFile> scms = [].asSynchronized() as List<ScmFile>
 
     final Map<String, ScmFile.SourceFileElement> elements = [:]
 

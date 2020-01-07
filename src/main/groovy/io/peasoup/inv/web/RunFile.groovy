@@ -75,18 +75,29 @@ class RunFile {
         selected.clear()
     }
 
-    synchronized void propagate() {
+    /**
+     * Iterate through the nodes to get the required ones by association
+     * @return Number of required added
+     */
+    synchronized Map propagate() {
 
         def checkRequiresByAll = selected
                 .findAll { it.value.selected }
+
+        Map<String, Integer> output = [
+            all: selected.size() == nodes.size(),
+            checked: checkRequiresByAll.size(),
+            added: 0,
+            skipped: 0
+        ] as Map<String, Integer>
 
         // (Re)init with selected only
         selected.clear()
         selected.putAll(checkRequiresByAll)
 
         // Are all nodes required ?
-        if (selected.size() == nodes.size())
-            return
+        if (output.all)
+            return output
 
         def checkRequiresByAllList = checkRequiresByAll.entrySet().toList()
 
@@ -103,8 +114,11 @@ class RunFile {
             for(GraphNavigator.Linkable link : links.keySet()) {
 
                 if (selected.containsKey(link.value)) {
+
                     // If already selected, remove from queue
-                    checkRequiresByAllList.removeAll { it.key == link.value}
+                    if (checkRequiresByAllList.removeAll { it.key == link.value})
+                        output.skipped++
+
                     continue
                 }
 
@@ -112,8 +126,14 @@ class RunFile {
                         required: true,
                         link: link
                 ))
+
+                if (link.isId())
+                    output.added++
+
             }
         }
+
+        return output
     }
 
     boolean isSelected(String scm) {

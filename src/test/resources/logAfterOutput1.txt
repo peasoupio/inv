@@ -22,3 +22,6 @@ IIS webapp my-web-app has been deployed
 
 [INV] [appC] => [REQUIRE] [IIS] undefined
 [INV] [appD] => [REQUIRE] [IIS] undefined
+
+[INV] [appC] => [BROADCAST] [App] [id=AppC]
+[INV] [appD] => [BROADCAST] [App] [id=AppD]

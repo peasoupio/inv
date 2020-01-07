@@ -28,14 +28,14 @@ Inv.
 
 Usage:
   inv load [-x] [-e <label>] <pattern>...
-  inv scm [-x] <scmFile>
+  inv scm [-x] <scmFiles>...
   inv delta <base> <other>
   inv graph (plain|dot) <base>
   inv web [-x]
   
 Options:
   load         Load and execute INV files.
-  scm          Load and execute a SCM file.
+  scm          Load and execute SCM files.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
   web          Start the web interface.
@@ -49,7 +49,7 @@ Parameters:
                (p.e *.groovy, ./**/*.groovy, ...)
                Also, it is expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-  <scmFile>    The SCM file location
+  <scmFiles>   The SCM file location
   <base>       Base file location
   <other>      Other file location
   plain        No specific output structure

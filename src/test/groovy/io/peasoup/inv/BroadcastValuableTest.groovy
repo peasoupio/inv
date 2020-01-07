@@ -105,6 +105,34 @@ class BroadcastValuableTest {
     }
 
     @Test
+    void not_a_closure() {
+        inv {
+            name "provide"
+
+            broadcast inv.Element using {
+                ready {[
+                        my: "method"
+                ]}
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require inv.Element using {
+
+                resolved {
+                    assert my
+                    assert !(my instanceof Closure)
+                    assert my() == null
+                }
+            }
+        }
+
+        executor.execute()
+    }
+
+    @Test
     void ok_with_property() {
         inv {
             name "provide"

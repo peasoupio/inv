@@ -55,6 +55,13 @@ class ScmHandlerTest {
     }
 
     @Test
+    void not_ok() {
+        assertThrows(PowerAssertionError.class, {
+            new ScmHandler(null)
+        })
+    }
+
+    @Test
     void invalid_scm() {
         assertThrows(Exception.class, {
             scm.call null

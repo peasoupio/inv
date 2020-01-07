@@ -17,14 +17,14 @@ class Main extends Script {
 
 Usage:
   inv load [-x] [-e <label>] <pattern>...
-  inv scm [-x] <scmFile>
+  inv scm [-x] <scmFiles>...
   inv delta <base> <other>
   inv graph (plain|dot) <base>
   inv web [-x]
   
 Options:
   load         Load and execute INV files.
-  scm          Load and execute a SCM file.
+  scm          Load and execute SCM files.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
   web          Start the web interface.
@@ -38,7 +38,7 @@ Parameters:
                (p.e *.groovy, ./**/*.groovy, ...)
                Also, it is expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-  <scmFile>    The SCM file location
+  <scmFiles>   The SCM file location
   <base>       Base file location
   <other>      Other file location
   plain        No specific output structure
@@ -68,7 +68,7 @@ Parameters:
             return executeScript(arguments["<pattern>"], arguments["--exclude"] ?: "")
 
         if (arguments["scm"])
-            return launchFromSCM(arguments["<scmFile>"])
+            return launchFromSCM(arguments["<scmFiles>"])
 
         if (arguments["delta"])
             return delta(arguments["<base>"], arguments["<other>"])
@@ -111,16 +111,16 @@ Parameters:
         return 0
     }
 
-    int launchFromSCM(String arg1) {
+    int launchFromSCM(List<String> args) {
 
         def invExecutor = new InvExecutor()
-        def invFiles = []
+        def scmExecutor = new ScmExecutor()
 
-        new ScmExecutor().with {
-            read(new File(arg1))
-            invFiles = execute()
+        args.each {
+            scmExecutor.read(new File(it))
         }
 
+        def invFiles = scmExecutor.execute()
         invFiles.each { String name, ScmDescriptor repository ->
 
             // Manage entry points for SCM

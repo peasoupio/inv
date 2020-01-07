@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 class DeltaGraphTest {
 
     @Test
-    void ctor() {
+    void ok() {
         def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
         def logAfterOutput1Txt =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())
 
@@ -18,7 +18,7 @@ class DeltaGraphTest {
     }
 
     @Test
-    void ctor_html() {
+    void html() {
         def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
         def logAfterOutput1Txt =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())
 

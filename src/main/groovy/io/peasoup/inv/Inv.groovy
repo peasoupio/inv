@@ -9,15 +9,13 @@ class Inv {
     String path
     Closure ready
 
-    boolean sync = true
     final Digestion digestionSummary = new Digestion()
 
     final InvDescriptor delegate = new InvDescriptor()
 
-    final List<NetworkValuable> remainingValuables = [].asSynchronized()
-    final List<NetworkValuable> totalValuables = [].asSynchronized()
-
-    final List<Closure> steps = [].asSynchronized()
+    final List<NetworkValuable> remainingValuables = [].asSynchronized() as List<NetworkValuable>
+    final List<NetworkValuable> totalValuables = [].asSynchronized() as List<NetworkValuable>
+    final List<Closure> steps = [].asSynchronized() as List<Closure>
 
     synchronized boolean dumpDelegate() {
         if (!name)
@@ -89,13 +87,8 @@ class Inv {
                 // Process results for digestion
                 digestion.addResults(networkValuable)
 
-                if (networkValuable.state == NetworkValuable.FAILED) {
-                    if (sync) {
-                        break
-                    } else {
-                        continue
-                    }
-                }
+                if (networkValuable.state == NetworkValuable.FAILED)
+                    break
 
                 toRemove.add(networkValuable)
 

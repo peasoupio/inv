@@ -14,6 +14,8 @@ class Settings {
     final private File settingsFile
 
     Settings(File settingsFile) {
+        assert settingsFile
+
         this.settingsFile = settingsFile
 
         if (settingsFile.exists())
@@ -26,16 +28,10 @@ class Settings {
     }
 
     void stage(String id) {
-        if (settings.staged.contains(id))
-            return
-
         settings.staged << id
     }
 
     void unstage(String id) {
-        if (!settings.staged.contains(id))
-            return
-
         settings.staged.remove(id)
     }
 

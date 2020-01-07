@@ -389,6 +389,7 @@ class Routing {
                     .collect { scms.elements[it].script } as List<File>
 
             exec.start(scmFiles)
+            Thread.sleep(50)
 
             return JsonOutput.toJson([
                     files: scmFiles.collect { it.name }
@@ -400,6 +401,7 @@ class Routing {
                 return "Already stopped"
 
             exec.stop()
+            Thread.sleep(50)
 
             return "Stopped"
         })

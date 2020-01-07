@@ -9,9 +9,10 @@ scm {
 
   ask {
     //parameter "branch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
-    parameter "branch", "Select which branch to use", 'master', "bash -c 'echo 1 && echo 2'", /(.+)/
-    parameter "param2", "My second parameter", '', ["my", "values"]
-    parameter "param3", "My third parameter", 'none', ['my-value']
+    parameter "command", "Using a command", '', "bash -c 'cat appA.groovy'"
+    parameter "commandFilter", "Using a command", '', "bash -c 'cat appA.groovy'", /(.+)/
+    parameter "staticList", "My second parameter", '', ["my", "values"]
+    parameter "param3", "My third parameter", 'none'
     parameter "param4", "My forth parameter #4"
   }
 

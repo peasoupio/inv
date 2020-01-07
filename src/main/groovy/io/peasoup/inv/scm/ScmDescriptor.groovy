@@ -7,6 +7,7 @@ import groovy.transform.CompileStatic
 class ScmDescriptor {
 
     static final Map<String, String> env =  System.getenv()
+    static final List<String> env2 =  System.getenv().collect { "${it.key}=${it.value}".toString() }
 
     static Integer DefaultTimeout = 30000
     static String DefaultEntry = "inv.groovy"

@@ -60,6 +60,14 @@ class GraphNavigatorTest {
     }
 
     @Test
+    void linkable_toString() {
+        def value = "value1"
+
+        assert new GraphNavigator.Id(value:value).toString() == "ID=${value}"
+        assert new GraphNavigator.Owner(value:value).toString() == "Owner=${value}"
+    }
+
+    @Test
     void addBroadcast_not_ok() {
 
         assertThrows(PowerAssertionError.class, {
@@ -125,6 +133,25 @@ class GraphNavigatorTest {
 
         def empty = graph.requiresAll(new GraphNavigator.Owner(value: "owner"))
         assert empty.isEmpty()
+    }
+
+
+    @Test
+    void id_notEqual() {
+        def id = new GraphNavigator.Id(value: "1")
+
+        assert !id.equals(null)
+        assert !id.equals([:])
+        assert !id.equals(new GraphNavigator.Id(value: "2"))
+    }
+
+    @Test
+    void owner_notEqual() {
+        def owner = new GraphNavigator.Owner(value: "1")
+
+        assert !owner.equals(null)
+        assert !owner.equals([:])
+        assert !owner.equals(new GraphNavigator.Owner(value: "2"))
     }
 
     class TestNode implements GraphNavigator.Node {

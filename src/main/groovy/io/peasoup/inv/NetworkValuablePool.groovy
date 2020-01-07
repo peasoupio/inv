@@ -18,8 +18,8 @@ class NetworkValuablePool {
     final Map<String, Map<Object, BroadcastValuable.Response>> stagingValuables = [:]
     final Map<String, Set<Object>> unbloatedValuables = [:]
 
-    final List<Inv> remainingsInv = [].asSynchronized()
-    final List<Inv> totalInv = [].asSynchronized()
+    final List<Inv> remainingsInv = [].asSynchronized() as List<Inv>
+    final List<Inv> totalInv = [].asSynchronized() as List<Inv>
 
     protected String runningState = RUNNING
     private boolean isDigesting = false
@@ -88,9 +88,9 @@ class NetworkValuablePool {
 
                     // issues:8
                     remainingsInv.remove(inv)
-
-                    return []
                 }
+
+                return []
             } as Callable<Inv.Digestion>)
 
 

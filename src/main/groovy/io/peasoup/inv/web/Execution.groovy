@@ -1,24 +1,21 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.Logger
-import io.peasoup.inv.scm.ScmDescriptor
-import io.peasoup.inv.scm.ScmExecutor
+import io.peasoup.inv.Main
 
 import java.nio.file.Files
 
 @CompileStatic
 class Execution {
 
-    private static Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
-    private static Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
+    static Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
+    static Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
 
     private final File executionsLocation
     private final File scmFolder
     private final File externalParametersFolder
 
-    private Thread runningThread =  null
+    private Process currentProcess
     private List<List<String>> messages = []
     private File executionLog
 
@@ -61,7 +58,7 @@ class Execution {
     }
 
     boolean isRunning() {
-        runningThread != null && runningThread.isAlive()
+        currentProcess && currentProcess.isAlive()
     }
 
     void start(List<File> scms) {
@@ -73,75 +70,60 @@ class Execution {
             Files.move(executionLog.toPath(), new File(executionsLocation, "execution.log." + executionLog.lastModified()).toPath())
 
         messages.clear()
-        List<String> currentChunkOfMessages = [].asSynchronized()
-        Logger.capture { String message ->
-            currentChunkOfMessages << message
-            sendMessages(currentChunkOfMessages)
-        }
+        List<String> currentChunkOfMessages = [].asSynchronized() as List<String>
 
-        def invExecutor = new InvExecutor()
-        def scmExecutor = new ScmExecutor()
+        new Thread({
 
-        runningThread = Thread.start {
+            def myClassPath = System.getProperty("java.class.path")
+            def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm"]
 
-            scms.each { scmFile ->
-                scmExecutor.read(scmFile, new File(externalParametersFolder, scmFile.name.split('\\.')[0] + ".json"))
+            scms.each {
+                args.add(it.absolutePath)
             }
 
-            scmExecutor.execute().each { String name, ScmDescriptor repository ->
+            currentProcess = args.execute()
+            currentProcess.consumeProcessOutput(
+                    new StringWriter() {
+                        @Override
+                        void write(String str) {
+                            if (str == "\n")
+                                return
 
-                // Manage entry points for SCM
-                repository.entry.split().each {
+                            currentChunkOfMessages << str
+                            sendMessages(currentChunkOfMessages)
 
-                    def scriptFile = new File(it)
-                    def path = repository.path
+                            System.out.println str
+                        }
+                    },
+                    new StringWriter() {
+                        @Override
+                        void write(String str) {
+                            if (str == "\n")
+                                return
 
-                    if (!scriptFile.exists()) {
-                        scriptFile = new File(path, it)
-                        path = scriptFile.parentFile
+                            currentChunkOfMessages << str
+                            sendMessages(currentChunkOfMessages)
+
+                            System.out.println str
+                        }
                     }
+            )
+            currentProcess.waitFor()
 
-                    if (!scriptFile.exists()) {
-                        Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
-                        return
-                    }
-
-                    Logger.info("file: ${scriptFile.canonicalPath}")
-                    invExecutor.read(path.canonicalPath, scriptFile, name)
-                }
-            }
-
-            Logger.info("[SCM] done")
-
-            // Do the actual sequencing work
-            invExecutor.execute()
+            println "Execution: stopped"
 
             sendMessages(currentChunkOfMessages, false)
 
-            List<List<String>> reorganizedMessages = []
-            reorganizedMessages << []
-
-            messages.each {
-                def last = reorganizedMessages.last()
-
-                if (last.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
-                    reorganizedMessages << []
-                    last = reorganizedMessages.last()
-                }
-
-                last.addAll(it)
-            }
-
-            messages = reorganizedMessages
-        }
+        } as Runnable).start()
     }
 
     void stop() {
-        if (isRunning())
-            runningThread.interrupt()
+        if (isRunning()) {
+            currentProcess.destroy()
+        }
     }
 
-    private void sendMessages(List<String> currentMessages, boolean validateSize = true) {
+    void sendMessages(List<String> currentMessages, boolean validateSize = true) {
         if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
             return
 

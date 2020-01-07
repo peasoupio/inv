@@ -27,19 +27,23 @@ class ScmFile {
             read(file)
 
             scms.each { String name, ScmDescriptor desc ->
-                def element = new ScmFile.SourceFileElement(
-                        descriptor: desc,
-                        script: file
-                )
-
-                elements[name] = element
+                elements[name] = new ScmFile.SourceFileElement(desc, file)
             }
         }
     }
 
     static class SourceFileElement {
-        ScmDescriptor descriptor
-        File script
+        private ScmDescriptor descriptor
+        private File script
+
+        SourceFileElement(ScmDescriptor descriptor, File script) {
+            assert descriptor
+            assert script
+            assert script.exists()
+
+            this.descriptor = descriptor
+            this.script = script
+        }
 
         String simpleName() {
             return script.name.split('\\.')[0]
@@ -162,16 +166,18 @@ class ScmFile {
             Map<String, List<String>> output = [:]
 
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
-                Logger.debug "Resolving '${parameter.name}'forf ${descriptor.name}"
+                Logger.debug "Resolving '${parameter.name}' for ${descriptor.name}"
 
                 List<String> values = parameter.staticValues
 
                 if (parameter.commandValues) {
-                    String stdout = parameter.commandValues.execute().in.text
+                    String stdout = parameter.commandValues.execute(descriptor.env2, descriptor.path).in.text
 
                     Logger.debug "Command: ${parameter.commandValues}:\n${stdout}"
 
-                    if (parameter.filter) {
+                    if (!parameter.filter)
+                        values = stdout.split() as List<String>
+                    else {
                         def matches = stdout =~ parameter.filter
 
                         matches.each { match ->
@@ -183,8 +189,6 @@ class ScmFile {
                                 values.add((match as ArrayList<String>)[1].toString())
                             }
                         }
-                    } else {
-                        values = stdout.split() as List<String>
                     }
                 }
 

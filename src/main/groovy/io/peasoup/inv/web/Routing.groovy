@@ -132,11 +132,27 @@ class Routing {
         })
 
         get("/run/owners", { req, res ->
-            return JsonOutput.toJson(run.owners)
+            return JsonOutput.toJson(run.owners.keySet().collect {
+                [
+                        owner: it,
+                        links: [
+                                stage: "/run/stage?owner=${it}",
+                                unstage: "/run/unstage?owner=${it}"
+                        ]
+                ]
+            })
         })
 
         get("/run/names", { req, res ->
-            return JsonOutput.toJson(run.names)
+            return JsonOutput.toJson(run.names.keySet().collect {
+                [
+                        name: it,
+                        links: [
+                                stage: "/run/stage?name=${it}",
+                                unstage: "/run/unstage?name=${it}"
+                        ]
+                ]
+            })
         })
 
         post("/run", { req, res ->

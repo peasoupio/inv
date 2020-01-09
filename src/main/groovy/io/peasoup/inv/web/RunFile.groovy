@@ -18,8 +18,8 @@ class RunFile {
     final Map<String, Selected> selected = [:]
     final List<GraphNavigator.Linkable> nodes = []
 
-    final Set<String> owners = new HashSet<>()
-    final Set<String> names = new HashSet<>()
+    final Map<String, List<GraphNavigator.Id>> owners = [:]
+    final Map<String, List<GraphNavigator.Id>> names = [:]
 
     RunFile(File runFile) {
         assert runFile
@@ -33,17 +33,15 @@ class RunFile {
 
         nodes = (runGraph.g.vertexSet() as List<GraphNavigator.Linkable>).findAll { it.isId() }
 
-        nodes.each {
-            def node = runGraph.navigator.nodes[it.value]
-            owners.add(node.owner)
-            names.add(it.value.split(' ')[0].replace('[', '').replace(']', ''))
-        }
+        owners = nodes.groupBy { runGraph.navigator.nodes[it.value].owner } as Map<String, List<GraphNavigator.Id>>
+        names = nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') } as Map<String, List<GraphNavigator.Id>>
+
     }
 
     synchronized void stage(String id) {
         selected.put(id, new Selected(
-            selected: true,
-            link: new GraphNavigator.Id(value: id)
+                selected: true,
+                link: new GraphNavigator.Id(value: id)
         ))
 
         propagate()
@@ -129,7 +127,6 @@ class RunFile {
 
                 if (link.isId())
                     output.added++
-
             }
         }
 
@@ -188,6 +185,9 @@ class RunFile {
         if (filter.name)
             reduced = reduced.findAll { it.name.contains(filter.name as CharSequence)}
 
+        List<String> names = reduced.collect {it.name}.unique()
+        List<String> owners = reduced.collect {it.node.owner}.unique()
+
         Integer total = reduced.size()
 
         if (total > from) {
@@ -200,6 +200,8 @@ class RunFile {
             total: nodes.size(),
             selected: selectedLinks.size(),
             requiredByAssociation: requiredLinks.size(),
+            names: names,
+            owners: owners,
             nodes: reduced.collect {
 
                     String value = it.link.value as String
@@ -210,7 +212,6 @@ class RunFile {
                     return [
                         required: selected[value] && selected[value].required,
                         selected: selected[value] && selected[value].selected,
-                        //broughtBySomeone: new HashSet<String>(),
                         owner: owner,
                         name: it.name,
                         id: it.subId,
@@ -221,7 +222,6 @@ class RunFile {
                             stage: "/run/stage?id=${value}",
                             unstage: "/run/unstage?id=${value}"
                         ]
-                        //required: flattenedEdges[owner]
                     ]
                 }
         ]

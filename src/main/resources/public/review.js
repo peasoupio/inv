@@ -1,12 +1,6 @@
 Vue.component('review', {
     template: `
-
-
 <div>
-
-
-    <p class="title is-1">Review: </p>
-
     <p>Missing: {{stats.missing}}</p>
     <p>Added: {{stats.added}}</p>
     <p>Equals: {{stats.equals}}</p>

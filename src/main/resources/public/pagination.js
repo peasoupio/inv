@@ -1,8 +1,8 @@
 Vue.component('pagination', {
     template: `
 <nav class="pagination is-centered" role="navigation" aria-label="pagination" v-if="value">
-    <button class="pagination-previous" title="This is the first page" :disabled="value.from <= 0" @click="seePrevious()">Previous</button>
-    <button class="pagination-next" :disabled="value.from + value.step > value.total" @click="seeNext()">Next page</button>
+    <button class="button pagination-previous" title="This is the first page" :disabled="value.from <= 0" @click="seePrevious()">Previous</button>
+    <button class="button pagination-next" :disabled="value.from + value.step > value.total" @click="seeNext()">Next page</button>
 
     <ul class="pagination-list">
         <li v-if="isStartOutOfSight()"><a class="pagination-link" @click="seeAt(0)">1</a></li>
@@ -19,8 +19,11 @@ Vue.component('pagination', {
 `,
     props: ['value'],
     data: function() {
+
+       var threshold = this.value.threshold ? this.value.threshold : 4
+
         return {
-            threshold: 4,
+            threshold: threshold,
             currentIndex:  0
         }
     },
@@ -62,7 +65,7 @@ Vue.component('pagination', {
             var vm = this
 
             --vm.currentIndex
-            vm.value.from -= vm.step
+            vm.value.from -= vm.value.step
             vm.value.refresh(vm.value.from)
         },
         indexes: function() {
@@ -91,7 +94,7 @@ Vue.component('pagination', {
             return (this.currentIndex - this.threshold) > 1
         },
         isEndOutOfSight: function() {
-            return (this.currentIndex + this.threshold) < this.remainings
+            return (this.currentIndex + this.threshold * 2) < this.remainings
         }
     }
 })

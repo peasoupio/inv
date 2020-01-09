@@ -1,9 +1,6 @@
 Vue.component('install', {
     template: `
 <div>
-    <p class="title is-1">Install: </p>
-
-
     <div class="field is-grouped is-grouped-right">
         <div class="field">
             <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
@@ -21,8 +18,8 @@ Vue.component('install', {
         </span>
         <p class="subtitle is-6" v-if="!execution.running">Last execution: {{getRelativeTimestamp()}}</p>
     </p>
-    <div style="overflow-y: scroll; height: 600px; width: 100%" ref="logContainer">
-        <pre style="padding: 0; white-space: pre-wrap" v-for="(message, index) in messages">{{message}}</pre>
+    <div class="output" ref="logContainer">
+        <pre v-for="(message, index) in messages">{{message}}</pre>
     </div>
 </div>
 `,

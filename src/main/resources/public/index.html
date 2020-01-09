@@ -9,8 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-    <link rel="stylesheet" href="https://cdn.rawgit.com/octoshrimpy/bulma-o-steps/master/bulma-steps.css">
+    <link rel="stylesheet" href="bulma.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 
 
@@ -20,13 +19,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/groovy/groovy.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/edit/matchbrackets.min.js"></script>
 
-    <script src="base-layout.js"></script>
-    <script src="configure.js"></script>
+    <script src="layout.js"></script>
     <script src="choose.js"></script>
+    <script src="choose-select-complex.js"></script>
+    <script src="choose-summary.js"></script>
+    <script src="configure.js"></script>
     <script src="review.js"></script>
     <script src="install.js"></script>
 
     <script src="pagination.js"></script>
+    <script src="panel.js"></script>
+    <script src="tabTiles.js"></script>
 
     <style>
 
@@ -55,9 +58,13 @@
             padding: 2em;
         }
 
-        .sidebar {
-            padding: 1em;
-            background-color: lightgrey;
+        .mainContent {
+            background-color: hsl(0, 0%, 99%);
+        }
+
+        .tile:hover {
+            cursor: pointer;
+            user-select: none;
         }
 
         /*************** Choose *****************/
@@ -85,6 +92,18 @@
             visibility: hidden !important;
         }
 
+        /************ Install *************/
+        .output {
+            overflow-y: scroll;
+            height: 600px;
+            width: 100%;
+        }
+
+        .output pre {
+            padding: 0;
+            white-space: pre-wrap;
+            color: hsl(0, 0%, 21%);
+        }
 
         /************ Review *************/
 
@@ -102,7 +121,7 @@
 </head>
 <body>
     <div id="container">
-        <base-layout />
+        <layout />
     </div>
 
 
@@ -220,4 +239,5 @@ Vue.directive('click-outside',{
 
 </body>
 </html>
+
 

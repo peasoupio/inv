@@ -1,25 +1,40 @@
 Vue.component('configure', {
     template: `
 <div>
+    <div class="columns">
+        <div class="column is-2">
+            <tab-tiles v-model="tabTilesSettings" />
+        </div>
 
-    <p class="title is-1">Configure: </p>
-
-    <div class="tabs">
-        <ul>
-            <li v-bind:class="{ 'is-active' : activeTab=='parameters' }"><a @click="activeTab='parameters'">Parameters ({{completedCount()}}/{{value.selectedScms.length}})</a></li>
-            <li v-bind:class="{ 'is-active' : activeTab=='scms' }"><a @click="activeTab='scms'">Scms ({{value.scms.total}})</a></li>
-        </ul>
+        <div class="column" v-if="currentTab.template">
+            <component v-bind:is="currentTab.template" v-model="value" />
+        </div>
     </div>
-
-    <configure-parameters v-model="value" v-if="activeTab=='parameters'"></configure-parameters>
-    <configure-scms v-model="value" v-if="activeTab=='scms'"></configure-scms>
 
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
-            activeTab: 'parameters'
+            currentTab: 'parameters'
+        }
+    },
+    computed: {
+        tabTilesSettings: {
+            get() {
+                var vm = this
+
+                return {
+                    tabs: [
+                        { label: 'Params', description: 'Configure SCM parameters for each SELECTED INVs', template: 'configure-parameters', isWhat: 'link'},
+                        { label: 'Sources', description: 'Configure SCM scripts', template: 'configure-scms', isWhat: 'danger'}
+                    ],
+                    tabSet: function(tab) {
+                        vm.currentTab = tab
+                        vm.$forceUpdate()
+                    }
+                }
+            }
         }
     },
     methods: {
@@ -367,7 +382,7 @@ Vue.component('configure-scms', {
                 <div class="columns" v-if="editScript">
                     <div class="column">
                         <h1 class="title is-3">Edit</h1>
-                        <h4 class="subtitle is-6">file: {{editScript.source}}, source: {{editScript.descriptor.src}}</h4>
+                        <h4 class="subtitle is-6">source: {{editScript.descriptor.src}}</h4>
                     </div>
                     <div class="column is-one-fifth">
                         <div class="buttons has-addons is-right">

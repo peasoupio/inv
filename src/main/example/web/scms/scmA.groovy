@@ -8,12 +8,11 @@ scm {
   timeout 46000
 
   ask {
-    //parameter "branch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
-    parameter "command", "Using a command", '', "bash -c 'cat appA.groovy'"
-    parameter "commandFilter", "Using a command", '', "bash -c 'cat appA.groovy'", /(.+)/
-    parameter "staticList", "My second parameter", '', ["my", "values"]
-    parameter "param3", "My third parameter", 'none'
-    parameter "param4", "My forth parameter #4"
+    parameter "simpleParam", "My simple parameter"
+    parameter "simpleParamWithDefault", "My simple parameter with a default value", [defaultValue: 'myDefault']
+    parameter "staticList", "Using static values", [staticValues: ["my", "values"]]
+    parameter "command", "Using a command", [commandValues: "bash -c 'cat appA.groovy'"]
+    parameter "commandFilter", "Using a command with a filter", [commandValues: "bash -c 'cat appA.groovy'", commandFilter: /(.+)/]
   }
 
   hooks {
@@ -40,7 +39,7 @@ scm {
   timeout 30000
 
   ask {
-    parameter "branch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
+    parameter "branch", "Select which branch to use", [defaultValue: 'master', commandValues: "git ls-remote ${src}", commandFilter: /.*refs\/((?:heads|tags).*)/]
   }
 
   hooks {

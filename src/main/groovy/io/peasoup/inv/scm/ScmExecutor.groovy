@@ -105,6 +105,9 @@ class ScmExecutor {
         process.waitForOrKill(repository.timeout ?: 60000)
 
         shFile.delete()
+
+        if (process.exitValue() != 0)
+            repository.path.deleteDir()
     }
 
     private String randomSuffix() {

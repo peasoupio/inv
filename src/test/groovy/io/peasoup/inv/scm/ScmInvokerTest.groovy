@@ -28,7 +28,8 @@ class ScmInvokerTest {
         def files = executor.execute()
 
         assert files["my-repository"]
-        assert files["my-repository"].entry.contains("mainTestScript.groovy")
+        assert files["my-repository"].entry.size() == 1
+        assert files["my-repository"].entry[0].contains("mainTestScript.groovy")
         assert files["my-repository"].path.absolutePath.contains("scm")
     }
 

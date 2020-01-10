@@ -139,49 +139,45 @@ Vue.component('configure-parameters', {
         <div class="modal-background"></div>
         <div class="modal-content">
             <div class="box" v-click-outside="close">
-                <div class="field is-horizontal" v-for="parameter in currentScmParameter.parameters">
-                    <div class="field-label is-normal">
-                        <label class="label">{{parameter.name}}</label>
-                    </div>
-                    <div class="field-body">
-                        <div class="field is-expanded">
-                            <div class="field has-addons">
-                                <div class="control">
-                                    <div v-if="parameter.values.length > 0">
-                                        <div class="select" v-if="!areValuesUnavailable(parameter)">
-                                            <select v-model="parameter.value">
-                                                <option value="" disabled hidden selected>Select value</option>
-                                                <option v-for="value in parameter.values">{{value}}</option>
-                                            </select>
-                                        </div>
-                                        <div class="field" v-else>
-                                            <input class="input" type="text" value="No match found" disabled></input>
-                                        </div>
-                                    </div>
-
-                                    <div class="field" v-if="parameter.values.length == 0">
-                                        <input class="input" type="text" value="No values available" disabled></input>
-                                    </div>
+                <h1 class="title is-5">Parameter(s) of: {{currentScmParameter.name}} </h1>
+                <div v-for="(parameter, index) in currentScmParameter.parameters" style="padding-bottom: 1em;">
+                    <p>{{index +1 }}. {{parameter.name}}</p>
+                    <p class="help">
+                        Usage: {{parameter.usage}}.
+                        Default value:
+                        <a v-if="parameter.defaultValue" @click="setDefault(parameter)">{{parameter.defaultValue}}</a>
+                        <span v-else>(not defined)</span>
+                    </p>
+                    <div class="field has-addons">
+                        <div class="control">
+                            <div v-if="parameter.values.length > 0">
+                                <div class="select" v-if="!areValuesUnavailable(parameter)" style="max-width: 300px;">
+                                    <select v-model="parameter.value" @change="parameter.changed = true">
+                                        <option value="" disabled hidden selected>Select value</option>
+                                        <option v-for="value in parameter.values">{{value}}</option>
+                                    </select>
                                 </div>
-
-                                <p class="control is-expanded">
-                                    <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
-                                </p>
-                                <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
-                                    <span>Saved</span>
-                                    <span class="icon is-small">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                </button>
+                                <div class="field" v-else>
+                                    <input class="input" type="text" value="No match found" disabled></input>
+                                </div>
                             </div>
-                            <p class="help">
-                                {{parameter.usage}}.
-                                Default value:
-                                <a v-if="parameter.defaultValue !== ''" @click="setDefault(parameter)">{{parameter.defaultValue}}</a>
-                                <span v-else>(not defined)</span>
-                            </p>
+
+                            <div class="field" v-if="parameter.values.length == 0">
+                                <input class="input" type="text" value="No values available" disabled></input>
+                            </div>
                         </div>
+
+                        <p class="control is-expanded">
+                            <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
+                        </p>
+                        <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
+                            <span>Saved</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </button>
                     </div>
+
                 </div>
 
                 <footer class="modal-card-foot">
@@ -232,7 +228,16 @@ Vue.component('configure-parameters', {
             })
         },
         areValuesUnavailable: function(scmParameters) {
-            return parameter.value !== '' && parameter.values.indexOf(parameter.value) < 0
+            if (scmParameters.value == undefined)
+                return false
+
+            if (scmParameters.value == null)
+                return false
+
+            if (scmParameters.value === '')
+                return false
+
+            return scmParameters.values.indexOf(scmParameters.value) < 0
         },
         getRelativeTimestamp: function(scmParameters) {
             var vm = this
@@ -257,6 +262,9 @@ Vue.component('configure-parameters', {
 
                 scmParameters.parameters.forEach(function(parameter) {
                     parameter.values = response.data[parameter.name]
+
+                    if (!parameter.value)
+                        parameter.value = ""
                 })
 
                 scmParameters.changed = false

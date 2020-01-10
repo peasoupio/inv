@@ -39,6 +39,11 @@ class RunFile {
     }
 
     synchronized void stage(String id) {
+        assert id
+
+        if (selected.containsKey(id))
+            return
+
         selected.put(id, new Selected(
                 selected: true,
                 link: new GraphNavigator.Id(value: id)
@@ -64,6 +69,11 @@ class RunFile {
     }
 
     synchronized void unstage(String id) {
+        assert id
+
+        if (!selected.containsKey(id))
+            return
+
         selected.remove(id)
 
         propagate()
@@ -188,6 +198,9 @@ class RunFile {
         List<String> names = reduced.collect {it.name}.unique()
         List<String> owners = reduced.collect {it.node.owner}.unique()
 
+        Integer requiredCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].required? 1 : 0   } as Integer
+        Integer selectedCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].selected? 1 : 0    } as Integer
+
         Integer total = reduced.size()
 
         if (total > from) {
@@ -198,8 +211,8 @@ class RunFile {
         return [
             count: total,
             total: nodes.size(),
-            selected: selectedLinks.size(),
-            requiredByAssociation: requiredLinks.size(),
+            selected: requiredCount,
+            requiredByAssociation: selectedCount,
             names: names,
             owners: owners,
             nodes: reduced.collect {

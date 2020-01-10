@@ -181,7 +181,7 @@ Vue.component('choose-summary', {
             if (vm.value.invs.selected == 0)
                 return []
 
-            if (vm.value.requiredInvs == undefined || vm.value.invs.selected != vm.value.requiredInvs.selected) {
+            if (vm.value.requiredInvs == undefined) {
                 vm.searchNodes()
                 return
             }

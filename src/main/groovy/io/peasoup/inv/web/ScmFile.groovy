@@ -124,6 +124,9 @@ class ScmFile {
         }
 
         void writeParameterDefaultValue(File parametersFile, SourceFileElement element, ScmDescriptor.AskParameter parameter) {
+            if (!parameter.defaultValue)
+                return
+
             writeParameterValue(parametersFile, element, parameter.name, parameter.defaultValue)
         }
 
@@ -168,17 +171,17 @@ class ScmFile {
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
                 Logger.debug "Resolving '${parameter.name}' for ${descriptor.name}"
 
-                List<String> values = parameter.staticValues
+                List<String> values = parameter.staticValues ?: []
 
                 if (parameter.commandValues) {
                     String stdout = parameter.commandValues.execute(descriptor.env2, descriptor.path).in.text
 
                     Logger.debug "Command: ${parameter.commandValues}:\n${stdout}"
 
-                    if (!parameter.filter)
+                    if (!parameter.commandFilter)
                         values = stdout.split() as List<String>
                     else {
-                        def matches = stdout =~ parameter.filter
+                        def matches = stdout =~ parameter.commandFilter
 
                         matches.each { match ->
                             if (match instanceof String) {

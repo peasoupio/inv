@@ -13,7 +13,7 @@ Vue.component('layout', {
                     <p>{{step.description}}</p>
                 </div>
             </div>
-            <div class="steps-actions">
+            <div class="steps-actions" style="padding-top: 3em;">
                 <div class="steps-action">
                     <a @click="previousStep()" data-nav="previous" class="button" :disabled="currentStep.index - 1 == 0">Previous step</a>
                 </div>

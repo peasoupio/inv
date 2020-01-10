@@ -124,7 +124,7 @@ Parameters:
         invFiles.each { String name, ScmDescriptor repository ->
 
             // Manage entry points for SCM
-            repository.entry.split().each {
+            repository.entry.each {
 
                 def scriptFile = new File(it)
                 def path = repository.path

@@ -8,8 +8,16 @@ scm {
   timeout 30000
 
   ask {
-    parameter "remoteBranch", "Select which branch to use", 'master', "git ls-remote ${src}", /.*refs\/((?:heads|tags).*)/
-    parameter "localBranch", "Select which branch to use", 'master', ["feature", "master"]
+    parameter "remoteBranch", "Select which branch to use", [
+      defaultValue: 'master',
+      commandValues: "git ls-remote ${src}",
+      commandFilter: /.*refs\/((?:heads|tags).*)/
+    ]
+
+    parameter "localBranch", "Select which branch to use", [
+      defaultValue: 'master',
+      staticValues: ["feature", "master"]
+    ]
   }
 
   hooks {

@@ -31,8 +31,8 @@ class ScmDescriptor {
     String src
     void src(String value) { this.src = value }
 
-    String entry = DefaultEntry
-    def entry(String value) { this.entry = value }
+    Collection<String> entry = [DefaultEntry]
+    def entry(String value) { this.entry = value.split().findAll {it } }
 
     Integer timeout = DefaultTimeout
     def timeout(Integer value) { this.timeout = value }
@@ -83,30 +83,37 @@ class ScmDescriptor {
 
         List<AskParameter> parameters = []
 
-        // TODO Maybe parameters should be gathered within a map, it could be clearer ?
-        def parameter(String name, String usage, String defaultValue = "", def values = null, String filter = null) {
-
+        def parameter(String name, String usage, Map options = [:]) {
             assert name
             assert usage
 
-            parameters << new AskParameter(
+            def parameter = new AskParameter(
                     name: name,
-                    usage: usage,
-                    defaultValue: defaultValue,
-                    commandValues: (values != null && values instanceof CharSequence)? values as String : null,
-                    staticValues: (values != null && values instanceof Collection<String>)? values as List<String> : [] as List<String>,
-                    filter: filter
-            )
-        }
+                    usage: usage)
 
+            if (options.defaultValue && options.defaultValue instanceof CharSequence)
+                parameter.defaultValue = options.defaultValue as String
+
+            if (options.staticValues && options.staticValues instanceof Collection<String>)
+                parameter.staticValues = options.staticValues as List<String>
+
+            if (options.commandValues && options.commandValues instanceof CharSequence)
+                parameter.commandValues = options.commandValues as String
+
+            if (options.commandFilter && options.commandFilter instanceof CharSequence)
+                parameter.commandFilter = options.commandFilter as String
+
+            parameters << parameter
+        }
     }
 
     static class AskParameter {
         String name
         String usage
         String defaultValue
-        String commandValues
+        Boolean required
         List<String> staticValues
-        String filter // TODO Should filter also accepts a closure ?
+        String commandValues
+        String commandFilter // TODO Should filter also accepts a closure ?
     }
 }

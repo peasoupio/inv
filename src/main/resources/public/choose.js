@@ -73,8 +73,8 @@ Vue.component('choose-select-simple', {
                     help: `
 <ul>
 <li>Each <i>INV</i> are under <i>owner</i>.</li>
-<li>An <i>owner</i> has many <i>network valuables</i> obtained from a previous execution.</li>
-<li><i>Network Valuables</i> are <strong>require</strong> and <strong>broadcast</strong> statements of the <i>INV</i>.</li>
+<li>An <i>owner</i> has many <i>statements</i> obtained from a previous execution.</li>
+<li>A <i>Statement</i> is either a <strong>require</strong> or a <strong>broadcast</strong>.</li>
 <li>When selected, only <strong>broadcasts</strong> of the <i>owner</i> are shown to the right</li>
 </ul>
 `,

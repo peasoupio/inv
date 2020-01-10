@@ -61,7 +61,7 @@ class InvHandler {
     //@Override
     Object propertyMissing(String propertyName) {
         executor.pool.checkAvailability(propertyName)
-        return new NetworkValuableDescriptor(propertyName)
+        return new StatementDescriptor(propertyName)
     }
 
     //@Override
@@ -69,7 +69,7 @@ class InvHandler {
         executor.pool.checkAvailability(methodName)
 
         //noinspection GroovyAssignabilityCheck
-        return new NetworkValuableDescriptor(methodName)(*args)
+        return new StatementDescriptor(methodName)(*args)
     }
 }
 

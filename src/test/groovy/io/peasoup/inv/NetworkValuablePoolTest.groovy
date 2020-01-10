@@ -46,8 +46,8 @@ class NetworkValuablePoolTest {
         pool.runningState = NetworkValuablePool.UNBLOATING
         pool.isDigesting = true
 
-        def broadcastValuable = new BroadcastValuable()
-        broadcastValuable.state = BroadcastValuable.SUCCESSFUL
+        def broadcastValuable = new BroadcastStatement()
+        broadcastValuable.state = BroadcastStatement.SUCCESSFUL
 
         assert pool.preventUnbloating(broadcastValuable)
         assert pool.runningState == NetworkValuablePool.RUNNING
@@ -62,7 +62,7 @@ class NetworkValuablePoolTest {
 
         assertThrows(PowerAssertionError.class, {
             pool.isDigesting = false
-            pool.preventUnbloating(new BroadcastValuable())
+            pool.preventUnbloating(new BroadcastStatement())
         })
     }
 
@@ -71,8 +71,8 @@ class NetworkValuablePoolTest {
         pool.runningState = NetworkValuablePool.RUNNING
         pool.isDigesting = true
 
-        def broadcastValuable = new BroadcastValuable()
-        broadcastValuable.state = BroadcastValuable.SUCCESSFUL
+        def broadcastValuable = new BroadcastStatement()
+        broadcastValuable.state = BroadcastStatement.SUCCESSFUL
 
         assert !pool.preventUnbloating(broadcastValuable)
     }
@@ -82,8 +82,8 @@ class NetworkValuablePoolTest {
         pool.runningState = NetworkValuablePool.UNBLOATING
         pool.isDigesting = true
 
-        def broadcastValuable = new BroadcastValuable()
-        broadcastValuable.state = BroadcastValuable.FAILED
+        def broadcastValuable = new BroadcastStatement()
+        broadcastValuable.state = BroadcastStatement.FAILED
 
         assert !pool.preventUnbloating(broadcastValuable)
     }
@@ -93,8 +93,8 @@ class NetworkValuablePoolTest {
         pool.runningState = NetworkValuablePool.UNBLOATING
         pool.isDigesting = true
 
-        def requireValuable = new RequireValuable()
-        requireValuable.state = BroadcastValuable.SUCCESSFUL
+        def requireValuable = new RequireStatement()
+        requireValuable.state = BroadcastStatement.SUCCESSFUL
 
         assert !pool.preventUnbloating(requireValuable)
     }

@@ -14,9 +14,9 @@ class NetworkValuablePool {
 
     final Set<String> names = []
 
-    final Map<String, Map<Object, BroadcastValuable.Response>> availableValuables = [:]
-    final Map<String, Map<Object, BroadcastValuable.Response>> stagingValuables = [:]
-    final Map<String, Set<Object>> unbloatedValuables = [:]
+    final Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = [:]
+    final Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = [:]
+    final Map<String, Set<Object>> unbloatedStatements = [:]
 
     final List<Inv> remainingsInv = [].asSynchronized() as List<Inv>
     final List<Inv> totalInv = [].asSynchronized() as List<Inv>
@@ -28,19 +28,19 @@ class NetworkValuablePool {
 
 
     /**
-     * Digest invs and their network valuables.
+     * Digest invs and theirs statements.
      * This is the main function to resolve requirements and broadcasts within the current pool.
      *
-     * Invs and network valuables are pushed through different cycles : RUNNING, UNBLOATING and HALTED.
+     * Invs and statements are pushed through different cycles : RUNNING, UNBLOATING and HALTED.
      * Cycles can be altered based on how well the digestion goes.
      *
      * Invs resolution process is multithreaded during the RUNNING cycle only.
-     * Within the resolution, network valuables are processed.
-     * During this step, the network valuables (require and broadcast) are matched.
+     * Within the resolution, statements are processed.
+     * During this step, the statements (require and broadcast) are matched.
      * NOTE : If running in an UNBLOATING cycle, requires "unresolved" could be raised if marked unbloatable.
      *
      * During the UNBLOATING cycle, we removed/do not resolve unbloatable requirements to unbloat the pool.
-     * We wait until we catch a broadcast since a broadcast could alter the remaining network valuables within the pool.
+     * We wait until we catch a broadcast since a broadcast could alter the remaining statements within the pool.
      * In this case, when reached, the current cycle is close and a new one is meant to called as RUNNING.
      *
      * If nothing is broadcast during a UNBLOATING cycle, next one will be called as HALTED.
@@ -124,15 +124,16 @@ class NetworkValuablePool {
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
         boolean hasStagedSomething = false
-        def stagingSet = stagingValuables.entrySet()
-        for (int i = 0; i < stagingValuables.size(); i++) {
-            def networkValuables = stagingSet[i]
-            availableValuables[networkValuables.key].putAll(networkValuables.value)
+        def stagingSet = stagingStatements.entrySet()
 
-            if (networkValuables.value.size())
+        for (int i = 0; i < stagingStatements.size(); i++) {
+            def statements = stagingSet[i]
+            availableStatements[statements.key].putAll(statements.value)
+
+            if (statements.value.size())
                 hasStagedSomething = true
 
-            networkValuables.value.clear()
+            statements.value.clear()
         }
 
         // Check for new dumps
@@ -143,7 +144,7 @@ class NetworkValuablePool {
             if (!inv.steps.isEmpty())
                 continue
 
-            if (!inv.remainingValuables.isEmpty())
+            if (!inv.remainingStatements.isEmpty())
                 continue
 
             invsDone << inv
@@ -196,9 +197,9 @@ class NetworkValuablePool {
             return
 
         names << name
-        availableValuables.put(name, new ConcurrentHashMap<Object, BroadcastValuable.Response>())
-        stagingValuables.put(name, new ConcurrentHashMap<Object, BroadcastValuable.Response>())
-        unbloatedValuables.put(name, new HashSet<Object>())
+        availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
+        stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
+        unbloatedStatements.put(name, new HashSet<Object>())
     }
 
     synchronized void startRunning() {
@@ -235,7 +236,7 @@ class NetworkValuablePool {
      * @param networkValuable
      * @return
      */
-    synchronized boolean preventUnbloating(NetworkValuable networkValuable) {
+    synchronized boolean preventUnbloating(Statement networkValuable) {
 
         assert networkValuable
         assert isDigesting
@@ -244,11 +245,11 @@ class NetworkValuablePool {
             return false
         }
 
-        if (networkValuable.state != NetworkValuable.SUCCESSFUL) {
+        if (networkValuable.state != Statement.SUCCESSFUL) {
             return false
         }
 
-        if (networkValuable.match != BroadcastValuable.BROADCAST) {
+        if (networkValuable.match != BroadcastStatement.BROADCAST) {
             return false
         }
 

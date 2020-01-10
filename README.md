@@ -1,7 +1,10 @@
-# inv
-Intertwined network valuables
+# INV - Intertwined network valuables
 
-*Inv* allows **sequencing** between **intertwined** objects. These objects can be databases, apps, webservices, servers, etc. Anything that need sequencing.
+***INV*** is a tool facilitate an *environment as code* solution in your technological ecosystem. 
+It enables such feature by ***sequencing intertwined network valuables***. These valuables can be your databases, your apps, your webservices, your servers, etc.  
+Basically, **anything** collaborating within your ecosystem.
+
+## How to get?
 
 Get latest version here : [Version 0.5-beta](https://github.com/peasoupio/inv/releases/download/0.5-beta/inv-0.5-beta-SNAPSHOT.zip)  
 
@@ -58,16 +61,32 @@ Parameters:
 
 ## Quick example:
 
-### What we know ?
+Let's build a quick and simple example even your boss will understand.  
+INV requires a good understanding of your **existing** ecosystem rules.  
+Our objective is to **convert these rules** into ***Groovy script files*** and let INV handle the rest for us.
+
+### First step: What are our ecosystem rules?
 * ServerA hosts AppA through Kubernetes
 * ServerB hosts AppB through IIS
 
-### How we write it up ?
+With these rules, we can determine:  
+* 6 *INV*'s
+* ***At least*** 4 statements (or link or broadcasts/requirements) 
 
-For more information, [get there](https://github.com/peasoupio/inv/wiki/Syntax)
+### Second step: How do we write it up in *Groovy* using *INV*?
 
+*Groovy* is the most-suitable framework for understandable, idiomatic and quick-time to market solutions.  
+*INV* adds a layer using the DSL features of *Groovy*.     
+For more information about the syntax of *INV*, [read this](https://github.com/peasoupio/inv/wiki/Syntax).
+
+##### Hint:
+Think of your *INV*'s as individuals that are working together in a production chain.  
+Ask yourself "who does what" and "who tells what".  
+
+Bellow is a *rendering* of our previous example statements:   
+
+###### serverA.groovy
 ```groovy
-#~/serverA.groovy
 inv {
     name "ServerA"
 
@@ -85,8 +104,8 @@ inv {
 }
 ```
 
+###### serverB.groovy 
 ```groovy
-#~/serverB.groovy
 inv {
     name "ServerB"
 
@@ -101,8 +120,8 @@ inv {
 }
 ```
 
+###### kubernetes.groovy 
 ```groovy
-#~/kubernetes.groovy
 inv {
     name "Kubernetes"
 
@@ -130,8 +149,8 @@ inv {
 }
 ```
 
+###### appA.groovy
 ```groovy
-#~/appA.groovy
 inv {
     name "appA"
 
@@ -143,8 +162,8 @@ inv {
 }
 ```
 
+###### iis.groovy
 ```groovy
-#~/iis.groovy
 inv {
     name "iis"
 
@@ -162,8 +181,8 @@ inv {
 }
 ```
 
+###### appB.groovy
 ```groovy
-#~/appB.groovy
 inv {
     name "appB"
 
@@ -175,9 +194,28 @@ inv {
 }
 ```
 
-```
-inv.sh ./example/githubHomepage/*.groovy
+##### Important note: 
+*INV* enable a more encapsulated ecosystem.  
+ In this simple case, we managed to implement a solution who protects critical information.  
+ In our case, ```appB``` does not know which credentials or which host is used to deploy. Only ```ÌIS``` knows.
 
+#### Default implementations:
+*INV* comes with default implementations, such as "files (I/O), http, ..."  
+It serves mostly as concrete examples on how you could implement things, but you could use them in your ecosystem as well.  
+You can see them at [here](./defaults)
+
+### Third step: How to run?
+
+You may use the **command-line** utility (see at the top for available commands).  
+You may also use the Web Platform named **INV Composer** for a more elegant and accompanied path.  
+ 
+Here's our example using the command-line utility:   
+```
+inv load ./example/githubHomepage/*.groov
+```  
+
+This command would generate the following output:   
+```
 [INV] file: ./example/githubHomepage/appA.groovy
 [INV] file: ./example/githubHomepage/appB.groovy
 [INV] file: ./example/githubHomepage/iis.groovy
@@ -202,17 +240,22 @@ IIS webapp my-web-app has been deployed
 [INV] ---- [DIGEST] completed ----
 ```
 
-These are the elements we can determine :
-* Which instance server (barebone or under kubernetes) hosts AppA
-* Apps are deployed without knowledge of credentials or physical access points (EP)
+By reading the output log, without having the fine details, we can determine:
+* Who needs what
+* Who says (or give) what
+* More precisely, in our case, which instance server (barebone or under kubernetes) hosts AppA and etc.
 
 ### Graphs
 
-You could also generate a graph from a previous execution. Per example :
+*INV* output logs are human and "machine" readable.  
+In fact, you could also generate a graph from a previous execution.  
+NOTE: Output logs does not need to have exclusively *INV* messages, you may output messages to ease troubleshooting. *INV* only looks for lines starting with "[INV]".  
+
+So, continuing with out example, with our last execution (just above), using this command :
 
     inv graph dot myprevious.log
 
-could generate this dot file
+Upon completion, we get a dot rendered output (see https://en.wikipedia.org/wiki/DOT_(graph_description_language))
 
 ```
 strict digraph G {
@@ -253,42 +296,39 @@ strict digraph G {
 }
 ```
 
-This is an image represention of the dot file :  
+Using a visual DOT renderer, we get this  image represention of the dot output :  
 ![Dotgraph image using WebGraphViz](src/main/example/graph/dotGraph.png "Dotgraph image using WebGraphViz")
 
 
-### Defaults INV
-We offer default implementation of multi-purposes INV, such as "files (I/O), http, ..."  
-You can get them at "./defaults".  
-This is how you would import "files" using an SCM file:  
-```groovy
-#~/scm.groovy
+## What about using an SCM with *INV*?
 
-"default-files" {
+Yep, we thought about it.  
+*INV* is supporting **every** SCM which is accessible programmatically. This includes: ```cvs, svn, tfs, git, Mercurial, ...```  
+  
+Here is an example using ```git``` to fetch our default implementation ```files```:  
+##### mySCMFile.groovy
+```groovy
+scm {
+    name "default-files"
     path "choose your path..."
     scm  "https://github.com/peasoupio/inv.git"
     entry "defaults/files/inv.groovy"
     hooks {
         init {
-            "git clone ${scm}"
+            "git clone ${scm}" .
         }
         update {
             "git pull"
         }
     }
 }
-...
 ```
-NOTE: Using the same "path" allows you to do a single extraction
+NOTE: *INV* toggle automatically from **init** to **update** upon ```path``` existence.
 
 ### Contribution
-First and only global rule : use your common sense - we help each other :)
+First and only rule: let's work together and have fun :)
 
 ### Our friends
 #### Java Profiler
-Providing a free open-source licence to improve SIGNIFICANTLY Inv performances   
+Providing a free open-source licence which improve **SIGNIFICANTLY** *INV*'s performances   
 [![Java Profiler](https://www.ej-technologies.com/images/product_banners/jprofiler_large.png "Java Profiler")](https://www.ej-technologies.com/products/jprofiler/overview.html)
-
-### Known issues
-#### Create symlink under Windows
-Please enable SeCreateSymbolicLinkPrivilege (using Developer mode OR look at https://superuser.com/questions/124679/how-do-i-create-a-link-in-windows-7-home-premium-as-a-regular-user/125981#125981)

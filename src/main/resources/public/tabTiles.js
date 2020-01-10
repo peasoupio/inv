@@ -1,9 +1,9 @@
 Vue.component('tab-tiles', {
     template: `
-<div>
+<div style="position: sticky !important; top: 1em">
     <div class="tile"
          v-for="tab in value.tabs"
-         @click="setTab(tab)">
+         @click="clickTab(tab)">
         <article class="tile is-child notification" :class="'is-' + tab.isWhat">
             <div class="content">
                 <p class="title">
@@ -27,11 +27,39 @@ Vue.component('tab-tiles', {
 
     },
     methods: {
+        clickTab: function(tab) {
+            var vm = this
+            var element = window.document.scrollingElement
+
+            element.scrollTo(0, vm.$parent.$el.offsetTop)
+
+            var scrollIndex = 0
+            var lastScrollIndex = -1
+            window.onscroll = function() {
+                scrollIndex++
+            }
+
+            var interval = setInterval(function() {
+
+                if (lastScrollIndex != scrollIndex) {
+                    lastScrollIndex = scrollIndex
+                    return
+                }
+
+                vm.setTab(tab)
+
+                clearInterval(interval)
+
+                window.onscroll = null
+            }, 50);
+        },
         setTab: function(tab) {
             var vm = this
 
             vm.activeTab=tab
             vm.value.tabSet(tab)
+
+
         }
     },
     mounted: function() {

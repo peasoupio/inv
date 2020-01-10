@@ -52,6 +52,10 @@
             white-space: pre-wrap;
         }
 
+        html {
+          scroll-behavior: smooth;
+        }
+
         /*************** Main view **************/
 
         #container {
@@ -65,6 +69,15 @@
         .tile:hover {
             cursor: pointer;
             user-select: none;
+        }
+
+        .panel-help pre {
+            display: inline-flex;
+            padding: 0.25em;
+        }
+
+        a.panel-block.disabled:hover {
+            cursor: default
         }
 
         /*************** Choose *****************/

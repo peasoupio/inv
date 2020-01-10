@@ -25,35 +25,8 @@ Vue.component('layout', {
     </div>
 
     <hr />
-    <!--
-    <div class="column is-2 sidebar">
-        <p class="title is-1">Inv</p>
-        <p class="subtitle is-3">Composer</p>
-        <hr />
 
-        <div class="timeline">
-            <header class="timeline-header">
-                <span class="tag is-medium is-primary">Start</span>
-            </header>
-            <div v-for="(step, index) in steps" class="timeline-item">
-                <div class="timeline-marker is-icon is-primary" v-if="isSelected(step)">
-                    <i class="fa fa-flag"></i>
-                </div>
-                <div class="timeline-marker is-image" v-else>
-                    <i class="fa fa-flag"></i>
-                </div>
-                <div class="timeline-content">
-                    <p class="heading"><a @click="currentStep = step">{{index + 1}}. {{step.name}}</a></p>
-                    <p>{{step.description}}</p>
-                </div>
-            </div>
-            <div class="timeline-header">
-                <span class="tag is-medium is-primary">End</span>
-            </div>
-        </div>
-    </div>
-    -->
-    <div  v-if="ready()">
+    <div v-if="ready()" style="min-height: 900px">
         <p class="title is-2">{{currentStep.name}}: </p>
         <component v-bind:is="currentStep.template" v-model="shared" />
     </div>

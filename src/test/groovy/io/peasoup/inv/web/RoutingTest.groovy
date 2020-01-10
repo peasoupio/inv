@@ -248,7 +248,7 @@ scm {
         def jsonAfterApply = new JsonSlurper().parseText(responseAfterApply)
 
         assert jsonAfterApply
-        assert !jsonAfterApply.parameters.any { it.value == null}
+        assert !jsonAfterApply.parameters.any { it.defaultValue != it.value}
 
         //Reset
         post("scms/resetAll")
@@ -259,7 +259,7 @@ scm {
         def jsonAfterReset = new JsonSlurper().parseText(responseAfteReset)
 
         assert jsonAfterReset
-        assert !jsonAfterReset.parameters.any { it.value != null}
+        assert !jsonAfterReset.parameters.any { it.defaultValue && it.defaultValue == it.value}
 
         post("run/unstageAll")
     }

@@ -20,3 +20,4 @@ buildNumber.properties
 /reports/
 **/.cache/
 /src/main/example/web/executions/
+*.scm-sh

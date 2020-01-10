@@ -6,7 +6,7 @@ class InvDescriptor {
     String path
     Closure ready
 
-    final List<NetworkValuable> networkValuables = [].asSynchronized()
+    final List<Statement> statements = [].asSynchronized()
     final List<Closure> steps = [].asSynchronized()
 
     void name(String name) {
@@ -27,13 +27,13 @@ class InvDescriptor {
         this.ready = ready
     }
 
-    NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
+    StatementDescriptor broadcast(StatementDescriptor networkValuableDescriptor) {
 
         assert networkValuableDescriptor
 
-        BroadcastValuable broadcastValuable = new BroadcastValuable()
+        BroadcastStatement broadcastValuable = new BroadcastStatement()
 
-        broadcastValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
+        broadcastValuable.id = networkValuableDescriptor.id ?: Statement.DEFAULT_ID
         broadcastValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
@@ -49,17 +49,17 @@ class InvDescriptor {
             broadcastValuable.ready = delegate.ready
         }
 
-        networkValuables << broadcastValuable
+        statements << broadcastValuable
 
         return networkValuableDescriptor
     }
 
-    NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
+    StatementDescriptor require(StatementDescriptor networkValuableDescriptor) {
         assert networkValuableDescriptor
 
-        RequireValuable requireValuable = new RequireValuable()
+        RequireStatement requireValuable = new RequireStatement()
 
-        requireValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
+        requireValuable.id = networkValuableDescriptor.id ?: Statement.DEFAULT_ID
         requireValuable.name = networkValuableDescriptor.name
 
         networkValuableDescriptor.usingDigestor = { Closure usingBody ->
@@ -85,7 +85,7 @@ class InvDescriptor {
             requireValuable.into = into
         }
 
-        networkValuables << requireValuable
+        statements << requireValuable
 
         return networkValuableDescriptor
     }

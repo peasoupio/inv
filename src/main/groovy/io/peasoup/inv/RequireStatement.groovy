@@ -4,9 +4,9 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class RequireValuable implements NetworkValuable {
+class RequireStatement implements Statement {
 
-    final static Manageable REQUIRE = new RequireValuable.Require()
+    final static Manageable REQUIRE = new RequireStatement.Require()
 
     // Idenfitication
     Object id
@@ -32,34 +32,34 @@ class RequireValuable implements NetworkValuable {
         return "[$inv.name] => [REQUIRE] [${name}] ${id}"
     }
 
-    static class Require implements NetworkValuable.Manageable<RequireValuable> {
+    static class Require implements Statement.Manageable<RequireStatement> {
 
-        void manage(NetworkValuablePool pool, RequireValuable requireValuable) {
+        void manage(NetworkValuablePool pool, RequireStatement requireValuable) {
 
             // Reset to make sure NV is fine
-            requireValuable.state = RequireValuable.NOT_PROCESSED
+            requireValuable.state = RequireStatement.NOT_PROCESSED
 
             // Is it halting ?
             if (pool.runningState == pool.HALTING) {
 
-                requireValuable.state = RequireValuable.HALTING
+                requireValuable.state = RequireStatement.HALTING
 
                 Logger.warn requireValuable
                 return
             }
 
-            def channel = pool.availableValuables[requireValuable.name]
+            def channel = pool.availableStatements[requireValuable.name]
             def broadcast = channel[requireValuable.id]
 
             if (!broadcast) {
 
                 // By default
-                requireValuable.state = RequireValuable.FAILED
+                requireValuable.state = RequireStatement.FAILED
 
                 boolean toUnbloat = false
 
                 // Did it already unbloated
-                if (pool.unbloatedValuables[requireValuable.name].contains(requireValuable.id)) {
+                if (pool.unbloatedStatements[requireValuable.name].contains(requireValuable.id)) {
                     toUnbloat = true
                 }
 
@@ -68,12 +68,12 @@ class RequireValuable implements NetworkValuable {
                     toUnbloat = true
 
                     // Cache for later
-                    pool.unbloatedValuables[requireValuable.name].add(requireValuable.id)
+                    pool.unbloatedStatements[requireValuable.name].add(requireValuable.id)
                 }
 
                 if (toUnbloat) {
 
-                    requireValuable.state = RequireValuable.UNBLOADTING
+                    requireValuable.state = RequireStatement.UNBLOADTING
                     Logger.debug "[UNBLOATED] " + requireValuable
 
                     if (requireValuable.unresolved)
@@ -87,7 +87,7 @@ class RequireValuable implements NetworkValuable {
                 return
             }
 
-            requireValuable.state = RequireValuable.SUCCESSFUL
+            requireValuable.state = RequireStatement.SUCCESSFUL
 
             Logger.info requireValuable
 

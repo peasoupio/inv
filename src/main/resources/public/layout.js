@@ -2,7 +2,7 @@ Vue.component('layout', {
     template: `
 <div class="mainContent"  style="padding: 1em">
     <div>
-        <p class="title is-1">Inv</p>
+        <p class="title is-1">INV</p>
         <p class="subtitle is-3">Composer</p>
 
         <div class="steps">

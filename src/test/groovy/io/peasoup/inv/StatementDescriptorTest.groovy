@@ -7,23 +7,23 @@ import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
-class NetworkValuableDescriptorTest {
+class StatementDescriptorTest {
 
-    NetworkValuableDescriptor myself
+    StatementDescriptor myself
 
     @Before
     void setup() {
-        myself = new NetworkValuableDescriptor("name")
+        myself = new StatementDescriptor("name")
     }
 
     @Test
     void ctor_not_ok() {
         assertThrows(PowerAssertionError.class, {
-            new NetworkValuableDescriptor(null)
+            new StatementDescriptor(null)
         })
 
         assertThrows(PowerAssertionError.class, {
-            new NetworkValuableDescriptor("%\$;")
+            new StatementDescriptor("%\$;")
         })
     }
 

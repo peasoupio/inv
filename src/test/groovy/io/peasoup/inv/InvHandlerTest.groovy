@@ -142,9 +142,9 @@ class InvHandlerTest {
 
         report.digested
             .findAll { it.name.contains("my-webservice") }
-            .collect { it.totalValuables }
+            .collect { it.totalStatements }
             .any {
-                it.state == NetworkValuable.ALREADY_BROADCAST
+                it.state == Statement.ALREADY_BROADCAST
             }
     }
 

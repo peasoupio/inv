@@ -13,8 +13,8 @@ class Inv {
 
     final InvDescriptor delegate = new InvDescriptor()
 
-    final List<NetworkValuable> remainingValuables = [].asSynchronized() as List<NetworkValuable>
-    final List<NetworkValuable> totalValuables = [].asSynchronized() as List<NetworkValuable>
+    final List<Statement> remainingStatements = [].asSynchronized() as List<Statement>
+    final List<Statement> totalStatements = [].asSynchronized() as List<Statement>
     final List<Closure> steps = [].asSynchronized() as List<Closure>
 
     synchronized boolean dumpDelegate() {
@@ -35,19 +35,19 @@ class Inv {
         }
 
         // use for-loop to keep order
-        for(NetworkValuable networkValuable : delegate.networkValuables) {
+        for(Statement networkValuable : delegate.statements) {
 
             dumpedSomething = true
 
             networkValuable.inv = this
 
-            this.totalValuables << networkValuable
-            this.remainingValuables << networkValuable
+            this.totalStatements << networkValuable
+            this.remainingStatements << networkValuable
         }
 
         delegate.ready = null
         delegate.steps.clear()
-        delegate.networkValuables.clear()
+        delegate.statements.clear()
 
         return dumpedSomething
     }
@@ -57,9 +57,8 @@ class Inv {
      * This method is meant to be called during a digest cycle of the pool.
      * This method is also meant to be called synchronously.
      *
-     * It allows to match the remaining network valuables.
+     * It allows to match the remaining statements.
      * Steps are also handled here.
-     *
      *
      * @param pool the pool currently in digestion
      * @return
@@ -80,14 +79,14 @@ class Inv {
             List toRemove = []
 
             // Use fori-loop for speed
-            for (int j = 0; j < this.remainingValuables.size(); j++) {
-                NetworkValuable networkValuable = this.remainingValuables[j] as NetworkValuable
+            for (int j = 0; j < this.remainingStatements.size(); j++) {
+                Statement networkValuable = this.remainingStatements[j] as Statement
                 networkValuable.match.manage(pool, networkValuable)
 
                 // Process results for digestion
                 digestion.addResults(networkValuable)
 
-                if (networkValuable.state == NetworkValuable.FAILED)
+                if (networkValuable.state == Statement.FAILED)
                     break
 
                 toRemove.add(networkValuable)
@@ -99,7 +98,7 @@ class Inv {
             }
 
             // Remove all NV meant to be deleted
-            this.remainingValuables.removeAll(toRemove)
+            this.remainingStatements.removeAll(toRemove)
 
             if (stopUnbloating)
                 break
@@ -109,11 +108,11 @@ class Inv {
             // Check for new steps if :
             // 1. has a remaining step
             // 2. has not (previously dumped something)
-            // 3. has no more valuables
+            // 3. has no more statements
             // 4. Is not halting
             while ( !steps.isEmpty() &&
                     !hasDumpedSomething &&
-                    this.remainingValuables.isEmpty() &&
+                    this.remainingStatements.isEmpty() &&
                     pool.runningState != NetworkValuablePool.HALTING) {
 
                 // Call next step
@@ -121,7 +120,7 @@ class Inv {
                 step.resolveStrategy = Closure.DELEGATE_FIRST
                 step.call()
 
-                // If the step dumped something, remainingValuables won't be empty and exit loop
+                // If the step dumped something, remainingStatements won't be empty and exit loop
                 hasDumpedSomething = dumpDelegate()
             }
 
@@ -140,20 +139,20 @@ class Inv {
         Integer broadcasts = 0
         Integer unbloats = 0
 
-        void addResults(NetworkValuable networkValuable) {
+        void addResults(Statement networkValuable) {
             assert networkValuable
 
-            if (networkValuable.state >= NetworkValuable.SUCCESSFUL) {
-                if (networkValuable.match == RequireValuable.REQUIRE) {
+            if (networkValuable.state >= Statement.SUCCESSFUL) {
+                if (networkValuable.match == RequireStatement.REQUIRE) {
                     requires++
                 }
 
-                if (networkValuable.match == BroadcastValuable.BROADCAST) {
+                if (networkValuable.match == BroadcastStatement.BROADCAST) {
                     broadcasts++
                 }
             }
 
-            if (networkValuable.state == NetworkValuable.UNBLOADTING) {
+            if (networkValuable.state == Statement.UNBLOADTING) {
                 unbloats++
             }
         }

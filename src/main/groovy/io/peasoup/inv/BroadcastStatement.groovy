@@ -4,9 +4,9 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class BroadcastValuable implements NetworkValuable {
+class BroadcastStatement implements Statement {
 
-    final static Manageable BROADCAST = new BroadcastValuable.Broadcast()
+    final static Manageable BROADCAST = new BroadcastStatement.Broadcast()
 
     Object id
     String name
@@ -27,33 +27,33 @@ class BroadcastValuable implements NetworkValuable {
         return "[$inv.name] => [BROADCAST] [${name}] ${id}"
     }
 
-    static class Broadcast implements NetworkValuable.Manageable<BroadcastValuable> {
+    static class Broadcast implements Statement.Manageable<BroadcastStatement> {
 
-        void manage(NetworkValuablePool pool, BroadcastValuable broadcastValuable) {
+        void manage(NetworkValuablePool pool, BroadcastStatement broadcastValuable) {
 
             // Reset to make sure NV is fine
-            broadcastValuable.state = BroadcastValuable.NOT_PROCESSED
+            broadcastValuable.state = BroadcastStatement.NOT_PROCESSED
 
-            def channel = pool.availableValuables[broadcastValuable.name]
-            def staging = pool.stagingValuables[broadcastValuable.name]
+            def channel = pool.availableStatements[broadcastValuable.name]
+            def staging = pool.stagingStatements[broadcastValuable.name]
 
             if (channel.containsKey(broadcastValuable.id) || staging.containsKey(broadcastValuable.id)) {
                 Logger.warn "${broadcastValuable.id} already broadcasted. Skipped"
 
-                broadcastValuable.state = BroadcastValuable.ALREADY_BROADCAST
+                broadcastValuable.state = BroadcastStatement.ALREADY_BROADCAST
                 return
             }
 
             if (pool.runningState == pool.HALTING) {
 
-                broadcastValuable.state = RequireValuable.HALTING
+                broadcastValuable.state = RequireStatement.HALTING
 
                 Logger.warn broadcastValuable
                 return
             }
 
 
-            broadcastValuable.state = BroadcastValuable.SUCCESSFUL
+            broadcastValuable.state = BroadcastStatement.SUCCESSFUL
 
             Logger.info broadcastValuable
 

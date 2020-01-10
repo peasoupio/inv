@@ -4,7 +4,7 @@ package io.peasoup.inv
 import org.junit.Before
 import org.junit.Test
 
-class RequireValuableTest  {
+class RequireStatementTest {
 
     InvExecutor executor
     InvHandler inv
@@ -30,7 +30,7 @@ class RequireValuableTest  {
                     unresolvedRaised = true
 
                     assert it.name == "Bloatable"
-                    assert it.id == NetworkValuable.DEFAULT_ID
+                    assert it.id == Statement.DEFAULT_ID
                     assert it.owner == "consume"
                 }
             }

@@ -6,7 +6,7 @@ import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
-class BroadcastValuableTest {
+class BroadcastStatementTest {
 
     InvExecutor executor
     InvHandler inv
@@ -20,7 +20,7 @@ class BroadcastValuableTest {
     @Test
     void asdelegate_not_ok() {
         assertThrows(PowerAssertionError.class, {
-            new BroadcastValuable.Response().asDelegate(null, false)
+            new BroadcastStatement.Response().asDelegate(null, false)
         })
     }
 

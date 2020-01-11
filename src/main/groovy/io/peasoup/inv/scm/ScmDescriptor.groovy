@@ -94,14 +94,20 @@ class ScmDescriptor {
             if (options.defaultValue && options.defaultValue instanceof CharSequence)
                 parameter.defaultValue = options.defaultValue as String
 
-            if (options.staticValues && options.staticValues instanceof Collection<String>)
-                parameter.staticValues = options.staticValues as List<String>
+            if (options.required && options.required instanceof Boolean)
+                parameter.required = options.required as Boolean
 
-            if (options.commandValues && options.commandValues instanceof CharSequence)
-                parameter.commandValues = options.commandValues as String
+            if (options.values && options.values instanceof Collection<String>)
+                parameter.values = options.values as List<String>
 
-            if (options.commandFilter && options.commandFilter instanceof CharSequence)
-                parameter.commandFilter = options.commandFilter as String
+            if (options.command && options.command instanceof CharSequence)
+                parameter.command = options.command as String
+
+            if (options.filter && options.filter instanceof Closure)
+                parameter.filter = options.filter as Closure
+
+            if (options.filterRegex && options.filterRegex instanceof CharSequence)
+                parameter.filterRegex = options.filterRegex as String
 
             parameters << parameter
         }
@@ -111,9 +117,10 @@ class ScmDescriptor {
         String name
         String usage
         String defaultValue
-        Boolean required
-        List<String> staticValues
-        String commandValues
-        String commandFilter // TODO Should filter also accepts a closure ?
+        Boolean required = true
+        List<String> values
+        String command
+        Closure<String> filter
+        String filterRegex
     }
 }

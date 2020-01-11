@@ -8,7 +8,7 @@ scm {
   timeout 30000
 
   ask {
-    parameter "branch", "Select which branch to use", [defaultValue: 'master', commandValues: "git ls-remote ${src}", commandFilter: /.*refs\/((?:heads|tags).*)/]
+    parameter "branch", "Select which branch to use", [defaultValue: 'master', command: "git ls-remote ${src}", filterRegex: /.*refs\/((?:heads|tags).*)/]
   }
 
   hooks {
@@ -33,7 +33,7 @@ scm {
   timeout 30000
 
   ask {
-    parameter "branch", "Select which branch to use", [defaultValue: 'master', commandValues: "git ls-remote ${src}", commandFilter: /.*refs\/((?:heads|tags).*)/]
+    parameter "branch", "Select which branch to use", [defaultValue: 'master', command: "git ls-remote ${src}", filterRegex: /.*refs\/((?:heads|tags).*)/]
   }
 
   hooks {

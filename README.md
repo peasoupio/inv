@@ -1,6 +1,7 @@
 # INV - Intertwined network valuables
 
-***INV*** is a tool facilitate an *environment as code* solution in your technological ecosystem. 
+***INV*** is a tool facilitate an *environment as code* solution in your technological ecosystem.  
+It is completely generic, complementing automation with code instead of only configuration files.   
 It enables such feature by ***sequencing intertwined network valuables***. These valuables can be your databases, your apps, your webservices, your servers, etc.  
 Basically, **anything** collaborating within your ecosystem.
 

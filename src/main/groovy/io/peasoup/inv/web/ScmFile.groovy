@@ -171,26 +171,52 @@ class ScmFile {
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
                 Logger.debug "Resolving '${parameter.name}' for ${descriptor.name}"
 
-                List<String> values = parameter.staticValues ?: []
+                List<String> values = parameter.values ?: []
 
-                if (parameter.commandValues) {
-                    String stdout = parameter.commandValues.execute(descriptor.env2, descriptor.path).in.text
+                if (parameter.command) {
+                    String stdout = parameter.command.execute(descriptor.env2, descriptor.path).in.text
 
-                    Logger.debug "Command: ${parameter.commandValues}:\n${stdout}"
+                    Logger.debug "Command: ${parameter.command}:\n${stdout}"
 
-                    if (!parameter.commandFilter)
-                        values = stdout.split() as List<String>
-                    else {
-                        def matches = stdout =~ parameter.commandFilter
+                    values = stdout.split(System.lineSeparator()) as List<String>
+                }
 
-                        matches.each { match ->
-                            if (match instanceof String) {
-                                values.add(match.toString())
+                Boolean hasFilter = parameter.filter != null
+                def hasRegexFilter = parameter.filterRegex
+
+                if (hasFilter || hasRegexFilter) {
+                    List<String> copy = values.collect()
+                    values.clear()
+
+                    for (String value : copy) {
+
+                        if (!value)
+                            continue
+
+                        if (hasFilter) {
+                            String result = parameter.filter.call(value) as String
+
+                            if (!result)
+                                continue
+
+                            values.add(result)
+                            continue
+                        }
+
+                        if (hasRegexFilter) {
+                            def matches = value =~ parameter.filterRegex
+
+                            if (!matches.matches())
+                                continue
+
+                            if (matches.groupCount() == 0)
+                                values.add(matches.group(0) as String)
+
+                            if (matches.groupCount() == 1) {
+                                values.add(matches.group(1) as String)
                             }
 
-                            if (match instanceof ArrayList) {
-                                values.add((match as ArrayList<String>)[1].toString())
-                            }
+                            continue
                         }
                     }
                 }

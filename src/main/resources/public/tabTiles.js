@@ -1,10 +1,11 @@
 Vue.component('tab-tiles', {
     template: `
-<div style="position: sticky !important; top: 1em">
+<div style="position: sticky !important; top: 6em">
     <div class="tile"
          v-for="tab in value.tabs"
-         @click="clickTab(tab)">
-        <article class="tile is-child notification" :class="'is-' + tab.isWhat">
+         @click="clickTab(tab)"
+         style="margin-bottom: 1em;">
+        <article class="tile is-child notification" :class="tab.isWhat !== undefined ? 'is-' + tab.isWhat : 'is-primary'">
             <div class="content">
                 <p class="title">
                     {{tab.label}}

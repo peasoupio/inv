@@ -26,8 +26,8 @@ Vue.component('configure', {
 
                 return {
                     tabs: [
-                        { label: 'Params', description: 'Configure SCM parameters for each SELECTED INVs', template: 'configure-parameters', isWhat: 'link'},
-                        { label: 'Sources', description: 'Configure SCM scripts', template: 'configure-scms', isWhat: 'danger'}
+                        { label: 'Params', description: 'Configure SCM parameters for each SELECTED INVs', template: 'configure-parameters'},
+                        { label: 'Sources', description: 'Configure SCM scripts', template: 'configure-scms'}
                     ],
                     tabSet: function(tab) {
                         vm.currentTab = tab
@@ -121,7 +121,7 @@ Vue.component('configure-parameters', {
 
                     <footer class="card-footer">
                         <p class="card-footer-item is-paddingless">
-                            <button class="button is-fullwidth is-success" @click.stop="expand(scm)" :disabled="scm.parameters.length == 0">Configure</button>
+                            <button class="button is-fullwidth is-link" @click.stop="expand(scm)" :disabled="scm.parameters.length == 0">Configure</button>
                         </p>
                         <p class="card-footer-item is-paddingless">
                             <button class="button is-fullwidth" :disabled="scm.parameters.length == 0">Reset</button>

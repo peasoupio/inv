@@ -2,7 +2,7 @@ Vue.component('choose', {
     template: `
 <div>
     <div class="columns">
-        <div class="column is-2" style="position: sticky">
+        <div class="column is-2">
             <tab-tiles v-model="tabTilesSettings" />
         </div>
 
@@ -10,7 +10,6 @@ Vue.component('choose', {
             <component v-bind:is="currentTab.template" v-model="value" />
         </div>
     </div>
-
 </div>
 `,
     props: ['value'],
@@ -26,9 +25,9 @@ Vue.component('choose', {
 
                 return {
                     tabs: [
-                        { label: 'Simple', description: 'Select from a simple view of INVs', template: 'choose-select-simple', isWhat: 'link'},
-                        { label: 'Complex', description: 'Select from a more detailed view of INVs', template: 'choose-select-complex', isWhat: 'danger'},
-                        { label: 'Resume', description: 'A detailed view of your current selections', template: 'choose-summary', isWhat: 'primary'},
+                        { label: 'Simple', description: 'Select from a simple view of INVs', template: 'choose-select-simple'},
+                        { label: 'Complex', description: 'Select from a more detailed view of INVs', template: 'choose-select-complex'},
+                        { label: 'Resume', description: 'A detailed view of your current selections', template: 'choose-summary'},
                     ],
                     tabSet: function(tab) {
                         vm.currentTab = tab

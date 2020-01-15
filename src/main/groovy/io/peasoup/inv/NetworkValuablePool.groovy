@@ -11,16 +11,16 @@ class NetworkValuablePool {
                         UNBLOATING = "UNBLOATING",
                         RUNNING = "RUNNING"
 
-    volatile Set<String> names = []
-    volatile Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = [:]
-    volatile Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = [:]
-    volatile Map<String, Set<Object>> unbloatedStatements = [:]
+    final Queue<String> names = new ConcurrentLinkedQueue<>()
+    final Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
+    final Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
+    final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
 
-    volatile Set<Inv> remainingInvs = new HashSet<>()
-    volatile Set<Inv> totalInvs = new HashSet<>()
+    final Set<Inv> remainingInvs = new HashSet<>()
+    final Set<Inv> totalInvs = new HashSet<>()
 
     volatile protected String runningState = RUNNING
-    private boolean isDigesting = false
+    volatile boolean isDigesting = false
 
     private ExecutorService invExecutor
 
@@ -198,9 +198,9 @@ class NetworkValuablePool {
                 return
 
             names << name
-            availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
-            stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
-            unbloatedStatements.put(name, new HashSet<Object>())
+            availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>(24, 0.9f, 1))
+            stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>(24, 0.9f, 1))
+            unbloatedStatements.put(name, new ConcurrentLinkedQueue<Object>())
         }
     }
 

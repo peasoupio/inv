@@ -42,7 +42,7 @@ scm {
             workspace: base
         ).map()
 
-        sleep(3000)
+        sleep(1000)
     }
 
     @AfterClass
@@ -334,14 +334,25 @@ scm {
         assert jsonAfter
         assert jsonAfter.running
 
-        sleep(5000)
+        def jsonEnd
 
-        def responseEnd = get("execution")
-        assert responseEnd
+        int count = 50
+        while(count > 0) {
+            count--
 
-        def jsonEnd = new JsonSlurper().parseText(responseEnd)
+            sleep(500)
 
-        assert jsonEnd
+            def responseEnd = get("execution")
+            assert responseEnd
+
+            jsonEnd = new JsonSlurper().parseText(responseEnd)
+
+            assert jsonEnd
+
+            if (!jsonEnd.running)
+                break
+        }
+
         assert !jsonEnd.running
         assert jsonEnd.lastExecution > 0
         assert !jsonEnd.executions.isEmpty()

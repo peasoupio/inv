@@ -19,9 +19,8 @@ class HttpTests {
         def executor = new InvExecutor()
         executor.read(new File("./defaults/http/inv.groovy"))
 
-        def inv = new InvHandler(executor)
+        new InvHandler(executor).call {
 
-        inv {
             require inv.HTTP into '$http'
 
             step {
@@ -41,9 +40,8 @@ class HttpTests {
         def executor = new InvExecutor()
         executor.read(new File("./defaults/http/inv.groovy"))
 
-        def inv = new InvHandler(executor)
+        new InvHandler(executor).call {
 
-        inv {
             require inv.HTTP into '$http'
 
             step {

@@ -17,13 +17,6 @@ class InvExecutor {
         InvInvoker.invoke(new InvHandler(this), pwd, scriptFile, scm, inject)
     }
 
-    void add(Inv inv) {
-        assert inv
-
-        pool.totalInv << inv
-        pool.remainingsInv << inv
-    }
-
     NetworkValuablePool.PoolReport execute() {
 
         int count = 0
@@ -34,8 +27,8 @@ class InvExecutor {
         try {
 
             // Raising ready event for all invs before the first digest
-            for (int i = 0; i < pool.remainingsInv.size(); i++) {
-                Inv inv = pool.remainingsInv[i]
+            for (int i = 0; i < pool.remainingInvs.size(); i++) {
+                Inv inv = pool.remainingInvs[i]
 
                 if (!inv.ready) {
                     continue

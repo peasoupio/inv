@@ -7,25 +7,22 @@ import java.util.concurrent.*
 @CompileStatic
 class NetworkValuablePool {
 
-
     final static String HALTING = "HALTED",
                         UNBLOATING = "UNBLOATING",
                         RUNNING = "RUNNING"
 
-    final Set<String> names = []
+    volatile Set<String> names = []
+    volatile Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = [:]
+    volatile Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = [:]
+    volatile Map<String, Set<Object>> unbloatedStatements = [:]
 
-    final Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = [:]
-    final Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = [:]
-    final Map<String, Set<Object>> unbloatedStatements = [:]
+    volatile Set<Inv> remainingInvs = new HashSet<>()
+    volatile Set<Inv> totalInvs = new HashSet<>()
 
-    final List<Inv> remainingsInv = [].asSynchronized() as List<Inv>
-    final List<Inv> totalInv = [].asSynchronized() as List<Inv>
-
-    protected String runningState = RUNNING
+    volatile protected String runningState = RUNNING
     private boolean isDigesting = false
 
     private ExecutorService invExecutor
-
 
     /**
      * Digest invs and theirs statements.
@@ -65,10 +62,10 @@ class NetworkValuablePool {
         // All digestions
         def digestion = new Inv.Digestion()
 
-        def sorted = remainingsInv
+        def sorted = remainingInvs
 
         if (runningState == UNBLOATING)
-            sorted = remainingsInv.sort { a, b ->
+            sorted = remainingInvs.sort { a, b ->
                 a.digestionSummary.unbloats.compareTo(b.digestionSummary.unbloats)
             }
 
@@ -79,15 +76,14 @@ class NetworkValuablePool {
 
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
-            def pool = this
             def eat = ({
                 try {
-                    return inv.digest(pool)
+                    return inv.digest()
                 } catch (Exception ex) {
                     exceptions.add(new PoolException(inv: inv, exception: ex))
 
                     // issues:8
-                    remainingsInv.remove(inv)
+                    remainingInvs.remove(inv)
                 }
 
                 return []
@@ -138,8 +134,8 @@ class NetworkValuablePool {
 
         // Check for new dumps
         boolean hasDoneSomething = false
-        for (int i = 0; i < remainingsInv.size() ; i++) {
-            def inv = remainingsInv[i]
+        for (int i = 0; i < remainingInvs.size() ; i++) {
+            def inv = remainingInvs[i]
 
             if (!inv.steps.isEmpty())
                 continue
@@ -152,7 +148,7 @@ class NetworkValuablePool {
             hasDoneSomething = true
         }
 
-        remainingsInv.removeAll(invsDone)
+        remainingInvs.removeAll(invsDone)
 
         /*
         Logger.debug "Has done something: ${hasDoneSomething}"
@@ -196,10 +192,16 @@ class NetworkValuablePool {
         if (names.contains(name))
             return
 
-        names << name
-        availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
-        stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
-        unbloatedStatements.put(name, new HashSet<Object>())
+        synchronized (names) {
+            // double lock checking
+            if (names.contains(name))
+                return
+
+            names << name
+            availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
+            stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>())
+            unbloatedStatements.put(name, new HashSet<Object>())
+        }
     }
 
     synchronized void startRunning() {
@@ -277,7 +279,7 @@ class NetworkValuablePool {
      * @return boolean value indicating if there is any remaining (true) or not (false)
      */
     boolean isEmpty() {
-        return remainingsInv.isEmpty()
+        return remainingInvs.isEmpty()
     }
 
     /**

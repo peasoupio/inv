@@ -21,10 +21,13 @@ class InvHandler {
     void call(Closure body) {
         assert body
 
-        Inv inv = new Inv()
+        this.call(body, body.owner.class.simpleName)
+    }
 
-        // Set default name
-        inv.delegate.name = body.owner.class.simpleName
+    void call(Closure body, String defaultName) {
+        assert body
+
+        Inv inv = new Inv(executor.pool)
 
         // Is loading from script ?
         Boolean isScript = body.owner.properties["binding"]
@@ -34,6 +37,7 @@ class InvHandler {
             inv.delegate.path =  body.binding.variables["pwd"]
         }
 
+        body.resolveStrategy = Closure.DELEGATE_FIRST
         body.delegate = inv.delegate
 
         try {
@@ -41,7 +45,8 @@ class InvHandler {
 
             inv.dumpDelegate()
 
-            executor.add(inv)
+            if (defaultName && !inv.name)
+                inv.name = defaultName
 
             if (isScript) {
                 String scm =  body.binding.variables["scm"]
@@ -56,20 +61,6 @@ class InvHandler {
 
             executor.report.exceptions.add(new NetworkValuablePool.PoolException(inv: inv, exception: ex))
         }
-    }
-
-    //@Override
-    Object propertyMissing(String propertyName) {
-        executor.pool.checkAvailability(propertyName)
-        return new StatementDescriptor(propertyName)
-    }
-
-    //@Override
-    Object methodMissing(String methodName, def args) {
-        executor.pool.checkAvailability(methodName)
-
-        //noinspection GroovyAssignabilityCheck
-        return new StatementDescriptor(methodName)(*args)
     }
 }
 

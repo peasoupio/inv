@@ -17,6 +17,14 @@ class Inv {
     final List<Statement> totalStatements = [].asSynchronized() as List<Statement>
     final List<Closure> steps = [].asSynchronized() as List<Closure>
 
+    final NetworkValuablePool pool
+
+    Inv(NetworkValuablePool pool) {
+        assert pool
+
+        this.pool = pool
+    }
+
     synchronized boolean dumpDelegate() {
         if (!name)
             name = delegate.name
@@ -29,20 +37,30 @@ class Inv {
 
         def dumpedSomething = false
 
+        if (!pool.totalInvs.contains(this)) {
+            pool.totalInvs << this
+            pool.remainingInvs << this
+
+            // TODO Is this useless ?
+            dumpedSomething = true
+        }
+
         if (!delegate.steps.isEmpty()) {
             steps.addAll(delegate.steps)
             dumpedSomething = true
         }
 
         // use for-loop to keep order
-        for(Statement networkValuable : delegate.statements) {
+        for(Statement statement : delegate.statements) {
 
             dumpedSomething = true
 
-            networkValuable.inv = this
+            statement.inv = this
 
-            this.totalStatements << networkValuable
-            this.remainingStatements << networkValuable
+            this.totalStatements << statement
+            this.remainingStatements << statement
+
+            pool.checkAvailability(statement.name)
         }
 
         delegate.ready = null
@@ -63,9 +81,8 @@ class Inv {
      * @param pool the pool currently in digestion
      * @return
      */
-    synchronized Digestion digest(NetworkValuablePool pool ) {
+    synchronized Digestion digest() {
 
-        assert pool
         assert pool.isDigesting()
 
         boolean stopUnbloating = false

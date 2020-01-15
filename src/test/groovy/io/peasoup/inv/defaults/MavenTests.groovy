@@ -27,9 +27,8 @@ class MavenTests {
         executor.read(new File("./defaults/files/inv.groovy"))
         executor.read(new File("./defaults/maven/inv.groovy"))
 
-        def inv = new InvHandler(executor)
+        new InvHandler(executor).call {
 
-        inv {
             name "app1"
             path app1
 
@@ -41,7 +40,8 @@ class MavenTests {
             }
         }
 
-        inv {
+        new InvHandler(executor).call {
+
             name "app2"
 
             require inv.Maven using {

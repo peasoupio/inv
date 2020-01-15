@@ -22,9 +22,8 @@ class FilesTests {
         def executor = new InvExecutor()
         executor.read(new File("./defaults/files/inv.groovy"))
 
-        def inv = new InvHandler(executor)
+        new InvHandler(executor).call {
 
-        inv {
             require inv.Files into '$files'
 
             step {
@@ -57,9 +56,8 @@ class FilesTests {
         def executor = new InvExecutor()
         executor.read(new File("./defaults/files/inv.groovy"))
 
-        def inv = new InvHandler(executor)
+        new InvHandler(executor).call {
 
-        inv {
             require inv.Files into '$files'
 
             step {
@@ -68,7 +66,6 @@ class FilesTests {
                 $files.find(files, "file", "file2").each { println it.path + "-FIND-EXCLUDE" }
             }
         }
-
 
         Stdout.capture ({ executor.execute() }, {
             // Find All

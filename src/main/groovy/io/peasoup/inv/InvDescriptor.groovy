@@ -5,6 +5,7 @@ class InvDescriptor {
     String name
     String path
     Closure ready
+    final InvNames inv = InvNames.Instance
 
     final List<Statement> statements = [].asSynchronized()
     final List<Closure> steps = [].asSynchronized()
@@ -93,7 +94,4 @@ class InvDescriptor {
     void step(Closure step) {
         steps << step
     }
-
-
-
 }

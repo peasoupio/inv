@@ -86,7 +86,7 @@ class ScmExecutor {
         }
 
         // Create file and dirs for the SH file
-        def shFile = new File(repository.path, randomSuffix() + '.scm-sh')
+        def shFile = new File(repository.path.parentFile, randomSuffix() + '.scm-sh')
         shFile.delete()
 
         // Write the commands into the script file
@@ -94,7 +94,7 @@ class ScmExecutor {
 
         // Calling the SH file with the commands in it
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
-        def cmd = "sh ${shFile.canonicalPath}"
+        def cmd = "bash ${shFile.canonicalPath}"
         def envs = repository.env.collect { "${it.key}=${it.value}"}
         def process = cmd.execute(envs, repository.path)
 

@@ -20,7 +20,7 @@ It covers:
 JDK 8 or higher
 
 ## Quick example:
-Visit [here](wiki/Quick-example) for a complete and simple example on how to use *INV*.
+Visit [here](https://github.com/peasoupio/inv/wiki/Quick-example) for a complete and simple example on how to use *INV*.
 
 ### Contribution
 First and only rule: let's work together and have fun :)

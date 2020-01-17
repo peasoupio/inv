@@ -464,14 +464,6 @@ class InvHandlerTest {
         }
 
         inv {
-            name "my-app"
-
-            require inv.Endpoint("my-webservice-id-not-existing")
-
-            broadcast inv.App("my-app-id")
-        }
-
-        inv {
             name "my-server"
 
             broadcast inv.Server using {
@@ -480,6 +472,39 @@ class InvHandlerTest {
                     println "my-server-id has been broadcast"
                 }
             }
+        }
+
+        inv {
+            name "my-app"
+
+            require inv.Endpoint("my-webservice-id-not-existing")
+
+            broadcast inv.App("my-app-id")
+        }
+
+        inv {
+            name "my-app-2"
+
+            require inv.Endpoint("my-webservice-id-not-existing")
+            require inv.App("my-app-id")
+
+            require inv.Endpoint("my-unbloatable-endpoint") using {
+                unbloatable true
+            }
+
+            broadcast inv.App("my-app-id-2")
+        }
+
+        inv {
+            name "my-app-3"
+
+            require inv.Endpoint("my-webservice-id-not-existing")
+            require inv.App("my-app-id")
+            require inv.App("my-app-id-2")
+
+            require inv.Endpoint("my-webservice-id")
+
+            broadcast inv.App("my-app-id-3")
         }
 
 

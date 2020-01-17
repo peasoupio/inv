@@ -34,6 +34,10 @@ class BroadcastStatement implements Statement {
             // Reset to make sure NV is fine
             broadcastValuable.state = BroadcastStatement.NOT_PROCESSED
 
+            // Do nothing if halting
+            if (pool.runningState == pool.HALTING)
+                return
+
             def channel = pool.availableStatements[broadcastValuable.name]
             def staging = pool.stagingStatements[broadcastValuable.name]
 
@@ -43,15 +47,6 @@ class BroadcastStatement implements Statement {
                 broadcastValuable.state = BroadcastStatement.ALREADY_BROADCAST
                 return
             }
-
-            if (pool.runningState == pool.HALTING) {
-
-                broadcastValuable.state = RequireStatement.HALTING
-
-                Logger.warn broadcastValuable
-                return
-            }
-
 
             broadcastValuable.state = BroadcastStatement.SUCCESSFUL
 

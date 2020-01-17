@@ -39,15 +39,11 @@ class RequireStatement implements Statement {
             // Reset to make sure NV is fine
             requireValuable.state = RequireStatement.NOT_PROCESSED
 
-            // Is it halting ?
-            if (pool.runningState == pool.HALTING) {
-
-                requireValuable.state = RequireStatement.HALTING
-
-                Logger.warn requireValuable
+            // Do nothing if halting
+            if (pool.runningState == pool.HALTING)
                 return
-            }
 
+            // Get broadcast
             def channel = pool.availableStatements[requireValuable.name]
             def broadcast = channel[requireValuable.id]
 
@@ -74,7 +70,7 @@ class RequireStatement implements Statement {
                 if (toUnbloat) {
 
                     requireValuable.state = RequireStatement.UNBLOADTING
-                    Logger.debug "[UNBLOATED] " + requireValuable
+                    Logger.info requireValuable
 
                     if (requireValuable.unresolved)
                         requireValuable.unresolved.call([

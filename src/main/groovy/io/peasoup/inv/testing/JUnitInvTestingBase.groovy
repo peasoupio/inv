@@ -3,14 +3,14 @@ package io.peasoup.inv.testing
 import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
 import io.peasoup.inv.InvInvoker
-import io.peasoup.inv.NetworkValuablePool
+import io.peasoup.inv.PoolReport
 import org.junit.Before
 
 abstract class JUnitInvTestingBase {
 
     final String MY_LOC = getClass().location.path
     InvExecutor invExecutor
-    NetworkValuablePool.PoolReport report
+    PoolReport report
 
     boolean called
 

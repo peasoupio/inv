@@ -59,7 +59,7 @@ class InvHandler {
             // Atempt to dump delegate to get path or name
             inv.dumpDelegate()
 
-            executor.report.exceptions.add(new NetworkValuablePool.PoolException(inv: inv, exception: ex))
+            executor.report.exceptions << new PoolReport.PoolException(inv: inv, exception: ex)
         }
     }
 }

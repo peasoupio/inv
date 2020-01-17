@@ -48,6 +48,11 @@ class NetworkValuablePool {
      */
     PoolReport digest() {
 
+        // If running in halted mode, skip cycle
+        if (runningState == HALTING) {
+            return new PoolReport()
+        }
+
         // Multithreading is allowed only in a RUNNING cycle
         if (!invExecutor)
             invExecutor = Executors.newFixedThreadPool(4)
@@ -57,7 +62,7 @@ class NetworkValuablePool {
         // All invs
         List<Inv> invsDone = []
         List<Future<Inv.Digestion>> futures = []
-        List<PoolException> exceptions = []
+        List<PoolReport.PoolException> exceptions = []
 
         // All digestions
         def digestion = new Inv.Digestion()
@@ -80,7 +85,7 @@ class NetworkValuablePool {
                 try {
                     return inv.digest()
                 } catch (Exception ex) {
-                    exceptions.add(new PoolException(inv: inv, exception: ex))
+                    exceptions.add(new PoolReport.PoolException(inv: inv, exception: ex))
 
                     // issues:8
                     remainingInvs.remove(inv)
@@ -109,11 +114,7 @@ class NetworkValuablePool {
             }
         }
 
-        // If running in halted mode, no need to broadcasts
-        // It is only required to unresolved requirements.
-        if (runningState == HALTING) {
-            return new PoolReport()
-        }
+
 
         // Batch all require resolve at once
         boolean hasResolvedSomething = digestion.requires != 0
@@ -174,9 +175,9 @@ class NetworkValuablePool {
         isDigesting = false
 
         return new PoolReport(
-                digested: invsDone,
-                exceptions: exceptions,
-                halted: runningState == HALTING
+                invsDone,
+                exceptions,
+                runningState == HALTING
         )
     }
 
@@ -297,40 +298,4 @@ class NetworkValuablePool {
     boolean isDigesting() {
         return this.isDigesting
     }
-
-    static class PoolReport {
-
-        List<Inv> digested = []
-        List<PoolException> exceptions = []
-        boolean halted = false
-
-        void eat(PoolReport other) {
-            this.digested.addAll(other.digested)
-            this.exceptions.addAll(other.exceptions)
-
-            // Once halted, can't put it back on
-            if (other.halted)
-                this.halted = true
-        }
-
-        /*
-            Determines if report should be considered successful or not
-         */
-        boolean isOk() {
-            if (halted)
-                return false
-
-            if (!exceptions.isEmpty())
-                return false
-
-            return true
-        }
-    }
-
-    static class PoolException {
-        Inv inv
-        Exception exception
-    }
-
-
 }

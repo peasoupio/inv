@@ -2,11 +2,12 @@ package io.peasoup.inv
 
 class InvExecutor {
 
-    final NetworkValuablePool pool = new NetworkValuablePool()
-    NetworkValuablePool.PoolReport report = new NetworkValuablePool.PoolReport()
+    final NetworkValuablePool pool
+    final PoolReport report
 
     InvExecutor() {
-
+        pool = new NetworkValuablePool()
+        report = new PoolReport()
     }
 
     void read(File scriptFile) {
@@ -17,10 +18,15 @@ class InvExecutor {
         InvInvoker.invoke(new InvHandler(this), pwd, scriptFile, scm, inject)
     }
 
-    NetworkValuablePool.PoolReport execute() {
+    PoolReport execute() {
+
+        // If something happened during read, skip execute
+        if (!report.isOk())
+            return report
+
+        report.reset()
 
         int count = 0
-        def haltingInProgress = false
 
         Logger.info "---- [DIGEST] started ----"
 
@@ -39,7 +45,7 @@ class InvExecutor {
             }
 
             // Run for eternity
-            while (true) {
+            while (!report.halted) {
 
                 // has no more work to do
                 if (pool.isEmpty())
@@ -49,32 +55,18 @@ class InvExecutor {
 
                 // Get the next digested invs
                 report.eat(pool.digest())
-
-                if (haltingInProgress) {
-                    break
-                }
-
-                if (report.halted) {
-                    haltingInProgress = true
-                }
             }
         }
         catch (Exception ex) {
             ex.printStackTrace()
         }
+        finally {
+            pool.shutdown()
+            report.printPoolTrace(pool)
+        }
 
         Logger.info "---- [DIGEST] completed ----"
 
-        return reset()
-    }
-
-    private NetworkValuablePool.PoolReport  reset() {
-        def currentReport = report
-
-        report = new NetworkValuablePool.PoolReport()
-        pool.runningState() == pool.RUNNING
-        pool.shutdown()
-
-        return currentReport
+        return report
     }
 }

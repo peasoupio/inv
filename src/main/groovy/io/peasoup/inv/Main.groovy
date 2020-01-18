@@ -45,7 +45,7 @@ Parameters:
   dot          Graph Description Language (DOT) output structure 
 """
 
-    File invHome = new File(System.getenv('INV_HOME') ?: "./")
+    static final File invHome = new File(System.getenv('INV_HOME') ?: "./")
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {

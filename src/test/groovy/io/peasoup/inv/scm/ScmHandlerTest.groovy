@@ -43,6 +43,8 @@ class ScmHandlerTest {
 
             name 'test'
 
+            path "my-path"
+
             src "my-src"
 
             hooks {
@@ -119,6 +121,15 @@ class ScmHandlerTest {
         assertThrows(PowerAssertionError.class, {
             scm.call {
                 ask null
+            }
+        })
+    }
+
+    @Test
+    void missing_name() {
+        assertThrows(ScmHandler.SCMOptionRequiredException.class, {
+            scm.call {
+                path "ok"
             }
         })
     }

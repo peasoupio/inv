@@ -12,7 +12,7 @@ class PoolReport {
 
     }
 
-    PoolReport(List<Inv> digested, List<PoolException> exceptions, Boolean halted) {
+    PoolReport(List<Inv> digested, BlockingQueue<PoolException> exceptions, Boolean halted) {
         concat(digested, exceptions, halted)
     }
 

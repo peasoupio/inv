@@ -10,7 +10,7 @@ class SystemChecks {
     boolean consistencyFails(Main main) {
         assert main
 
-        return checkInvHome(main.invHome) &&
+        return checkInvHome(Main.invHome) &&
                checkCache(new File(InvInvoker.Cache))
     }
 

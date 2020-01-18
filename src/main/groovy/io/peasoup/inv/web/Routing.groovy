@@ -26,7 +26,8 @@ class Routing {
             port: 8080
         ] + args
 
-        assert configs.workspace
+        assert configs.workspace, "Args must include a 'workspace' (String) property."
+        assert configs.workspace instanceof CharSequence, "Args.workspace must be a String type"
 
         runLocation = configs.workspace
         scmsLocation = configs.workspace + "/scms"
@@ -188,7 +189,7 @@ class Routing {
 
             settings.save()
 
-            return "Ok"
+            return showResult("Ok")
         })
 
         post("/run/unstageAll", { req, res ->
@@ -197,7 +198,7 @@ class Routing {
             settings.unstageAll()
             settings.save()
 
-            return "Ok"
+            return showResult("Ok")
         })
     }
 
@@ -205,7 +206,8 @@ class Routing {
         get("/run/requiredBy", { req, res ->
 
             def id = req.queryParams("id")
-            assert id
+            if (!id)
+                return showError("id is required")
 
             return JsonOutput.toJson(run.requireByToMap(id))
         })
@@ -213,25 +215,27 @@ class Routing {
         post("/run/stage", { req, res ->
 
             def id = req.queryParams("id")
-            assert id
+            if (!id)
+                return showError("id is required")
 
             run.stage(id)
             settings.stage(id)
             settings.save()
 
-            return "Ok"
+            return showResult("Ok")
         })
 
         post("/run/unstage", { req, res ->
 
             def id = req.queryParams("id")
-            assert id
+            if (!id)
+                return showError("id is required")
 
             run.unstage(id)
             settings.unstage(id)
             settings.save()
 
-            return "Ok"
+            return showResult("Ok")
         })
     }
 
@@ -286,7 +290,7 @@ class Routing {
                 }
             }
 
-            return "Ok"
+            return showResult("Ok")
         })
 
         post("/scms/resetAll", { req, res ->
@@ -304,8 +308,7 @@ class Routing {
                 parametersFile.delete()
             }
 
-            return "Ok"
-
+            return showResult("Ok")
         })
     }
 
@@ -314,12 +317,12 @@ class Routing {
         get("/scms/view", { req, res ->
 
             def name = req.queryParams("name")
-            assert name
+            if (!name)
+                return showError("name is required")
 
             def element = scms.elements[name]
-
             if (!element)
-                return "Oups"
+                return showError("No parameter found for the specified name")
 
             def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
 
@@ -329,25 +332,28 @@ class Routing {
         post("/scms/source", { req, res ->
 
             def name = req.queryParams("name")
-            assert name
+            if (!name)
+                return showError("name is required")
 
             def element = scms.elements[name]
+            if (!element)
+                return showError("No parameter found for the specified name")
 
-            element.script.delete()
-            element.script << req.body()
+            element.scriptFile.delete()
+            element.scriptFile << req.body()
 
-            scms.load(element.script)
+            scms.load(element.scriptFile)
 
-            return "Ok"
+            return showResult("Ok")
         })
 
         get("/scms/parametersValues", { req, res ->
 
             def name = req.queryParams("name")
-            assert name
+            if (!name)
+                return showError("name is required")
 
             def element = scms.elements[name]
-
             if (!element)
                 return JsonOutput.toJson([:])
 
@@ -357,13 +363,16 @@ class Routing {
         post("/scms/parameters", { req, res ->
 
             def name = req.queryParams("name")
-            assert name
+            if (!name)
+                return showError("name is required")
 
             def parameter = req.queryParams("parameter")
-            assert parameter
+            if (!parameter)
+                return showError("parameter is required")
 
             def element = scms.elements[name]
-            assert element
+            if (!element)
+                return showError("No parameter found for the specified name")
 
             def payload = req.body()
             def parameterValue = payload
@@ -375,7 +384,7 @@ class Routing {
 
             element.writeParameterValue(parametersFile, element, parameter, parameterValue.toString())
 
-            return "ok"
+            return showResult("Ok")
         })
     }
 
@@ -389,7 +398,8 @@ class Routing {
         get("/execution/logs/:ìndex", { req, res ->
 
             def index = req.params("ìndex")
-            assert index
+            if (!index)
+                return showError("ìndex is required")
 
             return JsonOutput.toJson(exec.messages[Integer.parseInt(index)])
         })
@@ -402,7 +412,7 @@ class Routing {
                     .findAll { it.link.isOwner() }
                     .collect { run.invOfScm[it.link.value] }
                     .unique()
-                    .collect { scms.elements[it].script } as List<File>
+                    .collect { scms.elements[it].scriptFile } as List<File>
 
             exec.start(scmFiles)
             Thread.sleep(50)
@@ -419,7 +429,7 @@ class Routing {
             exec.stop()
             Thread.sleep(50)
 
-            return "Stopped"
+            return showResult("Stopped")
         })
     }
 
@@ -427,12 +437,24 @@ class Routing {
         get("/review", { req, res ->
 
             if (!exec.latestLog().exists())
-                return "Oups"
+                return showError("Latest execution log does not exists on filesystem")
 
             def review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
 
             return JsonOutput.toJson(review.toMap())
         })
+    }
+
+    static String showError(String message) {
+        return JsonOutput.toJson([
+                error: message
+        ])
+    }
+
+    static String showResult(String message) {
+        return JsonOutput.toJson([
+            result: message
+        ])
     }
 
 }

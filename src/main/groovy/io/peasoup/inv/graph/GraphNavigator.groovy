@@ -19,10 +19,9 @@ class GraphNavigator {
     }
 
     void addBroadcastNode(Node node) {
-
-        assert node != null
-        assert node.owner
-        assert node.id
+        assert node != null, 'Node is required'
+        assert node.owner, "Node's owner is required"
+        assert node.id, "Node's id is required"
 
         def owner = new Owner(value: node.owner)
         def id = new Id(value: node.id)
@@ -36,10 +35,9 @@ class GraphNavigator {
     }
 
     void addRequireNode(Node node) {
-
-        assert node != null
-        assert node.owner
-        assert node.id
+        assert node != null, 'Node is required'
+        assert node.owner, "Node's owner is required"
+        assert node.id, "Node's id is required"
 
         def owner = new Owner(value: node.owner)
         def id = new Id(value: node.id)

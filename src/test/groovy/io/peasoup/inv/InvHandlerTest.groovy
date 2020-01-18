@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -74,14 +74,14 @@ class InvHandlerTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new InvHandler(null)
         })
     }
 
     @Test
     void call_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             inv.call(null)
         })
     }
@@ -446,7 +446,7 @@ class InvHandlerTest {
     @Test
     void call_with_halting() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             inv.call(null)
         })
 

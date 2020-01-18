@@ -1,7 +1,6 @@
 package io.peasoup.inv
 
 import io.peasoup.inv.utils.Stdout
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -49,27 +48,27 @@ class InvInvokerTest {
     @Test
     void invoke_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(null, null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(new InvHandler(), null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(null, null, null, null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(new InvHandler(), null, null, null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(new InvHandler(), 'pwd', null, null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             InvInvoker.invoke(new InvHandler(), 'pwd', new File("filename"), null)
         })
     }

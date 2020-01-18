@@ -34,19 +34,19 @@ class ScmFile {
 
     static class SourceFileElement {
         private ScmDescriptor descriptor
-        private File script
+        private File scriptFile
 
-        SourceFileElement(ScmDescriptor descriptor, File script) {
-            assert descriptor
-            assert script
-            assert script.exists()
+        SourceFileElement(ScmDescriptor descriptor, File scripFile) {
+            assert descriptor, 'SCM descriptor is required'
+            assert scripFile, 'Script file is required'
+            assert scripFile.exists(), 'Script file must exist on filesystem'
 
             this.descriptor = descriptor
-            this.script = script
+            this.scriptFile = scripFile
         }
 
         String simpleName() {
-            return script.name.split('\\.')[0]
+            return scriptFile.name.split('\\.')[0]
         }
 
         Map toMap(Map filter = [:], File parametersFile = null) {
@@ -100,8 +100,8 @@ class ScmFile {
                     name      : descriptor.name,
                     script: [
                         source    : simpleName(),
-                        text      : script.text,
-                        lastEdit  : script.lastModified()
+                        text      : scriptFile.text,
+                        lastEdit  : scriptFile.lastModified()
                     ],
                     parameters: parameters,
                     lastModified: lastModified,

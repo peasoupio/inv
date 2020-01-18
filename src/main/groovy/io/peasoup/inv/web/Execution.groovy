@@ -1,6 +1,7 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
 
 import java.nio.file.Files
@@ -20,17 +21,20 @@ class Execution {
     private File executionLog
 
     Execution(File executionsLocation, File scmFolder, File externalParametersFolder) {
-        assert executionsLocation
+        assert executionsLocation, 'Executions location (folder) is required'
         if (!executionsLocation.exists())
             executionsLocation.mkdir()
+        assert executionsLocation.isDirectory(), 'Executions location must be a directory'
 
-        assert scmFolder
+        assert scmFolder, 'SCM location (folder) is required'
         if (!scmFolder.exists())
             scmFolder.mkdir()
+        assert executionsLocation.isDirectory(), 'SCM location must be a directory'
 
-        assert externalParametersFolder
+        assert externalParametersFolder, 'External parameters location (folder) is required'
         if (!externalParametersFolder.exists())
             externalParametersFolder.mkdir()
+        assert executionsLocation.isDirectory(), 'External parameters location must be a directory'
 
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
@@ -62,6 +66,13 @@ class Execution {
     }
 
     void start(List<File> scms) {
+        assert scms, 'SCM collection is required'
+
+        if (scms.isEmpty()) {
+            Logger.warn "SCM collection is empty. Will NOT try to start execution"
+
+            return
+        }
 
         if (isRunning())
             return
@@ -123,7 +134,7 @@ class Execution {
         }
     }
 
-    void sendMessages(List<String> currentMessages, boolean validateSize = true) {
+    protected void sendMessages(List<String> currentMessages, boolean validateSize = true) {
         if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
             return
 

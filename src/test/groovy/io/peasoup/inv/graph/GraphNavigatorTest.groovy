@@ -1,6 +1,6 @@
 package io.peasoup.inv.graph
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 import org.junit.Before
@@ -70,15 +70,15 @@ class GraphNavigatorTest {
     @Test
     void addBroadcast_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addBroadcastNode(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addBroadcastNode(new TestNode(owner: "", id: "ok"))
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addBroadcastNode(new TestNode(owner: "ok", id: ""))
         })
     }
@@ -86,15 +86,15 @@ class GraphNavigatorTest {
     @Test
     void addRequireNode_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addRequireNode(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addRequireNode(new TestNode(owner: "", id: "ok"))
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             graph.addRequireNode(new TestNode(owner: "ok", id: ""))
         })
     }

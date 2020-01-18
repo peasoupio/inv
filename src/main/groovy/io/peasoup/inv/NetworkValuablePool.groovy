@@ -175,8 +175,7 @@ class NetworkValuablePool {
      * @param name string value of the name to check
      */
     void checkAvailability(String name) {
-
-        assert name
+        assert name, 'Name is required'
 
         if (names.contains(name))
             return
@@ -221,28 +220,27 @@ class NetworkValuablePool {
         return true
     }
 
+    // TODO Should this code belon to BroadcastStatement? Seems it would make it safer
     /**
      * If we caught a successful broadcast during the unbloating cycle, we need to
      * restart digest since this broadcasts can altered the remaining cycles
-     * @param networkValuable
+     * @param statement
      * @return
      */
-    synchronized boolean preventUnbloating(Statement networkValuable) {
-
-        assert networkValuable
-        assert isDigesting
+    synchronized boolean preventUnbloating(Statement statement) {
+        assert statement, 'Statement is required'
+        assert isDigesting, "Can't prevent unbloating outside a digest cycle"
 
         if (runningState != UNBLOATING) {
             return false
         }
 
-        if (networkValuable.state != Statement.SUCCESSFUL) {
+        if (statement.state != Statement.SUCCESSFUL) {
             return false
         }
 
-        if (networkValuable.match != BroadcastStatement.BROADCAST) {
+        if (!(statement instanceof BroadcastStatement))
             return false
-        }
 
         startRunning()
         return true

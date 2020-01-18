@@ -1,6 +1,6 @@
 package io.peasoup.inv.graph
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -34,15 +34,15 @@ class DeltaGraphTest {
 
         def existing = new File(getClass().getResource('/logOutput1.txt').toURI())
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new DeltaGraph(null, null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new DeltaGraph(existing.newReader(), null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new DeltaGraph(null, existing.newReader())
         })
     }

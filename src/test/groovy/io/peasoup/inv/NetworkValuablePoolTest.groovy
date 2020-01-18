@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -36,7 +36,7 @@ class NetworkValuablePoolTest {
     @Test
     void checkAvailability_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             pool.checkAvailability("")
         })
     }
@@ -56,11 +56,11 @@ class NetworkValuablePoolTest {
     @Test
     void preventUnbloating_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             pool.preventUnbloating(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             pool.isDigesting = false
             pool.preventUnbloating(new BroadcastStatement())
         })

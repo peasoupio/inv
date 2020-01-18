@@ -9,13 +9,15 @@ class ScmHandler {
     private final File parametersFile
 
     ScmHandler(ScmExecutor executor, File parametersFile = null) {
-        assert executor
+        assert executor, 'SCM executor is required to handle SCM scripts'
 
         this.executor = executor
         this.parametersFile = parametersFile
     }
 
     void call(Closure body) {
+        assert body, 'Body is required'
+
         def scmConfigDescriptor = new ScmDescriptor(parametersFile)
 
         body.resolveStrategy = Closure.DELEGATE_ONLY

@@ -1,45 +1,44 @@
 package io.peasoup.inv.scm
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
 import org.apache.commons.lang.RandomStringUtils
 
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
+import java.util.concurrent.*
 
+@CompileStatic
 class ScmExecutor {
 
-    final Map<String, ScmDescriptor> scms = [:]
+    final Map<String, ScmDescriptor> scms = new ConcurrentHashMap<>()
 
     ScmExecutor() {
     }
 
     void read(File scriptFile, File parametersFile = null) {
-        assert scriptFile
-        assert scriptFile.exists()
+        assert scriptFile, 'Script file is required'
+        assert scriptFile.exists(), 'Script file must exist on filesystem'
 
         ScmInvoker.invoke(new ScmHandler(this, parametersFile), scriptFile)
     }
 
     void add(ScmDescriptor descriptor) {
-        assert descriptor
+        assert descriptor, 'SCM descriptor (for a repository) is required'
 
         scms.put(descriptor.name, descriptor)
     }
 
-    Map<String, ScmDescriptor> execute() {
+    List<SCMReport> execute() {
 
-        ExecutorService pool = Executors.newFixedThreadPool(4)
-        List<Future> futures = []
+        final ExecutorService pool = Executors.newFixedThreadPool(4)
+        final List<Future<SCMReport>> futures = []
+        final List<SCMReport> reports = []
 
-        scms.collectEntries { String name, ScmDescriptor repository ->
+        scms.each { String name, ScmDescriptor repository ->
             futures << pool.submit({
-                if (!repository.path)
-                    Logger.warn "path not define for scm ${name}"
+                def report = new SCMReport(name: name, repository: repository)
 
                 if (!repository.hooks)
-                    return
+                    return report
 
                 Boolean doesPathExistsAndNotEmpty = repository.path.exists() && repository.path.list().size() > 0
 
@@ -57,23 +56,30 @@ class ScmExecutor {
                     executeCommands repository, repository.hooks.update
                     Logger.info("[SCM] ${name} [UPDATE] done")
                 }
-            } as Callable)
+
+                // Path is expected to be existent
+                if (!repository.path.exists())
+                    report.isOk = false
+
+                return report
+
+            } as Callable<SCMReport>)
         }
 
         futures.each {
-            it.get()
+            reports.add(it.get())
         }
 
         pool.shutdown()
 
-        return scms
+        return reports
     }
 
-    private void executeCommands(ScmDescriptor repository, String commands) {
+    private boolean executeCommands(ScmDescriptor repository, String commands) {
 
         // If parent undefined, can do nothing
         if (!repository.path)
-            return
+            return false
 
         // Make sure cache is available with minimal accesses
         if (!repository.path.exists()) {
@@ -104,11 +110,25 @@ class ScmExecutor {
 
         shFile.delete()
 
-        if (process.exitValue() != 0)
+        if (process.exitValue() != 0) {
+            Logger.warn "SCM path ${repository.path.absolutePath} was deleted since hook returned ${process.exitValue()}"
+
             repository.path.deleteDir()
+
+            return false
+        }
+
+        return
     }
 
     private String randomSuffix() {
         return RandomStringUtils.random(9, true, true)
+    }
+
+    static class SCMReport {
+
+        String name
+        ScmDescriptor repository
+        boolean isOk
     }
 }

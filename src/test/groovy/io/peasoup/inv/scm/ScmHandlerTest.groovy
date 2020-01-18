@@ -1,7 +1,6 @@
 package io.peasoup.inv.scm
 
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
 
@@ -59,14 +58,14 @@ class ScmHandlerTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new ScmHandler(null)
         })
     }
 
     @Test
     void invalid_scm() {
-        assertThrows(Exception.class, {
+        assertThrows(AssertionError.class, {
             scm.call null
         })
     }
@@ -109,7 +108,7 @@ class ScmHandlerTest {
 
     @Test
     void invalid_hooks() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             scm.call {
                 hooks null
             }
@@ -118,7 +117,7 @@ class ScmHandlerTest {
 
     @Test
     void invalid_ask() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             scm.call {
                 ask null
             }

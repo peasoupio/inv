@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -19,7 +19,7 @@ class BroadcastStatementTest {
 
     @Test
     void asdelegate_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new BroadcastStatement.Response().asDelegate(null, false)
         })
     }

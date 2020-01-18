@@ -1,7 +1,6 @@
 package io.peasoup.inv
 
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
 
@@ -18,11 +17,11 @@ class StatementDescriptorTest {
 
     @Test
     void ctor_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new StatementDescriptor(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new StatementDescriptor("%\$;")
         })
     }
@@ -48,15 +47,15 @@ class StatementDescriptorTest {
     @Test()
     void call_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.call(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.call((Object)null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.call((Map)null)
         })
     }
@@ -72,11 +71,11 @@ class StatementDescriptorTest {
     void using__not_ok() {
 
         // requires usingDigestor
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.using {}
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.usingDigestor = {}
             myself.using()
         })

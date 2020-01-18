@@ -38,20 +38,20 @@ class ScmDescriptor {
     Integer timeout = DefaultTimeout
     def timeout(Integer value) { this.timeout = value }
 
-    def hooks(Closure hooksClosure) {
-        assert hooksClosure
+    def hooks(Closure hooksBody) {
+        assert hooksBody, "Hook's body is required"
 
-        hooksClosure.resolveStrategy = Closure.DELEGATE_ONLY
-        hooksClosure.delegate = hooks
-        hooksClosure()
+        hooksBody.resolveStrategy = Closure.DELEGATE_ONLY
+        hooksBody.delegate = hooks
+        hooksBody()
     }
 
-    def ask(Closure askClosure) {
-        assert askClosure
+    def ask(Closure askBody) {
+        assert askBody, "Ask's body is required"
 
-        askClosure.resolveStrategy = Closure.DELEGATE_ONLY
-        askClosure.delegate = ask
-        askClosure()
+        askBody.resolveStrategy = Closure.DELEGATE_ONLY
+        askBody.delegate = ask
+        askBody()
     }
 
     //@Override

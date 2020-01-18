@@ -144,7 +144,6 @@ Parameters:
                     return
                 }
 
-                Logger.info("file: ${scriptFile.canonicalPath}")
                 invExecutor.read(path.canonicalPath, scriptFile, name)
             }
         }

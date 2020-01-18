@@ -8,7 +8,7 @@ class InvHandler {
     private final InvExecutor executor
 
     InvHandler(InvExecutor executor) {
-        assert executor
+        assert executor, 'Executor is required to handle INV script(s)'
 
         this.executor = executor
     }
@@ -19,13 +19,13 @@ class InvHandler {
     }
 
     void call(Closure body) {
-        assert body
+        assert body, 'Body is required'
 
         this.call(body, body.owner.class.simpleName)
     }
 
     void call(Closure body, String defaultName) {
-        assert body
+        assert body, 'Body is required'
 
         Inv inv = new Inv(executor.pool)
 

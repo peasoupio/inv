@@ -1,10 +1,9 @@
 package io.peasoup.inv
 
-
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
-import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
+import io.peasoup.inv.scm.ScmExecutor.SCMReport
 import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
@@ -121,13 +120,19 @@ Parameters:
         }
 
         def invFiles = scmExecutor.execute()
-        invFiles.each { String name, ScmDescriptor repository ->
+        invFiles.each { SCMReport report ->
+
+            // If something happened, do not include/try-to-include into the pool
+            if (!report.isOk)
+                return
+
+            def name = report.name
+            def path = report.repository.path
 
             // Manage entry points for SCM
-            repository.entry.each {
+            report.repository.entry.each {
 
                 def scriptFile = new File(it)
-                def path = repository.path
 
                 if (!scriptFile.exists()) {
                     scriptFile = new File(path, it)

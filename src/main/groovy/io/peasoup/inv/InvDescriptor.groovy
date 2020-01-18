@@ -11,33 +11,34 @@ class InvDescriptor {
     final List<Closure> steps = [].asSynchronized()
 
     void name(String name) {
-        assert name
+        assert name, 'Name is required'
 
         this.name = name
     }
 
     void path(String path) {
-        assert path
+        assert path, 'Path is required'
 
         this.path = path
     }
 
-    void ready(Closure ready) {
-        assert ready
+    void ready(Closure readyBody) {
+        assert readyBody, 'Ready body is required'
 
-        this.ready = ready
+        this.ready = readyBody
     }
 
-    StatementDescriptor broadcast(StatementDescriptor networkValuableDescriptor) {
-
-        assert networkValuableDescriptor
+    StatementDescriptor broadcast(StatementDescriptor statementDescriptor) {
+        assert statementDescriptor, 'Statement descriptor is required'
 
         BroadcastStatement broadcastValuable = new BroadcastStatement()
 
-        broadcastValuable.id = networkValuableDescriptor.id ?: Statement.DEFAULT_ID
-        broadcastValuable.name = networkValuableDescriptor.name
+        broadcastValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        broadcastValuable.name = statementDescriptor.name
 
-        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
+        statementDescriptor.usingDigestor = { Closure usingBody ->
+            assert usingBody, 'Using body is required'
+
             BroadcastDescriptor delegate = new BroadcastDescriptor()
 
             usingBody.resolveStrategy = Closure.DELEGATE_FIRST
@@ -52,18 +53,20 @@ class InvDescriptor {
 
         statements << broadcastValuable
 
-        return networkValuableDescriptor
+        return statementDescriptor
     }
 
-    StatementDescriptor require(StatementDescriptor networkValuableDescriptor) {
-        assert networkValuableDescriptor
+    StatementDescriptor require(StatementDescriptor statementDescriptor) {
+        assert statementDescriptor, 'Statement descriptor is required'
 
         RequireStatement requireValuable = new RequireStatement()
 
-        requireValuable.id = networkValuableDescriptor.id ?: Statement.DEFAULT_ID
-        requireValuable.name = networkValuableDescriptor.name
+        requireValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        requireValuable.name = statementDescriptor.name
 
-        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
+        statementDescriptor.usingDigestor = { Closure usingBody ->
+            assert usingBody, 'Using body is required'
+
             RequireDescriptor delegate = new RequireDescriptor()
 
             usingBody.resolveStrategy = Closure.DELEGATE_FIRST
@@ -82,16 +85,18 @@ class InvDescriptor {
             requireValuable.resolved = delegate.resolved
             requireValuable.unresolved = delegate.unresolved
         }
-        networkValuableDescriptor.intoDigestor = { String into ->
+        statementDescriptor.intoDigestor = { String into ->
             requireValuable.into = into
         }
 
         statements << requireValuable
 
-        return networkValuableDescriptor
+        return statementDescriptor
     }
 
-    void step(Closure step) {
-        steps << step
+    void step(Closure stepBody) {
+        assert stepBody, 'Step body is required'
+
+        steps.add(stepBody)
     }
 }

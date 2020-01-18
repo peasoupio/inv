@@ -8,7 +8,7 @@ class SystemChecks {
      * @return true if fails, otherwise false
      */
     boolean consistencyFails(Main main) {
-        assert main
+        assert main, 'Main is required'
 
         return checkInvHome(Main.invHome) &&
                checkCache(new File(InvInvoker.Cache))

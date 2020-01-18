@@ -93,7 +93,7 @@ class BroadcastStatement implements Statement {
          */
         @CompileDynamic
         Expando asDelegate(Inv caller, boolean defaults) {
-            assert caller
+            assert caller, 'Caller is required'
 
             def delegate = toExpando()
 

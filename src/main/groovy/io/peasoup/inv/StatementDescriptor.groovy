@@ -13,9 +13,8 @@ class StatementDescriptor {
     Closure intoDigestor
 
     StatementDescriptor(String name) {
-
-        assert name
-        assert StringUtils.isAlphanumeric(name)
+        assert name, 'Name is required'
+        assert StringUtils.isAlphanumeric(name), 'Name must be an alphanumeric value'
 
         this.name = name
     }
@@ -26,7 +25,7 @@ class StatementDescriptor {
     }
 
     StatementDescriptor call(Object id) {
-        assert id
+        assert id, 'Id, as an object, is required'
 
         this.id = id
 
@@ -34,7 +33,7 @@ class StatementDescriptor {
     }
 
     StatementDescriptor call(Map id) {
-        assert id
+        assert id, 'Id, as a Map, is required'
 
         this.id = id
 
@@ -42,18 +41,19 @@ class StatementDescriptor {
     }
 
     StatementDescriptor using(Closure usingBody) {
-        assert usingDigestor
-        assert usingBody
+        assert usingDigestor, 'Using digestor must be defined before calling'
+        assert usingBody, 'Using body is required'
 
-        this.usingDigestor.call(usingBody)
+        usingDigestor.call(usingBody)
 
         return this
     }
 
     StatementDescriptor into(String variable) {
-        assert variable
+        assert intoDigestor, "Into digestor must be defined. Are you sure you are using 'into' with a require and not a broadcast?"
+        assert variable, 'Variable is required'
 
-        this.intoDigestor.call(variable)
+        intoDigestor.call(variable)
 
         return this
     }

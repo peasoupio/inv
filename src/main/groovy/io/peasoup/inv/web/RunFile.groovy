@@ -22,8 +22,8 @@ class RunFile {
     final Map<String, List<GraphNavigator.Id>> names = [:]
 
     RunFile(File runFile) {
-        assert runFile
-        assert runFile.exists()
+        assert runFile, 'Run file is required'
+        assert runFile.exists(), 'Run file must exist on filesystem'
 
         this.runFile = runFile
         runGraph = new RunGraph(runFile.newReader())
@@ -39,7 +39,7 @@ class RunFile {
     }
 
     synchronized void stage(String id) {
-        assert id
+        assert id, 'Id is required'
 
         if (selected.containsKey(id))
             return
@@ -53,6 +53,11 @@ class RunFile {
     }
 
     synchronized void stageWithoutPropagate(String id) {
+        assert id, 'Id is required'
+
+        if (selected.containsKey(id))
+            return
+
         selected.put(id, new Selected(
                 selected: true,
                 link: new GraphNavigator.Id(value: id)
@@ -69,7 +74,7 @@ class RunFile {
     }
 
     synchronized void unstage(String id) {
-        assert id
+        assert id, 'Id is required'
 
         if (!selected.containsKey(id))
             return

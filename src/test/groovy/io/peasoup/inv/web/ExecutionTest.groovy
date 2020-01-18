@@ -1,6 +1,6 @@
 package io.peasoup.inv.web
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -31,15 +31,15 @@ class ExecutionTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new Execution(null, new File(base, "scms/"), new File(base, "params/"))
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new Execution(new File(base, "executions/"), null, new File(base, "params/"))
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new Execution(new File(base, "executions/"), new File(base, "scms/"), null)
         })
     }

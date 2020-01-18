@@ -1,8 +1,6 @@
 package io.peasoup.inv.web
 
-
 import io.peasoup.inv.utils.Stdout
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
 
@@ -19,11 +17,11 @@ class RunFileTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new RunFile(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new RunFile(new File("does-not-exists"))
         })
     }

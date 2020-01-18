@@ -20,7 +20,7 @@ class Inv {
     final NetworkValuablePool pool
 
     Inv(NetworkValuablePool pool) {
-        assert pool
+        assert pool, 'Pool is required'
 
         this.pool = pool
     }
@@ -82,8 +82,7 @@ class Inv {
      * @return
      */
     synchronized Digestion digest() {
-
-        assert pool.isDigesting()
+        assert pool.isDigesting(), 'digest() is only callable during its pool digest cycle'
 
         boolean stopUnbloating = false
 
@@ -156,26 +155,26 @@ class Inv {
         Integer broadcasts = 0
         Integer unbloats = 0
 
-        void addResults(Statement networkValuable) {
-            assert networkValuable
+        void addResults(Statement statement) {
+            assert statement, 'Statement is required'
 
-            if (networkValuable.state >= Statement.SUCCESSFUL) {
-                if (networkValuable.match == RequireStatement.REQUIRE) {
+            if (statement.state >= Statement.SUCCESSFUL) {
+                if (statement.match == RequireStatement.REQUIRE) {
                     requires++
                 }
 
-                if (networkValuable.match == BroadcastStatement.BROADCAST) {
+                if (statement.match == BroadcastStatement.BROADCAST) {
                     broadcasts++
                 }
             }
 
-            if (networkValuable.state == Statement.UNBLOADTING) {
+            if (statement.state == Statement.UNBLOADTING) {
                 unbloats++
             }
         }
 
         void concat(Digestion digestion) {
-            assert digestion
+            assert digestion, 'Digestion is required'
 
             this.requires += digestion.requires
             this.broadcasts += digestion.broadcasts

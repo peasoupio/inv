@@ -9,11 +9,11 @@ class Review {
     private final DeltaGraph deltaGraph
 
     Review(File baseRun, File latestExecution) {
-        assert baseRun
-        assert baseRun.exists()
+        assert baseRun, 'Base run file is required'
+        assert baseRun.exists(), 'Base run file must exist on filesystem'
 
-        assert latestExecution
-        assert latestExecution.exists()
+        assert latestExecution, 'Latest execution file is required'
+        assert latestExecution.exists(), 'Latest execution file must exist on filesystem'
 
         this.baseRun = baseRun
         this.latestExecution = latestExecution

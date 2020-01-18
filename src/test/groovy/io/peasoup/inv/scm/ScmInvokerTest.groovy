@@ -1,7 +1,6 @@
 package io.peasoup.inv.scm
 
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
 
@@ -25,12 +24,14 @@ class ScmInvokerTest {
         def executor = new ScmExecutor()
         executor.read(scmFile)
 
-        def files = executor.execute()
+        def reports = executor.execute()
 
-        assert files["my-repository"]
-        assert files["my-repository"].entry.size() == 1
-        assert files["my-repository"].entry[0].contains("mainTestScript.groovy")
-        assert files["my-repository"].path.absolutePath.contains("scm")
+        ScmExecutor.SCMReport report = reports.find { it.name == "my-repository" }
+
+        assert report
+        assert report.repository.entry.size() == 1
+        assert report.repository.entry[0].contains("mainTestScript.groovy")
+        assert report.repository.path.absolutePath.contains("scm")
     }
 
     @Test
@@ -38,16 +39,12 @@ class ScmInvokerTest {
 
         def scmFile =  new File(getClass().getResource('/scm-multiple.groovy').toURI())
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             ScmInvoker.invoke(null, scmFile)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             ScmInvoker.invoke(scmHandler, null)
-        })
-
-        assertThrows(PowerAssertionError.class, {
-            ScmInvoker.invoke(scmHandler, new File("not-existing"))
         })
     }
 
@@ -58,10 +55,10 @@ class ScmInvokerTest {
         def executor = new ScmExecutor()
         executor.read(scmFile)
 
-        def files = executor.execute()
+        def reports = executor.execute()
 
-        assert files["my-first-repository"]
-        assert files["my-second-repository"]
-        assert files["my-third-repository"]
+        assert reports.find { it.name == "my-first-repository" }
+        assert reports.find { it.name =="my-second-repository" }
+        assert reports.find { it.name =="my-third-repository" }
     }
 }

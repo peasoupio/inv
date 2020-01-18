@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -51,7 +51,7 @@ class SystemChecksTest {
     @Test()
     void call_not_ok() {
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             checks.consistencyFails(null)
         })
     }

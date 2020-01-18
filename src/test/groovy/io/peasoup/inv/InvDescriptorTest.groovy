@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -25,7 +25,7 @@ class InvDescriptorTest {
 
     @Test
     void name_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             String name = null
             myself.name(name)
         })
@@ -41,7 +41,7 @@ class InvDescriptorTest {
 
     @Test
     void broadcast_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.broadcast()
         })
     }
@@ -126,7 +126,7 @@ class InvDescriptorTest {
 
     @Test
     void require_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.require()
         })
     }

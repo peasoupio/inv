@@ -14,7 +14,7 @@ class Settings {
     final private File settingsFile
 
     Settings(File settingsFile) {
-        assert settingsFile
+        assert settingsFile, 'Settings file is required. NOTE: may NOT exist. Will be created automatically'
 
         this.settingsFile = settingsFile
 

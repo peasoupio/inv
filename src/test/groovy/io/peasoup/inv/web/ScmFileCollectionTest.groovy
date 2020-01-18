@@ -1,7 +1,6 @@
 package io.peasoup.inv.web
 
 import io.peasoup.inv.scm.ScmDescriptor
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Before
 import org.junit.Test
 
@@ -19,22 +18,22 @@ class ScmFileCollectionTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new ScmFileCollection(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new ScmFileCollection(new File("not-existing"))
         })
     }
 
     @Test
     void load_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             scmFileCollection.load(null)
         })
 
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             scmFileCollection.load(new File("not-existing"))
         })
     }

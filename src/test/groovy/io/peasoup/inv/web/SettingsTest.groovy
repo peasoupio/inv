@@ -1,7 +1,6 @@
 package io.peasoup.inv.web
 
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -30,7 +29,7 @@ class SettingsTest {
 
     @Test
     void not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             new Settings(null)
         })
     }

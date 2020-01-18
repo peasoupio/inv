@@ -13,21 +13,20 @@ class InvInvoker {
     // TODO Should be editable through options
     static File Cache = new File("./.cache")
 
-    static void invoke(InvHandler inv, File scriptPath) {
-        assert inv
-        assert scriptPath
+    static void invoke(InvHandler invHandler, File scriptPath) {
+        assert invHandler, 'InvHandler is required'
+        assert scriptPath, 'ScriptPath is required'
 
-        invoke(inv, scriptPath.parent, scriptPath, "undefined")
+        invoke(invHandler, scriptPath.parent, scriptPath)
     }
 
-    static void invoke(InvHandler inv, String pwd, File scriptFile, String scm, Map<String, Object> inject = [:]) {
-        assert inv
-        assert pwd
-        assert scriptFile
-        assert scm
+    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm = "undefined", Map<String, Object> inject = [:]) {
+        assert invHandler, 'InvHandler is required'
+        assert pwd, 'Pwd (current working directory) is required'
+        assert scriptFile, 'Script file is required'
 
         if (!scriptFile.exists()) {
-            Logger.warn "does not exists: ${scriptFile.absolutePath}"
+            Logger.warn "INV file does not exists: ${scriptFile.absolutePath}"
             return
         }
 
@@ -38,7 +37,7 @@ class InvInvoker {
 
         Script myNewScript = (Script)groovyClass.newInstance()
 
-        myNewScript.binding.setProperty("inv", inv)
+        myNewScript.binding.setProperty("inv", invHandler)
         myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)
         myNewScript.binding.setProperty("pwd", checkSubordinateSlash(pwd))
 
@@ -55,6 +54,9 @@ class InvInvoker {
     }
 
     static String cache(File scriptFile, String classname) {
+        assert scriptFile, "Script file is required"
+        assert scriptFile.exists(), "Script file must exists"
+        assert classname, "Classname is required"
 
         // Make sure cache is available with minimal accesses
         if (!Cache.exists()) {

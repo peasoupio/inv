@@ -27,6 +27,22 @@ class ScmHandler {
             throw new Exception("Scm instruction '${ex.method}' not found for arguments: ${ex.arguments.collect { "${it} (${it.class.name})"}.join(',') }")
         }
 
+        if (!scmConfigDescriptor.name)
+            throw new SCMOptionRequiredException("path")
+
+
+        if (!scmConfigDescriptor.path)
+            throw new SCMOptionRequiredException("path")
+
         executor.add(scmConfigDescriptor)
+    }
+
+    static class SCMOptionRequiredException extends Exception {
+
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/Syntax-SCM"
+
+        SCMOptionRequiredException(String option) {
+            super("Option ${option} is not valid. Please visit ${HELP_LINK} for more information")
+        }
     }
 }

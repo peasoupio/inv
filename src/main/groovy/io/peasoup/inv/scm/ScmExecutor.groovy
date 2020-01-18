@@ -16,16 +16,14 @@ class ScmExecutor {
     }
 
     void read(File scriptFile, File parametersFile = null) {
+        assert scriptFile
+        assert scriptFile.exists()
+
         ScmInvoker.invoke(new ScmHandler(this, parametersFile), scriptFile)
     }
 
     void add(ScmDescriptor descriptor) {
         assert descriptor
-
-        if (!descriptor.name) {
-            Logger.warn("No scm name provided. Skipped")
-            return
-        }
 
         scms.put(descriptor.name, descriptor)
     }

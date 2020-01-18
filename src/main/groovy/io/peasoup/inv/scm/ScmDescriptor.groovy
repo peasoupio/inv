@@ -2,6 +2,7 @@ package io.peasoup.inv.scm
 
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Main
 
 @CompileStatic
 class ScmDescriptor {
@@ -25,7 +26,7 @@ class ScmDescriptor {
     String name
     def name(String value) { this.name = value }
 
-    File path
+    File path = Main.invHome
     def path(String value) { this.path = new File(value) }
 
     String src
@@ -84,8 +85,11 @@ class ScmDescriptor {
         List<AskParameter> parameters = []
 
         def parameter(String name, String usage, Map options = [:]) {
-            assert name
-            assert usage
+            if (!name)
+                throw new ScmHandler.SCMOptionRequiredException("ash/parameter/name")
+
+            if (!usage)
+                throw new ScmHandler.SCMOptionRequiredException("ash/parameter/usage")
 
             def parameter = new AskParameter(
                     name: name,
@@ -122,5 +126,9 @@ class ScmDescriptor {
         String command
         Closure<String> filter
         String filterRegex
+
+        protected AskParameter() {
+
+        }
     }
 }

@@ -42,24 +42,33 @@ class InvHandler {
 
         try {
             body.call()
-
-            inv.dumpDelegate()
-
-            if (defaultName && !inv.name)
-                inv.name = defaultName
-
-            if (isScript) {
-                String scm =  body.binding.variables["scm"]
-                String file =  body.binding.variables["\$0"]
-
-                Logger.info "[$scm] [${file}] [${inv.name}]"
-            }
-
         } catch (Exception ex) {
+            executor.report.exceptions << new PoolReport.PoolException(inv: inv, exception: ex)
+        } finally {
             // Atempt to dump delegate to get path or name
             inv.dumpDelegate()
+        }
 
-            executor.report.exceptions << new PoolReport.PoolException(inv: inv, exception: ex)
+        if (defaultName && !inv.name)
+            inv.name = defaultName
+
+        if (!inv.name)
+            throw new INVOptionRequiredException("name")
+
+        if (isScript) {
+            String scm =  body.binding.variables["scm"]
+            String file =  body.binding.variables["\$0"]
+
+            Logger.info "[$scm] [${file}] [${inv.name}]"
+        }
+    }
+
+    static class INVOptionRequiredException extends Exception {
+
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/Syntax-INV"
+
+        INVOptionRequiredException(String option) {
+            super("Option ${option} is not valid. Please visit ${HELP_LINK} for more information")
         }
     }
 }

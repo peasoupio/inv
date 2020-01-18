@@ -59,20 +59,17 @@ class NetworkValuablePool {
 
         isDigesting = true
 
-        // All invs
-        List<Inv> invsDone = []
-        List<Future<Inv.Digestion>> futures = []
-        List<PoolReport.PoolException> exceptions = []
-
         // All digestions
         def digestion = new Inv.Digestion()
 
         def sorted = remainingInvs
-
         if (runningState == UNBLOATING)
             sorted = remainingInvs.sort { a, b ->
                 a.digestionSummary.unbloats.compareTo(b.digestionSummary.unbloats)
             }
+
+        List<Future<Inv.Digestion>> futures = []
+        BlockingDeque<PoolReport.PoolException> exceptions = new LinkedBlockingDeque<>()
 
         // Use fori-loop for speed
         for (int i = 0; i < sorted.size() ; i++) {
@@ -134,7 +131,7 @@ class NetworkValuablePool {
         }
 
         // Check for new dumps
-        boolean hasDoneSomething = false
+        List<Inv> invsDone = []
         for (int i = 0; i < remainingInvs.size() ; i++) {
             def inv = remainingInvs[i]
 
@@ -145,19 +142,10 @@ class NetworkValuablePool {
                 continue
 
             invsDone << inv
-
-            hasDoneSomething = true
         }
-
         remainingInvs.removeAll(invsDone)
 
-        /*
-        Logger.debug "Has done something: ${hasDoneSomething}"
-        Logger.debug "Has resolved something: ${hasResolvedSomething}"
-        Logger.debug "Has staged something: ${hasStagedSomething}"
-        */
-
-        if (hasDoneSomething) { // Has completed Invs
+        if (!invsDone.isEmpty()) { // Has completed Invs
             startRunning()
         } else if (hasResolvedSomething) { // Has completed requirements
             startRunning()

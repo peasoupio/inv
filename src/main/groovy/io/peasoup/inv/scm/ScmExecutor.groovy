@@ -48,18 +48,14 @@ class ScmExecutor {
                     repository.path.deleteDir()
 
                     Logger.info("[SCM] ${name} [INIT] start")
-                    executeCommands repository, repository.hooks.init
+                    report.isOk = executeCommands(repository, repository.hooks.init)
                     Logger.info("[SCM] ${name} [INIT] done")
                 } else if (repository.hooks.update) {
 
                     Logger.info("[SCM] ${name} [UPDATE] start")
-                    executeCommands repository, repository.hooks.update
+                    report.isOk = executeCommands(repository, repository.hooks.update)
                     Logger.info("[SCM] ${name} [UPDATE] done")
                 }
-
-                // Path is expected to be existent
-                if (!repository.path.exists())
-                    report.isOk = false
 
                 return report
 
@@ -118,7 +114,7 @@ class ScmExecutor {
             return false
         }
 
-        return
+        return true
     }
 
     private String randomSuffix() {

@@ -8,18 +8,6 @@
     <dependencies>
 
         <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.offbytwo</groupId>
-            <artifactId>docopt</artifactId>
-            <version>0.6.0.20150202</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <!--<version>2.5.8</version>-->
@@ -45,6 +33,19 @@
             <artifactId>commons-lang</artifactId>
             <version>2.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.offbytwo</groupId>
+            <artifactId>docopt</artifactId>
+            <version>0.6.0.20150202</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.jgrapht</groupId>
@@ -74,6 +75,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
         </dependency>
 
         <dependency>

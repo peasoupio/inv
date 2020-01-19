@@ -61,7 +61,7 @@ Parameters:
         }
 
         if (arguments["--debug"])
-            Logger.DebugModeEnabled = true
+            Logger.enableDebug()
 
         if (arguments["load"])
             return executeScript(arguments["<pattern>"], arguments["--exclude"] ?: "")

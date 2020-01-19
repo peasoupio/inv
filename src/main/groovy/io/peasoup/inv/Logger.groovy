@@ -1,66 +1,71 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
+import org.apache.log4j.AppenderSkeleton
+import org.apache.log4j.ConsoleAppender
+import org.apache.log4j.Level
+import org.apache.log4j.PatternLayout
+import org.apache.log4j.spi.LoggingEvent
 
+/*
 import java.util.logging.ConsoleHandler
 import java.util.logging.LogRecord
 import java.util.logging.SimpleFormatter
 
+ */
 
 @CompileStatic
 class Logger {
 
-    /**
-     * Determine if debug mode is enable.
-     * Debug mode shows debug logs into the stdout
-     */
-    public static boolean DebugModeEnabled = false
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getRootLogger()
 
-    private static List captureList = null
-    private static Closure captureClosure = null
-    private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger("inv")
-
+    private static volatile List captureList = null
+    private static volatile Closure captureClosure = null
 
     static {
+        log.with {
+            disableDebug()
 
-        def consoleHandler = new ConsoleHandler()
-        consoleHandler.setFormatter(new SimpleFormatter() {
-                @Override
-                String format(LogRecord lr) {
+            def console = new ConsoleAppender()
+            console.setName("Main Appender")
+            console.setWriter(new OutputStreamWriter(System.out))
+            console.setLayout(new PatternLayout("[%p] %m%n"))
+            addAppender(console)
 
-                    def message = lr.getMessage()
-
+            // Callback
+            addAppender(new AppenderSkeleton() {
+                protected void append(LoggingEvent loggingEvent) {
                     if (captureList != null)
-                        captureList << message
+                        captureList << loggingEvent.message
 
                     if (captureClosure)
-                        captureClosure.call(message)
+                        captureClosure.call(loggingEvent.message)
+                }
 
-                    return message + "\n"
+                void close() {
+                }
+
+                boolean requiresLayout() {
+                    return false
                 }
             })
-
-        logger.setUseParentHandlers(false)
-        logger.addHandler(consoleHandler)
+        }
     }
 
     static void fail(Object arg) {
-        logger.severe "[FAIL] ${arg}"
+        log.fatal arg.toString()
     }
 
     static void warn(Object arg) {
-        logger.info "[WARN] ${arg}"
+        log.warn arg.toString()
     }
 
     static void info(Object arg) {
-        logger.info "[INV] ${arg}"
+        log.log InvLogingLevel.INV, arg.toString()
     }
 
     static void debug(Object arg) {
-        if (!DebugModeEnabled)
-            return
-
-        logger.info "[DEBUG] ${arg}"
+        log.debug arg.toString()
     }
 
     static Object capture(Object value) {
@@ -81,5 +86,24 @@ class Logger {
     static void resetCapture() {
         captureList = null
         captureClosure = null
+    }
+
+    static void enableDebug() {
+        log.level = Level.DEBUG
+    }
+
+    static void disableDebug() {
+        log.level = Level.INFO
+    }
+
+    static class InvLogingLevel extends Level {
+
+        public static final int INV_LEVEL_INT = Level.INFO_INT + 1
+
+        public static final Level INV = new InvLogingLevel(INV_LEVEL_INT,"INV",7)
+
+        protected InvLogingLevel(int level, String levelStr, int syslogEquivalent) {
+            super(level, levelStr, syslogEquivalent)
+        }
     }
 }

@@ -15,8 +15,6 @@ class InvHandlerTest {
 
     @Before
     void setup() {
-        Logger.DebugModeEnabled = true
-
         executor = new InvExecutor()
         inv = new InvHandler(executor)
     }

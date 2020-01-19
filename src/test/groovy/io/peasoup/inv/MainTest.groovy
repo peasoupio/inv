@@ -10,7 +10,7 @@ class MainTest {
     @After
     void after() {
         Logger.capture(null)
-        Logger.DebugModeEnabled = false
+        Logger.enableDebug()
     }
 
     @Test
@@ -25,7 +25,7 @@ class MainTest {
 
         Main.main("load", script.path)
 
-        assert logs.contains("[INV] [undefined] [${canonicalPath}] [mainTestScript]".toString())
+        assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
     }
 
     @Test
@@ -54,8 +54,8 @@ class MainTest {
 
         Main.main("load", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
 
-        assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
-        assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
+        assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
     }
 
     @Test
@@ -70,8 +70,8 @@ class MainTest {
 
         Main.main("load", "src/test/resources/mainTestScript*.*")
 
-        assert logs.contains("[INV] [undefined] [${files[0]}] [mainTestScript]".toString())
-        assert logs.contains("[INV] [undefined] [${files[1]}] [mainTestScript2]".toString())
+        assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
 
     }
 
@@ -88,8 +88,8 @@ class MainTest {
 
         Main.main("load", "src/test/resources/pattern/**/*.*")
 
-        assert logs.contains("[INV] [undefined] [${files[0]}] [different-folder]".toString())
-        assert logs.contains("[INV] [undefined] [${files[1]}] [different-inside]".toString())
+        assert logs.contains("[undefined] [${files[0]}] [different-folder]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [different-inside]".toString())
 
     }
 
@@ -108,7 +108,7 @@ class MainTest {
 
     @Test
     void main_launchScm() {
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
 
         def scmFile = MainTest.class.getResource("/scm.groovy")
         assert scmFile

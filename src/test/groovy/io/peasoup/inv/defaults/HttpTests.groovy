@@ -10,7 +10,7 @@ class HttpTests {
 
     @Before
     void setup() {
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
     }
 
     @Test

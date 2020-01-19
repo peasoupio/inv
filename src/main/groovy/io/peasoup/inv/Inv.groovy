@@ -91,7 +91,6 @@ class Inv {
         // Loop because dump
         while (true) {
 
-            boolean hasResolvedSomething = false
             List toRemove = []
 
             // Use fori-loop for speed

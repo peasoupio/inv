@@ -56,7 +56,7 @@ class GraphNavigator {
         List<Linkable> nextPredecessors = []
 
         if (!g.containsVertex(linkable))
-            return
+            return null
 
         predecessors.addAll(nc.predecessorsOf(linkable))
 
@@ -93,7 +93,7 @@ class GraphNavigator {
         List<Linkable> nextSuccessors = []
 
         if (!g.containsVertex(linkable))
-            return
+            return null
 
         successors.addAll(nc.successorsOf(linkable))
 

@@ -117,7 +117,7 @@ class ScmExecutor {
         return true
     }
 
-    private String randomSuffix() {
+    private static String randomSuffix() {
         return RandomStringUtils.random(9, true, true)
     }
 

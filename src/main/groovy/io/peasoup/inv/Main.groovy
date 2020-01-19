@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmExecutor
@@ -9,6 +10,7 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
 
+@CompileStatic
 class Main extends Script {
 
 
@@ -54,7 +56,7 @@ Parameters:
         try {
             arguments = new Docopt(usage)
                     .withExit(false)
-                    .parse(args)
+                    .parse(getProperty("args") as List<String>)
         } catch(DocoptExitException ex) {
             println usage
             return -1
@@ -64,24 +66,28 @@ Parameters:
             Logger.enableDebug()
 
         if (arguments["load"])
-            return executeScript(arguments["<pattern>"], arguments["--exclude"] ?: "")
+            return executeScript(arguments["<pattern>"] as List<String>, arguments["--exclude"] as String ?: "")
 
         if (arguments["scm"])
-            return launchFromSCM(arguments["<scmFiles>"])
+            return launchFromSCM(arguments["<scmFiles>"] as List<String>)
 
         if (arguments["delta"])
-            return delta(arguments["<base>"], arguments["<other>"])
+            return delta(arguments["<base>"] as String, arguments["<other>"] as String)
 
         if (arguments["graph"])
             return graph(arguments)
 
         if (arguments["web"])
             return launchWeb()
+
+        println usage
+
+        return 0
     }
 
     int graph(Map arguments) {
 
-        def base = arguments["<base>"]
+        String base = arguments["<base>"] as String
         def run = new RunGraph(new File(base).newReader())
 
         if (arguments["plain"])

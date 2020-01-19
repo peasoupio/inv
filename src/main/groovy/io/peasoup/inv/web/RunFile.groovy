@@ -12,14 +12,14 @@ class RunFile {
     final private RunGraph runGraph
 
 
-    final private Map<String, List<String>> ownerOfScm = [:]
-    final private Map<String, RunGraph.FileStatement> invOfScm = [:]
+    final private Map<String, List<String>> ownerOfScm
+    final private Map<String, RunGraph.FileStatement> invOfScm
 
     final Map<String, Selected> selected = [:]
-    final List<GraphNavigator.Linkable> nodes = []
+    final List<GraphNavigator.Linkable> nodes
 
-    final Map<String, List<GraphNavigator.Id>> owners = [:]
-    final Map<String, List<GraphNavigator.Id>> names = [:]
+    final Map<String, List<GraphNavigator.Id>> owners
+    final Map<String, List<GraphNavigator.Id>> names
 
     RunFile(File runFile) {
         assert runFile, 'Run file is required'
@@ -35,7 +35,6 @@ class RunFile {
 
         owners = nodes.groupBy { runGraph.navigator.nodes[it.value].owner } as Map<String, List<GraphNavigator.Id>>
         names = nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') } as Map<String, List<GraphNavigator.Id>>
-
     }
 
     synchronized void stage(String id) {

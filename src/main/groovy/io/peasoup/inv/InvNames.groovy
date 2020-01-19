@@ -2,7 +2,7 @@ package io.peasoup.inv
 
 class InvNames {
 
-    final static InvNames Instance = new InvNames()
+    public final static InvNames Instance = new InvNames()
 
     private InvNames() {
 

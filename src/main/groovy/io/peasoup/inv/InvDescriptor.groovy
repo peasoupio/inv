@@ -7,8 +7,8 @@ class InvDescriptor {
     Closure ready
     final InvNames inv = InvNames.Instance
 
-    final List<Statement> statements = [].asSynchronized()
-    final List<Closure> steps = [].asSynchronized()
+    final List<Statement> statements = [].asSynchronized() as List<Statement>
+    final List<Closure> steps = [].asSynchronized() as List<Closure>
 
     void name(String name) {
         assert name, 'Name is required'

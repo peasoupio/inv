@@ -11,7 +11,7 @@ class FilesTests {
 
     @Before
     void setup() {
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
     }
 
     @Test

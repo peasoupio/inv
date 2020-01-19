@@ -9,7 +9,7 @@ class InvInvokerTest {
 
     @Test
     void invoke() {
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
 
         def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
         assert script

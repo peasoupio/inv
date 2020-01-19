@@ -24,8 +24,7 @@ class RoutingTest {
 
     @BeforeClass
     static void setup() {
-
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
 
         clean()
 
@@ -53,7 +52,7 @@ scm {
         // Spark stop
         Spark.stop()
 
-        Logger.DebugModeEnabled = false
+        Logger.disableDebug()
         Logger.resetCapture()
     }
 
@@ -352,6 +351,14 @@ scm {
             if (!jsonEnd.running)
                 break
         }
+
+        // Let execution close
+        sleep(100)
+
+        def responseEnd = get("execution")
+        assert responseEnd
+
+        jsonEnd = new JsonSlurper().parseText(responseEnd)
 
         assert !jsonEnd.running
         assert jsonEnd.lastExecution > 0

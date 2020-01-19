@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class BroadcastStatement implements Statement {
 
-    final static Manageable BROADCAST = new BroadcastStatement.Broadcast()
+    final static Manageable BROADCAST = new Broadcast()
 
     Object id
     String name

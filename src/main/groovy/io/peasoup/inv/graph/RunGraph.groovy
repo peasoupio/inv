@@ -1,5 +1,7 @@
 package io.peasoup.inv.graph
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import org.jgrapht.Graph
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
@@ -7,9 +9,10 @@ import org.jgrapht.io.ComponentNameProvider
 import org.jgrapht.io.DOTExporter
 import org.jgrapht.io.IntegerComponentNameProvider
 
+@CompileStatic
 class RunGraph {
 
-    final private static lf = System.properties['line.separator']
+    final private static String lf = System.properties['line.separator']
 
     final Graph<GraphNavigator.Linkable, DefaultEdge> g
     final GraphNavigator navigator
@@ -42,7 +45,6 @@ class RunGraph {
             def file = FileStatement.matches(line)
             if (file) {
                 files << file
-                return
             }
         }
     }
@@ -56,7 +58,7 @@ class RunGraph {
     String toDotGraph() {
         StringWriter writer = new StringWriter()
 
-        DOTExporter<GraphNavigator.Linkable, DefaultEdge> dotExporter = new DOTExporter<>(
+        DOTExporter<GraphNavigator.Linkable, DefaultEdge> dotExporter = new DOTExporter<GraphNavigator.Linkable, DefaultEdge>(
                 new IntegerComponentNameProvider<GraphNavigator.Linkable>(),
                 new ComponentNameProvider<GraphNavigator.Linkable>() {
                     String getName(GraphNavigator.Linkable linkable) {
@@ -71,10 +73,12 @@ class RunGraph {
         return writer.toString()
     }
 
+    @CompileDynamic
     static class RequireStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/
 
+        @SuppressWarnings("GroovyAssignabilityCheck")
         static RequireStatement matches(String line) {
             def require = line =~ RE
 
@@ -94,10 +98,12 @@ class RunGraph {
         private RequireStatement() { }
     }
 
+    @CompileDynamic
     static class BroadcastStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/
 
+        @SuppressWarnings("GroovyAssignabilityCheck")
         static BroadcastStatement matches(String line) {
             def broadcast = line =~ RE
 
@@ -117,10 +123,12 @@ class RunGraph {
         private BroadcastStatement() {}
     }
 
+    @CompileDynamic
     static class FileStatement {
 
         private static def RE = /^\[INV\] \[(\S*)\] \[(\S*)\] \[(\S*)\]\u0024/
 
+        @SuppressWarnings("GroovyAssignabilityCheck")
         static FileStatement matches(String line) {
             def file = line =~ RE
 

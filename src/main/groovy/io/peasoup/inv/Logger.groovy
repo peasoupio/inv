@@ -98,7 +98,7 @@ class Logger {
 
     static class InvLogingLevel extends Level {
 
-        public static final int INV_LEVEL_INT = Level.INFO_INT + 1
+        public static final int INV_LEVEL_INT = INFO_INT + 1
 
         public static final Level INV = new InvLogingLevel(INV_LEVEL_INT,"INV",7)
 

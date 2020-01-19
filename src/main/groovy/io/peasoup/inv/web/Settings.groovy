@@ -5,7 +5,7 @@ import groovy.json.JsonSlurper
 
 class Settings {
 
-    final private Map settings = [
+    private Map settings = [
         filters: [
             defaultStep: 20
         ],

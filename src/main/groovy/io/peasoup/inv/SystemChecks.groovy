@@ -11,7 +11,7 @@ class SystemChecks {
         assert main, 'Main is required'
 
         return checkInvHome(Main.invHome) &&
-               checkCache(new File(InvInvoker.Cache))
+               checkCache(InvInvoker.Cache)
     }
 
     boolean checkInvHome(File invHome) {

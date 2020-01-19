@@ -11,7 +11,7 @@ import io.peasoup.inv.scm.ScmExecutor
 class ScmFile {
 
     final File sourceFile
-    final Map<String, ScmFile.SourceFileElement> elements = [:]
+    final Map<String, SourceFileElement> elements = [:]
 
     String text
     Long lastEdit
@@ -27,7 +27,7 @@ class ScmFile {
             read(file)
 
             scms.each { String name, ScmDescriptor desc ->
-                elements[name] = new ScmFile.SourceFileElement(desc, file)
+                elements[name] = new SourceFileElement(desc, file)
             }
         }
     }
@@ -215,8 +215,6 @@ class ScmFile {
                             if (matches.groupCount() == 1) {
                                 values.add(matches.group(1) as String)
                             }
-
-                            continue
                         }
                     }
                 }

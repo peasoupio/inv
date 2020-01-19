@@ -4,7 +4,7 @@ import groovy.text.SimpleTemplateEngine
 
 class DeltaGraph {
 
-    final private static lf = System.properties['line.separator']
+    final private static String lf = System.properties['line.separator']
 
     final List<DeltaLine> deltaLines = []
 

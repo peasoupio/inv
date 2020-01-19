@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class RequireStatement implements Statement {
 
-    final static Manageable REQUIRE = new RequireStatement.Require()
+    final static Manageable REQUIRE = new Require()
 
     // Idenfitication
     Object id
@@ -32,7 +32,7 @@ class RequireStatement implements Statement {
         return "[$inv.name] => [REQUIRE] [${name}] ${id}"
     }
 
-    static class Require implements Statement.Manageable<RequireStatement> {
+    static class Require implements Manageable<RequireStatement> {
 
         void manage(NetworkValuablePool pool, RequireStatement requireValuable) {
 
@@ -105,12 +105,9 @@ class RequireStatement implements Statement {
         }
 
         @CompileDynamic
-        def setPropertyToDelegate(Object delegate, String propertyName, Object value) {
+        static def setPropertyToDelegate(Object delegate, String propertyName, Object value) {
+            //noinspection GroovyAssignabilityCheck
             delegate.metaClass.setProperty(propertyName, value)
         }
     }
-
-
-
-
 }

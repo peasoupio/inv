@@ -29,10 +29,10 @@ class Routing {
         assert configs.workspace, "Args must include a 'workspace' (String) property."
         assert configs.workspace instanceof CharSequence, "Args.workspace must be a String type"
 
-        runLocation = configs.workspace
-        scmsLocation = configs.workspace + "/scms"
-        parametersLocation = configs.workspace + "/parameters"
-        executionsLocation = configs.workspace + "/executions"
+        runLocation = configs.workspace as String
+        scmsLocation = configs.workspace + "/scms" as String
+        parametersLocation = configs.workspace + "/parameters" as String
+        executionsLocation = configs.workspace + "/executions" as String
 
         // Browser configs
         port(configs.port)
@@ -162,9 +162,12 @@ class Routing {
             Map filter = [:]
 
             if (body)
-                filter = new JsonSlurper().parseText(body)
+                filter = new JsonSlurper().parseText(body) as Map
 
-            return JsonOutput.toJson(run.nodesToMap(filter, filter.from ?: 0, filter.step ?: settings.filters().defaultStep))
+            return JsonOutput.toJson(run.nodesToMap(
+                    filter,
+                    filter.from as Integer ?: 0,
+                    filter.step as Integer ?: settings.filters().defaultStep))
         })
 
         post("/run/selected", { req, res ->
@@ -173,11 +176,14 @@ class Routing {
             Map filter = [:]
 
             if (body)
-                filter = new JsonSlurper().parseText(body)
+                filter = new JsonSlurper().parseText(body) as Map
 
             filter.selected = true
 
-            return JsonOutput.toJson(run.nodesToMap(filter,  filter.from ?: 0, filter.step ?: settings.filters().defaultStep))
+            return JsonOutput.toJson(run.nodesToMap(
+                    filter,
+                    filter.from as Integer ?: 0,
+                    filter.step as Integer ?: settings.filters().defaultStep))
         })
 
         post("/run/stageAll", { req, res ->
@@ -253,10 +259,10 @@ class Routing {
             String body = req.body()
 
             if (body)
-                filter = new JsonSlurper().parseText(body)
+                filter = new JsonSlurper().parseText(body) as Map
 
-            Integer from = filter.from ?: 0
-            Integer to = filter.to ?: settings.filters().defaultStep
+            Integer from = filter.from as Integer ?: 0
+            Integer to = filter.to as Integer ?: settings.filters().defaultStep
 
             return JsonOutput.toJson(scms.toMap(filter, from, to))
         })
@@ -389,6 +395,7 @@ class Routing {
     }
 
     //Executions
+    @SuppressWarnings("GroovyAssignabilityCheck")
     void execution() {
 
         get("/execution", { req, res ->

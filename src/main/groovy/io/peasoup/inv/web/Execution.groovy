@@ -9,8 +9,8 @@ import java.nio.file.Files
 @CompileStatic
 class Execution {
 
-    static Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
-    static Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
+    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
+    static volatile Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
 
     private final File executionsLocation
     private final File scmFolder

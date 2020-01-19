@@ -27,7 +27,7 @@ class BroadcastStatement implements Statement {
         return "[$inv.name] => [BROADCAST] [${name}] ${id}"
     }
 
-    static class Broadcast implements Statement.Manageable<BroadcastStatement> {
+    static class Broadcast implements Manageable<BroadcastStatement> {
 
         void manage(NetworkValuablePool pool, BroadcastStatement broadcastValuable) {
 

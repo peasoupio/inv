@@ -44,6 +44,7 @@ class StatementDescriptor {
         assert usingDigestor, 'Using digestor must be defined before calling'
         assert usingBody, 'Using body is required'
 
+        usingDigestor.resolveStrategy = Closure.DELEGATE_FIRST
         usingDigestor.call(usingBody)
 
         return this
@@ -53,6 +54,7 @@ class StatementDescriptor {
         assert intoDigestor, "Into digestor must be defined. Are you sure you are using 'into' with a require and not a broadcast?"
         assert variable, 'Variable is required'
 
+        intoDigestor.resolveStrategy = Closure.DELEGATE_FIRST
         intoDigestor.call(variable)
 
         return this

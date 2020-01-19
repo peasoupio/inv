@@ -65,7 +65,7 @@ class NetworkValuablePool {
         def sorted = remainingInvs
         if (runningState == UNBLOATING)
             sorted = remainingInvs.sort { a, b ->
-                a.digestionSummary.unbloats.compareTo(b.digestionSummary.unbloats)
+                (a.digestionSummary.unbloats <=> b.digestionSummary.unbloats)
             }
 
         List<Future<Inv.Digestion>> futures = []

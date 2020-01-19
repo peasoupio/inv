@@ -46,10 +46,10 @@ class Routing {
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
-            final StringWriter sw = new StringWriter();
-            final PrintWriter pw = new PrintWriter(sw, true);
-            e.printStackTrace(pw);
-            System.err.println(sw.getBuffer().toString());
+            final StringWriter sw = new StringWriter()
+            final PrintWriter pw = new PrintWriter(sw, true)
+            e.printStackTrace(pw)
+            System.err.println(sw.getBuffer().toString())
         })
 
         // Init

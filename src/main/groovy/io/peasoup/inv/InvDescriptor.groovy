@@ -1,5 +1,8 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class InvDescriptor {
 
     String name
@@ -39,16 +42,16 @@ class InvDescriptor {
         statementDescriptor.usingDigestor = { Closure usingBody ->
             assert usingBody, 'Using body is required'
 
-            BroadcastDescriptor delegate = new BroadcastDescriptor()
+            BroadcastDescriptor broadcastDescriptor = new BroadcastDescriptor()
 
             usingBody.resolveStrategy = Closure.DELEGATE_FIRST
-            usingBody.delegate = delegate
+            usingBody.delegate = broadcastDescriptor
             usingBody.call()
 
-            if (delegate.id)
-                broadcastValuable.id = delegate.id
+            if (broadcastDescriptor.id)
+                broadcastValuable.id = broadcastDescriptor.id
 
-            broadcastValuable.ready = delegate.ready
+            broadcastValuable.ready = broadcastDescriptor.ready
         }
 
         statements << broadcastValuable
@@ -67,24 +70,25 @@ class InvDescriptor {
         statementDescriptor.usingDigestor = { Closure usingBody ->
             assert usingBody, 'Using body is required'
 
-            RequireDescriptor delegate = new RequireDescriptor()
+            RequireDescriptor requireDescriptor = new RequireDescriptor()
 
             usingBody.resolveStrategy = Closure.DELEGATE_FIRST
-            usingBody.delegate = delegate
+            usingBody.delegate = requireDescriptor
             usingBody.call()
 
-            if (delegate.id)
-                requireValuable.id = delegate.id
+            if (requireDescriptor.id)
+                requireValuable.id = requireDescriptor.id
 
-            if (delegate.defaults != null)
-                requireValuable.defaults = delegate.defaults
+            if (requireDescriptor.defaults != null)
+                requireValuable.defaults = requireDescriptor.defaults
 
-            if (delegate.unbloatable != null)
-                requireValuable.unbloatable = delegate.unbloatable
+            if (requireDescriptor.unbloatable != null)
+                requireValuable.unbloatable = requireDescriptor.unbloatable
 
-            requireValuable.resolved = delegate.resolved
-            requireValuable.unresolved = delegate.unresolved
+            requireValuable.resolved = requireDescriptor.resolved
+            requireValuable.unresolved = requireDescriptor.unresolved
         }
+
         statementDescriptor.intoDigestor = { String into ->
             requireValuable.into = into
         }

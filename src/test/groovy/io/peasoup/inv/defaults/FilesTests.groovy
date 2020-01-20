@@ -1,7 +1,7 @@
 package io.peasoup.inv.defaults
 
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import io.peasoup.inv.utils.Stdout
 import org.junit.Before
@@ -11,8 +11,7 @@ class FilesTests {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
     }
 
     @Test
@@ -20,11 +19,11 @@ class FilesTests {
 
         def files = FilesTests.class.getResource("/defaults/files").path
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/files/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/files/inv.groovy"))
+        new InvHandler(executor).call {
 
-        inv {
             require inv.Files into '$files'
 
             step {
@@ -35,7 +34,7 @@ class FilesTests {
         }
 
 
-        Stdout.capture ({ inv() }, {
+        Stdout.capture ({ executor.execute() }, {
             // GLOB All
             assert it.contains("file1-GLOB-ALL")
             assert it.contains("file2-GLOB-ALL")
@@ -54,22 +53,21 @@ class FilesTests {
     void find() {
 
         def files = new File(FilesTests.class.getResource("/defaults/files").path).absolutePath
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/files/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/files/inv.groovy"))
+        new InvHandler(executor).call {
 
-        inv {
             require inv.Files into '$files'
 
             step {
-                $files.find(files).each { println it.path + "-FIND-ALL" }
+                $files.find(files as String).each { println it.path + "-FIND-ALL" }
                 $files.find(files, "file").each { println it.path + "-FIND-PATTERN" }
                 $files.find(files, "file", "file2").each { println it.path + "-FIND-EXCLUDE" }
             }
         }
 
-
-        Stdout.capture ({ inv() }, {
+        Stdout.capture ({ executor.execute() }, {
             // Find All
             assert it.contains("file1-FIND-ALL")
             assert it.contains("file2-FIND-ALL")

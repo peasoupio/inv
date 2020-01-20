@@ -4,123 +4,60 @@ import groovy.text.SimpleTemplateEngine
 
 class DeltaGraph {
 
-    final private static lf = System.properties['line.separator']
+    final private static String lf = System.properties['line.separator']
 
-    Map previousNodes = [:]
-    Map previousEdges = [:]
+    final List<DeltaLine> deltaLines = []
 
-    Map currentNodes = [:]
-    Map currentEdges = [:]
+    DeltaGraph(BufferedReader base, BufferedReader other) {
+        assert base, 'Base (reader) is required'
+        assert other, 'Other (reader) is required'
 
-    Map sharedNodes = [:]
-    Map sharedEdges = [:]
+        def baseGraph = new RunGraph(base)
+        def otherGraph = new RunGraph(other)
 
-    DeltaGraph(BufferedReader previous, BufferedReader current) {
+        Map<String, Integer> baseIndexes = baseGraph.navigator.nodes.keySet().withIndex().collectEntries()
+        Map<String, Integer> otherIndexes = otherGraph.navigator.nodes.keySet().withIndex().collectEntries()
 
-        def beforePlainGraph = new PlainGraph(previous)
-        def afterPlainGraph = new PlainGraph(current)
+        for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
 
-        previousNodes += beforePlainGraph.nodes
-        previousEdges += beforePlainGraph.edges
+            if (link.isOwner())
+                continue
 
-        currentNodes += afterPlainGraph.nodes
-        currentEdges += afterPlainGraph.edges
+            Integer index = baseIndexes[link.value]
+            String owner = baseGraph.navigator.nodes[link.value].owner
 
-
-        // Calculate shared nodes
-        previousNodes.each { String name, HashSet<Map> edges ->
-            if (!currentNodes[name])
-                return
-
-            def currentNode = currentNodes[name] as List<Map>
-
-            if (edges.size() != currentNode.size())
-                return
-
-            for (def i = 0; i < edges.size(); i++) {
-                Map previousEdge = edges[i]
-                Map afterEdge = currentNode[i]
-
-                if (!previousEdge.equals(afterEdge))
-                    continue
-
-                if (!sharedNodes.containsKey(name))
-                    sharedNodes << [(name): new HashSet<>()]
-
-                sharedNodes[name] << previousEdge
+            if (otherGraph.g.containsVertex(link)) {
+                deltaLines << new DeltaLine(index: index, state: '=', link: link, owner: owner)
+            } else {
+                deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: owner)
             }
         }
 
-        // Calculate shared edges
-        previousEdges.clone().each { String name, HashSet<Map> edges ->
-            if (!currentEdges[name])
-                return
+        for(GraphNavigator.Linkable link : otherGraph.g.vertexSet()) {
 
-            def previousNode = currentEdges[name] as List<Map>
+            if (link.isOwner())
+                continue
 
-            if (edges.size() != previousNode.size())
-                return
+            if (!baseGraph.g.containsVertex(link)) {
+                Integer index = otherIndexes[link.value]
+                String owner = otherGraph.navigator.nodes[link.value].owner
 
-            for (def i = 0; i < edges.size(); i++) {
-                Map currentEdge = edges[i]
-                Map previousEdge = previousNode[i]
-
-                if (!currentEdge.equals(previousEdge))
-                    continue
-
-                if (!sharedEdges.containsKey(name))
-                    sharedEdges << [(name): new HashSet<>()]
-
-                sharedEdges[name] << currentEdge
+                deltaLines << new DeltaLine(index: index, state: '+', link: link, owner: owner)
             }
-
-            // Remove all matched
-            edges.removeAll(sharedEdges[name])
-            previousNode.removeAll(sharedEdges[name])
-
-            // Delete if empty - no need
-            if (edges.isEmpty())
-                previousEdges.remove(name)
-
-            if (previousNode.isEmpty())
-                currentEdges.remove(name)
         }
     }
 
     String echo() {
         // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
-        return """    
-${
+        return """${
     // Shared nodes and edges
-    sharedEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "= ${owner} -> ${edge.owner} (${edge.broadcast})"
-            }
+    deltaLines
+        .sort { it.index }
+        .collect { DeltaLine line ->
+            "${line.state} ${line.link.value}"
         }
         .join(lf)
-}
-${
-    // Deleted nodes and edges (in previous, not in current)
-    previousEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "- ${owner} -> ${edge.owner} (${edge.broadcast})"
-            }
-        }
-        .join(lf)
-}
-${
-    // Added nodes and edges (not in previous, but in current)
-    currentEdges
-        .collectMany { String owner, Set edges ->
-            edges.collect { Map edge ->
-                "+ ${owner} -> ${edge.owner} (${edge.broadcast})"
-            }
-        }
-        .join(lf)
-}
-"""
+}"""
 
     }
 
@@ -146,4 +83,12 @@ ${
         return "Report generated at: ${htmlOutput.canonicalPath}"
     }
 
+    static private class DeltaLine {
+
+        Integer index
+        String state
+        GraphNavigator.Linkable link
+        String owner
+
+    }
 }

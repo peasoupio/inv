@@ -1,108 +1,75 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileDynamic
+
+@CompileDynamic
 class InvHandler {
 
-    private NetworkValuablePool pool = new NetworkValuablePool()
+    private final InvExecutor executor
 
-    InvHandler() {
+    InvHandler(InvExecutor executor) {
+        assert executor, 'Executor is required to handle INV script(s)'
 
-        // When trying to invoke Name as property (w/o parameters)
-        InvHandler.metaClass.propertyMissing = { String propertyName ->
-            pool.checkAvailability(propertyName)
-            return new NetworkValuableDescriptor(propertyName)
-        }
+        this.executor = executor
+    }
 
-        InvHandler.metaClass.methodMissing = { String methodName, args ->
-            pool.checkAvailability(methodName)
-            //noinspection GroovyAssignabilityCheck
-            return new NetworkValuableDescriptor(methodName)(*args)
-        }
+    static {
+        // TODO Not ready to completely remove this.
+        //ExpandoMetaClass.enableGlobally()
     }
 
     void call(Closure body) {
+        assert body, 'Body is required'
 
-        assert body
-
-
-        Inv inv = new Inv()
-
-        // Set default name
-        inv.delegate.name = body.owner.class.simpleName
-
-        // Set default path
-        if (body.owner.properties["binding"])
-            inv.delegate.path =  body.binding.variables["pwd"]
-
-        body.delegate = inv.delegate
-        body.call()
-
-        inv.dumpDelegate()
-
-
-
-        pool.totalInv << inv
-        pool.remainingsInv << inv
+        this.call(body, body.owner.class.simpleName)
     }
 
-    def call() {
+    void call(Closure body, String defaultName) {
+        assert body, 'Body is required'
 
-        int count = 0
-        List<Inv> digested = []
-        boolean haltInProgress = false
+        Inv inv = new Inv(executor.pool)
 
-        Logger.info "---- [DIGEST] started ----"
+        // Is loading from script ?
+        Boolean isScript = body.owner.properties["binding"]
 
+        if (isScript) {
+            // Set default path
+            inv.delegate.path =  body.binding.variables["pwd"]
+        }
+
+        body.resolveStrategy = Closure.DELEGATE_FIRST
+        body.delegate = inv.delegate
 
         try {
-
-            // Raising ready event for all invs before the first digest
-            for (int i = 0; i < pool.remainingsInv.size(); i++) {
-                Inv inv = pool.remainingsInv[i]
-
-                if (!inv.ready) {
-                    continue
-                }
-
-                Logger.info "[${inv.name}] event ready raised"
-                inv.ready()
-            }
-
-            // Run for eternity
-            while (true) {
-
-                // has no more work to do
-                if (pool.isEmpty())
-                    break
-
-                Logger.info "---- [DIGEST] #${++count} (state=${pool.runningState()}) ----"
-
-                // Get the next digested invs and stack them in the list
-                digested.addAll(pool.digest())
-
-                // If we were running a HALTING cycle, break the eternity loop
-                if (haltInProgress) {
-                    // Reset state and break loop
-                    pool.runningState() == pool.RUNNING
-                    break
-                }
-
-                // Has finish unbloating and halted
-                if (pool.runningState() == pool.HALTING) {
-                    haltInProgress = true
-                }
-
-            }
-        }
-        catch (Exception ex) {
-            ex.printStackTrace()
+            body.call()
+        } catch (Exception ex) {
+            executor.report.exceptions << new PoolReport.PoolException(inv: inv, exception: ex)
+        } finally {
+            // Atempt to dump delegate to get path or name
+            inv.dumpDelegate()
         }
 
-        // Shutdown pool executor if still running
-        pool.shutdown()
+        if (defaultName && !inv.name)
+            inv.name = defaultName
 
-        Logger.info "---- [DIGEST] completed ----"
+        if (!inv.name)
+            throw new INVOptionRequiredException("name")
 
-        return [digested, !haltInProgress]
+        if (isScript) {
+            String scm =  body.binding.variables["scm"]
+            String file =  body.binding.variables["\$0"]
+
+            Logger.info "[$scm] [${file}] [${inv.name}]"
+        }
+    }
+
+    static class INVOptionRequiredException extends Exception {
+
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/Syntax-INV"
+
+        INVOptionRequiredException(String option) {
+            super("Option ${option} is not valid. Please visit ${HELP_LINK} for more information")
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 package io.peasoup.inv.defaults
 
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
 import io.peasoup.inv.Logger
 import org.junit.Before
 import org.junit.Test
@@ -10,18 +10,17 @@ class HttpTests {
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
     }
 
     @Test
     void get() {
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/http/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/http/inv.groovy"))
+        new InvHandler(executor).call {
 
-        inv {
             require inv.HTTP into '$http'
 
             step {
@@ -31,20 +30,18 @@ class HttpTests {
             }
         }
 
-        def (digested, ok) =  inv()
-
-        assert digested
-        assert ok
+        def report = executor.execute()
+        assert report.isOk()
     }
 
     @Test
     void post() {
 
-        def inv = new InvHandler()
+        def executor = new InvExecutor()
+        executor.read(new File("./defaults/http/inv.groovy"))
 
-        InvInvoker.invoke(inv, new File("./defaults/http/inv.groovy"))
+        new InvHandler(executor).call {
 
-        inv {
             require inv.HTTP into '$http'
 
             step {
@@ -62,9 +59,7 @@ class HttpTests {
             }
         }
 
-        def (digested, ok) =  inv()
-
-        assert digested
-        assert ok
+        def report = executor.execute()
+        assert report.isOk()
     }
 }

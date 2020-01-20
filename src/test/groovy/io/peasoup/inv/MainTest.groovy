@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import io.peasoup.inv.scm.ScmReader
+import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Stdout
 import org.junit.After
 import org.junit.Test
@@ -10,14 +10,7 @@ class MainTest {
     @After
     void after() {
         Logger.capture(null)
-        Logger.DebugModeEnabled = false
-    }
-
-    @Test
-    void main_no_args() {
-        Stdout.capture ({ Main.main() }, {
-            assert it.contains("usage")
-        })
+        Logger.enableDebug()
     }
 
     @Test
@@ -30,9 +23,16 @@ class MainTest {
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main(script.path)
+        Main.main("load", script.path)
 
-        assert logs.contains("[INV] file: ${canonicalPath}".toString())
+        assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
+    void main_no_args() {
+        Stdout.capture ({ Main.main() }, {
+            assert it.contains("Usage")
+        })
     }
 
     @Test
@@ -52,12 +52,10 @@ class MainTest {
             getFile("/mainTestScript2.groovy")
         ]
 
-        Main.main("-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
+        Main.main("load", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
-
+        assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
     }
 
     @Test
@@ -70,11 +68,11 @@ class MainTest {
                 new File("./", "src/test/resources/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("src/test/resources/mainTestScript*.*")
+        Main.main("load", "src/test/resources/mainTestScript*.*")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
+        assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
+
     }
 
     @Test
@@ -88,11 +86,11 @@ class MainTest {
             new File("./", "src/test/resources/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("src/test/resources/pattern/**/*.*")
+        Main.main("load", "src/test/resources/pattern/**/*.*")
 
-        files.each {
-            assert logs.contains("[INV] file: ${it}".toString())
-        }
+        assert logs.contains("[undefined] [${files[0]}] [different-folder]".toString())
+        assert logs.contains("[undefined] [${files[1]}] [different-inside]".toString())
+
     }
 
     @Test
@@ -101,42 +99,34 @@ class MainTest {
 
         assert logOutput
 
-        println "\nTest default graph: "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("-g")
-
-        println "\nTest default graph: "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph")
-
         println "\nTest selecting 'plain': "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph", "plain")
+        Main.main("graph", "plain", logOutput.path)
 
         println "\nTest selecting 'dot': "
-        System.setIn(new ByteArrayInputStream(logOutput.bytes))
-        Main.main("--graph", "dot")
+        Main.main("graph", "dot", logOutput.path)
     }
 
     @Test
     void main_launchScm() {
-        Logger.DebugModeEnabled = true
+        Logger.enableDebug()
 
-        def scmFile = MainTest.class.getResource("/test-scm.groovy")
+        def scmFile = MainTest.class.getResource("/scm.groovy")
         assert scmFile
 
-        def comparable = new ScmReader(new File(scmFile.path).newReader())
+        def comparable = new ScmExecutor()
+        comparable.read(new File(scmFile.path))
+
         assert comparable.scms["my-repository"]
 
         // Remove to make sure we trigger init
         if (comparable.scms["my-repository"].path.exists())
             comparable.scms["my-repository"].path.deleteDir()
 
-        Stdout.capture ({ Main.main("-s", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
             assert it.contains("init")
         })
 
-        Stdout.capture ({ Main.main("--from-scm", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
             assert it.contains("update")
         })
     }
@@ -151,11 +141,6 @@ class MainTest {
         assert logOutputAfter
 
         println "\nTest selecting 'delta': "
-        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
-        Main.main("-d", logOutput.path)
-
-        System.setIn(new ByteArrayInputStream(logOutputAfter.bytes))
-        Main.main("--delta", logOutput.path)
+        Main.main("delta", logOutput.path, logOutputAfter.path)
     }
-
 }

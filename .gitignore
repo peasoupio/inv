@@ -19,3 +19,5 @@ buildNumber.properties
 /src/main/example/spring-boot/app2/
 /reports/
 **/.cache/
+/src/main/example/web/executions/
+*.scm-sh

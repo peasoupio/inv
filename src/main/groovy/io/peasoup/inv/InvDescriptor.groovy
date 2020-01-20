@@ -1,99 +1,106 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class InvDescriptor {
 
     String name
     String path
     Closure ready
+    final InvNames inv = InvNames.Instance
 
-    final List<NetworkValuable> networkValuables = [].asSynchronized()
-    final List<Closure> steps = [].asSynchronized()
+    final List<Statement> statements = [].asSynchronized() as List<Statement>
+    final List<Closure> steps = [].asSynchronized() as List<Closure>
 
     void name(String name) {
-        assert name
+        assert name, 'Name is required'
 
         this.name = name
     }
 
     void path(String path) {
-        assert path
+        assert path, 'Path is required'
 
         this.path = path
     }
 
-    void ready(Closure ready) {
-        assert ready
+    void ready(Closure readyBody) {
+        assert readyBody, 'Ready body is required'
 
-        this.ready = ready
+        this.ready = readyBody
     }
 
-    NetworkValuableDescriptor broadcast(NetworkValuableDescriptor networkValuableDescriptor) {
+    StatementDescriptor broadcast(StatementDescriptor statementDescriptor) {
+        assert statementDescriptor, 'Statement descriptor is required'
 
-        assert networkValuableDescriptor
+        BroadcastStatement broadcastValuable = new BroadcastStatement()
 
-        BroadcastValuable networkValuable = new BroadcastValuable()
+        broadcastValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        broadcastValuable.name = statementDescriptor.name
 
-        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
-        networkValuable.name = networkValuableDescriptor.name
+        statementDescriptor.usingDigestor = { Closure usingBody ->
+            assert usingBody, 'Using body is required'
 
-        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
-            BroadcastDescriptor delegate = new BroadcastDescriptor()
+            BroadcastDescriptor broadcastDescriptor = new BroadcastDescriptor()
 
-            usingBody.delegate = delegate
+            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
+            usingBody.delegate = broadcastDescriptor
             usingBody.call()
 
-            if (delegate.id)
-                networkValuable.id = delegate.id
+            if (broadcastDescriptor.id)
+                broadcastValuable.id = broadcastDescriptor.id
 
-            networkValuable.ready = delegate.ready
+            broadcastValuable.ready = broadcastDescriptor.ready
         }
 
-        networkValuables << networkValuable
+        statements << broadcastValuable
 
-        return networkValuableDescriptor
+        return statementDescriptor
     }
 
-    NetworkValuableDescriptor require(NetworkValuableDescriptor networkValuableDescriptor) {
-        assert networkValuableDescriptor
+    StatementDescriptor require(StatementDescriptor statementDescriptor) {
+        assert statementDescriptor, 'Statement descriptor is required'
 
-        RequireValuable networkValuable = new RequireValuable()
+        RequireStatement requireValuable = new RequireStatement()
 
-        networkValuable.id = networkValuableDescriptor.id ?: NetworkValuable.DEFAULT_ID
-        networkValuable.name = networkValuableDescriptor.name
+        requireValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        requireValuable.name = statementDescriptor.name
 
-        networkValuableDescriptor.usingDigestor = { Closure usingBody ->
-            RequireDescriptor delegate = new RequireDescriptor()
+        statementDescriptor.usingDigestor = { Closure usingBody ->
+            assert usingBody, 'Using body is required'
 
-            usingBody.delegate = delegate
+            RequireDescriptor requireDescriptor = new RequireDescriptor()
+
+            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
+            usingBody.delegate = requireDescriptor
             usingBody.call()
 
-            if (delegate.id)
-                networkValuable.id = delegate.id
+            if (requireDescriptor.id)
+                requireValuable.id = requireDescriptor.id
 
-            if (delegate.defaults != null)
-                networkValuable.defaults = delegate.defaults
+            if (requireDescriptor.defaults != null)
+                requireValuable.defaults = requireDescriptor.defaults
 
-            if (delegate.unbloatable != null)
-                networkValuable.unbloatable = delegate.unbloatable
+            if (requireDescriptor.unbloatable != null)
+                requireValuable.unbloatable = requireDescriptor.unbloatable
 
-            networkValuable.resolved = delegate.resolved
-            networkValuable.unresolved = delegate.unresolved
-
-
-        }
-        networkValuableDescriptor.intoDigestor = { String into ->
-            networkValuable.into = into
+            requireValuable.resolved = requireDescriptor.resolved
+            requireValuable.unresolved = requireDescriptor.unresolved
         }
 
-        networkValuables << networkValuable
+        statementDescriptor.intoDigestor = { String into ->
+            requireValuable.into = into
+        }
 
-        return networkValuableDescriptor
+        statements << requireValuable
+
+        return statementDescriptor
     }
 
-    void step(Closure step) {
-        steps << step
+    void step(Closure stepBody) {
+        assert stepBody, 'Step body is required'
+
+        steps.add(stepBody)
     }
-
-
-
 }

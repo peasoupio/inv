@@ -1,5 +1,6 @@
 package io.peasoup.inv.randomizer
 
+import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
@@ -7,12 +8,13 @@ import org.junit.Test
 
 class RandomizeBatch1 {
 
+    InvExecutor executor
     InvHandler inv
 
     @Before
     void setup() {
-        ExpandoMetaClass.enableGlobally()
-        inv = new InvHandler()
+        executor = new InvExecutor()
+        inv = new InvHandler(executor)
     }
 
     @Test
@@ -102,7 +104,6 @@ class RandomizeBatch1 {
 
         }
 
-        inv()
-
+        executor.execute()
     }
 }

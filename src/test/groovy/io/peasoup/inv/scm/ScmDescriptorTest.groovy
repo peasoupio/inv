@@ -2,24 +2,36 @@ package io.peasoup.inv.scm
 
 import org.junit.Test
 
-import static junit.framework.Assert.assertEquals
+import static org.junit.jupiter.api.Assertions.assertThrows
 
-class ScmDescriptorTest  {
+class ScmDescriptorTest {
 
     @Test
-    void ok() {
+    void ok_with_parameters() {
 
-        def testScm = ScmDescriptorTest.class.getResource("/test-scm.groovy")
-        def scmDescriptor = new ScmDescriptor(testScm.newReader())
+        def scmParams = ScmHandlerTest.class.getResource("/scm-parameters.json")
+        def scmParamsFile = new File(scmParams.path)
 
-        assert scmDescriptor.scms()["my-repository"]
+        def scmDesc =  new ScmDescriptor(scmParamsFile)
+        scmDesc.name = "scm1"
+        scmDesc.loadParametersProperties()
 
-        assertEquals scmDescriptor.scms()["my-repository"].src, "https://github.com/spring-guides/gs-spring-boot.git"
-        assertEquals scmDescriptor.scms()["my-repository"].entry, "inv.groovy"
-        assertEquals scmDescriptor.scms()["my-repository"].timeout, 30000
+        assert scmDesc.parametersProperties
+        assert scmDesc.parametersProperties["branch"]
+        assert scmDesc.parametersProperties["branch"] == "master"
+    }
 
-        assert scmDescriptor.scms()["my-repository"].hooks
-        assert scmDescriptor.scms()["my-repository"].hooks.init.contains("mkdir my-repository")
-        assert scmDescriptor.scms()["my-repository"].hooks.update.contains("echo 'update'")
+    @Test
+    void missing_parameter_name() {
+        assertThrows(ScmHandler.SCMOptionRequiredException.class, {
+            new ScmDescriptor.AskDescriptor().parameter("", "usage")
+        })
+    }
+
+    @Test
+    void missing_parameter_usage() {
+        assertThrows(ScmHandler.SCMOptionRequiredException.class, {
+            new ScmDescriptor.AskDescriptor().parameter("name", "")
+        })
     }
 }

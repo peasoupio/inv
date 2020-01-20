@@ -1,6 +1,6 @@
 package io.peasoup.inv
 
-import org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+
 import org.junit.Before
 import org.junit.Test
 
@@ -25,7 +25,7 @@ class InvDescriptorTest {
 
     @Test
     void name_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             String name = null
             myself.name(name)
         })
@@ -33,7 +33,7 @@ class InvDescriptorTest {
 
     @Test
     void broadcast() {
-        def nvd = new NetworkValuableDescriptor("name")
+        def nvd = new StatementDescriptor("name")
 
         assert nvd == myself.broadcast(nvd)
         assert nvd.usingDigestor != null
@@ -41,19 +41,19 @@ class InvDescriptorTest {
 
     @Test
     void broadcast_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.broadcast()
         })
     }
 
     @Test
     void require() {
-        def nvd = new NetworkValuableDescriptor("name")
+        def nvd = new StatementDescriptor("name")
         nvd("my-id")
 
         myself.require(nvd)
 
-        def delegate = myself.networkValuables.get(0) as RequireValuable
+        def delegate = myself.statements.get(0) as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.id == nvd.id
@@ -64,22 +64,22 @@ class InvDescriptorTest {
 
     @Test
     void require_without_id() {
-        def nvd = new NetworkValuableDescriptor("name")
+        def nvd = new StatementDescriptor("name")
 
         myself.require(nvd)
 
-        def delegate = myself.networkValuables.get(0) as RequireValuable
+        def delegate = myself.statements.get(0) as RequireStatement
 
         assert delegate.name == nvd.name
-        assert delegate.id == NetworkValuable.DEFAULT_ID
+        assert delegate.id == Statement.DEFAULT_ID
     }
 
     @Test
     void require_set_defaults() {
-        def nvd = new NetworkValuableDescriptor("name")
+        def nvd = new StatementDescriptor("name")
 
         myself.require(nvd)
-        def delegate = myself.networkValuables.get(0) as RequireValuable
+        def delegate = myself.statements.get(0) as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.defaults
@@ -101,10 +101,10 @@ class InvDescriptorTest {
 
     @Test
     void require_set_unbloatable() {
-        def nvd = new NetworkValuableDescriptor("name")
+        def nvd = new StatementDescriptor("name")
 
         myself.require(nvd)
-        def delegate = myself.networkValuables.get(0) as RequireValuable
+        def delegate = myself.statements.get(0) as RequireStatement
 
         assert delegate.name == nvd.name
         assert !delegate.unbloatable
@@ -126,7 +126,7 @@ class InvDescriptorTest {
 
     @Test
     void require_not_ok() {
-        assertThrows(PowerAssertionError.class, {
+        assertThrows(AssertionError.class, {
             myself.require()
         })
     }

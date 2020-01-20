@@ -1,38 +1,70 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
+import javax.xml.bind.DatatypeConverter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.MessageDigest
 
+@CompileStatic
 class InvInvoker {
 
-    static String Cache = "./.cache"
+    // TODO Should be editable through options
+    static File Cache = new File("./.cache")
 
-    static void invoke(InvHandler inv, File scriptPath) {
-        assert inv
-        assert scriptPath
+    static void invoke(InvHandler invHandler, File scriptPath) {
+        assert invHandler, 'InvHandler is required'
+        assert scriptPath, 'ScriptPath is required'
 
-        invoke(inv, scriptPath.text, scriptPath, normalizeClassName(scriptPath))
+        invoke(invHandler, scriptPath.parent, scriptPath)
     }
 
+    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm = "undefined", Map<String, Object> inject = [:]) {
+        assert invHandler, 'InvHandler is required'
+        assert pwd, 'Pwd (current working directory) is required'
+        assert scriptFile, 'Script file is required'
 
-    static void invoke(InvHandler inv, String text, File scriptFile, String classname) {
-        assert inv
-        assert text
-        assert classname
+        if (!scriptFile.exists()) {
+            Logger.warn "INV file does not exists: ${scriptFile.absolutePath}"
+            return
+        }
 
-        Logger.info("file: ${scriptFile.canonicalPath}")
+        Logger.debug("file: ${scriptFile.canonicalPath}")
 
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(text, cache(scriptFile, classname))
+        String preferredClassname = (normalizeClassName(scriptFile) + '_' + checksum(scriptFile)).toLowerCase()
+        Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
 
         Script myNewScript = (Script)groovyClass.newInstance()
 
-        myNewScript.binding.setProperty("inv", inv)
-        myNewScript.binding.setProperty("pwd", scriptFile.parentFile.canonicalPath)
+        myNewScript.binding.setProperty("inv", invHandler)
+        myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)
+        myNewScript.binding.setProperty("pwd", checkSubordinateSlash(pwd))
+
+        if (scm)
+            myNewScript.binding.setProperty("scm", scm)
+
+        if (!inject.isEmpty())
+            // Insert user-defined instances within the script itself
+            inject.each { String className, Object instance ->
+                myNewScript.binding.setProperty(className, instance)
+            }
 
         myNewScript.run()
     }
 
     static String cache(File scriptFile, String classname) {
+        assert scriptFile, "Script file is required"
+        assert scriptFile.exists(), "Script file must exists"
+        assert classname, "Classname is required"
+
+        // Make sure cache is available with minimal accesses
+        if (!Cache.exists()) {
+            Cache.mkdirs()
+            Cache.setExecutable(true)
+            Cache.setWritable(true)
+            Cache.setReadable(true)
+        }
 
         File filename = new File(Cache, classname + ".groovy")
         filename.mkdirs()
@@ -44,12 +76,12 @@ class InvInvoker {
         //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
         Files.copy(Paths.get(scriptFile.absolutePath), Paths.get(filename.absolutePath))
 
-        Logger.debug "created symlink for ${classname} here: ${filename.absolutePath}"
+        Logger.debug "created copy for ${classname} here: ${filename.absolutePath}"
 
         return filename.absolutePath
     }
 
-    private static String normalizeClassName(File script) {
+    protected static String normalizeClassName(File script) {
         if (!script.parent)
             return script.name.split("\\.")[0]
 
@@ -62,4 +94,28 @@ class InvInvoker {
         return script.name.split("\\.")[0]
     }
 
+    private static String checksum(File path) {
+        ByteArrayOutputStream baos = null
+        ObjectOutputStream oos = null
+        try {
+            baos = new ByteArrayOutputStream()
+            oos = new ObjectOutputStream(baos)
+            oos.writeObject(path.absolutePath)
+            MessageDigest md = MessageDigest.getInstance("MD5")
+            byte[] thedigest = md.digest(baos.toByteArray())
+            return DatatypeConverter.printHexBinary(thedigest)
+        } finally {
+            oos.close()
+            baos.close()
+        }
+    }
+
+    protected static String checkSubordinateSlash(String path) {
+        assert path
+
+        if (path.charAt(path.length() - 1) == '/')
+            return path
+
+        return path + '/'
+    }
 }

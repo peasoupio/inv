@@ -1,3 +1,6 @@
-println "From mainTestScript.groovy"
+inv {
 
-assert inv
+    assert inv
+
+    name "different-folder"
+}

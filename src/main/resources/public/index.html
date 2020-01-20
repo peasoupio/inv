@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>INV - Composer</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" href="bulma.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/display/autorefresh.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/groovy/groovy.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/edit/matchbrackets.min.js"></script>
+
+    <script src="layout.js"></script>
+    <script src="choose.js"></script>
+    <script src="choose-select-complex.js"></script>
+    <script src="choose-summary.js"></script>
+    <script src="configure.js"></script>
+    <script src="review.js"></script>
+    <script src="install.js"></script>
+
+    <script src="pagination.js"></script>
+    <script src="panel.js"></script>
+    <script src="tabTiles.js"></script>
+
+    <style>
+
+        /*************** General ****************/
+
+        th {
+            vertical-align: middle !important;
+        }
+
+        table {
+            table-layout:fixed;
+        }
+        table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        pre {
+            padding: 0;
+            white-space: pre-wrap;
+        }
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        /*************** Main view **************/
+
+        #container {
+            padding: 2em;
+        }
+
+        .mainContent {
+            background-color: hsl(0, 0%, 99%);
+        }
+
+        .header {
+            position: sticky;
+            top: 0em;
+            z-index: 100;
+            background-color: hsl(0, 0%, 99%);
+            box-shadow: 4px 4px 20px 0px #ccc;
+        }
+
+        .tile:hover {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .panel-help pre {
+            display: inline-flex;
+            padding: 0.25em;
+        }
+
+        a.panel-block.disabled:hover {
+            cursor: default
+        }
+
+        /*************** Choose *****************/
+
+        .checkbox_header {
+            text-align: center !important;
+        }
+
+        .whobroughtme_chosen {
+            background: lightgreen;
+        }
+
+        /************ Configuration *************/
+
+        .CodeMirror {
+          border: 1px solid #eee;
+
+        }
+
+        .code-edit-modal {
+            width: 80%;
+        }
+
+        .code-hidden {
+            visibility: hidden !important;
+        }
+
+        /************ Install *************/
+        .output {
+            overflow-y: scroll;
+            height: 600px;
+            width: 100%;
+        }
+
+        .output pre {
+            padding: 0;
+            white-space: pre-wrap;
+            color: hsl(0, 0%, 21%);
+        }
+
+        /************ Review *************/
+
+        .missing {
+            background-color: lightpink;
+        }
+
+        .added {
+            background-color: lightgreen;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <layout></layout>
+    </div>
+
+
+    <script>
+new Vue({
+    el: '#container',
+    data: {
+
+    },
+    methods: {
+    },
+    created: function() {
+    }
+})
+
+
+var TimeAgo = (function() {
+  var self = {};
+
+  // Public Methods
+  self.locales = {
+    prefix: '',
+    sufix:  'ago',
+
+    seconds: 'less than a minute',
+    minute:  'about a minute',
+    minutes: '%d minutes',
+    hour:    'about an hour',
+    hours:   'about %d hours',
+    day:     'a day',
+    days:    '%d days',
+    month:   'about a month',
+    months:  '%d months',
+    year:    'about a year',
+    years:   '%d years'
+  };
+
+  self.inWords = function(timeAgo) {
+    var seconds = Math.floor((new Date() - parseInt(timeAgo)) / 1000),
+        separator = this.locales.separator || ' ',
+        words = this.locales.prefix + separator,
+        interval = 0,
+        intervals = {
+          year:   seconds / 31536000,
+          month:  seconds / 2592000,
+          day:    seconds / 86400,
+          hour:   seconds / 3600,
+          minute: seconds / 60
+        };
+
+    var distance = this.locales.seconds;
+
+    for (var key in intervals) {
+      interval = Math.floor(intervals[key]);
+
+      if (interval > 1) {
+        distance = this.locales[key + 's'];
+        break;
+      } else if (interval === 1) {
+        distance = this.locales[key];
+        break;
+      }
+    }
+
+    distance = distance.replace(/%d/i, interval);
+    words += distance + separator + this.locales.sufix;
+
+    return words.trim();
+  };
+
+  return self;
+}());
+
+function compareValues(key, order = 'asc') {
+  return function innerSort(a, b) {
+    if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) return 0;
+    const comparison = a[key].localeCompare(b[key]);
+
+    return (
+      (order === 'desc') ? (comparison * -1) : comparison
+    );
+  };
+}
+
+
+Vue.directive('click-outside',{
+  bind: function (el, binding, vnode) {
+      el.eventSetDrag = function () {
+          el.setAttribute('data-dragging', 'yes');
+      }
+      el.eventClearDrag = function () {
+          el.removeAttribute('data-dragging');
+      }
+      el.eventOnClick = function (event) {
+          var dragging = el.getAttribute('data-dragging');
+          // Check that the click was outside the el and its children, and wasn't a drag
+          if (!(el == event.target || el.contains(event.target)) && !dragging) {
+              // call method provided in attribute value
+              vnode.context[binding.expression](event);
+          }
+      };
+      document.addEventListener('touchstart', el.eventClearDrag);
+      document.addEventListener('touchmove', el.eventSetDrag);
+      document.addEventListener('click', el.eventOnClick);
+      document.addEventListener('touchend', el.eventOnClick);
+  }, unbind: function (el) {
+      document.removeEventListener('touchstart', el.eventClearDrag);
+      document.removeEventListener('touchmove', el.eventSetDrag);
+      document.removeEventListener('click', el.eventOnClick);
+      document.removeEventListener('touchend', el.eventOnClick);
+      el.removeAttribute('data-dragging');
+  },
+});
+    </script>
+
+</body>
+</html>
+
+

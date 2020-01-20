@@ -1,43 +1,43 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+
 import java.util.concurrent.*
 
+@CompileStatic
 class NetworkValuablePool {
-
 
     final static String HALTING = "HALTED",
                         UNBLOATING = "UNBLOATING",
                         RUNNING = "RUNNING"
 
-    final Set<String> names = []
+    final Queue<String> names = new ConcurrentLinkedQueue<>()
+    final Map<String, Map<Object, BroadcastStatement.Response>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
+    final Map<String, Map<Object, BroadcastStatement.Response>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
+    final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1)
 
-    final Map<String, Map<Object, BroadcastValuable.Response>> availableValuables = [:]
-    final Map<String, Map<Object, BroadcastValuable.Response>> stagingValuables = [:]
+    final Set<Inv> remainingInvs = new HashSet<>()
+    final Set<Inv> totalInvs = new HashSet<>()
 
-    final List<Inv> remainingsInv = [].asSynchronized()
-    final List<Inv> totalInv = [].asSynchronized()
-
-    private String runningState = RUNNING
-    private boolean isDigesting = false
+    volatile protected String runningState = RUNNING
+    volatile boolean isDigesting = false
 
     private ExecutorService invExecutor
 
-
-
     /**
-     * Digest invs and their network valuables.
+     * Digest invs and theirs statements.
      * This is the main function to resolve requirements and broadcasts within the current pool.
      *
-     * Invs and network valuables are pushed through different cycles : RUNNING, UNBLOATING and HALTED.
+     * Invs and statements are pushed through different cycles : RUNNING, UNBLOATING and HALTED.
      * Cycles can be altered based on how well the digestion goes.
      *
      * Invs resolution process is multithreaded during the RUNNING cycle only.
-     * Within the resolution, network valuables are processed.
-     * During this step, the network valuables (require and broadcast) are matched.
+     * Within the resolution, statements are processed.
+     * During this step, the statements (require and broadcast) are matched.
      * NOTE : If running in an UNBLOATING cycle, requires "unresolved" could be raised if marked unbloatable.
      *
      * During the UNBLOATING cycle, we removed/do not resolve unbloatable requirements to unbloat the pool.
-     * We wait until we catch a broadcast since a broadcast could alter the remaining network valuables within the pool.
+     * We wait until we catch a broadcast since a broadcast could alter the remaining statements within the pool.
      * In this case, when reached, the current cycle is close and a new one is meant to called as RUNNING.
      *
      * If nothing is broadcast during a UNBLOATING cycle, next one will be called as HALTED.
@@ -46,7 +46,12 @@ class NetworkValuablePool {
      *
      * @return list of inv completed during this digestion cycle
      */
-    List<Inv> digest() {
+    PoolReport digest() {
+
+        // If running in halted mode, skip cycle
+        if (runningState == HALTING) {
+            return new PoolReport()
+        }
 
         // Multithreading is allowed only in a RUNNING cycle
         if (!invExecutor)
@@ -54,83 +59,93 @@ class NetworkValuablePool {
 
         isDigesting = true
 
-        List<Inv> invsDone = []
-        List<RequireValuable> toResolve = []
+        // All digestions
+        def digestion = new Inv.Digestion()
 
-        List<Future> futures = []
+        def sorted = remainingInvs
+        if (runningState == UNBLOATING)
+            sorted = remainingInvs.sort { a, b ->
+                (a.digestionSummary.unbloats <=> b.digestionSummary.unbloats)
+            }
+
+        List<Future<Inv.Digestion>> futures = []
+        BlockingDeque<PoolReport.PoolException> exceptions = new LinkedBlockingDeque<>()
 
         // Use fori-loop for speed
-        for (int i = 0; i < remainingsInv.size() ; i++) {
+        for (int i = 0; i < sorted.size() ; i++) {
 
-            def inv = remainingsInv[i]
+            def inv = sorted[i]
 
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
+            def eat = ({
+                try {
+                    return inv.digest()
+                } catch (Exception ex) {
+                    exceptions.add(new PoolReport.PoolException(inv: inv, exception: ex))
+
+                    // issues:8
+                    remainingInvs.remove(inv)
+                }
+
+                return []
+            } as Callable<Inv.Digestion>)
+
+
             if (runningState == RUNNING) {
-
-                def pool = this
-
-                futures << invExecutor.submit( {
-                    return inv.digest(pool)
-                } as Callable )
+                futures.add(invExecutor.submit(eat))
             } else {
-                // If so, execute right now
-                toResolve += inv.digest(this)
+                def currentState = runningState
+                digestion.concat(eat())
+
+                // If changed, quit
+                if (currentState != runningState)
+                    break
             }
         }
 
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
             futures.each {
-                toResolve += it.get()
+                digestion.concat(it.get())
             }
         }
 
-        // If running in halted mode, no need to broadcasts
-        // It is only required to unresolved requirements.
-        if (runningState == HALTING) {
-            return []
-        }
+
 
         // Batch all require resolve at once
-        boolean hasResolvedSomething = !toResolve.isEmpty()
+        boolean hasResolvedSomething = digestion.requires != 0
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
         boolean hasStagedSomething = false
-        def stagingSet = stagingValuables.entrySet()
-        for (int i = 0; i < stagingValuables.size(); i++) {
-            def networkValuables = stagingSet[i]
-            availableValuables[networkValuables.key].putAll(networkValuables.value)
+        def stagingSet = stagingStatements.entrySet()
 
-            if (networkValuables.value.size())
+        for (int i = 0; i < stagingStatements.size(); i++) {
+            def statements = stagingSet[i]
+            availableStatements[statements.key].putAll(statements.value)
+
+            if (statements.value.size())
                 hasStagedSomething = true
 
-            networkValuables.value.clear()
+            statements.value.clear()
         }
 
         // Check for new dumps
-        boolean hasDoneSomething = false
-        for (int i = 0; i < remainingsInv.size() ; i++) {
-            def inv = remainingsInv[i]
+        List<Inv> invsDone = []
+        for (int i = 0; i < remainingInvs.size() ; i++) {
+            def inv = remainingInvs[i]
 
             if (!inv.steps.isEmpty())
                 continue
 
-            if (!inv.remainingValuables.isEmpty())
+            if (!inv.remainingStatements.isEmpty())
                 continue
 
             invsDone << inv
-
-            hasDoneSomething = true
         }
+        remainingInvs.removeAll(invsDone)
 
-        remainingsInv.removeAll(invsDone)
-
-        Logger.debug "Has done something: ${hasDoneSomething}"
-        Logger.debug "Has resolved something: ${hasResolvedSomething}"
-        Logger.debug "Has staged something: ${hasStagedSomething}"
-
-        if (hasDoneSomething) { // Has completed Invs
+        if (!invsDone.isEmpty()) { // Has completed Invs
             startRunning()
         } else if (hasResolvedSomething) { // Has completed requirements
             startRunning()
@@ -147,7 +162,11 @@ class NetworkValuablePool {
         // Update validation flag for ins
         isDigesting = false
 
-        return invsDone
+        return new PoolReport(
+                invsDone,
+                exceptions,
+                runningState == HALTING
+        )
     }
 
     /**
@@ -156,50 +175,72 @@ class NetworkValuablePool {
      * @param name string value of the name to check
      */
     void checkAvailability(String name) {
-
-        assert name
+        assert name, 'Name is required'
 
         if (names.contains(name))
             return
 
-        names << name
-        availableValuables.put(name, new ConcurrentHashMap<Object, Object>())
-        stagingValuables.put(name, new ConcurrentHashMap<Object, Object>())
+        synchronized (names) {
+            // double lock checking
+            if (names.contains(name))
+                return
+
+            names << name
+            availableStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>(24, 0.9f, 1))
+            stagingStatements.put(name, new ConcurrentHashMap<Object, BroadcastStatement.Response>(24, 0.9f, 1))
+            unbloatedStatements.put(name, new ConcurrentLinkedQueue<Object>())
+        }
     }
 
     synchronized void startRunning() {
         runningState = RUNNING
     }
 
-    synchronized void startUnbloating() {
+    synchronized boolean startUnbloating() {
 
         if (runningState != RUNNING) {
             Logger.warn "cannot start unbloating from a non running state. Make sure pool is in running state before starting to unbloat"
-            return
+            return false
         }
 
         runningState = UNBLOATING
+
+        return true
     }
 
-    synchronized void startHalting() {
+    synchronized boolean startHalting() {
 
         if (runningState == RUNNING) {
             Logger.warn "cannot start halting from a running state. Start unbloating first"
-            return
+            return false
         }
 
         runningState = HALTING
+
+        return true
     }
 
-    synchronized boolean stopUnbloating(NetworkValuable networkValuable) {
+    // TODO Should this code belon to BroadcastStatement? Seems it would make it safer
+    /**
+     * If we caught a successful broadcast during the unbloating cycle, we need to
+     * restart digest since this broadcasts can altered the remaining cycles
+     * @param statement
+     * @return
+     */
+    synchronized boolean preventUnbloating(Statement statement) {
+        assert statement, 'Statement is required'
+        assert isDigesting, "Can't prevent unbloating outside a digest cycle"
 
-        assert networkValuable
-        assert isDigesting
-
-        if (runningState != UNBLOATING ||
-            networkValuable.match != NetworkValuable.BROADCAST) {
+        if (runningState != UNBLOATING) {
             return false
         }
+
+        if (statement.state != Statement.SUCCESSFUL) {
+            return false
+        }
+
+        if (!(statement instanceof BroadcastStatement))
+            return false
 
         startRunning()
         return true
@@ -225,7 +266,7 @@ class NetworkValuablePool {
      * @return boolean value indicating if there is any remaining (true) or not (false)
      */
     boolean isEmpty() {
-        return remainingsInv.isEmpty()
+        return remainingInvs.isEmpty()
     }
 
     /**
@@ -243,7 +284,4 @@ class NetworkValuablePool {
     boolean isDigesting() {
         return this.isDigesting
     }
-
-
-
 }

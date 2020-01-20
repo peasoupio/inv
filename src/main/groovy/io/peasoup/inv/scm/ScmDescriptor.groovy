@@ -1,97 +1,134 @@
 package io.peasoup.inv.scm
 
-import org.codehaus.groovy.control.CompilerConfiguration
+import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
+import io.peasoup.inv.Main
 
+@CompileStatic
 class ScmDescriptor {
+
+    static final Map<String, String> env =  System.getenv()
+    static final List<String> env2 =  System.getenv().collect { "${it.key}=${it.value}".toString() }
 
     static Integer DefaultTimeout = 30000
     static String DefaultEntry = "inv.groovy"
 
-    private def delegate = new Expando()
+    final HookDescriptor hooks = new HookDescriptor()
+    final AskDescriptor ask = new AskDescriptor()
 
+    private File parametersFile = null
+    private Map<String, Object> parametersProperties = [:]
 
-    ScmDescriptor(BufferedReader scriptReader ) {
-        // Configure the GroovyShell and pass the compiler configuration.
-        def compilerConfiguration = new CompilerConfiguration()
-        compilerConfiguration.scriptBaseClass = DelegatingScript.class.name
-        def shell = new GroovyShell(this.class.classLoader, new Binding(), compilerConfiguration)
-        def script = shell.parse(scriptReader) as DelegatingScript
-
-        dynamicDelegate()
-
-        script.setDelegate(delegate)
-        script.run()
+    ScmDescriptor(File parametersFile = null) {
+        this.parametersFile = parametersFile
     }
 
-    Map<String, MainDescriptor> scms() {
-        return delegate.properties
+    String name
+    def name(String value) { this.name = value }
+
+    File path = Main.invHome
+    def path(String value) { this.path = new File(value) }
+
+    String src
+    void src(String value) { this.src = value }
+
+    Collection<String> entry = [DefaultEntry]
+    def entry(String value) { this.entry = value.split().findAll {it } }
+
+    Integer timeout = DefaultTimeout
+    def timeout(Integer value) { this.timeout = value }
+
+    def hooks(Closure hooksBody) {
+        assert hooksBody, "Hook's body is required"
+
+        hooksBody.resolveStrategy = Closure.DELEGATE_ONLY
+        hooksBody.delegate = hooks
+        hooksBody()
     }
 
-    private def dynamicDelegate() {
-        delegate.metaClass.methodMissing = { String methodName, args ->
-            delegate[methodName] = new MainDescriptor(methodName)
+    def ask(Closure askBody) {
+        assert askBody, "Ask's body is required"
 
-            if (args.size() != 1 || !(args[0] instanceof Closure))
-                return null
-
-            args[0].delegate = delegate[methodName]
-            args[0]()
-        }
+        askBody.resolveStrategy = Closure.DELEGATE_ONLY
+        askBody.delegate = ask
+        askBody()
     }
 
-    static class MainDescriptor {
+    //@Override
+    def propertyMissing(String propertyName) {
+        // Loading parameters only when need - since name is not available at ctor
+        if (parametersFile && parametersFile.exists() && parametersProperties == null)
+            loadParametersProperties()
 
-        static final Map<String, String> env =  System.getenv()
+        if (!parametersProperties[propertyName])
+            return '\${' + propertyName + '}'
 
-        final String name
-        final HookDescriptor hooks = new HookDescriptor()
-
-        MainDescriptor(String name) {
-            this.name = name
-        }
-
-        File path
-        def path(String value) { this.path = new File(value) }
-
-        String src
-        def src(String value) { this.src = value }
-
-        String entry = DefaultEntry
-        def entry(String value) { this.entry = value }
-
-        Integer timeout = DefaultTimeout
-        def timeout(Integer value) { this.timeout = value }
-
-        def hooks(Closure hooksClosure) {
-            assert hooksClosure
-
-            // Make sure we're calling only safe properties
-            def safeProperties = [:]
-            safeProperties << this.properties
-            safeProperties.remove("hooks")
-            safeProperties.remove("class")
-
-            // Bind missing properties with our main ones
-            hooks.metaClass.propertyMissing = { String propertyName ->
-                safeProperties[propertyName]
-            }
-
-            // Call using ONLY OUR DELEGATE.
-            // Otherwise, it will inherits from all the parents - including the unsafe ones
-            hooksClosure.resolveStrategy = Closure.DELEGATE_ONLY
-            hooksClosure.delegate = hooks
-            hooksClosure()
-        }
-
+        return parametersProperties[propertyName]
     }
 
-    static class HookDescriptor {
+    private void loadParametersProperties() {
+        Map<String, Map> parameters = new JsonSlurper().parseText(parametersFile.text) as Map<String, Map>
+        parametersProperties.putAll(parameters[name])
+    }
+
+    class HookDescriptor {
 
         String init
         def init(String value) { this.init = value }
 
         String update
         def update(String value) { this.update = value }
+    }
 
+    class AskDescriptor {
+
+        List<AskParameter> parameters = []
+
+        def parameter(String name, String usage, Map options = [:]) {
+            if (!name)
+                throw new ScmHandler.SCMOptionRequiredException("ash/parameter/name")
+
+            if (!usage)
+                throw new ScmHandler.SCMOptionRequiredException("ash/parameter/usage")
+
+            def parameter = new AskParameter(
+                    name: name,
+                    usage: usage)
+
+            if (options.defaultValue && options.defaultValue instanceof CharSequence)
+                parameter.defaultValue = options.defaultValue as String
+
+            if (options.required && options.required instanceof Boolean)
+                parameter.required = options.required as Boolean
+
+            if (options.values && options.values instanceof Collection<String>)
+                parameter.values = options.values as List<String>
+
+            if (options.command && options.command instanceof CharSequence)
+                parameter.command = options.command as String
+
+            if (options.filter && options.filter instanceof Closure)
+                parameter.filter = options.filter as Closure
+
+            if (options.filterRegex && options.filterRegex instanceof CharSequence)
+                parameter.filterRegex = options.filterRegex as String
+
+            parameters << parameter
+        }
+    }
+
+    static class AskParameter {
+        String name
+        String usage
+        String defaultValue
+        Boolean required = true
+        List<String> values
+        String command
+        Closure<String> filter
+        String filterRegex
+
+        protected AskParameter() {
+
+        }
     }
 }

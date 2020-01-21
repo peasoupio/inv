@@ -414,6 +414,7 @@ class Routing {
 
             List<File> scmFiles = run.selected.values()
                     .collect { run.runGraph.navigator.nodes[it.link.value] }
+                    .findAll { it }
                     .collect { run.invOfScm[it.owner] }
                     .unique()
                     .collect { scms.elements[it].scriptFile } as List<File>

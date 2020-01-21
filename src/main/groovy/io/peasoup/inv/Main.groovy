@@ -121,8 +121,16 @@ Parameters:
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
-        args.each {
-            scmExecutor.read(new File(it))
+        if (args.size() == 1 && args[0].endsWith("scm-list.txt")) {
+            def file = args[0]
+
+            new File(file).readLines().each {
+                scmExecutor.read(new File(it))
+            }
+        } else {
+            args.each {
+                scmExecutor.read(new File(it))
+            }
         }
 
         def invFiles = scmExecutor.execute()

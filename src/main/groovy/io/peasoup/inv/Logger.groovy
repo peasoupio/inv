@@ -1,75 +1,61 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
-import org.apache.log4j.AppenderSkeleton
-import org.apache.log4j.ConsoleAppender
-import org.apache.log4j.Level
-import org.apache.log4j.PatternLayout
-import org.apache.log4j.spi.LoggingEvent
-
-/*
-import java.util.logging.ConsoleHandler
-import java.util.logging.LogRecord
-import java.util.logging.SimpleFormatter
-
- */
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.config.Configurator
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder
+import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory
+import org.apache.logging.log4j.core.config.builder.api.RootLoggerComponentBuilder
+import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 @CompileStatic
 class Logger {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getRootLogger()
+    private static org.apache.logging.log4j.Logger log = LogManager.getRootLogger()
+    private static final Level INV = Level.forName("INV", Level.INFO.intLevel())
 
     private static volatile List captureList = null
     private static volatile Closure captureClosure = null
 
     static {
-        log.with {
-            disableDebug()
-
-            def console = new ConsoleAppender()
-            console.setName("Main Appender")
-            console.setWriter(new OutputStreamWriter(System.out))
-            console.setLayout(new PatternLayout("[%p] %m%n"))
-            addAppender(console)
-
-            // Callback
-            addAppender(new AppenderSkeleton() {
-                protected void append(LoggingEvent loggingEvent) {
-                    if (captureList != null)
-                        captureList << loggingEvent.message
-
-                    if (captureClosure)
-                        captureClosure.call(loggingEvent.message)
-                }
-
-                void close() {
-                }
-
-                boolean requiresLayout() {
-                    return false
-                }
-            })
-        }
+        disableDebug()
     }
 
     static void fail(Object arg) {
-        log.fatal arg.toString()
+        String message = arg.toString()
+        send(message)
+
+        log.fatal message
     }
 
     static void warn(Object arg) {
-        log.warn arg.toString()
+        String message = arg.toString()
+        send(message)
+
+        log.warn message
     }
 
     static void info(Object arg) {
-        log.log InvLogingLevel.INV, arg.toString()
+        String message = arg.toString()
+        send(message)
+
+        log.log INV, message
     }
 
     static void debug(Object arg) {
-        log.debug arg.toString()
+        String message = arg.toString()
+        send(message)
+
+        log.debug message
     }
 
     static void error(String invName, Exception ex) {
-        log.error "inv: ${invName}, message:${ex.getMessage()}", ex
+        String message = "inv: ${invName}, message:${ex.getMessage()}"
+        send(message)
+
+        log.error message, StackTraceUtils.sanitize(ex)
     }
 
     static Object capture(Object value) {
@@ -93,21 +79,21 @@ class Logger {
     }
 
     static void enableDebug() {
-        log.level = Level.DEBUG
+        Configurator.setRootLevel(Level.DEBUG)
     }
 
     static void disableDebug() {
-        log.level = Level.INFO
+        Configurator.setRootLevel(Level.INFO)
     }
 
-    static class InvLogingLevel extends Level {
+    private static void send(String message) {
+        if (!message)
+            return
 
-        public static final int INV_LEVEL_INT = INFO_INT + 1
+        if (captureList != null)
+            captureList << message
 
-        public static final Level INV = new InvLogingLevel(INV_LEVEL_INT,"INV",7)
-
-        protected InvLogingLevel(int level, String levelStr, int syslogEquivalent) {
-            super(level, levelStr, syslogEquivalent)
-        }
+        if (captureClosure)
+            captureClosure.call(message)
     }
 }

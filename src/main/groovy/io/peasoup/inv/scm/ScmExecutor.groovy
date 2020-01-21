@@ -62,11 +62,15 @@ class ScmExecutor {
             } as Callable<SCMReport>)
         }
 
-        futures.each {
-            reports.add(it.get())
+        try {
+            futures.each {
+                reports.add(it.get())
+            }
         }
-
-        pool.shutdown()
+        finally {
+            pool.shutdownNow()
+            pool = null
+        }
 
         return reports
     }

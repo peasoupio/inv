@@ -93,7 +93,7 @@ class Execution {
             }
 
             currentProcess = args.execute()
-            currentProcess.consumeProcessOutput(
+            currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @Override
                         void write(String str) {
@@ -119,7 +119,6 @@ class Execution {
                         }
                     }
             )
-            currentProcess.waitFor()
 
             println "Execution: stopped"
 

@@ -61,4 +61,15 @@ class ScmInvokerTest {
         assert reports.find { it.name =="my-second-repository" }
         assert reports.find { it.name =="my-third-repository" }
     }
+
+    @Test
+    void invalid() {
+
+        def scmFile =  new File(getClass().getResource('/scm-invalid.groovy').toURI())
+        def executor = new ScmExecutor()
+        executor.read(scmFile)
+
+        def report = executor.execute()
+        assert !report.any { it.isOk }
+    }
 }

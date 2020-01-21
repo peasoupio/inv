@@ -3,7 +3,6 @@ package io.peasoup.inv.web
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.scm.ScmDescriptor
-import me.tongfei.progressbar.ProgressBar
 
 import static spark.Spark.*
 
@@ -60,15 +59,13 @@ class Routing {
 
 
         // Process SETTINGS
-        ProgressBar pb = new ProgressBar("Calculating pre-staged", settings.staged().size())
         settings.staged().each {
             run.stageWithoutPropagate(it)
-            pb.step()
         }
 
         run.propagate()
 
-        pb.close()
+        println "Ready!"
     }
 
     /**

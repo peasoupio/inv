@@ -1,7 +1,6 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
-import me.tongfei.progressbar.ProgressBar
 
 @CompileStatic
 class ScmFileCollection {
@@ -14,17 +13,8 @@ class ScmFileCollection {
         assert scmFolder, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
-        def files = scmFolder.listFiles()
-
-        ProgressBar pb = new ProgressBar("Reading scm files", files.size())
-
-        try {
-            files.each {
-                load(it)
-                pb.step()
-            }
-        } finally {
-            pb.close()
+        scmFolder.listFiles().each {
+            load(it)
         }
     }
 

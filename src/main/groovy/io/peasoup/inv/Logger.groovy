@@ -68,6 +68,10 @@ class Logger {
         log.debug arg.toString()
     }
 
+    static void error(String invName, Exception ex) {
+        log.error "inv: ${invName}, message:${ex.getMessage()}", ex
+    }
+
     static Object capture(Object value) {
 
         // Reset both so only one works at the time

@@ -54,9 +54,15 @@ class PoolReport {
 
         if (!pool.remainingInvs.isEmpty()) {
 
-            output.append "INV(s): ${System.lineSeparator()}"
+            output.append "Incompleted INV(s) details: ${System.lineSeparator()}"
 
             for (Inv remaining : tree.sortRemainingByRequireWeight()) {
+
+                if (remaining.remainingStatements.isEmpty()) {
+                    output.append "- ${remaining.name} has no statement left. Look below for exception(s)."
+                    continue
+                }
+
                 output.append "- ${remaining.name} has ${remaining.remainingStatements.size()} statement(s) left:${System.lineSeparator()}"
 
                 def requirements = tree.getRemainingRequireStatements(remaining)
@@ -91,6 +97,13 @@ class PoolReport {
 
         if (output.size() > 0)
             Logger.warn output.toString()
+
+        if (!exceptions.isEmpty()) {
+            Logger.info "Exception(s) caught: ${exceptions.size()}"
+            exceptions.each {
+                Logger.error it.inv.name, it.exception
+            }
+        }
     }
 
     private void concat(Collection<Inv> digested, Collection<PoolException> exceptions, boolean halted) {

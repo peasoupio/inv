@@ -416,8 +416,8 @@ class Routing {
                 return "Already running"
 
             List<File> scmFiles = run.selected.values()
-                    .findAll { it.link.isOwner() }
-                    .collect { run.invOfScm[it.link.value] }
+                    .collect { run.runGraph.navigator.nodes[it.link.value] }
+                    .collect { run.invOfScm[it.owner] }
                     .unique()
                     .collect { scms.elements[it].scriptFile } as List<File>
 

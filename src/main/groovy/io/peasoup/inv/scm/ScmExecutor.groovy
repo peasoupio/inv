@@ -29,7 +29,7 @@ class ScmExecutor {
 
     List<SCMReport> execute() {
 
-        final ExecutorService pool = Executors.newFixedThreadPool(4)
+        ExecutorService pool = Executors.newFixedThreadPool(4)
         final List<Future<SCMReport>> futures = []
         final List<SCMReport> reports = []
 

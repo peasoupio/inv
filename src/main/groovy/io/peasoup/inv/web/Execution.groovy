@@ -5,6 +5,7 @@ import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
 
 import java.nio.file.Files
+import java.util.concurrent.ConcurrentLinkedQueue
 
 @CompileStatic
 class Execution {
@@ -81,17 +82,19 @@ class Execution {
             Files.move(executionLog.toPath(), new File(executionsLocation, "execution.log." + executionLog.lastModified()).toPath())
 
         messages.clear()
-        List<String> currentChunkOfMessages = [].asSynchronized() as List<String>
+        ConcurrentLinkedQueue<String> currentChunkOfMessages = new ConcurrentLinkedQueue<>()
+
+        final def scmListFile = new File(executionsLocation, "scm-list.txt")
+        scmListFile.delete()
+
+        final def myClassPath = System.getProperty("java.class.path")
+        final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm", scmListFile.absolutePath]
+
+        scms.each {
+            scmListFile << it.absolutePath + System.lineSeparator()
+        }
 
         new Thread({
-
-            def myClassPath = System.getProperty("java.class.path")
-            def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm"]
-
-            scms.each {
-                args.add(it.absolutePath)
-            }
-
             currentProcess = args.execute()
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
@@ -133,24 +136,24 @@ class Execution {
         }
     }
 
-    protected void sendMessages(List<String> currentMessages, boolean validateSize = true) {
+    protected synchronized void sendMessages(ConcurrentLinkedQueue<String> currentMessages, boolean validateSize = true) {
         if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
             return
 
-        synchronized (messages) {
+        // Double lock-checking
+        if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
+            return
 
-            // Double lock-checking
-            if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
-                return
-
-
-            currentMessages.each {
-                executionLog << it + System.lineSeparator()
-            }
-
-            messages << currentMessages.collect()
-            currentMessages.clear()
+        List<String> tmpList = []
+        for(def i = 0; i< MESSAGES_RUNNING_CLUSTER_SIZE; i++) {
+            tmpList << currentMessages.poll()
         }
+
+        tmpList.each {
+            executionLog << it + System.lineSeparator()
+        }
+
+        messages << tmpList
     }
 
     Map toMap() {

@@ -19,10 +19,17 @@ class InvExecutor {
     }
 
     PoolReport execute() {
+        executeAndReport()
 
+        report.printPoolTrace(pool)
+
+        return report
+    }
+
+    private void executeAndReport() {
         // If something happened during read, skip execute
         if (!report.isOk())
-            return report
+            return
 
         report.reset()
 
@@ -62,11 +69,8 @@ class InvExecutor {
         }
         finally {
             pool.shutdown()
-            report.printPoolTrace(pool)
         }
 
         Logger.info "---- [DIGEST] completed ----"
-
-        return report
     }
 }

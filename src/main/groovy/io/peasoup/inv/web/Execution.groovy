@@ -137,6 +137,9 @@ class Execution {
     }
 
     protected synchronized void sendMessages(ConcurrentLinkedQueue<String> currentMessages, boolean validateSize = true) {
+        if (currentMessages.isEmpty())
+            return
+
         if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
             return
 
@@ -145,7 +148,9 @@ class Execution {
             return
 
         List<String> tmpList = []
-        for(def i = 0; i< MESSAGES_RUNNING_CLUSTER_SIZE; i++) {
+        def limit = Math.min(currentMessages.size(), MESSAGES_RUNNING_CLUSTER_SIZE)
+
+        for(def i = 0; i< limit; i++) {
             tmpList << currentMessages.poll()
         }
 
@@ -159,7 +164,9 @@ class Execution {
     Map toMap() {
         return [
             lastExecution: executionLog.lastModified(),
-            executions: executionsLocation.listFiles().collect { it.lastModified() },
+            executions: executionsLocation.listFiles()
+                    .findAll { it.name.startsWith("execution.log")}
+                    .collect { it.lastModified() },
             running: isRunning(),
             links: [
                 steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },

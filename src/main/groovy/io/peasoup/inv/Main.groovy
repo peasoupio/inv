@@ -133,11 +133,12 @@ Parameters:
                 return
 
             def name = report.name
-            def path = report.repository.path
+
 
             // Manage entry points for SCM
             report.repository.entry.each {
 
+                def path = report.repository.path
                 def scriptFile = new File(it)
 
                 if (!scriptFile.exists()) {

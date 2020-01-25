@@ -23,7 +23,7 @@ class MainTest {
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main("load", script.path)
+        Main.main("run", script.path)
 
         assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
     }
@@ -52,7 +52,7 @@ class MainTest {
             getFile("/mainTestScript2.groovy")
         ]
 
-        Main.main("load", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
+        Main.main("run", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
 
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
@@ -68,7 +68,7 @@ class MainTest {
                 new File("./", "src/test/resources/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("load", "src/test/resources/mainTestScript*.*")
+        Main.main("run", "src/test/resources/mainTestScript*.*")
 
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
@@ -86,7 +86,7 @@ class MainTest {
             new File("./", "src/test/resources/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("load", "src/test/resources/pattern/**/*.*")
+        Main.main("run", "src/test/resources/pattern/**/*.*")
 
         assert logs.contains("[undefined] [${files[0]}] [different-folder]".toString())
         assert logs.contains("[undefined] [${files[1]}] [different-inside]".toString())

@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import groovy.io.FileType
 import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
@@ -244,11 +245,7 @@ Parameters:
                 Logger.debug "resolved pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
-                currentHome.eachFileRecurse {
-
-                    // Won't check directory
-                    if (it.isDirectory())
-                        return
+                currentHome.eachFileRecurse(FileType.FILES) {
 
                     // Exclude
                     if (exclude && it.path.contains(exclude))
@@ -257,10 +254,10 @@ Parameters:
                     // Make sure path is using the *nix slash for folders
                     def file = it.path.replace("\\", "/")
 
-                    if (file ==~ /.*${resolvedPattern}.*/)
-                        invFiles << it
-                    else
-                        Logger.debug "match failed '${file}'"
+                    if (!(file ==~ /.*${resolvedPattern}.*/))
+                        return
+
+                    invFiles << it
                 }
 
                 def progress = new Progressbar("Reading INV files from args".toString(), invFiles.size(), false)

@@ -62,9 +62,9 @@ class NetworkValuablePool {
         // All digestions
         def digestion = new Inv.Digestion()
 
-        def sorted = remainingInvs
+        def sorted = remainingInvs.toList()
         if (runningState == UNBLOATING)
-            sorted = remainingInvs.sort { a, b ->
+            sorted.sort { a, b ->
                 (a.digestionSummary.unbloats <=> b.digestionSummary.unbloats)
             }
 

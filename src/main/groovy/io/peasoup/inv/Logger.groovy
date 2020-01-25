@@ -4,10 +4,6 @@ import groovy.transform.CompileStatic
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.config.Configurator
-import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder
-import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory
-import org.apache.logging.log4j.core.config.builder.api.RootLoggerComponentBuilder
-import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration
 import org.codehaus.groovy.runtime.StackTraceUtils
 
 @CompileStatic
@@ -49,6 +45,10 @@ class Logger {
         send(message)
 
         log.debug message
+    }
+
+    static void error(Exception ex) {
+        log.error ex.getMessage(), ex
     }
 
     static void error(String invName, Exception ex) {

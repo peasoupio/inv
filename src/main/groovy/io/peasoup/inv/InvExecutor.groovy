@@ -65,7 +65,7 @@ class InvExecutor {
             }
         }
         catch (Exception ex) {
-            ex.printStackTrace()
+            Logger.error(ex)
         }
         finally {
             pool.shutdown()

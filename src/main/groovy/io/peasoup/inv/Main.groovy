@@ -40,11 +40,15 @@ Parameters:
                (p.e *.groovy, ./**/*.groovy, ...)
                Also, it is expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-  <scmFiles>   The SCM file location
+  <scmFiles>   The SCM file location.
+               You can use a file ending with 'scm-list.txt'
+               for it to list all your SCM files references.
+               Each line must equal to the absolute path
+               of your SCM file on the current filesystems.
   <base>       Base file location
   <other>      Other file location
   plain        No specific output structure
-  dot          Graph Description Language (DOT) output structure 
+  dot          Graph Description Language (DOT) output structure
 """
 
     static final File DEFAULT_HOME = new File("./")

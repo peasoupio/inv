@@ -20,7 +20,7 @@ class InvInvoker {
         invoke(invHandler, scriptPath.parent, scriptPath)
     }
 
-    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm = "undefined", Map<String, Object> inject = [:]) {
+    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm = "undefined") {
         assert invHandler, 'InvHandler is required'
         assert pwd, 'Pwd (current working directory) is required'
         assert scriptFile, 'Script file is required'
@@ -43,12 +43,6 @@ class InvInvoker {
 
         if (scm)
             myNewScript.binding.setProperty("scm", scm)
-
-        if (!inject.isEmpty())
-            // Insert user-defined instances within the script itself
-            inject.each { String className, Object instance ->
-                myNewScript.binding.setProperty(className, instance)
-            }
 
         myNewScript.run()
     }

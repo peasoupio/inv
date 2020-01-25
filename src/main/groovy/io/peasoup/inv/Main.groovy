@@ -5,6 +5,7 @@ import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.scm.ScmExecutor.SCMReport
+import io.peasoup.inv.utils.Progressbar
 import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
@@ -125,30 +126,48 @@ Parameters:
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
-        if (args.size() == 1 && args[0].endsWith("scm-list.txt")) {
-            def file = args[0]
 
-            new File(file).readLines().each {
-                scmExecutor.read(new File(it))
+        if (args.size() == 1 && args[0].endsWith("scm-list.txt")) {
+            def scmListPath = args[0]
+            def scmListFile = new File(scmListPath)
+
+            if (!scmListFile.exists())
+                return -1
+
+            def lines = scmListFile.readLines()
+
+            def progress = new Progressbar("Reading SCM from '${scmListPath}'".toString(), lines.size(), false)
+            progress.start {
+
+                lines.each {
+                    scmExecutor.read(new File(it))
+
+                    progress.step()
+                }
             }
         } else {
-            args.each {
-                scmExecutor.read(new File(it))
+            def progress = new Progressbar("Reading SCM from args".toString(), args.size(), false)
+            progress.start {
+
+                args.each {
+                    scmExecutor.read(new File(it))
+
+                    progress.step()
+                }
             }
         }
 
-        def invFiles = scmExecutor.execute()
-        invFiles.each { SCMReport report ->
+        def scmFiles = scmExecutor.execute()
+        def invsFiles = scmFiles.collectMany { SCMReport report ->
 
             // If something happened, do not include/try-to-include into the pool
             if (!report.isOk)
-                return
+                return []
 
             def name = report.name
 
-
             // Manage entry points for SCM
-            report.repository.entry.each {
+            return report.repository.entry.collect {
 
                 def path = report.repository.path
                 def scriptFile = new File(it)
@@ -163,7 +182,24 @@ Parameters:
                     return
                 }
 
-                invExecutor.read(path.canonicalPath, scriptFile, name)
+                return [
+                    name: name,
+                    path: path.canonicalPath,
+                    scriptFile: scriptFile
+                ]
+            }
+        } as List<Map>
+
+        def progress = new Progressbar("Reading INV files from scm".toString(), invsFiles.size(), false)
+        progress.start {
+
+            invsFiles.each {
+                invExecutor.read(
+                        it.path as String,
+                        it.scriptFile as File,
+                        it.name as String)
+
+                progress.step()
             }
         }
 
@@ -223,8 +259,14 @@ Parameters:
                         Logger.debug "match failed '${file}'"
                 }
 
-                invFiles.each {
-                    executor.read(it)
+                def progress = new Progressbar("Reading INV files from args".toString(), invFiles.size(), false)
+                progress.start {
+
+                    invFiles.each {
+                        executor.read(it)
+
+                        progress.step()
+                    }
                 }
             }
         }

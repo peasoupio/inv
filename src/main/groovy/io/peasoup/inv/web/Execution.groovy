@@ -1,8 +1,14 @@
 package io.peasoup.inv.web
 
+
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
+import org.eclipse.jetty.websocket.api.Session
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
+import org.eclipse.jetty.websocket.api.annotations.WebSocket
 
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -10,8 +16,8 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @CompileStatic
 class Execution {
 
-    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 1000
-    static volatile Integer MESSAGES_RUNNING_CLUSTER_SIZE = 50
+    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 10000
+    static volatile Integer MESSAGES_RUNNING_CLUSTER_SIZE = 12
 
     private final File executionsLocation
     private final File scmFolder
@@ -42,20 +48,7 @@ class Execution {
         this.executionsLocation = executionsLocation
 
         executionLog = new File(executionsLocation, "execution.log")
-
-        if (executionLog.exists()) {
-            def currentBatch = []
-
-            executionLog.eachLine {
-                if (currentBatch.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
-                    messages << currentBatch.collect()
-                    currentBatch.clear()
-                }
-
-                currentBatch << it
-            }
-            messages << currentBatch.collect()
-        }
+        resizeMessagesChunks()
     }
 
     File latestLog() {
@@ -103,8 +96,7 @@ class Execution {
                             if (str == "\n")
                                 return
 
-                            currentChunkOfMessages << str
-                            sendMessages(currentChunkOfMessages)
+                            sendMessage(str)
 
                             System.out.println str
                         }
@@ -115,17 +107,18 @@ class Execution {
                             if (str == "\n")
                                 return
 
-                            currentChunkOfMessages << str
-                            sendMessages(currentChunkOfMessages)
+                            sendMessage(str)
 
                             System.out.println str
                         }
                     }
             )
-
             println "Execution: stopped"
 
-            sendMessages(currentChunkOfMessages, false)
+            resizeMessagesChunks()
+            MessageStreamer.sessions.each {
+                it.close()
+            }
 
         } as Runnable).start()
     }
@@ -133,32 +126,37 @@ class Execution {
     void stop() {
         if (isRunning()) {
             currentProcess.destroy()
+            MessageStreamer.sessions.each {
+                it.close()
+            }
         }
     }
 
-    protected synchronized void sendMessages(ConcurrentLinkedQueue<String> currentMessages, boolean validateSize = true) {
-        if (currentMessages.isEmpty())
+    private void resizeMessagesChunks() {
+        if (!executionLog.exists())
             return
 
-        if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
-            return
+        messages.clear()
 
-        // Double lock-checking
-        if (validateSize && currentMessages.size() < MESSAGES_RUNNING_CLUSTER_SIZE)
-            return
+        def currentBatch = []
 
-        List<String> tmpList = []
-        def limit = Math.min(currentMessages.size(), MESSAGES_RUNNING_CLUSTER_SIZE)
+        executionLog.eachLine {
+            if (currentBatch.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
+                messages << currentBatch.collect()
+                currentBatch.clear()
+            }
 
-        for(def i = 0; i< limit; i++) {
-            tmpList << currentMessages.poll()
+            currentBatch << it
         }
+        messages << currentBatch.collect()
+    }
 
-        tmpList.each {
-            executionLog << it + System.lineSeparator()
+    protected synchronized void sendMessage(String message) {
+        executionLog << message + System.lineSeparator()
+
+        MessageStreamer.sessions.each {
+            it.remote.sendString(message)
         }
-
-        messages << tmpList
     }
 
     Map toMap() {
@@ -174,5 +172,28 @@ class Execution {
                 stop: "/execution/stop"
             ]
         ]
+    }
+
+    @WebSocket
+    static class MessageStreamer {
+
+        private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>()
+
+        @OnWebSocketConnect
+        void connected(Session session) {
+            sessions.add(session)
+        }
+
+        @OnWebSocketClose
+        void closed(Session session, int statusCode, String reason) {
+            sessions.remove(session)
+        }
+
+        @OnWebSocketMessage
+        void message(Session session, String message) throws IOException {
+            System.out.println("Got: " + message);   // Print message
+            session.getRemote().sendString(message); // and send it back
+        }
+
     }
 }

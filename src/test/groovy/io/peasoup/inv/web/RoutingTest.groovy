@@ -33,6 +33,7 @@ class RoutingTest {
         scm7 << """
 scm {
     name 'scm7'
+    path 'ok'
 }
 """
 

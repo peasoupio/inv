@@ -115,16 +115,21 @@
 
         /************ Install *************/
         .output {
-            overflow-y: scroll;
-            height: 600px;
             width: 100%;
         }
 
-        .output pre {
+        .output * {
             padding: 0;
             white-space: pre-wrap;
             color: hsl(0, 0%, 21%);
+            overflow-anchor: none;
         }
+
+        .output .anchor {
+            overflow-anchor: auto;
+            height: 1px;
+        }
+
 
         /************ Review *************/
 

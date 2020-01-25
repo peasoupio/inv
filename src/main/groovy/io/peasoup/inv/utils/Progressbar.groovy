@@ -1,12 +1,14 @@
 package io.peasoup.inv.utils
 
+import io.peasoup.inv.Logger
+
 import java.util.concurrent.atomic.AtomicInteger
 
 class Progressbar {
 
-    private final static Integer LOOP_MS = 1000
+    private final static Integer LOOP_MS = 500
     private final static Integer CHAR_WIDTH = 20
-    private final static char CHAR_EMPTY = Character.MIN_VALUE
+    private final static char CHAR_EMPTY = ' '
     private final static char CHAR_REACHED_SYMBOL = '='
     private final static char CHAR_NOT_REACHED_SYMBOL = '.'
 
@@ -21,8 +23,9 @@ class Progressbar {
         this(title, 0, eol)
     }
 
-    Progressbar(String title, Integer limit, boolean eol=false) {
-        assert title
+    Progressbar(String title, int limit, boolean eol=false) {
+        assert title, 'Title is required'
+        assert limit > -1, 'Limit must be a positive value'
 
         this.title = title
         this.eol = eol
@@ -32,6 +35,9 @@ class Progressbar {
     synchronized void start(Closure body) {
         assert body
 
+        if (upperBound.get() < 1)
+            return
+
         if (running)
             return
 
@@ -40,7 +46,12 @@ class Progressbar {
         final myself = this
         def executeThread = new Thread({
             body.delegate = myself
-            body()
+            try {
+                body()
+            } catch(Exception ex) {
+                Logger.error(ex)
+                upperBound.set(0)
+            }
         }, "progressbar-execute")
 
         def writingThread = new Thread({

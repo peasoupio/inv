@@ -78,6 +78,8 @@ class Routing {
      */
     int map() {
 
+        webSocket("/execution/log/stream", Execution.MessageStreamer.class)
+
         system()
 
         runsMany()
@@ -398,7 +400,6 @@ class Routing {
     //Executions
     @SuppressWarnings("GroovyAssignabilityCheck")
     void execution() {
-
         get("/execution", { req, res ->
             return JsonOutput.toJson(exec.toMap())
         })

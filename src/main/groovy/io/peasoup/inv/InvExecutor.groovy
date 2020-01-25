@@ -14,8 +14,8 @@ class InvExecutor {
         InvInvoker.invoke(new InvHandler(this), scriptFile)
     }
 
-    void read(String pwd, File scriptFile, String scm, Map<String, Object> inject = [:]) {
-        InvInvoker.invoke(new InvHandler(this), pwd, scriptFile, scm, inject)
+    void read(String pwd, File scriptFile, String scm) {
+        InvInvoker.invoke(new InvHandler(this), pwd, scriptFile, scm)
     }
 
     PoolReport execute() {

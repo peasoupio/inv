@@ -38,6 +38,14 @@ class ScmFileCollectionTest {
         })
     }
 
+    @Test
+    void toFiles() {
+
+        assert scmFileCollection.toFiles()
+        assert scmFileCollection.toFiles(["undefined"]).isEmpty()
+        assert scmFileCollection.toFiles(["scm1"]).size() == 1
+    }
+
 
     @Test
     void toMap_filtered() {

@@ -206,6 +206,7 @@ scm {
         def sourceText = """
 scm {
     name 'scm7'
+    path 'path'
     src 'my-src'
 }
 """.getBytes(Charset.forName("UTF-8"))

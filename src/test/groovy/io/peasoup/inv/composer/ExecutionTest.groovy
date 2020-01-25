@@ -1,4 +1,4 @@
-package io.peasoup.inv.web
+package io.peasoup.inv.composer
 
 
 import org.junit.Test

@@ -1,4 +1,4 @@
-package io.peasoup.inv.web
+package io.peasoup.inv.composer
 
 import io.peasoup.inv.scm.ScmDescriptor
 import org.junit.Before
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 
 class ScmFileCollectionTest {
 
-    String base = "./src/main/example/web/scms/"
+    String base = "./src/main/example/composer/scms/"
     ScmFileCollection scmFileCollection
 
     @Before

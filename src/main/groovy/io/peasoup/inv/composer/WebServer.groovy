@@ -1,4 +1,4 @@
-package io.peasoup.inv.web
+package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -7,7 +7,7 @@ import io.peasoup.inv.utils.Progressbar
 
 import static spark.Spark.*
 
-class Routing {
+class WebServer {
 
     private final String webLocation
     private final String runLocation
@@ -20,7 +20,7 @@ class Routing {
     final private ScmFileCollection scms
     final private Execution exec
 
-    Routing(Map args) {
+    WebServer(Map args) {
 
          def configs = [
             port: 8080

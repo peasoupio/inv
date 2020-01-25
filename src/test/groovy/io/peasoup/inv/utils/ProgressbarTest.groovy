@@ -18,7 +18,7 @@ class ProgressbarTest {
 
                 stepToGo--
 
-                sleep(50)
+                sleep(10)
             }
         }
 

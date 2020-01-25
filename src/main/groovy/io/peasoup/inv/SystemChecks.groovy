@@ -10,7 +10,7 @@ class SystemChecks {
     boolean consistencyFails(Main main) {
         assert main, 'Main is required'
 
-        return checkInvHome(Main.invHome) &&
+        return checkInvHome(Main.currentHome) &&
                checkCache(InvInvoker.Cache)
     }
 

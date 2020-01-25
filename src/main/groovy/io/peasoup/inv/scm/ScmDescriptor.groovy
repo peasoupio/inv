@@ -26,8 +26,17 @@ class ScmDescriptor {
     String name
     def name(String value) { this.name = value }
 
-    File path = Main.invHome
-    def path(String value) { this.path = new File(value) }
+    File path = Main.currentHome
+    def path(String value) {
+        if (!value)
+            return
+
+        def rawFile = new File(value)
+        if (Main.currentHome != Main.DEFAULT_HOME)
+            this.path = new File(Main.currentHome, value)
+        else
+            this.path = rawFile
+    }
 
     String src
     void src(String value) { this.src = value }

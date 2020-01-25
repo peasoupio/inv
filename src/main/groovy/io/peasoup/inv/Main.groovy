@@ -46,12 +46,16 @@ Parameters:
   dot          Graph Description Language (DOT) output structure 
 """
 
-    static final File invHome = new File(System.getenv('INV_HOME') ?: "./")
+    static final File DEFAULT_HOME = new File("./")
+    static File currentHome
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
-
         Map<String, Object> arguments
+
+        currentHome = DEFAULT_HOME
+        if (System.getenv('INV_HOME'))
+            currentHome = new File(System.getenv('INV_HOME'))
 
         try {
             arguments = new Docopt(usage)
@@ -171,7 +175,7 @@ Parameters:
     }
 
     int launchWeb() {
-        return new Routing(workspace: invHome.absolutePath)
+        return new Routing(workspace: currentHome.absolutePath)
                 .map()
     }
 
@@ -200,7 +204,7 @@ Parameters:
                 Logger.debug "resolved pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
-                invHome.eachFileRecurse {
+                currentHome.eachFileRecurse {
 
                     // Won't check directory
                     if (it.isDirectory())

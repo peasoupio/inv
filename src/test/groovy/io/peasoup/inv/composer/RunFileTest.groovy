@@ -1,4 +1,4 @@
-package io.peasoup.inv.web
+package io.peasoup.inv.composer
 
 import io.peasoup.inv.utils.Stdout
 import org.junit.Before
@@ -12,7 +12,7 @@ class RunFileTest {
 
     @Before
     void setup() {
-        runFile = new RunFile(new File("./src/main/example/web/run.txt"))
+        runFile = new RunFile(new File("./src/main/example/composer/run.txt"))
     }
 
     @Test

@@ -1,4 +1,4 @@
-package io.peasoup.inv.web
+package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -10,9 +10,9 @@ import spark.Spark
 
 import java.nio.charset.Charset
 
-class RoutingTest {
+class WebServerTest {
 
-    static String base = "./src/main/example/web/"
+    static String base = "./src/main/example/composer/"
     static Integer port = 5555
 
     static void clean() {
@@ -37,7 +37,7 @@ scm {
 }
 """
 
-        new Routing(
+        new WebServer(
             port: port,
             workspace: base
         ).map()

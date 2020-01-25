@@ -2,12 +2,12 @@ package io.peasoup.inv
 
 import groovy.io.FileType
 import groovy.transform.CompileStatic
+import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.scm.ScmExecutor.SCMReport
 import io.peasoup.inv.utils.Progressbar
-import io.peasoup.inv.web.Routing
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
@@ -23,14 +23,14 @@ Usage:
   inv scm [-x] <scmFiles>...
   inv delta <base> <other>
   inv graph (plain|dot) <base>
-  inv web [-x]
+  inv composer [-x]
   
 Options:
   run         Load and execute INV files.
   scm          Load and execute SCM files.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
-  web          Start the web interface.
+  composer     Start Composer dashboard
   -x --debug   Debug out. Excellent for troubleshooting.
   -e --exclude Exclude files from loading.
   -h --help    Show this screen.
@@ -87,8 +87,8 @@ Parameters:
         if (arguments["graph"])
             return graph(arguments)
 
-        if (arguments["web"])
-            return launchWeb()
+        if (arguments["composer"])
+            return launchComposer()
 
         println usage
 
@@ -215,8 +215,8 @@ Parameters:
         return 0
     }
 
-    int launchWeb() {
-        return new Routing(workspace: currentHome.absolutePath)
+    int launchComposer() {
+        return new WebServer(workspace: currentHome.absolutePath)
                 .map()
     }
 

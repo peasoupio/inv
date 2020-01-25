@@ -32,7 +32,7 @@ class ScmDescriptorTest {
         descriptor.path(path)
         assert descriptor.path.toString() == new File(path).toString()
 
-        Main.currentHome = new File(System.getenv().TEMP)
+        Main.currentHome = new File("./sub/folder").absoluteFile
         assert Main.currentHome.isAbsolute()
 
         descriptor.path(path)

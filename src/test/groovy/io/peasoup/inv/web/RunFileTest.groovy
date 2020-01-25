@@ -84,6 +84,19 @@ class RunFileTest {
     }
 
     @Test
+    void selectedScms() {
+        runFile.stageWithoutPropagate("does-not-exists")
+        runFile.stageWithoutPropagate("[Maven] undefined") // does not have a file statement
+        runFile.stageWithoutPropagate("[Artifact] com.mycompany.app:my-app-1") // undefined scm
+        runFile.stageWithoutPropagate("[Kubernetes] undefined")
+
+        assert runFile.selectedScms()
+        assert runFile.selectedScms().size() == 2
+        assert runFile.selectedScms().find { it == "scm4" } // from Kubernetes
+        assert runFile.selectedScms().find { it == "undefined" } // from Artifact
+    }
+
+    @Test
     void isSelected_not_ok() {
         assert !runFile.isSelected("not_existing")
 

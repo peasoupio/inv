@@ -33,8 +33,8 @@ class ScmFile {
     }
 
     static class SourceFileElement {
-        private ScmDescriptor descriptor
-        private File scriptFile
+        final ScmDescriptor descriptor
+        final File scriptFile
 
         SourceFileElement(ScmDescriptor descriptor, File scripFile) {
             assert descriptor, 'SCM descriptor is required'

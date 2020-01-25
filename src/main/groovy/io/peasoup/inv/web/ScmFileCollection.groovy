@@ -1,6 +1,7 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.utils.Progressbar
 
 @CompileStatic
 class ScmFileCollection {
@@ -13,8 +14,13 @@ class ScmFileCollection {
         assert scmFolder, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
-        scmFolder.listFiles().each {
-            load(it)
+        def files = scmFolder.listFiles()
+        def progress = new Progressbar("Reading from '${scmFolder.absolutePath}'".toString(), files.size(), false)
+        progress.start {
+            files.each {
+                load(it)
+                progress.step()
+            }
         }
     }
 
@@ -37,6 +43,15 @@ class ScmFileCollection {
         def scm = new ScmFile(file)
         scms << scm
         elements.putAll(scm.elements)
+    }
+
+    List<File> toFiles(List<String> names = null) {
+        if (!names)
+            return elements.values().collect { it.scriptFile }
+
+        return names
+            .findAll { elements.containsKey(it) }
+            .collect { elements[it].scriptFile }
     }
 
     Map toMap(Map filter = [:], Integer from = 0, Integer to = 0) {

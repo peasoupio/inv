@@ -1,9 +1,10 @@
-[INV] [scm1] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\appA.groovy] [appA]
-[INV] [scm2] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\appB.groovy] [appB]
-[INV] [scm3] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\iis.groovy] [iis]
-[INV] [scm4] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\kubernetes.groovy] [Kubernetes]
-[INV] [scm5] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\serverA.groovy] [ServerA]
-[INV] [scm6] [C:\workspace\inv\target\inv-0.3-beta-SNAPSHOT\inv-0.3-beta-SNAPSHOT\bin\example\githubHomepage\serverB.groovy] [ServerB]
+[INV] [scm1] [C:\workspace\inv\target\...\bin\example\githubHomepage\appA.groovy] [appA]
+[INV] [scm2] [C:\workspace\inv\target\...\bin\example\githubHomepage\appB.groovy] [appB]
+[INV] [scm3] [C:\workspace\inv\target\...\bin\example\githubHomepage\iis.groovy] [iis]
+[INV] [scm4] [C:\workspace\inv\target\...\bin\example\githubHomepage\kubernetes.groovy] [Kubernetes]
+[INV] [scm5] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverA.groovy] [ServerA]
+[INV] [scm6] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverB.groovy] [ServerB]
+[INV] [undefined] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverB.groovy] [my-app-1]
 
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [ServerA] => [BROADCAST] [Server] [name:server-a]

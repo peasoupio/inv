@@ -3,6 +3,7 @@ package io.peasoup.inv.web
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.scm.ScmDescriptor
+import io.peasoup.inv.utils.Progressbar
 
 import static spark.Spark.*
 
@@ -57,10 +58,13 @@ class Routing {
         scms = new ScmFileCollection(new File(scmsLocation))
         exec = new Execution(new File(executionsLocation), new File(scmsLocation), new File(parametersLocation))
 
-
         // Process SETTINGS
-        settings.staged().each {
-            run.stageWithoutPropagate(it)
+        def staged = settings.staged()
+        new Progressbar("Staging from 'settings.xml'", staged.size(), false).start {
+            staged.each {
+                run.stageWithoutPropagate(it)
+                step()
+            }
         }
 
         run.propagate()
@@ -412,12 +416,7 @@ class Routing {
             if (exec.isRunning())
                 return "Already running"
 
-            List<File> scmFiles = run.selected.values()
-                    .collect { run.runGraph.navigator.nodes[it.link.value] }
-                    .findAll { it }
-                    .collect { run.invOfScm[it.owner] }
-                    .unique()
-                    .collect { scms.elements[it].scriptFile } as List<File>
+            List<File> scmFiles = scms.toFiles(run.selectedScms()) as List<File>
 
             exec.start(scmFiles)
             Thread.sleep(50)

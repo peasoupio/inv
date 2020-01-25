@@ -1,7 +1,6 @@
 package io.peasoup.inv.web
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Logger
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.graph.RunGraph
 
@@ -148,10 +147,8 @@ class RunFile {
     }
 
     boolean isSelected(String scm) {
-        if (!ownerOfScm.containsKey(scm)) {
-            Logger.warn("scm ${scm} does not exists")
+        if (!ownerOfScm.containsKey(scm))
             return false
-        }
 
         return ownerOfScm[scm].any { String inv ->
             def node = runGraph.navigator.nodes[inv] as GraphNavigator.Node
@@ -161,6 +158,15 @@ class RunFile {
 
             return selected.containsKey(node.id) && selected[node.id].selected
         }
+    }
+
+    List<String> selectedScms() {
+        return selected.values()
+                .collect { runGraph.navigator.nodes[it.link.value] }
+                .findAll { it }
+                .collect { invOfScm[it.owner] }
+                .findAll { it }
+                .unique() as List<String>
     }
 
     Map nodesToMap(Map filter = [:], Integer from = 0, Integer step = 20) {

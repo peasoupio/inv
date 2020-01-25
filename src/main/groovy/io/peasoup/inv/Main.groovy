@@ -19,14 +19,14 @@ class Main extends Script {
     String usage = """Inv.
 
 Usage:
-  inv load [-x] [-e <label>] <pattern>...
+  inv run [-x] [-e <label>] <pattern>...
   inv scm [-x] <scmFiles>...
   inv delta <base> <other>
   inv graph (plain|dot) <base>
   inv web [-x]
   
 Options:
-  load         Load and execute INV files.
+  run         Load and execute INV files.
   scm          Load and execute SCM files.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
@@ -75,7 +75,7 @@ Parameters:
         if (arguments["--debug"])
             Logger.enableDebug()
 
-        if (arguments["load"])
+        if (arguments["run"])
             return executeScript(arguments["<pattern>"] as List<String>, arguments["--exclude"] as String ?: "")
 
         if (arguments["scm"])

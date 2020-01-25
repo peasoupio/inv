@@ -47,6 +47,17 @@ class NetworkValuablePool {
      * @return list of inv completed during this digestion cycle
      */
     PoolReport digest() {
+        isDigesting = true
+        try {
+            proceedDigest()
+        } catch(Exception ex) {
+            throw ex
+        } finally {
+            isDigesting = false
+        }
+    }
+
+    private PoolReport proceedDigest() {
 
         // If running in halted mode, skip cycle
         if (runningState == HALTING) {
@@ -56,8 +67,6 @@ class NetworkValuablePool {
         // Multithreading is allowed only in a RUNNING cycle
         if (!invExecutor)
             invExecutor = Executors.newFixedThreadPool(4)
-
-        isDigesting = true
 
         // All digestions
         def digestion = new Inv.Digestion()
@@ -158,9 +167,6 @@ class NetworkValuablePool {
             Logger.info "nothing done"
             startUnbloating() // Should start unbloating
         }
-
-        // Update validation flag for ins
-        isDigesting = false
 
         return new PoolReport(
                 invsDone,

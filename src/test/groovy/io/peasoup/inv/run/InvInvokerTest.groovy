@@ -29,12 +29,16 @@ class InvInvokerTest {
         def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
         assert script
 
-        InvInvoker.Cache.deleteDir()
+        // Clean if already existing
+        def scriptFolder = new File(RunsRoller.latest.folder(), "scripts/")
+        scriptFolder.deleteDir()
+
+        assert !scriptFolder.exists()
 
         InvInvoker.cache(new File(script.path), "my-class")
 
-        assert InvInvoker.Cache.exists()
-        assert new File(InvInvoker.Cache, "my-class.groovy").exists()
+        assert scriptFolder.exists()
+        assert new File(scriptFolder, "my-class.groovy").exists()
     }
 
     @Test

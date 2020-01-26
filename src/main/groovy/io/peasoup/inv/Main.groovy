@@ -14,10 +14,11 @@ class Main extends Script {
     String usage = """Inv.
 
 Usage:
-  inv run [-x] [-e <label>] <pattern>...
+  inv run [-x] [-e <label>] <patterns>...
   inv scm [-x] <scmFiles>...
   inv composer [-x]
   inv init [-x] <scmFile>
+  inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
   
@@ -26,6 +27,7 @@ Options:
   scm          Load and execute SCM files.
   composer     Start Composer dashboard
   init         Start Composer dashboard from an SCM file.
+  promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
   -x --debug   Debug out. Excellent for troubleshooting.
@@ -34,7 +36,7 @@ Options:
   
 Parameters:
   <label>      Label not to be included in the loaded file path
-  <pattern>    An Ant-compatible file pattern
+  <patterns>   An Ant-compatible file pattern
                (p.e *.groovy, ./**/*.groovy, ...)
                Also, it is expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
@@ -44,6 +46,10 @@ Parameters:
                Each line must equal to the absolute path
                of your SCM file on the current filesystems.
   <scmFile>    The SCM file location.
+  <runIndex>   The run index whom promotion will be granted.
+               Runs are located inside INV_HOME/.runs/ 
+               By default, it uses the latest successful run
+               location.
   <base>       Base file location
   <other>      Other file location
   plain        No specific output structure
@@ -65,8 +71,6 @@ Parameters:
         if (System.getenv('INV_HOME'))
             currentHome = new File(System.getenv('INV_HOME'))
 
-
-
         try {
             arguments = new Docopt(usage)
                     .withExit(false)
@@ -76,47 +80,67 @@ Parameters:
             return -1
         }
 
+        // Resolved command
+        CliCommand command = proceedWithCommands()
+        if (!command) {
+            println usage
+            return -1
+        }
+
+        // Make sure we setup the rolling mechanism property BEFORE any logging
+        if (command.rolling())
+            Logger.setupRolling()
+
+        // Do system checks
         if (new SystemChecks().consistencyFails(this)) {
             RunsRoller.latest.latestHaveFailed()
             return -2
         }
 
-        int result = proceedWithCommands()
+        // Execute command
+        int result = command.call()
 
-        if (result == 0) {
-            RunsRoller.latest.latestHaveSucceed()
-            return 0
+        // If rolling, make sure to update success and fail symlinks
+        if (command.rolling()) {
+            if (result == 0)
+                RunsRoller.latest.latestHaveSucceed()
+            else
+                RunsRoller.latest.latestHaveFailed()
         }
 
-        RunsRoller.latest.latestHaveFailed()
         return result
     }
 
-    int proceedWithCommands() {
+    CliCommand proceedWithCommands() {
         if (arguments["--debug"])
             Logger.enableDebug()
 
         if (arguments["run"])
-            return RunCommand.call(arguments["<pattern>"] as List<String>, arguments["--exclude"] as String ?: "")
+            return new RunCommand(
+                    patterns: arguments["<patterns>"] as List<String>,
+                    exclude: arguments["--exclude"] as String ?: "")
 
         if (arguments["scm"])
-            return ScmCommand.call(arguments["<scmFiles>"] as List<String>)
+            return new ScmCommand(scmFiles: arguments["<scmFiles>"] as List<String>)
 
         if (arguments["delta"])
-            return DeltaCommand.call(arguments["<base>"] as String, arguments["<other>"] as String)
+            return new DeltaCommand(
+                    base: arguments["<base>"] as String,
+                    other: arguments["<other>"] as String)
 
         if (arguments["graph"])
-            return GraphCommand.call(arguments)
+            return new GraphCommand(arguments: arguments)
 
         if (arguments["composer"])
-            return ComposerCommand.call()
+            return new ComposerCommand()
 
         if (arguments["init"])
-            return InitCommand.call(arguments["<scmFile>"] as String)
+            return new InitCommand(scmFilePath: arguments["<scmFile>"] as String)
 
-        println usage
+        if (arguments["promote"])
+            return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
 
-        return -1
+        return null
     }
 
     static void main(String[] args) {

@@ -19,8 +19,6 @@ class RunsRoller {
     private File latestSymlink() { return new File(runsFolder(), "latest/") }
 
     private RunsRoller() {
-        // Rolling .runs/ files
-        push()
     }
 
     void latestHaveFailed() {
@@ -39,7 +37,7 @@ class RunsRoller {
         Files.createSymbolicLink(successFolder().toPath(), folder().canonicalFile.toPath())
     }
 
-    private void push() {
+    void roll() {
         runsFolder().mkdirs()
 
         File nextFolder = new File(runsFolder(), (latestIndex() + 1).toString())

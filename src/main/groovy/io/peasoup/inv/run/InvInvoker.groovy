@@ -10,9 +10,6 @@ import java.security.MessageDigest
 @CompileStatic
 class InvInvoker {
 
-    // TODO Should be editable through options
-    static File Cache = new File(RunsRoller.latest.folder(), "scripts/")
-
     static void invoke(InvHandler invHandler, File scriptPath) {
         assert invHandler, 'InvHandler is required'
         assert scriptPath, 'ScriptPath is required'
@@ -52,15 +49,17 @@ class InvInvoker {
         assert scriptFile.exists(), "Script file must exists"
         assert classname, "Classname is required"
 
+        File cache = new File(RunsRoller.latest.folder(), "scripts/")
+
         // Make sure cache is available with minimal accesses
-        if (!Cache.exists()) {
-            Cache.mkdir()
-            Cache.setExecutable(true)
-            Cache.setWritable(true)
-            Cache.setReadable(true)
+        if (!cache.exists()) {
+            cache.mkdir()
+            cache.setExecutable(true)
+            cache.setWritable(true)
+            cache.setReadable(true)
         }
 
-        File filename = new File(Cache, classname + ".groovy")
+        File filename = new File(cache, classname + ".groovy")
         filename.mkdirs()
 
         // Make sure we got latest

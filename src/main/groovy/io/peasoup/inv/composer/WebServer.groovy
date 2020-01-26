@@ -15,9 +15,10 @@ class WebServer {
     private final String parametersLocation
 
     final private Settings settings
-    final private RunFile run
+    private RunFile run
     final private ScmFileCollection scms
     final private Execution exec
+    final private Review review
 
     WebServer(Map args) {
 
@@ -55,6 +56,7 @@ class WebServer {
         run = new RunFile(new File(runLocation, "run.txt"))
         scms = new ScmFileCollection(new File(scmsLocation))
         exec = new Execution(new File(scmsLocation), new File(parametersLocation))
+        review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
 
         // Process SETTINGS
         def staged = settings.staged()
@@ -120,7 +122,8 @@ class WebServer {
                         default: "/execution"
                     ],
                     review: [
-                        default: "/review"
+                        default: "/review",
+                        promote: "/review/promote"
                     ]
                 ]
             ])
@@ -438,13 +441,27 @@ class WebServer {
 
     void review() {
         get("/review", { req, res ->
-
             if (!exec.latestLog().exists())
                 return showError("Latest execution log does not exists on filesystem")
 
-            def review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
-
             return JsonOutput.toJson(review.toMap())
+        })
+
+        post("/review/promote", { req, res ->
+            if (!exec.latestLog().exists())
+                return showError("Latest execution log does not exists on filesystem")
+
+            if (!review.promote())
+                return showError("failed to promote")
+
+
+            // Recalculate RunFile
+            run = new RunFile(new File(runLocation, "run.txt"))
+            settings.unstageAll()
+            settings.save()
+
+            return showResult("promoted")
+
         })
     }
 

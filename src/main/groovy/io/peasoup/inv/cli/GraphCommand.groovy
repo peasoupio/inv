@@ -4,9 +4,11 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.RunGraph
 
 @CompileStatic
-class GraphCommand {
+class GraphCommand implements CliCommand {
 
-    static int call(Map arguments) {
+    Map arguments
+
+    int call() {
         assert arguments != null, 'A valid value is required for args'
 
         String base = arguments["<base>"] as String
@@ -19,5 +21,9 @@ class GraphCommand {
             println run.toDotGraph()
 
         return 0
+    }
+
+    boolean rolling() {
+        return false
     }
 }

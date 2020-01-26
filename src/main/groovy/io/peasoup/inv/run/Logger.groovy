@@ -1,14 +1,12 @@
 package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Main
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.core.appender.FileAppender
 import org.apache.logging.log4j.core.config.Configuration
 import org.apache.logging.log4j.core.config.Configurator
-import org.apache.logging.log4j.core.layout.PatternLayout
 import org.codehaus.groovy.runtime.StackTraceUtils
 
 @CompileStatic
@@ -24,39 +22,42 @@ class Logger {
         disableDebug()
 
         // Make sure latest is ready BEFORE logging anything
-        assert RunsRoller.latest.folder().exists()
+        //assert RunsRoller.latest.folder().exists()
+    }
 
-        // and then create run.txt inside latest
-        // When settings in log4j2.xml, latest is created before LogRoller.latest does it
-        // So doing it programmatically prevents this
+    static void setupRolling() {
+        RunsRoller.latest.roll()
+
         final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         final Configuration config = ctx.getConfiguration()
 
-        def layout = PatternLayout.newBuilder()
-            .withPattern(config.properties["LOG_PATTERN"])
-            .build()
+        // Make sur FILE is not already configured
+        config.getRootLogger().removeAppender("FILE")
+        ctx.updateLoggers()
 
+        // Define FILE appender
         FileAppender fileAppender = FileAppender.createAppender(
-                new File(Main.currentHome, "/.runs/latest/run.txt").canonicalPath,
+                new File(RunsRoller.latest.folder(), "run.txt").canonicalPath,
                 "false",
                 "false",
-                "File",
+                "FILE",
                 "true",
                 "false",
                 "false",
                 "4000",
-                layout,
+                config.appenders["stdout"].layout,
                 null,
                 "false",
                 null,
                 config
         )
+        
+        // Start FILE appender
         fileAppender.start()
-
         config.rootLogger.addAppender(fileAppender, null, null)
-
         ctx.updateLoggers()
     }
+
 
     static void fail(Object arg) {
         String message = arg.toString()

@@ -14,7 +14,6 @@ class ReviewTest {
 
         def review = new Review(base, other)
 
-        assert review.deltaGraph
         assert review.toMap().lines
     }
 

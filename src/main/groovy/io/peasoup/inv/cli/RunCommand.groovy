@@ -8,17 +8,20 @@ import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
 
 @CompileStatic
-class RunCommand {
+class RunCommand implements CliCommand {
 
-    static int call(List<String> args, String exclude) {
-        assert args != null, 'A valid value is required for args'
+    List<String> patterns
+    String exclude
 
-        if (args.isEmpty())
+    int call() {
+        assert patterns != null, 'A valid value is required for patterns'
+
+        if (patterns.isEmpty())
             return -1
 
         def executor = new InvExecutor()
 
-        args.each {
+        patterns.each {
             def lookupPattern = it
 
             def lookupFile = new File(lookupPattern)
@@ -70,5 +73,9 @@ class RunCommand {
         executor.execute()
 
         return 0
+    }
+
+    boolean rolling() {
+        return true
     }
 }

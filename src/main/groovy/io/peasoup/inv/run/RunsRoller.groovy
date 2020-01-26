@@ -19,6 +19,8 @@ class RunsRoller {
     private File latestSymlink() { return new File(runsFolder(), "latest/") }
 
     private RunsRoller() {
+        // Make sure .runs/ exists
+        runsFolder().mkdirs()
     }
 
     void latestHaveFailed() {
@@ -55,7 +57,12 @@ class RunsRoller {
     }
 
     private Integer latestIndex() {
-        Integer index = runsFolder().listFiles()
+        def files = runsFolder().listFiles()
+
+        if (!files)
+            return 0
+
+        Integer index = files
                 .findAll { it.isDirectory() && it.name.isInteger() }
                 .collect { it.name as Integer  }
                 .max() ?: 0

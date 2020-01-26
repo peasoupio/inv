@@ -35,10 +35,6 @@ class ReviewTest {
         })
 
         assertThrows(AssertionError.class, {
-            new Review(existing, new File("not-existing"))
-        })
-
-        assertThrows(AssertionError.class, {
             new Review(new File("not-existing"), existing)
         })
     }

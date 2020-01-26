@@ -1,11 +1,15 @@
 package io.peasoup.inv.randomizer
 
+import groovy.transform.CompileStatic
+import io.peasoup.inv.run.InvDescriptor
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.InvHandler
+import io.peasoup.inv.run.StatementDescriptor
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 
+@CompileStatic
 class RandomizeBatch1 {
 
     InvExecutor executor
@@ -20,45 +24,50 @@ class RandomizeBatch1 {
     @Test
     void randomize_batch_1() {
 
+        // Rando
+        Random random = new Random()
+
         // main parameters
-        def totalInv = 10000
+        //def totalInv = 2500000
+        def totalInv = 1250
         def maxRequire = 12
+
         // state vars
-        Map<String, InvBootstrap> invs = [:] as Map<String, InvBootstrap>
+        Map<String, InvBootstrap> invs = new HashMap<String, InvBootstrap>(totalInv)
 
         // Generate invs
-        1.upto(totalInv, {
+        for(def i=0;i<totalInv;i++) {
             def invName = RandomStringUtils.random(12, true, true)
 
             // Don't care about duplicates
-            if (invName in invs)
+            if (invs.containsKey(invName))
                 return
 
-            invs[invName] = new InvBootstrap(name: invName)
-        })
+            invs.put(invName, new InvBootstrap(invName, maxRequire))
+        }
 
-        // Randomize requirements and broadcasts
-        def remainingsInvs = invs.values().collect()
-        def totalInvs = invs.values().collect()
+        Queue<InvBootstrap> remainingsInvs = new LinkedList<>(invs.values().collect())
+        List<InvBootstrap> totalInvs = new ArrayList<>(invs.values() as List<InvBootstrap>)
 
         def index = 0
-
         while(!remainingsInvs.isEmpty()) {
 
-            def invBoostrap = remainingsInvs.pop()
+            InvBootstrap invBoostrap = remainingsInvs.poll()
 
             // create inv right now
             this.invHandler.call {
-                name invBoostrap.name
+
+                InvDescriptor myself = delegate as InvDescriptor
+                myself.name(invBoostrap.name)
 
                 if (!invBoostrap.done) {
                     // Get number of requirements
-                    def numRequire = Math.abs(new Random().nextInt() % maxRequire) + 1
+                    Integer numRequire = Math.abs(random.nextInt() % maxRequire) + 1
 
-                    1.upto(numRequire, {
+                    for(def i=0;i<numRequire;i++) {
 
-                        def maxAttempt = maxRequire * 2
-                        def currentAttempt = 0
+                        Integer maxAttempt = maxRequire / 2 as Integer
+                        Integer currentAttempt = 0
 
                         while (currentAttempt < maxAttempt) {
 
@@ -67,39 +76,53 @@ class RandomizeBatch1 {
                             if (remainingsInvs.isEmpty())
                                 break
 
-                            def currentRequireIndex = Math.abs(new Random().nextInt() % totalInv)
-                            def currentRequire = totalInvs.get(currentRequireIndex)
+                            Integer currentRequireIndex = Math.abs(random.nextInt() % totalInv)
+                            InvBootstrap currentRequire = totalInvs.get(currentRequireIndex)
 
-                            List stack = currentRequire.cache
 
                             // Can't refer to myself
                             if (currentRequire.name == invBoostrap.name)
                                 continue
 
+                            boolean circular = false
+                            Queue<Set<String>> stack = new LinkedList<>()
+                            stack.add(currentRequire.requires)
+
+                            while(!stack.isEmpty()) {
+                                def currentStack = stack.poll()
+
+                                if (currentStack.contains(invBoostrap.name)) {
+                                    circular = true
+                                    break
+                                }
+
+                                for(String fromStack: currentStack)
+                                    stack.add(invs.get(fromStack).requires)
+                            }
+
                             // Already depends on me
-                            if (invBoostrap.name in stack)
+                            if (circular)
                                 continue
 
                             // Otherwise link them
-                            invBoostrap.requires << currentRequire.name
-                            invBoostrap.cache.addAll(stack)
-                            invBoostrap.cache << currentRequire.name
+                            invBoostrap.requires.add(currentRequire.name)
 
-                            require inv.Randomized(currentRequire.name)
+                            myself.require((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(currentRequire.name))
 
                             currentRequire.done = true
 
                             break
                         }
-                    })
+                    }
                 }
 
-                broadcast inv.Randomized(invBoostrap.name)
+                myself.broadcast((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(invBoostrap.name))
 
-                println "Completed inv #${index++} with ${invBoostrap.requires.size()} requires"
+                ++index
+
+                if (index % 100 == 0)
+                    println "Completed inv #${index} with ${invBoostrap.requires.size()} requires"
             }
-
-
         }
 
         def report = executor.execute()
@@ -109,9 +132,14 @@ class RandomizeBatch1 {
     }
 
     static class InvBootstrap {
-        String name
-        List<String> requires = []
-        List<String> cache = []
+        final String name
+
+        Set<String> requires
         boolean done = false
+
+        InvBootstrap(String name, Integer capacity) {
+            this.name = name
+            this.requires = new HashSet<>(capacity)
+        }
     }
 }

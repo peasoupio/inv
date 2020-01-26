@@ -15,12 +15,9 @@ class Review {
         assert baseRun.exists(), 'Base run file must exist on filesystem'
 
         assert latestExecution, 'Latest execution file is required'
-        assert latestExecution.exists(), 'Latest execution file must exist on filesystem'
 
         this.baseRun = baseRun
         this.latestExecution = latestExecution
-
-
     }
 
     boolean promote() {

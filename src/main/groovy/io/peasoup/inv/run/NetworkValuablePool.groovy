@@ -115,12 +115,10 @@ class NetworkValuablePool {
 
         // Wait for invs to be digested in parallel.
         if (!futures.isEmpty()) {
-            futures.each {
-                digestion.concat(it.get())
+            for(Future<Inv.Digestion> future : futures) {
+                digestion.concat(future.get())
             }
         }
-
-
 
         // Batch all require resolve at once
         boolean hasResolvedSomething = digestion.requires != 0

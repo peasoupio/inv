@@ -1,7 +1,7 @@
 package io.peasoup.inv.randomizer
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test

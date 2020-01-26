@@ -1,4 +1,4 @@
-package io.peasoup.inv
+package io.peasoup.inv.run
 
 import org.junit.Before
 import org.junit.Test

@@ -1,13 +1,15 @@
 package io.peasoup.inv.cli
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.run.LogRoller
+import groovy.transform.CompileStatic
+import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.Logger
+import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Progressbar
 
 import java.nio.file.Files
 
+@CompileStatic
 class ScmCommand {
 
     static int call(List<String> args) {
@@ -26,7 +28,7 @@ class ScmCommand {
             if (!scmListFile.exists())
                 return -1
 
-            Files.copy(scmListFile.toPath(), new File(LogRoller.latestFolder(), scmListFile.name).toPath())
+            Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
 
             def lines = scmListFile.readLines()
 

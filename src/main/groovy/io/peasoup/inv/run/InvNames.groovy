@@ -1,4 +1,4 @@
-package io.peasoup.inv
+package io.peasoup.inv.run
 
 class InvNames {
 

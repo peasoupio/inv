@@ -1,11 +1,13 @@
 package io.peasoup.inv.cli
 
 import groovy.io.FileType
-import io.peasoup.inv.InvExecutor
+import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
+import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
 
+@CompileStatic
 class RunCommand {
 
     static int call(List<String> args, String exclude) {

@@ -2,8 +2,8 @@ package io.peasoup.inv.composer
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
-import io.peasoup.inv.run.LogRoller
 import io.peasoup.inv.run.Logger
+import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
@@ -39,7 +39,7 @@ class Execution {
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
 
-        executionLog = new File(LogRoller.latest.folder(), "run.txt")
+        executionLog = new File(RunsRoller.latest.folder(), "run.txt")
         resizeMessagesChunks()
     }
 
@@ -69,8 +69,8 @@ class Execution {
 
         messages.clear()
 
-        LogRoller.runsFolder().mkdirs()
-        final def scmListFile = new File(LogRoller.runsFolder(), "scm-list.txt")
+        RunsRoller.runsFolder().mkdirs()
+        final def scmListFile = new File(RunsRoller.runsFolder(), "scm-list.txt")
         final def myClassPath = System.getProperty("java.class.path")
         final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm", scmListFile.absolutePath]
 
@@ -159,7 +159,7 @@ class Execution {
     Map toMap() {
         return [
             lastExecution: executionLog.lastModified(),
-            executions: !LogRoller.runsFolder().exists() ? 0 : LogRoller.runsFolder().listFiles()
+            executions: !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                     .findAll { it.name.isInteger() }
                     .collect { it.lastModified() },
             running: isRunning(),

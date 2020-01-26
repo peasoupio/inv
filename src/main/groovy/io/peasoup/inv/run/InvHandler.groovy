@@ -1,7 +1,6 @@
-package io.peasoup.inv
+package io.peasoup.inv.run
 
 import groovy.transform.CompileDynamic
-import io.peasoup.inv.run.Logger
 
 @CompileDynamic
 class InvHandler {

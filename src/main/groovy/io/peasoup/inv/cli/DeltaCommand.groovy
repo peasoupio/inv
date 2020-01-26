@@ -1,7 +1,9 @@
 package io.peasoup.inv.cli
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.DeltaGraph
 
+@CompileStatic
 class DeltaCommand {
 
     static int call(String base, String other) {

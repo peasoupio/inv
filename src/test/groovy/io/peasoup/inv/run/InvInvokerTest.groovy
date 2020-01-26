@@ -1,6 +1,5 @@
-package io.peasoup.inv
+package io.peasoup.inv.run
 
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Stdout
 import org.junit.Test
 

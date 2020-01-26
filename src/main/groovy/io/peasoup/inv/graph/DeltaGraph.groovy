@@ -1,7 +1,7 @@
 package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
-import io.peasoup.inv.run.LogRoller
+import io.peasoup.inv.run.RunsRoller
 
 class DeltaGraph {
 
@@ -67,7 +67,7 @@ class DeltaGraph {
         def templateEngine = new SimpleTemplateEngine()
         def htmlReport = this.class.getResource("/delta-report.template.html")
 
-        def reportFolder = new File(LogRoller.latestFolder(), "reports/")
+        def reportFolder = new File(RunsRoller.latest.folder(), "reports/")
         reportFolder.mkdirs()
 
         def htmlOutput = new File(reportFolder, "${previousFilename}.html")

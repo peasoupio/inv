@@ -1,9 +1,11 @@
 package io.peasoup.inv.cli
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 
+@CompileStatic
 class InitCommand {
 
     static int call(String scmFilePath) {

@@ -1,8 +1,10 @@
 package io.peasoup.inv.cli
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
 import io.peasoup.inv.composer.WebServer
 
+@CompileStatic
 class ComposerCommand {
 
     static int call() {

@@ -1,7 +1,7 @@
 package io.peasoup.inv.defaults
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Stdout
 import org.junit.Before

@@ -1,13 +1,15 @@
 package io.peasoup.inv.run
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
 
 import java.nio.file.Files
 
-class LogRoller {
+@CompileStatic
+class RunsRoller {
 
     static File runsFolder() { return new File(Main.currentHome,".runs/") }
-    static final LogRoller latest = new LogRoller()
+    static final RunsRoller latest = new RunsRoller()
 
     File folder() { new File(runsFolder(), latestIndex().toString()) }
 
@@ -16,7 +18,7 @@ class LogRoller {
 
     private File latestSymlink() { return new File(runsFolder(), "latest/") }
 
-    private LogRoller() {
+    private RunsRoller() {
         // Rolling .runs/ files
         push()
     }

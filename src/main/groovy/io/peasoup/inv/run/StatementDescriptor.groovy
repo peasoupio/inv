@@ -1,4 +1,4 @@
-package io.peasoup.inv
+package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
 import org.apache.commons.lang.StringUtils

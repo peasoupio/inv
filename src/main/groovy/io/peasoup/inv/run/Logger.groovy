@@ -2,7 +2,6 @@ package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Main
-import io.peasoup.inv.run.LogRoller
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.LoggerContext
@@ -25,7 +24,7 @@ class Logger {
         disableDebug()
 
         // Make sure latest is ready BEFORE logging anything
-        assert LogRoller.latest.folder().exists()
+        assert RunsRoller.latest.folder().exists()
 
         // and then create run.txt inside latest
         // When settings in log4j2.xml, latest is created before LogRoller.latest does it

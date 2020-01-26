@@ -1,7 +1,9 @@
 package io.peasoup.inv.cli
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.RunGraph
 
+@CompileStatic
 class GraphCommand {
 
     static int call(Map arguments) {

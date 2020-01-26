@@ -2,8 +2,8 @@ package io.peasoup.inv
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
-import io.peasoup.inv.run.LogRoller
 import io.peasoup.inv.run.Logger
+import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
@@ -77,18 +77,18 @@ Parameters:
         }
 
         if (new SystemChecks().consistencyFails(this)) {
-            LogRoller.latest.latestHaveFailed()
+            RunsRoller.latest.latestHaveFailed()
             return -2
         }
 
         int result = proceedWithCommands()
 
         if (result == 0) {
-            LogRoller.latest.latestHaveSucceed()
+            RunsRoller.latest.latestHaveSucceed()
             return 0
         }
 
-        LogRoller.latest.latestHaveFailed()
+        RunsRoller.latest.latestHaveFailed()
         return result
     }
 

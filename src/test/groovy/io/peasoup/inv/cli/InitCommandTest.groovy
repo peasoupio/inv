@@ -12,7 +12,7 @@ class InitCommandTest {
 
         file.deleteDir()
 
-        def report = InitCommand.processSCM(file)
+        def report = new InitCommand().processSCM(file)
 
         assert report
         assert report.name.toLowerCase() == "main"

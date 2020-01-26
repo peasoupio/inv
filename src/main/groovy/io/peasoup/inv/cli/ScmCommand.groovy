@@ -10,19 +10,21 @@ import io.peasoup.inv.utils.Progressbar
 import java.nio.file.Files
 
 @CompileStatic
-class ScmCommand {
+class ScmCommand implements CliCommand {
 
-    static int call(List<String> args) {
-        assert args != null, 'A valid value is required for args'
+    List<String> scmFiles
 
-        if (args.isEmpty())
+    int call() {
+        assert scmFiles != null, 'A valid value is required for args'
+
+        if (scmFiles.isEmpty())
             return -1
 
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
-        if (args.size() == 1 && args[0].endsWith("scm-list.txt")) {
-            def scmListPath = args[0]
+        if (scmFiles.size() == 1 && scmFiles[0].endsWith("scm-list.txt")) {
+            def scmListPath = scmFiles[0]
             def scmListFile = new File(scmListPath)
 
             if (!scmListFile.exists())
@@ -42,10 +44,10 @@ class ScmCommand {
                 }
             }
         } else {
-            def progress = new Progressbar("Reading SCM from args".toString(), args.size(), false)
+            def progress = new Progressbar("Reading SCM from args".toString(), scmFiles.size(), false)
             progress.start {
 
-                args.each {
+                scmFiles.each {
                     scmExecutor.read(new File(it))
 
                     progress.step()
@@ -104,5 +106,9 @@ class ScmCommand {
         invExecutor.execute()
 
         return 0
+    }
+
+    boolean rolling() {
+        return true
     }
 }

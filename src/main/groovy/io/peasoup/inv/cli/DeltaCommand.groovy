@@ -4,9 +4,12 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.DeltaGraph
 
 @CompileStatic
-class DeltaCommand {
+class DeltaCommand implements CliCommand {
 
-    static int call(String base, String other) {
+    String base
+    String other
+
+    int call() {
         assert base, 'Base is required'
         assert other, 'Other is required'
 
@@ -25,4 +28,7 @@ class DeltaCommand {
         return 0
     }
 
+    boolean rolling() {
+        return false
+    }
 }

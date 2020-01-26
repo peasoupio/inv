@@ -5,10 +5,14 @@ import io.peasoup.inv.Main
 import io.peasoup.inv.composer.WebServer
 
 @CompileStatic
-class ComposerCommand {
+class ComposerCommand implements CliCommand {
 
-    static int call() {
+    int call() {
         return new WebServer(workspace: Main.currentHome.absolutePath)
                 .map()
+    }
+
+    boolean rolling() {
+        return false
     }
 }

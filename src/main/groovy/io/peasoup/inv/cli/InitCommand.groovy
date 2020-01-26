@@ -6,9 +6,11 @@ import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 
 @CompileStatic
-class InitCommand {
+class InitCommand implements CliCommand {
 
-    static int call(String scmFilePath) {
+    String scmFilePath
+
+    int call() {
         assert scmFilePath, 'Scm file path is required'
 
         ScmExecutor.SCMReport report = processSCM(new File(scmFilePath))
@@ -19,10 +21,14 @@ class InitCommand {
         // Change currentHome for current process (and others spawned by composer.Execution
         Main.currentHome = report.repository.path
 
-        ComposerCommand.call()
+        new ComposerCommand().call()
     }
 
-    static ScmExecutor.SCMReport processSCM(File scmFile) {
+    boolean rolling() {
+        return true
+    }
+
+    protected ScmExecutor.SCMReport processSCM(File scmFile) {
         assert scmFile.exists(), 'Scm file path must exist on filesystem'
 
         def scmExecutor = new ScmExecutor()

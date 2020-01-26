@@ -1,7 +1,7 @@
 package io.peasoup.inv.scm
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 import org.apache.commons.lang.RandomStringUtils
 
 import java.util.concurrent.*
@@ -111,7 +111,7 @@ class ScmExecutor {
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
         def cmd = "bash ${shFile.canonicalPath}"
         def envs = repository.env.collect { "${it.key}=${it.value}"}
-        def process = cmd.execute(envs, repository.path)
+        def process = cmd.execute(envs, repository.path.canonicalFile)
 
         Logger.debug cmd
 

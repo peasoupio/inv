@@ -1,5 +1,7 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.run.Logger
+
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 

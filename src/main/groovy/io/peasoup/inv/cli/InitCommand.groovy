@@ -1,7 +1,7 @@
 package io.peasoup.inv.cli
 
-import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 
 class InitCommand {

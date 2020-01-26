@@ -24,7 +24,7 @@ class ScmDescriptorTest {
 
     @Test
     void path_using_invHome() {
-        assert !Main.currentHome
+        assert !Main.currentHome.isAbsolute()
 
         def path = "/my/path"
         def descriptor = new ScmDescriptor()

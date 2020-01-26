@@ -1,6 +1,6 @@
 package io.peasoup.inv.graph
 
-
+import org.junit.Ignore
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.assertThrows
@@ -18,6 +18,7 @@ class DeltaGraphTest {
     }
 
     @Test
+    @Ignore
     void html() {
         def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
         def logAfterOutput1Txt =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())

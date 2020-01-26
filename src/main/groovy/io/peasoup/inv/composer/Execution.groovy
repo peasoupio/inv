@@ -1,25 +1,22 @@
 package io.peasoup.inv.composer
 
-
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
+import io.peasoup.inv.run.LogRoller
+import io.peasoup.inv.run.Logger
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 
-import java.nio.file.Files
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @CompileStatic
 class Execution {
 
     static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 10000
-    static volatile Integer MESSAGES_RUNNING_CLUSTER_SIZE = 12
 
-    private final File executionsLocation
     private final File scmFolder
     private final File externalParametersFolder
 
@@ -27,27 +24,22 @@ class Execution {
     private List<List<String>> messages = []
     private File executionLog
 
-    Execution(File executionsLocation, File scmFolder, File externalParametersFolder) {
-        assert executionsLocation, 'Executions location (folder) is required'
-        if (!executionsLocation.exists())
-            executionsLocation.mkdir()
-        assert executionsLocation.isDirectory(), 'Executions location must be a directory'
+    Execution(File scmFolder, File externalParametersFolder) {
 
         assert scmFolder, 'SCM location (folder) is required'
         if (!scmFolder.exists())
             scmFolder.mkdir()
-        assert executionsLocation.isDirectory(), 'SCM location must be a directory'
+        assert scmFolder.isDirectory(), 'SCM location must be a directory'
 
         assert externalParametersFolder, 'External parameters location (folder) is required'
         if (!externalParametersFolder.exists())
             externalParametersFolder.mkdir()
-        assert executionsLocation.isDirectory(), 'External parameters location must be a directory'
+        assert externalParametersFolder.isDirectory(), 'External parameters location must be a directory'
 
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
-        this.executionsLocation = executionsLocation
 
-        executionLog = new File(executionsLocation, "execution.log")
+        executionLog = new File(LogRoller.latest.folder(), "run.txt")
         resizeMessagesChunks()
     }
 
@@ -75,25 +67,23 @@ class Execution {
         if (isRunning())
             return
 
-
-        if (executionLog.exists())
-            Files.move(executionLog.toPath(), new File(executionsLocation, "execution.log." + executionLog.lastModified()).toPath())
-
         messages.clear()
-        ConcurrentLinkedQueue<String> currentChunkOfMessages = new ConcurrentLinkedQueue<>()
 
-        final def scmListFile = new File(executionsLocation, "scm-list.txt")
-        scmListFile.delete()
-
+        LogRoller.runsFolder().mkdirs()
+        final def scmListFile = new File(LogRoller.runsFolder(), "scm-list.txt")
         final def myClassPath = System.getProperty("java.class.path")
         final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm", scmListFile.absolutePath]
 
+        scmListFile.delete()
         scms.each {
             scmListFile << it.absolutePath + System.lineSeparator()
         }
 
         new Thread({
-            currentProcess = args.execute(["INV_HOME=${Main.currentHome.absolutePath}"], Main.currentHome)
+
+            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Main.currentHome.absolutePath}".toString()]
+
+            currentProcess = args.execute(envs, Main.currentHome)
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @Override
@@ -120,6 +110,8 @@ class Execution {
             )
             println "Execution: stopped"
 
+            // Closing stuffs
+            scmListFile.delete()
             resizeMessagesChunks()
             MessageStreamer.sessions.each {
                 it.close()
@@ -167,8 +159,8 @@ class Execution {
     Map toMap() {
         return [
             lastExecution: executionLog.lastModified(),
-            executions: executionsLocation.listFiles()
-                    .findAll { it.name.startsWith("execution.log")}
+            executions: !LogRoller.runsFolder().exists() ? 0 : LogRoller.runsFolder().listFiles()
+                    .findAll { it.name.isInteger() }
                     .collect { it.lastModified() },
             running: isRunning(),
             links: [

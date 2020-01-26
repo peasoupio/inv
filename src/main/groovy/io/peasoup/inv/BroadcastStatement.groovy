@@ -2,6 +2,7 @@ package io.peasoup.inv
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class BroadcastStatement implements Statement {

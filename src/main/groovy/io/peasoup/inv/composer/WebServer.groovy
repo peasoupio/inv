@@ -13,7 +13,6 @@ class WebServer {
     private final String runLocation
     private final String scmsLocation
     private final String parametersLocation
-    private final String executionsLocation
 
     final private Settings settings
     final private RunFile run
@@ -32,7 +31,6 @@ class WebServer {
         runLocation = configs.workspace as String
         scmsLocation = configs.workspace + "/scms" as String
         parametersLocation = configs.workspace + "/parameters" as String
-        executionsLocation = configs.workspace + "/executions" as String
 
         // Browser configs
         port(configs.port)
@@ -56,7 +54,7 @@ class WebServer {
         settings = new Settings(new File(runLocation, "settings.json"))
         run = new RunFile(new File(runLocation, "run.txt"))
         scms = new ScmFileCollection(new File(scmsLocation))
-        exec = new Execution(new File(executionsLocation), new File(scmsLocation), new File(parametersLocation))
+        exec = new Execution(new File(scmsLocation), new File(parametersLocation))
 
         // Process SETTINGS
         def staged = settings.staged()

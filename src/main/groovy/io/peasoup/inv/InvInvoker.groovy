@@ -1,6 +1,8 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.run.LogRoller
+import io.peasoup.inv.run.Logger
 
 import javax.xml.bind.DatatypeConverter
 import java.nio.file.Files
@@ -11,7 +13,7 @@ import java.security.MessageDigest
 class InvInvoker {
 
     // TODO Should be editable through options
-    static File Cache = new File("./.cache")
+    static File Cache = new File(LogRoller.latest.folder(), "scripts/")
 
     static void invoke(InvHandler invHandler, File scriptPath) {
         assert invHandler, 'InvHandler is required'
@@ -54,7 +56,7 @@ class InvInvoker {
 
         // Make sure cache is available with minimal accesses
         if (!Cache.exists()) {
-            Cache.mkdirs()
+            Cache.mkdir()
             Cache.setExecutable(true)
             Cache.setWritable(true)
             Cache.setReadable(true)

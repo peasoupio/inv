@@ -3,7 +3,7 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 

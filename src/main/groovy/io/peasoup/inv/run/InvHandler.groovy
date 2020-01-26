@@ -37,6 +37,9 @@ class InvHandler {
             inv.delegate.path =  body.binding.variables["pwd"]
         }
 
+        if (defaultName)
+            inv.delegate.name = defaultName
+
         body.resolveStrategy = Closure.DELEGATE_FIRST
         body.delegate = inv.delegate
 
@@ -45,15 +48,14 @@ class InvHandler {
         } catch (Exception ex) {
             executor.report.exceptions << new PoolReport.PoolException(inv: inv, exception: ex)
         } finally {
-            // Atempt to dump delegate to get path or name
+
+            // Make sure, at any cost, delegate.name is not empty before dumping for the first time
+            if (!inv.delegate.name)
+                throw new INVOptionRequiredException("name")
+
+            // Attempt to dump delegate to insert it into pool
             inv.dumpDelegate()
         }
-
-        if (defaultName && !inv.name)
-            inv.name = defaultName
-
-        if (!inv.name)
-            throw new INVOptionRequiredException("name")
 
         if (isScript) {
             String scm =  body.binding.variables["scm"]

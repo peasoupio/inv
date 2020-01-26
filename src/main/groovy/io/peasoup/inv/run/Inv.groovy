@@ -37,9 +37,9 @@ class Inv {
 
         def dumpedSomething = false
 
-        if (!pool.totalInvs.contains(this)) {
-            pool.totalInvs << this
-            pool.remainingInvs << this
+        if (name && !pool.totalInvs.contains(this)) {
+            pool.totalInvs.add(this)
+            pool.remainingInvs.add(this)
 
             // TODO Is this useless ?
             dumpedSomething = true
@@ -57,8 +57,8 @@ class Inv {
 
             statement.inv = this
 
-            this.totalStatements << statement
-            this.remainingStatements << statement
+            this.totalStatements.add(statement)
+            this.remainingStatements.add(statement)
 
             pool.checkAvailability(statement.name)
         }
@@ -180,5 +180,23 @@ class Inv {
             this.unbloats += digestion.unbloats
         }
     }
+
+
+    @Override
+    int hashCode() {
+        return name.hashCode()
+    }
+
+    @Override
+    boolean equals(Object o) {
+        if (!name) return false
+        if (!o) return false
+        if (!(o instanceof Inv)) return false
+
+        Inv invO = o as Inv
+
+        return name == invO.name
+    }
+
 
 }

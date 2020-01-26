@@ -44,8 +44,8 @@ class RequireStatement implements Statement {
                 return
 
             // Get broadcast
-            def channel = pool.availableStatements[requireValuable.name]
-            def broadcast = channel[requireValuable.id]
+            Map<Object, BroadcastStatement.Response> channel = pool.availableStatements.get(requireValuable.name)
+            BroadcastStatement.Response broadcast = channel.get(requireValuable.id)
 
             if (!broadcast) {
 
@@ -55,7 +55,7 @@ class RequireStatement implements Statement {
                 boolean toUnbloat = false
 
                 // Did it already unbloated
-                if (pool.unbloatedStatements[requireValuable.name].contains(requireValuable.id)) {
+                if (pool.unbloatedStatements.get(requireValuable.name).contains(requireValuable.id)) {
                     toUnbloat = true
                 }
 

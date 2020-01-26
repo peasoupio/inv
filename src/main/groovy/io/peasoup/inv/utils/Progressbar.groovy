@@ -19,6 +19,8 @@ class Progressbar {
     private AtomicInteger upperBound = new AtomicInteger(0)
     private Boolean running = false
 
+    final OutputStream out = System.out
+
     Progressbar(String title, boolean eol=false) {
         this(title, 0, eol)
     }
@@ -49,8 +51,10 @@ class Progressbar {
             try {
                 body()
             } catch(Exception ex) {
-                Logger.error(ex)
                 upperBound.set(0)
+                out.print(System.lineSeparator())
+
+                Logger.error(ex)
             }
         }, "progressbar-execute")
 
@@ -81,8 +85,6 @@ class Progressbar {
     }
 
     private void write() {
-        final OutputStream out = System.out
-
         while(index < upperBound) {
             int index = index.get()
             int upperBound = upperBound.get()

@@ -1,6 +1,6 @@
 package io.peasoup.inv.scm
 
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 
 class ScmInvoker {
 

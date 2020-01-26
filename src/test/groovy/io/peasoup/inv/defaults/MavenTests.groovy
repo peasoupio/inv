@@ -2,7 +2,7 @@ package io.peasoup.inv.defaults
 
 import io.peasoup.inv.InvExecutor
 import io.peasoup.inv.InvHandler
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.Test
 

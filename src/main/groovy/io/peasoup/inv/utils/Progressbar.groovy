@@ -1,6 +1,6 @@
 package io.peasoup.inv.utils
 
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 
 import java.util.concurrent.atomic.AtomicInteger
 

@@ -2,8 +2,8 @@ package io.peasoup.inv.cli
 
 import groovy.io.FileType
 import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
 
 class RunCommand {

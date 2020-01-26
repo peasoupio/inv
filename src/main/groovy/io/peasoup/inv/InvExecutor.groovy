@@ -1,5 +1,7 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.run.Logger
+
 class InvExecutor {
 
     final NetworkValuablePool pool

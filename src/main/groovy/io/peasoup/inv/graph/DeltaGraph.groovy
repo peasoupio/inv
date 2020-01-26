@@ -1,6 +1,7 @@
 package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
+import io.peasoup.inv.run.LogRoller
 
 class DeltaGraph {
 
@@ -63,13 +64,13 @@ class DeltaGraph {
 
     String html(String previousFilename) {
 
-
         def templateEngine = new SimpleTemplateEngine()
         def htmlReport = this.class.getResource("/delta-report.template.html")
 
-        def htmlOutput = new File("./reports/${previousFilename}.html")
+        def reportFolder = new File(LogRoller.latestFolder(), "reports/")
+        reportFolder.mkdirs()
 
-        htmlOutput.mkdirs()
+        def htmlOutput = new File(reportFolder, "${previousFilename}.html")
 
         if (htmlOutput.exists())
             htmlOutput.delete()

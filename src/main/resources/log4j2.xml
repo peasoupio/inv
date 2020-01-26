@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+
+    <Properties>
+        <Property name="LOG_PATTERN">[%level] %msg%n%throwable</Property>
+    </Properties>
+
     <Appenders>
         <Console name="stdout">
-            <PatternLayout pattern="[%level] %msg%n%throwable" />
+            <PatternLayout pattern="${LOG_PATTERN}" />
         </Console>
     </Appenders>
     <Loggers>

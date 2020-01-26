@@ -2,13 +2,14 @@ package io.peasoup.inv
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
+import io.peasoup.inv.run.LogRoller
+import io.peasoup.inv.run.Logger
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
 
 @CompileStatic
 class Main extends Script {
-
 
     String usage = """Inv.
 
@@ -52,13 +53,19 @@ Parameters:
     static final File DEFAULT_HOME = new File("./")
     static File currentHome
 
+    static {
+        currentHome = DEFAULT_HOME
+    }
+
+    private Map<String, Object> arguments
+
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
-        Map<String, Object> arguments
 
-        currentHome = DEFAULT_HOME
         if (System.getenv('INV_HOME'))
             currentHome = new File(System.getenv('INV_HOME'))
+
+
 
         try {
             arguments = new Docopt(usage)
@@ -69,6 +76,23 @@ Parameters:
             return -1
         }
 
+        if (new SystemChecks().consistencyFails(this)) {
+            LogRoller.latest.latestHaveFailed()
+            return -2
+        }
+
+        int result = proceedWithCommands()
+
+        if (result == 0) {
+            LogRoller.latest.latestHaveSucceed()
+            return 0
+        }
+
+        LogRoller.latest.latestHaveFailed()
+        return result
+    }
+
+    int proceedWithCommands() {
         if (arguments["--debug"])
             Logger.enableDebug()
 
@@ -92,9 +116,8 @@ Parameters:
 
         println usage
 
-        return 0
+        return -1
     }
-
 
     static void main(String[] args) {
         InvokerHelper.runScript(Main, args)

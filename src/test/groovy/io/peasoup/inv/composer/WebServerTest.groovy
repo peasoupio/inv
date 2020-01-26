@@ -2,7 +2,7 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
@@ -314,8 +314,7 @@ scm {
         def jsonBefore = new JsonSlurper().parseText(responseBefore)
 
         assert jsonBefore
-        assert jsonBefore.lastExecution == 0
-        assert jsonBefore.executions.isEmpty()
+        assert jsonBefore.running == false
 
         post("run/stage?id=[Kubernetes]%20undefined")
         def responseStart = post("execution/start")
@@ -333,7 +332,7 @@ scm {
         def jsonAfter = new JsonSlurper().parseText(responseAfter)
 
         assert jsonAfter
-        assert jsonAfter.running
+        assert jsonAfter.running == true
 
         def jsonEnd
 
@@ -362,9 +361,7 @@ scm {
 
         jsonEnd = new JsonSlurper().parseText(responseEnd)
 
-        assert !jsonEnd.running
-        assert jsonEnd.lastExecution > 0
-        assert !jsonEnd.executions.isEmpty()
+        assert jsonEnd.running == false
     }
 
     @Test
@@ -375,11 +372,19 @@ scm {
         def jsonBefore = new JsonSlurper().parseText(responseBefore)
 
         assert jsonBefore
-        assert jsonBefore.lastExecution == 0
-        assert jsonBefore.executions.isEmpty()
+        assert jsonBefore.running == false
 
         post("run/stage?id=[Kubernetes]%20undefined")
         post("execution/start")
+
+        def responseMiddle = get("execution")
+        assert responseMiddle
+
+        def jsonMiddle = new JsonSlurper().parseText(responseMiddle)
+
+        assert jsonMiddle
+        assert jsonMiddle.running == true
+
         sleep(50)
         post("execution/stop")
 
@@ -389,9 +394,7 @@ scm {
         def jsonEnd = new JsonSlurper().parseText(responseEnd)
 
         assert jsonEnd
-        assert !jsonEnd.running
-        assert jsonEnd.lastExecution == 0
-        assert jsonEnd.executions.isEmpty()
+        assert jsonEnd.running == false
     }
 
     String get(String context) {

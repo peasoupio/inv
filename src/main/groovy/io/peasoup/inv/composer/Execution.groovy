@@ -64,12 +64,17 @@ class Execution {
 
         if (scms.isEmpty()) {
             Logger.warn "SCM collection is empty. Will NOT try to start execution"
+            return
+        }
 
+        if (!Main.currentHome.exists()) {
+            Logger.warn "INV_HOME does not exists"
             return
         }
 
         if (isRunning())
             return
+
 
         if (executionLog.exists())
             Files.move(executionLog.toPath(), new File(executionsLocation, "execution.log." + executionLog.lastModified()).toPath())
@@ -88,7 +93,7 @@ class Execution {
         }
 
         new Thread({
-            currentProcess = args.execute()
+            currentProcess = args.execute(["INV_HOME=${Main.currentHome.absolutePath}"], Main.currentHome)
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @Override

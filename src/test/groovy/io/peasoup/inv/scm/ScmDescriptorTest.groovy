@@ -37,6 +37,8 @@ class ScmDescriptorTest {
 
         descriptor.path(path)
         assert descriptor.path.absolutePath == new File(Main.currentHome.toString(), path).absolutePath
+
+        Main.currentHome = Main.DEFAULT_HOME
     }
 
     @Test

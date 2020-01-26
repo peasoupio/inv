@@ -2,7 +2,7 @@ scm {
 
   name "my-repository"
 
-  path "${env.TEMP}/scm/${name}"
+  path "${env.TEMP}/inv/scm/${name}"
   src "https://github.com/spring-guides/gs-spring-boot.git"
   entry new File("./src/test/resources/mainTestScript.groovy").absolutePath
   timeout 30000

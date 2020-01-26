@@ -40,6 +40,7 @@ class ScmExecutor {
                 if (!repository.hooks)
                     return report
 
+                def didSomething = false
                 Boolean doesPathExistsAndNotEmpty = repository.path.exists() && repository.path.list().size() > 0
 
                 if (repository.hooks.init && !doesPathExistsAndNotEmpty) {
@@ -50,12 +51,19 @@ class ScmExecutor {
                     Logger.info("[SCM] ${name} [INIT] start")
                     report.isOk = executeCommands(repository, repository.hooks.init)
                     Logger.info("[SCM] ${name} [INIT] done")
+
+                    didSomething = true
                 } else if (repository.hooks.update) {
 
                     Logger.info("[SCM] ${name} [UPDATE] start")
                     report.isOk = executeCommands(repository, repository.hooks.update)
                     Logger.info("[SCM] ${name} [UPDATE] done")
+
+                    didSomething = true
                 }
+
+                if (!didSomething)
+                    report.isOk = true
 
                 return report
 
@@ -66,6 +74,9 @@ class ScmExecutor {
             futures.each {
                 reports.add(it.get())
             }
+        }
+        catch(Exception ex) {
+            Logger.error(ex)
         }
         finally {
             pool.shutdownNow()

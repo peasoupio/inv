@@ -83,7 +83,7 @@ class NetworkValuablePool {
         // Use fori-loop for speed
         for (int i = 0; i < sorted.size() ; i++) {
 
-            def inv = sorted[i]
+            def inv = sorted.get(i)
 
             // If is in RUNNING state, we are allowed to do parallel stuff.
             // Otherwise, we may change the sequence.
@@ -127,11 +127,8 @@ class NetworkValuablePool {
 
         // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
         boolean hasStagedSomething = false
-        def stagingSet = stagingStatements.entrySet()
-
-        for (int i = 0; i < stagingStatements.size(); i++) {
-            def statements = stagingSet[i]
-            availableStatements[statements.key].putAll(statements.value)
+        for (Map.Entry<String, Map<Object, BroadcastStatement.Response>> statements : stagingStatements.entrySet()) {
+            availableStatements.get(statements.key).putAll(statements.value)
 
             if (statements.value.size())
                 hasStagedSomething = true
@@ -141,8 +138,7 @@ class NetworkValuablePool {
 
         // Check for new dumps
         List<Inv> invsDone = []
-        for (int i = 0; i < remainingInvs.size() ; i++) {
-            def inv = remainingInvs[i]
+        for(Inv inv : remainingInvs) {
 
             if (!inv.steps.isEmpty())
                 continue

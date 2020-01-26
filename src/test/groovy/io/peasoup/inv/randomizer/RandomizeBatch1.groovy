@@ -9,22 +9,22 @@ import org.junit.Test
 class RandomizeBatch1 {
 
     InvExecutor executor
-    InvHandler inv
+    InvHandler invHandler
 
     @Before
     void setup() {
         executor = new InvExecutor()
-        inv = new InvHandler(executor)
+        invHandler = new InvHandler(executor)
     }
 
     @Test
     void randomize_batch_1() {
 
         // main parameters
-        def totalInv = 100
-        def maxRequire = 10
+        def totalInv = 10000
+        def maxRequire = 12
         // state vars
-        Map invs = [:]
+        Map<String, InvBootstrap> invs = [:] as Map<String, InvBootstrap>
 
         // Generate invs
         1.upto(totalInv, {
@@ -34,60 +34,58 @@ class RandomizeBatch1 {
             if (invName in invs)
                 return
 
-            invs[invName] = [
-                name: invName,
-                requires: [],
-                cache: []
-            ]
+            invs[invName] = new InvBootstrap(name: invName)
         })
 
         // Randomize requirements and broadcasts
-        def remainings = invs.values().collect()
-        def index = 0
-        while(!remainings.isEmpty()) {
+        def remainingsInvs = invs.values().collect()
+        def totalInvs = invs.values().collect()
 
-            def inv = remainings.pop()
+        def index = 0
+
+        while(!remainingsInvs.isEmpty()) {
+
+            def invBoostrap = remainingsInvs.pop()
 
             // create inv right now
-            this.inv.call {
-                def myInvInstance = delegate
+            this.invHandler.call {
+                name invBoostrap.name
 
-                name inv.name
-
-
-                if (!inv.done) {
+                if (!invBoostrap.done) {
                     // Get number of requirements
                     def numRequire = Math.abs(new Random().nextInt() % maxRequire) + 1
 
                     1.upto(numRequire, {
 
-                        def limit = 10
-                        def current = 0
+                        def maxAttempt = maxRequire * 2
+                        def currentAttempt = 0
 
-                        while (current < limit) {
+                        while (currentAttempt < maxAttempt) {
 
-                            current++
+                            currentAttempt++
 
-                            if (remainings.isEmpty())
+                            if (remainingsInvs.isEmpty())
                                 break
 
                             def currentRequireIndex = Math.abs(new Random().nextInt() % totalInv)
-                            def currentRequire = invs.values()[currentRequireIndex]
+                            def currentRequire = totalInvs.get(currentRequireIndex)
 
                             List stack = currentRequire.cache
 
-                            // Can't use that dependency branch
-                            if (inv.name in stack)
+                            // Can't refer to myself
+                            if (currentRequire.name == invBoostrap.name)
+                                continue
+
+                            // Already depends on me
+                            if (invBoostrap.name in stack)
                                 continue
 
                             // Otherwise link them
-                            inv.requires << currentRequire.name
-                            inv.cache += stack
-                            inv.cache << currentRequire.name
+                            invBoostrap.requires << currentRequire.name
+                            invBoostrap.cache.addAll(stack)
+                            invBoostrap.cache << currentRequire.name
 
-                            //inv.cache = inv.cache.unique()
-
-                            myInvInstance.require(this.inv.Randomized(currentRequire.name))
+                            require inv.Randomized(currentRequire.name)
 
                             currentRequire.done = true
 
@@ -96,14 +94,24 @@ class RandomizeBatch1 {
                     })
                 }
 
-                myInvInstance.broadcast(this.inv.Randomized(inv.name))
+                broadcast inv.Randomized(invBoostrap.name)
 
-                println "Completed inv #${index++} with ${inv.requires.size()} requires"
+                println "Completed inv #${index++} with ${invBoostrap.requires.size()} requires"
             }
 
 
         }
 
-        executor.execute()
+        def report = executor.execute()
+
+        assert report.isOk()
+        assert report.digested.size() == totalInv
+    }
+
+    static class InvBootstrap {
+        String name
+        List<String> requires = []
+        List<String> cache = []
+        boolean done = false
     }
 }

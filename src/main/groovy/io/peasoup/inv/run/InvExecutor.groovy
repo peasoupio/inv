@@ -40,9 +40,7 @@ class InvExecutor {
         try {
 
             // Raising ready event for all invs before the first digest
-            for (int i = 0; i < pool.remainingInvs.size(); i++) {
-                Inv inv = pool.remainingInvs[i]
-
+            for(Inv inv : pool.remainingInvs) {
                 if (!inv.ready) {
                     continue
                 }

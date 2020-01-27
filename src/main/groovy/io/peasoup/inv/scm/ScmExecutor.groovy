@@ -40,7 +40,6 @@ class ScmExecutor {
                 if (!repository.hooks)
                     return report
 
-                def didSomething = false
                 Boolean doesPathExistsAndNotEmpty = repository.path.exists() && repository.path.list().size() > 0
 
                 if (repository.hooks.init && !doesPathExistsAndNotEmpty) {
@@ -52,18 +51,12 @@ class ScmExecutor {
                     report.isOk = executeCommands(repository, repository.hooks.init)
                     Logger.info("[SCM] ${name} [INIT] done")
 
-                    didSomething = true
                 } else if (repository.hooks.update) {
 
                     Logger.info("[SCM] ${name} [UPDATE] start")
                     report.isOk = executeCommands(repository, repository.hooks.update)
                     Logger.info("[SCM] ${name} [UPDATE] done")
-
-                    didSomething = true
                 }
-
-                if (!didSomething)
-                    report.isOk = true
 
                 return report
 
@@ -87,10 +80,6 @@ class ScmExecutor {
     }
 
     private boolean executeCommands(ScmDescriptor repository, String commands) {
-
-        // If parent undefined, can do nothing
-        if (!repository.path)
-            return false
 
         // Make sure cache is available with minimal accesses
         if (!repository.path.exists()) {
@@ -140,6 +129,6 @@ class ScmExecutor {
 
         String name
         ScmDescriptor repository
-        boolean isOk
+        boolean isOk = true
     }
 }

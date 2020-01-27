@@ -11,7 +11,7 @@ class ScmFileCollection {
     final Map<String, ScmFile.SourceFileElement> elements = [:]
 
     ScmFileCollection(File scmFolder) {
-        assert scmFolder, 'SCM folder is required'
+        assert scmFolder != null, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
         def files = scmFolder.listFiles()
@@ -25,7 +25,7 @@ class ScmFileCollection {
     }
 
     void load(File file) {
-        assert file, 'File is required'
+        assert file != null, 'File is required'
         assert file.exists(), 'File must exist on filesystem'
 
         // Check for duplicates

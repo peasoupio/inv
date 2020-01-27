@@ -49,7 +49,7 @@ class NetworkValuablePool {
     PoolReport digest() {
         isDigesting = true
         try {
-            proceedDigest()
+            return proceedDigest()
         } catch(Exception ex) {
             throw ex
         } finally {
@@ -60,9 +60,8 @@ class NetworkValuablePool {
     private PoolReport proceedDigest() {
 
         // If running in halted mode, skip cycle
-        if (runningState == HALTING) {
-            return new PoolReport()
-        }
+        if (runningState == HALTING)
+            return new PoolReport([], [] as Queue<PoolReport.PoolException>, true)
 
         // Multithreading is allowed only in a RUNNING cycle
         if (!invExecutor)
@@ -228,7 +227,7 @@ class NetworkValuablePool {
      * @return
      */
     synchronized boolean preventUnbloating(Statement statement) {
-        assert statement, 'Statement is required'
+        assert statement != null, 'Statement is required'
         assert isDigesting, "Can't prevent unbloating outside a digest cycle"
 
         if (runningState != UNBLOATING) {
@@ -250,15 +249,14 @@ class NetworkValuablePool {
      * Shutting down any remaining tasks in the pool
      */
     boolean shutdown() {
-        if (invExecutor) {
-            Logger.debug "executor is shutting down"
-            invExecutor.shutdownNow()
-            invExecutor = null
+        if (!invExecutor)
+            return false
 
-            return true
-        }
+        Logger.debug "executor is shutting down"
+        invExecutor.shutdownNow()
+        invExecutor = null
 
-        return false
+        return true
     }
 
     /**

@@ -1,5 +1,8 @@
 package io.peasoup.inv.run
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class InvExecutor {
 
     final NetworkValuablePool pool
@@ -41,12 +44,11 @@ class InvExecutor {
 
             // Raising ready event for all invs before the first digest
             for(Inv inv : pool.remainingInvs) {
-                if (!inv.ready) {
+                if (!inv.ready)
                     continue
-                }
 
                 Logger.info "[${inv.name}] event ready raised"
-                inv.ready()
+                inv.ready.call()
             }
 
             // Run for eternity

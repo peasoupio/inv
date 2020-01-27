@@ -21,7 +21,7 @@ class RunFile {
     final Map<String, List<GraphNavigator.Id>> names
 
     RunFile(File runFile) {
-        assert runFile, 'Run file is required'
+        assert runFile != null, 'Run file is required'
         assert runFile.exists(), 'Run file must exist on filesystem'
 
         this.runFile = runFile

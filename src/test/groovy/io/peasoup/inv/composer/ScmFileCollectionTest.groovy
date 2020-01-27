@@ -17,6 +17,11 @@ class ScmFileCollectionTest {
     }
 
     @Test
+    void ok() {
+        new ScmFileCollection(new File(base))
+    }
+
+    @Test
     void not_ok() {
         assertThrows(AssertionError.class, {
             new ScmFileCollection(null)
@@ -25,6 +30,14 @@ class ScmFileCollectionTest {
         assertThrows(AssertionError.class, {
             new ScmFileCollection(new File("not-existing"))
         })
+    }
+
+    @Test
+    void load_ok() {
+        def file = new File(base, "scmA.groovy")
+        assert file.exists()
+
+        scmFileCollection.load(file)
     }
 
     @Test

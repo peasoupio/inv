@@ -24,6 +24,30 @@ class RunFileTest {
         assertThrows(AssertionError.class, {
             new RunFile(new File("does-not-exists"))
         })
+
+        assertThrows(AssertionError.class, {
+            runFile.stage(null)
+        })
+
+        assertThrows(AssertionError.class, {
+            runFile.stage('')
+        })
+
+        assertThrows(AssertionError.class, {
+            runFile.stageWithoutPropagate(null)
+        })
+
+        assertThrows(AssertionError.class, {
+            runFile.stageWithoutPropagate('')
+        })
+
+        assertThrows(AssertionError.class, {
+            runFile.unstage(null)
+        })
+
+        assertThrows(AssertionError.class, {
+            runFile.unstage('')
+        })
     }
 
     @Test
@@ -31,8 +55,22 @@ class RunFileTest {
         assert runFile.selected.isEmpty()
 
         runFile.stageWithoutPropagate("my-id")
+        runFile.stageWithoutPropagate("my-id") // can handle twice
 
         assert runFile.selected.containsKey("my-id")
+    }
+
+    @Test
+    void unstage() {
+        String myId = "my-id"
+
+        runFile.stageWithoutPropagate(myId)
+        assert runFile.selected.containsKey(myId)
+
+        runFile.unstage(myId)
+        runFile.unstage(myId) // can handle twice
+
+        assert !runFile.selected.containsKey(myId)
     }
 
     @Test

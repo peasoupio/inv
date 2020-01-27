@@ -147,8 +147,11 @@ class GraphNavigator {
 
         @Override
         boolean equals(Object obj) {
-            if (!value)
-                false
+            if (obj == null)
+                return false
+
+            if (value == null)
+                return false
 
             if (obj instanceof Owner)
                 return value == ((Owner) obj).value
@@ -180,8 +183,11 @@ class GraphNavigator {
 
         @Override
         boolean equals(Object obj) {
-            if (!value)
-                false
+            if (obj == null)
+                return false
+
+            if (value == null)
+                return false
 
             if (obj instanceof Id)
                 return value == ((Id) obj).value

@@ -15,6 +15,17 @@ class NetworkValuablePoolTest {
     }
 
     @Test
+    void digest_during_halting() {
+        pool.startUnbloating()
+        pool.startHalting()
+
+        def report = pool.digest()
+
+        assert report
+        assert !report.isOk()
+    }
+
+    @Test
     void startUnbloating() {
         pool.runningState = NetworkValuablePool.RUNNING
         assert pool.startUnbloating()
@@ -34,6 +45,10 @@ class NetworkValuablePoolTest {
 
     @Test
     void checkAvailability_not_ok() {
+
+        assertThrows(AssertionError.class, {
+            pool.checkAvailability(null)
+        })
 
         assertThrows(AssertionError.class, {
             pool.checkAvailability("")
@@ -96,5 +111,10 @@ class NetworkValuablePoolTest {
         requireValuable.state = BroadcastStatement.SUCCESSFUL
 
         assert !pool.preventUnbloating(requireValuable)
+    }
+
+    @Test
+    void shutdown_without_executor() {
+        assert !pool.shutdown()
     }
 }

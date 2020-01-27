@@ -138,6 +138,9 @@ class GraphNavigatorTest {
 
     @Test
     void id_notEqual() {
+
+        assert !new GraphNavigator.Id().equals("something")
+
         def id = new GraphNavigator.Id(value: "1")
 
         assert !id.equals(null)
@@ -147,6 +150,9 @@ class GraphNavigatorTest {
 
     @Test
     void owner_notEqual() {
+
+        assert !new GraphNavigator.Owner().equals("something")
+
         def owner = new GraphNavigator.Owner(value: "1")
 
         assert !owner.equals(null)

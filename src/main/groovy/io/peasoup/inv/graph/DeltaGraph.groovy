@@ -10,8 +10,8 @@ class DeltaGraph {
     final List<DeltaLine> deltaLines = []
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
-        assert base, 'Base (reader) is required'
-        assert other, 'Other (reader) is required'
+        assert base != null, 'Base (reader) is required'
+        assert other != null, 'Other (reader) is required'
 
         def baseGraph = new RunGraph(base)
         def otherGraph = new RunGraph(other)

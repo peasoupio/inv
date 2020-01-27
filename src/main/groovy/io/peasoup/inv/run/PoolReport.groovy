@@ -1,19 +1,15 @@
 package io.peasoup.inv.run
 
-
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-
 class PoolReport {
-    final BlockingQueue<Inv> digested = new LinkedBlockingQueue<>()
-    final BlockingQueue<PoolException> exceptions = new LinkedBlockingQueue<>()
+    final Queue<Inv> digested = new LinkedList<>()
+    final Queue<PoolException> exceptions = new LinkedList<>()
     volatile boolean halted = false
 
     PoolReport() {
 
     }
 
-    PoolReport(List<Inv> digested, BlockingQueue<PoolException> exceptions, Boolean halted) {
+    PoolReport(List<Inv> digested, Queue<PoolException> exceptions, Boolean halted) {
         assert digested != null, 'Digested collection is required. NOTE: can be empty'
         assert exceptions != null, 'Exceptions collection is required. NOTE: can be empty'
 

@@ -2,6 +2,8 @@ package io.peasoup.inv.cli
 
 import org.junit.Test
 
+import static org.junit.jupiter.api.Assertions.assertThrows
+
 class InitCommandTest {
 
     @Test
@@ -17,5 +19,17 @@ class InitCommandTest {
         assert report
         assert report.name.toLowerCase() == "main"
         assert report.isOk
+    }
+
+    @Test
+    void not_ok() {
+        assertThrows(AssertionError.class, {
+            assert new InitCommand().call()
+        })
+    }
+
+    @Test
+    void rolling() {
+        assert new InitCommand().rolling()
     }
 }

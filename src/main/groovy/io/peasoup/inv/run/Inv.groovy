@@ -20,7 +20,7 @@ class Inv {
     final NetworkValuablePool pool
 
     Inv(NetworkValuablePool pool) {
-        assert pool, 'Pool is required'
+        assert pool != null, 'Pool is required'
 
         this.pool = pool
     }
@@ -155,7 +155,7 @@ class Inv {
         Integer unbloats = 0
 
         void addResults(Statement statement) {
-            assert statement, 'Statement is required'
+            assert statement != null, 'Statement is required'
 
             if (statement.state >= Statement.SUCCESSFUL) {
                 if (statement.match == RequireStatement.REQUIRE) {
@@ -173,7 +173,7 @@ class Inv {
         }
 
         void concat(Digestion digestion) {
-            assert digestion, 'Digestion is required'
+            assert digestion != null, 'Digestion is required'
 
             this.requires += digestion.requires
             this.broadcasts += digestion.broadcasts

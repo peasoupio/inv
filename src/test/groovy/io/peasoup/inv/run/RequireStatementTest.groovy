@@ -83,4 +83,18 @@ class RequireStatementTest {
 
         executor.execute()
     }
+
+    @Test
+    void during_halting() {
+
+        NetworkValuablePool pool = new NetworkValuablePool()
+        pool.startUnbloating()
+        pool.startHalting()
+
+        RequireStatement statement = new RequireStatement()
+
+        RequireStatement.REQUIRE.manage(pool, statement)
+
+        assert statement.state == Statement.NOT_PROCESSED
+    }
 }

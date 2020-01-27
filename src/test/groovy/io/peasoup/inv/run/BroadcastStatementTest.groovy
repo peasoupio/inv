@@ -190,4 +190,45 @@ class BroadcastStatementTest {
 
         executor.execute()
     }
+
+    @Test
+    void during_halting() {
+
+        NetworkValuablePool pool = new NetworkValuablePool()
+        pool.startUnbloating()
+        pool.startHalting()
+
+        BroadcastStatement statement = new BroadcastStatement()
+
+        BroadcastStatement.BROADCAST.manage(pool, statement)
+
+        assert statement.state == Statement.NOT_PROCESSED
+    }
+
+    @Test
+    void already_broadcasted() {
+
+        BroadcastStatement statement = new BroadcastStatement()
+        statement.name = "Statement"
+        statement.id = "my-id"
+
+        NetworkValuablePool pool = new NetworkValuablePool()
+
+        pool.availableStatements.put(statement.name, [
+                (statement.id): new BroadcastStatement.Response()
+        ] as Map<Object, BroadcastStatement.Response>)
+
+        BroadcastStatement.BROADCAST.manage(pool, statement)
+        assert statement.state == Statement.ALREADY_BROADCAST
+
+        pool.availableStatements[statement.name].clear()
+        statement.state = Statement.NOT_PROCESSED
+
+        pool.stagingStatements.put(statement.name, [
+                (statement.id): new BroadcastStatement.Response()
+        ] as Map<Object, BroadcastStatement.Response>)
+
+        BroadcastStatement.BROADCAST.manage(pool, statement)
+        assert statement.state == Statement.ALREADY_BROADCAST
+    }
 }

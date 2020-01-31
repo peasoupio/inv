@@ -169,7 +169,7 @@ class RunFile {
                 .unique() as List<String>
     }
 
-    Map nodesToMap(Map filter = [:], Integer from = 0, Integer step = 20) {
+    Map nodesToMap(Map filter = [:]) {
 
         List<GraphNavigator.Linkable> links = nodes
         List<GraphNavigator.Linkable> selectedLinks = selected.values()
@@ -212,11 +212,6 @@ class RunFile {
         Integer selectedCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].selected? 1 : 0    } as Integer
 
         Integer total = reduced.size()
-
-        if (total > from) {
-            def top = Math.min(total, from + step)
-            reduced = reduced[from..top - 1]
-        }
 
         return [
             count: total,

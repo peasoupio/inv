@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
+import io.peasoup.inv.utils.Regexes
 
 @CompileStatic
 class ScmFile {
@@ -45,10 +46,20 @@ class ScmFile {
             this.scriptFile = scripFile
         }
 
+        /**
+            Get filename without extension
+         */
         String simpleName() {
             return scriptFile.name.split('\\.')[0]
         }
 
+        /**
+         * Returns a Map representation of this ScmFile
+         *
+         * @param filter filter results, including [name, src, entry]
+         * @param parametersFile Optional parameters file to parse its values on parameters
+         * @return Map object
+         */
         Map toMap(Map filter = [:], File parametersFile = null) {
 
             if (filter.name && !descriptor.name.contains(filter.name as CharSequence)) return null
@@ -86,6 +97,7 @@ class ScmFile {
                         value: savedValue,
                         defaultValue: parameter.defaultValue,
                         values: [],
+                        required: parameter.required,
                         links: [
                                 values: "/scms/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
                                 save: "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
@@ -116,54 +128,19 @@ class ScmFile {
                             timeout      : descriptor.timeout
                     ],
                     links     : [
-                            view       : "/scms/view?name=${descriptor.name}",
+                            default   : "/scms/view?name=${descriptor.name}",
                             save      : "/scms/source?name=${descriptor.name}",
                             parameters: "/scms/parametersValues?name=${descriptor.name}"
                     ]
             ]
         }
 
-        void writeParameterDefaultValue(File parametersFile, SourceFileElement element, ScmDescriptor.AskParameter parameter) {
-            if (!parameter.defaultValue)
-                return
-
-            writeParameterValue(parametersFile, element, parameter.name, parameter.defaultValue)
-        }
-
-        void writeParameterValue(File parametersFile, SourceFileElement element, String parameter, String value) {
-
-            def output = [
-                    (element.descriptor.name): [
-                            (parameter): value
-                    ]
-            ]
-
-            if (parametersFile.exists()) {
-                Map existing  = new JsonSlurper().parseText(parametersFile.text) as Map
-
-                Closure merge
-                merge = { Map base, Map extend ->
-                    extend.each {
-                        if (!base.containsKey(it.key)) {
-                            base.put(it.key, it.value)
-                            return
-                        }
-
-                        if (it.value instanceof Map)
-                            merge(base[it.key] as Map, it.value as Map)
-                    }
-                }
-
-                merge(existing, output)
-
-                output = existing
-
-                parametersFile.delete()
-            }
-
-            parametersFile << JsonOutput.prettyPrint(JsonOutput.toJson(output))
-        }
-
+        /**
+         *  Resolved parameters values based on which type it is.
+         *  NOTE: For commandValues this method IS STARTING the actual process.
+         *
+         * @return A Map representation of the parameters values
+         */
         Map<String, List<String>> getParametersValues() {
 
             Map<String, List<String>> output = [:]
@@ -176,9 +153,9 @@ class ScmFile {
                 if (parameter.command) {
                     String stdout = parameter.command.execute(descriptor.env2, descriptor.path).in.text
 
-                    Logger.debug "Command: ${parameter.command}:\n${stdout}"
+                    Logger.debug "Command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 
-                    values = stdout.split(System.lineSeparator()) as List<String>
+                    values = stdout.split(Regexes.NEWLINES) as List<String>
                 }
 
                 Boolean hasFilter = parameter.filter != null
@@ -219,10 +196,84 @@ class ScmFile {
                     }
                 }
 
-                output.put(parameter.name as String, values)
+                output.put(
+                    parameter.name as String,
+                    values
+                        .findAll()
+                        .collect { it.trim() }
+                        .unique())
             }
 
             return output
+        }
+
+
+        /**
+         * Write (or update) this ScmFile parameter file for a specific parameter with its default value
+         *
+         * @param parametersFile The writable parameters file
+         * @param descriptorName The specific SCM descriptor
+         * @param parameter The parameter
+         */
+        void writeParameterDefaultValue(File parametersFile, String descriptorName, ScmDescriptor.AskParameter parameter) {
+            assert parametersFile, 'ParametersFile is required'
+            assert descriptorName, "DescriptorName is required"
+            assert parameter, "Parameter is required"
+
+            if (!parameter.defaultValue)
+                return
+
+            writeParameterValue(
+                    parametersFile,
+                    descriptorName,
+                    parameter.name,
+                    parameter.defaultValue)
+        }
+
+        /**
+         * Write (or update) this ScmFile parameter file for a specific parameter with a specific value
+         *
+         * @param parametersFile The writable parameters file
+         * @param descriptorName The specific SCM descriptor
+         * @param parameter The parameter
+         * @param value The value
+         */
+        void writeParameterValue(File parametersFile, String descriptorName, String parameter, String value) {
+            assert parametersFile, 'ParametersFile is required'
+            assert descriptorName, "DescriptorName is required"
+            assert parameter, "Parameter (name) is required"
+            assert value != null, "Parameter (value) is required"
+
+            def output = [
+                    (descriptorName): [
+                            (parameter): value
+                    ]
+            ]
+
+            if (parametersFile.exists()) {
+                Map existing  = new JsonSlurper().parseText(parametersFile.text) as Map
+
+                Closure merge
+                merge = { Map base, Map extend ->
+                    extend.each {
+                        if (!base.containsKey(it.key)) {
+                            base.put(it.key, it.value)
+                            return
+                        }
+
+                        if (it.value instanceof Map)
+                            merge(base[it.key] as Map, it.value as Map)
+                    }
+                }
+
+                merge(existing, output)
+
+                output = existing
+
+                parametersFile.delete()
+            }
+
+            parametersFile << JsonOutput.prettyPrint(JsonOutput.toJson(output))
         }
     }
 }

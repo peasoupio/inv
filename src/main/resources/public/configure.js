@@ -114,17 +114,17 @@ Vue.component('configure-parameters', {
                             <span v-else>never saved</span>
                         </p>
                         <div class="content">
-                            <p># of parameters ? <span class="has-text-weight-bold">{{scm.parameters.length}}</span></p>
+                            <p># of parameters? <span class="has-text-weight-bold">{{scm.parameters.length}}</span></p>
                             <p>Completed ? <span class="has-text-weight-bold">{{scm.completed ? "Yes": "No"}}</span></p>
                         </div>
                     </div>
 
                     <footer class="card-footer">
                         <p class="card-footer-item is-paddingless">
-                            <button class="button is-fullwidth is-link" @click.stop="expand(scm)" :disabled="scm.parameters.length == 0">Configure</button>
+                            <button class="button is-fullwidth is-link" @click.stop="editParameters(scm)" :disabled="scm.parameters.length == 0">Configure</button>
                         </p>
                         <p class="card-footer-item is-paddingless">
-                            <button class="button is-fullwidth" :disabled="scm.parameters.length == 0">Reset</button>
+                            <button class="button is-fullwidth" @click="resetParameters(scm)" :disabled="scm.parameters.length == 0">Reset</button>
                         </p>
                     </footer>
                 </div>
@@ -134,6 +134,9 @@ Vue.component('configure-parameters', {
             </div>
         </div>
     </div>
+
+
+    <pagination v-model="paginationSettings" style="margin-top: 2em" />
 
     <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
         <div class="modal-background"></div>
@@ -181,7 +184,7 @@ Vue.component('configure-parameters', {
                 </div>
 
                 <footer class="modal-card-foot">
-                  <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveAll(currentScmParameter)">Save all</button>
+                  <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveParameters(currentScmParameter)">Save all</button>
                   <button class="button" @click="resetParameters(currentScmParameter)">Reset all</button>
                 </footer>
 
@@ -196,13 +199,40 @@ Vue.component('configure-parameters', {
             count: 0,
             activeTab: 'find',
             currentScmParameter: null,
+            total: 0,
             filters: {
+                to: 20,
+                from: 0,
                 hideWhenCompleted: true
             }
         }
     },
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.fetchScms()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.to,
+                    total: vm.total
+                }
+            }
+        }
+    },
     methods: {
+        fetchScms: function() {
+            var vm = this
 
+            axios.post(vm.value.api.links.scms.selected, vm.filters).then(response => {
+                vm.total = response.data.total
+                vm.value.selectedScms = response.data.descriptors
+                vm.value.selectedScms.sort(compareValues('name'))
+            })
+        },
         filter: function() {
             var vm = this
 
@@ -219,32 +249,26 @@ Vue.component('configure-parameters', {
             return filtered.sort(compareValues('owner'))
 
         },
-        searchSelectedScm: function() {
+        applyDefaultToAll: function() {
             var vm = this
 
-            axios.get(vm.value.api.links.scms.selected).then(response => {
-                vm.value.selectedScms = response.data.descriptors
-                vm.value.selectedScms.sort(compareValues('name'))
-            })
+            axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
+                vm.fetchScms()
+           })
         },
-        areValuesUnavailable: function(scmParameters) {
-            if (scmParameters.value == undefined)
-                return false
+        resetAll: function() {
+            var vm = this
 
-            if (scmParameters.value == null)
-                return false
-
-            if (scmParameters.value === '')
-                return false
-
-            return scmParameters.values.indexOf(scmParameters.value) < 0
+            axios.post(vm.value.api.links.scms.resetAll).then(response => {
+                vm.fetchScms()
+            })
         },
         getRelativeTimestamp: function(scmParameters) {
             var vm = this
 
             return TimeAgo.inWords(scmParameters.lastModified)
         },
-        expand: function(scmParameters) {
+        editParameters: function(scmParameters) {
 
             var vm = this
 
@@ -273,41 +297,49 @@ Vue.component('configure-parameters', {
 
                 vm.$forceUpdate()
             })
+            .catch(response => {
+                console.log(response.data)
+            })
+        },
+        areValuesUnavailable: function(scmParameters) {
+            if (scmParameters.value == undefined)
+                return false
+
+            if (scmParameters.value == null)
+                return false
+
+            if (scmParameters.value === '')
+                return false
+
+            return scmParameters.values.indexOf(scmParameters.value) < 0
         },
         hasAnyChanged: function(scmParameters) {
             return scmParameters.parameters.filter(function(parameter) {
                 return parameter.changed
             }).length > 0
         },
-        applyDefaultToAll: function() {
+        saveParameters: function(scm) {
             var vm = this
 
-            axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
-                vm.searchSelectedScm()
-           })
-        },
-        resetAll: function() {
-            var vm = this
-
-            axios.post(vm.value.api.links.scms.resetAll).then(response => {
-                vm.searchSelectedScm()
-            })
-        },
-        saveAll: function(scmParameters) {
-            var vm = this
-
-            scmParameters.parameters.forEach(function(parameter) {
+            scm.parameters.forEach(function(parameter) {
                 if (!parameter.changed)
                     return
 
                 vm.saveParameter(parameter)
             })
         },
-        resetParameters: function(scmParameters) {
+        resetParameters: function(scm) {
             var vm = this
 
-            scmParameters.parameters.forEach(function(parameter) {
-                vm.setDefault(parameter)
+            scm.parameters.forEach(function(parameter) {
+
+                if (parameter.value == null ||
+                    parameter.value == undefined ||
+                    parameter.value == '')
+                    return
+
+                parameter.value = ''
+
                 vm.saveParameter(parameter)
             })
         },
@@ -336,7 +368,7 @@ Vue.component('configure-parameters', {
         close: function() {
             var vm = this
 
-            axios.get(vm.currentScmParameter.links.view).then(response => {
+            axios.get(vm.currentScmParameter.links.default).then(response => {
 
                 vm.currentScmParameter.saved = response.data.saved
                 vm.currentScmParameter.lastModified = response.data.lastModified
@@ -349,7 +381,7 @@ Vue.component('configure-parameters', {
     created: function() {
         var vm = this
 
-        vm.searchSelectedScm()
+        vm.fetchScms()
 
     }
 })
@@ -374,7 +406,7 @@ Vue.component('configure-scms', {
         <tr v-for="scm in filter()">
             <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{getRelativeTimestamp(scm)}}</span></td>
             <td>{{scm.descriptor.src}}</td>
-            <td>{{scm.descriptor.entry}}</td>
+            <td><p v-for="entry in scm.descriptor.entry">{{entry}}</p></td>
             <td>{{scm.descriptor.timeout}}</td>
             <td><button class="button is-success" @click.stop="openEdit(scm)">Edit</button></td>
         </tr>
@@ -523,9 +555,6 @@ Vue.component('configure-scms', {
         openEdit: function(scm) {
             var vm = this
 
-            vm.codeMirror.setValue(scm.script.text)
-            vm.codeMirror.refresh()
-
             vm.codeMirror.on("change",function(cm,change){
                 // Wait for script to be available since setValue will trigger change
                 if (vm.editScript == null)
@@ -535,8 +564,15 @@ Vue.component('configure-scms', {
                 vm.edited = true
             })
 
-            vm.editScript = scm
+            axios.get(scm.links.default).then(response => {
 
+                var latestScm = response.data
+
+                vm.codeMirror.setValue(latestScm.script.text)
+                vm.codeMirror.refresh()
+
+                vm.editScript = latestScm
+            })
         },
         saveSource: function() {
             var vm = this

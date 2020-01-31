@@ -3,6 +3,7 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.scm.ScmDescriptor
+import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Progressbar
 
 import static spark.Spark.*
@@ -19,6 +20,8 @@ class WebServer {
     final private ScmFileCollection scms
     final private Execution exec
     final private Review review
+
+    final private Pagination pagination
 
     WebServer(Map args) {
 
@@ -57,6 +60,8 @@ class WebServer {
         scms = new ScmFileCollection(new File(scmsLocation))
         exec = new Execution(new File(scmsLocation), new File(parametersLocation))
         review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
+
+        pagination = new Pagination(settings)
 
         // Process SETTINGS
         def staged = settings.staged()
@@ -133,7 +138,10 @@ class WebServer {
     // Runs
     void runsMany() {
         get("/run", { req, res ->
-            return JsonOutput.toJson(run.nodesToMap())
+            def output = run.nodesToMap()
+            output.nodes = pagination.resolve(output.nodes)
+
+            return JsonOutput.toJson(output)
         })
 
         get("/run/owners", { req, res ->
@@ -168,10 +176,13 @@ class WebServer {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            return JsonOutput.toJson(run.nodesToMap(
-                    filter,
-                    filter.from as Integer ?: 0,
-                    filter.step as Integer ?: settings.filters().defaultStep))
+            def output = run.nodesToMap(filter)
+
+            Integer from = filter.from as Integer
+            Integer to = filter.to as Integer
+            output.nodes = pagination.resolve(output.nodes, from, to)
+
+            return JsonOutput.toJson(output)
         })
 
         post("/run/selected", { req, res ->
@@ -184,10 +195,13 @@ class WebServer {
 
             filter.selected = true
 
-            return JsonOutput.toJson(run.nodesToMap(
-                    filter,
-                    filter.from as Integer ?: 0,
-                    filter.step as Integer ?: settings.filters().defaultStep))
+            def output = run.nodesToMap(filter)
+
+            Integer from = filter.from as Integer
+            Integer to = filter.to as Integer
+            output.nodes = pagination.resolve(output.nodes, from, to)
+
+            return JsonOutput.toJson(output)
         })
 
         post("/run/stageAll", { req, res ->
@@ -253,8 +267,10 @@ class WebServer {
     void scmsMany() {
 
         get("/scms", { req, res ->
+            def output = scms.toMap()
+            output.descriptors = pagination.resolve(output.descriptors)
 
-            return JsonOutput.toJson(scms.toMap([:], 0, settings.filters().defaultStep))
+            return JsonOutput.toJson(output)
         })
 
         post("/scms", { req, res ->
@@ -265,13 +281,22 @@ class WebServer {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            Integer from = filter.from as Integer ?: 0
-            Integer to = filter.to as Integer ?: settings.filters().defaultStep
+            def output = scms.toMap(filter)
 
-            return JsonOutput.toJson(scms.toMap(filter, from, to))
+            Integer from = filter.from as Integer
+            Integer to = filter.to as Integer
+            output.descriptors = pagination.resolve(output.descriptors, from, to)
+
+            return JsonOutput.toJson(output)
         })
 
-        get("/scms/selected", { req, res ->
+        post("/scms/selected", { req, res ->
+
+            Map filter = [:]
+            String body = req.body()
+
+            if (body)
+                filter = new JsonSlurper().parseText(body) as Map
 
             Map output = [
                     descriptors: []
@@ -281,8 +306,14 @@ class WebServer {
                 if (!run.isSelected(it.descriptor.name))
                     return
 
-                output.descriptors << it.toMap([:], new File(parametersLocation, it.simpleName() + ".json"))
+                output.descriptors << it.toMap(filter, new File(parametersLocation, it.simpleName() + ".json"))
             }
+
+            output.total = output.descriptors.size()
+            output.descriptors = pagination.resolve(
+                    output.descriptors,
+                    filter.from as Integer,
+                    filter.to as Integer)
 
             return JsonOutput.toJson(output)
         })
@@ -296,7 +327,7 @@ class WebServer {
                 def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
                 element.descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
-                    element.writeParameterDefaultValue(parametersFile, element, parameter)
+                    element.writeParameterDefaultValue(parametersFile, element.descriptor.name, parameter)
                 }
             }
 
@@ -330,10 +361,11 @@ class WebServer {
             if (!name)
                 return showError("name is required")
 
-            def element = scms.elements[name]
-            if (!element)
-                return showError("No parameter found for the specified name")
+            // Make sure to get the latest information
+            if (!scms.reload(name))
+                return showError("No SCM found for the specified name")
 
+            def element = scms.elements[name]
             def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
 
             return JsonOutput.toJson(output)
@@ -363,11 +395,21 @@ class WebServer {
             if (!name)
                 return showError("name is required")
 
-            def element = scms.elements[name]
-            if (!element)
+            if (!scms.reload(name))
                 return JsonOutput.toJson([:])
 
-            return JsonOutput.toJson(element.getParametersValues())
+            def latestElement = scms.elements[name]
+
+            // Make sure we atleast try to get repository with default or no parameters
+            List<ScmExecutor.SCMReport> report = new ScmExecutor().with {
+                add(latestElement.descriptor)
+                return execute()
+            }
+
+            if (report[0].isOk)
+                return JsonOutput.toJson(latestElement.getParametersValues())
+            else
+                return showError("could not extract SCM")
         })
 
         post("/scms/parameters", { req, res ->
@@ -392,7 +434,11 @@ class WebServer {
 
             def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
 
-            element.writeParameterValue(parametersFile, element, parameter, parameterValue.toString())
+            element.writeParameterValue(
+                    parametersFile,
+                    element.descriptor.name,
+                    parameter,
+                    parameterValue.toString())
 
             return showResult("Ok")
         })

@@ -74,10 +74,9 @@ class ScmFileCollectionTest {
                     ))
         }
 
-        def output = scmFileCollection.toMap([:], 10, 20)
+        def output = scmFileCollection.toMap([name: "1"])
 
         assert output.descriptors
-        assert output.descriptors.size() == 20
-        assert (output.descriptors[19].name as Integer) < 40
+        assert !output.descriptors.any { !it.name.contains("1") }
     }
 }

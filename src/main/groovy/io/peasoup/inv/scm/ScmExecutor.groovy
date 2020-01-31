@@ -47,15 +47,15 @@ class ScmExecutor {
                     // Make sure path is clean before init
                     repository.path.deleteDir()
 
-                    Logger.info("[SCM] ${name} [INIT] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [INIT] start")
                     report.isOk = executeCommands(repository, repository.hooks.init)
-                    Logger.info("[SCM] ${name} [INIT] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [INIT] done")
 
                 } else if (repository.hooks.update) {
 
-                    Logger.info("[SCM] ${name} [UPDATE] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [UPDATE] start")
                     report.isOk = executeCommands(repository, repository.hooks.update)
-                    Logger.info("[SCM] ${name} [UPDATE] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [UPDATE] done")
                 }
 
                 return report

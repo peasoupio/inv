@@ -2,20 +2,20 @@ scm {
 
   name "scm5"
 
-  path "./src/main/example/githubHomepage"
-  src "https://github.com/.../ServerA.git"
-  entry 'serverA.groovy'
+  path ".gitcache/githubHomepage/serverA"
+  src "https://github.com/peasoupio/inv.git"
+  entry 'src/main/example/githubHomepage/serverA.groovy'
   timeout 30000
 
   hooks {
 
     init """
-echo 'init'
+git clone -b ${branch} ${src} .
     """
 
     update """
-echo 'update'
-    """
+git pull
+    """ 
   }
 }
 
@@ -23,19 +23,19 @@ scm {
 
   name "scm6"
 
-  path "./src/main/example/githubHomepage"
-  src "https://github.com/.../ServerB.git"
-  entry 'serverB.groovy'
+  path ".gitcache/githubHomepage/serverB"
+  src "https://github.com/peasoupio/inv.git"
+  entry 'src/main/example/githubHomepage/serverB.groovy'
   timeout 30000
 
   hooks {
 
     init """
-echo 'init'
+git clone -b ${branch} ${src} .
     """
 
     update """
-echo 'update'
+git pull
     """
   }
 }

@@ -29,10 +29,15 @@ class PromoteCommandTest {
 
     @Test
     void runfile_not_existing() {
+        def tenthRun = new File(RunsRoller.runsFolder(), "10")
+        if (!tenthRun.exists())
+             tenthRun.mkdirs()
+        else {
+            def tenthRunFile = new File(tenthRun, "run.txt")
+            tenthRunFile.delete()
+        }
 
-        new File(RunsRoller.runsFolder(), "123").mkdirs()
-
-        assert new PromoteCommand(runIndex: "123").call() == -2
+        assert new PromoteCommand(runIndex: "10").call() == -2
     }
 
     @Test

@@ -1,5 +1,6 @@
 package io.peasoup.inv.composer
 
+
 import groovy.transform.CompileStatic
 import io.peasoup.inv.utils.Progressbar
 
@@ -45,6 +46,25 @@ class ScmFileCollection {
         elements.putAll(scm.elements)
     }
 
+    /*
+        Reload file to make sure latest changes are available
+     */
+    boolean reload(String name) {
+        assert name, 'Name is required'
+
+        def existingElement = elements[name]
+        if (!existingElement)
+            return false
+
+        load(existingElement.scriptFile)
+
+        def latestElement = scms.elements[name]
+        if (!latestElement)
+            return false
+
+        return true
+    }
+
     List<File> toFiles(List<String> names = null) {
         if (!names)
             return elements.values().collect { it.scriptFile }
@@ -54,7 +74,7 @@ class ScmFileCollection {
             .collect { elements[it].scriptFile }
     }
 
-    Map toMap(Map filter = [:], Integer from = 0, Integer to = 0) {
+    Map toMap(Map filter = [:]) {
 
         List<Map> filtered = []
 
@@ -71,9 +91,6 @@ class ScmFileCollection {
 
             filtered.add(element)
         }
-
-        if (filtered.size() > from + to)
-            output.descriptors = filtered[from..(from + to - 1)]
 
         return output
     }

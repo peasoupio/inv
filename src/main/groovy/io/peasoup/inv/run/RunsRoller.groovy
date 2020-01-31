@@ -27,7 +27,11 @@ class RunsRoller {
         if (!folder().exists())
             return
 
-        failFolder().delete()
+        if (Files.isSymbolicLink(failFolder().toPath()))
+            failFolder().delete()
+        else
+            failFolder().deleteDir()
+
         Files.createSymbolicLink(failFolder().toPath(), folder().canonicalFile.toPath())
     }
 
@@ -35,7 +39,11 @@ class RunsRoller {
         if (!folder().exists())
             return
 
-        successFolder().delete()
+        if (Files.isSymbolicLink(successFolder().toPath()))
+            successFolder().delete()
+        else
+            successFolder().deleteDir()
+
         Files.createSymbolicLink(successFolder().toPath(), folder().canonicalFile.toPath())
     }
 

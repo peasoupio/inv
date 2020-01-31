@@ -61,6 +61,7 @@ class ScmDescriptor {
         askBody.resolveStrategy = Closure.DELEGATE_ONLY
         askBody.delegate = ask
         askBody()
+
     }
 
     //@Override
@@ -69,10 +70,18 @@ class ScmDescriptor {
         if (parametersFile && parametersFile.exists() && parametersProperties == null)
             loadParametersProperties()
 
-        if (!parametersProperties[propertyName])
-            return '\${' + propertyName + '}'
+        // Check if a value is defined in the parameter file
+        def fromParamFile = parametersProperties[propertyName]
+        if (fromParamFile)
+            return fromParamFile
 
-        return parametersProperties[propertyName]
+        // If not, try to use the default value
+        def fromParamDefault = ask.parameters.find { it.name == propertyName }
+        if (fromParamDefault && fromParamDefault.defaultValue)
+            return fromParamDefault.defaultValue
+
+        // Otherwise, print the propertyName
+        return '\${' + propertyName + '}'
     }
 
     private void loadParametersProperties() {

@@ -2,9 +2,9 @@ scm {
 
   name "scm3"
 
-  path "./src/main/example/githubHomepage"
-  src "https://github.com/.../iis.git"
-  entry 'iis.groovy'
+  path ".gitcache/githubHomepage/iis"
+  src "https://github.com/peasoupio/inv.git"
+  entry 'src/main/example/githubHomepage/iis.groovy'
   timeout 30000
 
   ask {
@@ -14,11 +14,11 @@ scm {
   hooks {
 
     init """
-echo 'init'
+git clone -b ${branch} ${src} .
     """
 
     update """
-echo 'update'
+git pull
     """
   }
 }
@@ -27,9 +27,9 @@ scm {
 
   name "scm4"
 
-  path "./src/main/example/githubHomepage"
-  src "https://github.com/.../kubernetes.git"
-  entry 'kubernetes.groovy'
+  path ".gitcache/githubHomepage/kubernetes"
+  src "https://github.com/peasoupio/inv.git"
+  entry 'src/main/example/githubHomepage/kubernetes.groovy'
   timeout 30000
 
   ask {
@@ -39,11 +39,11 @@ scm {
   hooks {
 
     init """
-echo 'init'
+git clone -b ${branch} ${src} .
     """
 
     update """
-echo 'update'
+git pull
     """
   }
 }

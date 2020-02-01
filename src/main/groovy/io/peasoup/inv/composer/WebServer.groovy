@@ -6,6 +6,7 @@ import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Progressbar
+import org.codehaus.groovy.control.MultipleCompilationErrorsException
 
 import static spark.Spark.*
 
@@ -407,14 +408,31 @@ class WebServer {
 
             def element = scms.elements[name]
             if (!element)
-                return showError("No parameter found for the specified name")
+                return showError("No descriptor found for the specified name")
 
-            element.scriptFile.delete()
-            element.scriptFile << req.body()
+            String source = req.body()
+            Integer errorCount = 0
+            List<String> exceptionMessages = []
 
-            scms.load(element.scriptFile)
 
-            return showResult("Ok")
+            try {
+                new GroovyShell().parse(source)
+            } catch(MultipleCompilationErrorsException ex) {
+                errorCount = ex.errorCollector.errorCount
+                exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }
+            }
+
+            if (errorCount == 0) {
+                element.scriptFile.delete()
+                element.scriptFile << req.body()
+
+                scms.load(element.scriptFile)
+            }
+
+            return JsonOutput.toJson([
+                    errorCount: errorCount,
+                    errors: exceptionMessages
+            ])
         })
 
         get("/scms/parametersValues", { req, res ->

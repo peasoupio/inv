@@ -97,11 +97,7 @@ Vue.component('choose-select-simple', {
                     element.sending = true
 
                     axios.post(element.links.stage).then(response => {
-                        element.icon = ''
-                        element.sending = false
-                        element.active = true
-
-                        vm.$forceUpdate()
+                        location.reload()
                     })
                 }
 

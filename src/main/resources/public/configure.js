@@ -358,6 +358,7 @@ Vue.component('configure-parameters', {
             axios.post(parameter.links.save,{
                 parameterValue: parameter.value
             }).then(response => {
+
                 parameter.sending = false
                 parameter.saved = true
                 parameter.changed = false
@@ -437,6 +438,11 @@ Vue.component('configure-scms', {
                 </div>
 
                 <div id="editArea"></div>
+
+                <div v-if="errorCount > 0">
+                    <p>Compilation error(s) caught:</p>
+                    <p class="has-text-danger" v-for="error in errors">{{error}}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -488,7 +494,9 @@ Vue.component('configure-scms', {
             editScript: '',
             edited: false,
             sending: false,
-            saved: false
+            saved: false,
+            errorCount: 0,
+            errors: []
         }
     },
     mounted: function() {
@@ -588,11 +596,16 @@ Vue.component('configure-scms', {
                 headers: { 'Content-Type': 'text/plain' }
             }).then(response => {
 
+                vm.errorCount = response.data.errorCount
+                vm.errors = response.data.errors
+
                 vm.sending = false
-                vm.saved = true
                 vm.edited = false
 
-                vm.searchScm()
+                if (vm.errorCount == 0) {
+                    vm.saved = true
+                    vm.searchScm()
+                }
             })
         },
         closeEdit: function() {

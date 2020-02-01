@@ -26,7 +26,8 @@ Vue.component('install', {
         <span class="icon is-small" v-if="loadingMessages">
             <i class="fas fa-spinner fa-pulse"></i>
         </span>
-        <p class="subtitle is-6" v-if="!execution.running">Last execution: {{getRelativeTimestamp()}}</p>
+        <p class="subtitle is-6" v-if="!execution.running">Last execution: {{getRelativeTimestamp()}}, duration: {{getDuration()}}</p>
+        <p class="subtitle is-6" v-else :key="runningTimestamp">Started: {{getStartedAgo()}}
     </p>
     <div class="output">
         <div ref="logContainer"></div>
@@ -37,6 +38,7 @@ Vue.component('install', {
     props: ['value'],
     data: function() {
         return {
+            runningTimestamp: 0,
             refreshInterval: {},
             refreshTime: 1000,
             loaded: false,
@@ -68,7 +70,9 @@ Vue.component('install', {
 
             vm.follow()
 
-            axios.post(vm.execution.links.start)
+            axios.post(vm.execution.links.start).then(response => {
+                vm.execution.lastExecutionStartedOn = Date.now()
+            })
         },
         stop: function() {
             var vm = this
@@ -142,11 +146,32 @@ Vue.component('install', {
             })
             socket.addEventListener('close', function (event) {
                 vm.loadingMessages = false
-                vm.execution.running = false
+
+                axios.get(vm.value.api.links.execution.default).then(response => {
+                    vm.execution = response.data
+                    vm.execution.running = false
+                })
             })
         },
         getRelativeTimestamp: function() {
             return TimeAgo.inWords(this.execution.lastExecution)
+        },
+        getDuration: function() {
+            if (!this.execution.lastExecution)
+                return
+
+            if (!this.execution.lastExecutionStartedOn)
+                return
+
+            return new Date(this.execution.lastExecution - this.execution.lastExecutionStartedOn)
+                .toISOString()
+                .slice(11, -1)
+        },
+        getStartedAgo: function() {
+            if (!this.execution.running)
+                return
+
+            return TimeAgo.inWords(this.execution.lastExecutionStartedOn)
         },
         goToTop: function() {
             window.scrollTo(0, 0)
@@ -160,6 +185,9 @@ Vue.component('install', {
 
         var logContainer = this.$refs.logContainer
         setInterval(function() {
+            if (vm.execution.running)
+                vm.runningTimestamp++
+
             if (vm.buffer.length == 0)
                 return
 

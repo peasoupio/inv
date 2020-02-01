@@ -22,3 +22,4 @@ buildNumber.properties
 **/.runs/
 /src/main/example/composer/executions/
 *.scm-sh
+/.gitcache/

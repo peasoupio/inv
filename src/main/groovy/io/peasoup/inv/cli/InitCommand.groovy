@@ -42,8 +42,8 @@ class InitCommand implements CliCommand {
 
         def report = reports.find { it.name.toLowerCase() == "main" }
 
-        if (!report.isOk) {
-            Logger.warn "No named 'main' SCM defined for init."
+        if (!report || !report.isOk) {
+            Logger.warn "No named 'main' SCM is defined or available for init."
             return null
         }
 

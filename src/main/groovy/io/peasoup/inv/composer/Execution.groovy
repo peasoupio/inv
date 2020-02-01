@@ -10,6 +10,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 
+import java.nio.file.Files
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @CompileStatic
@@ -155,11 +156,12 @@ class Execution {
     Map toMap() {
         return [
             lastExecution: latestLog().lastModified(),
+            lastExecutionStartedOn: (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis(),
             executions: !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                     .findAll { it.name.isInteger() }
                     .collect { it.lastModified() },
-            running: isRunning(),
-            links: [
+                running: isRunning(),
+                links: [
                 steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },
                 start: "/execution/start",
                 stop: "/execution/stop"

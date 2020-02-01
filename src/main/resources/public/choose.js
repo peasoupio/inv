@@ -43,11 +43,11 @@ Vue.component('choose-select-simple', {
     template: `
 <div class="columns">
 
-    <div class="column is-4">
+    <div class="column is-5">
         <panel v-model="ownersSettings" v-show="owners.length > 0"/>
     </div>
 
-    <div class="column is-8" v-show="idPanels.length > 0">
+    <div class="column is-7" v-show="idPanels.length > 0">
         <div v-for="(settings, index) in idPanels">
             <panel v-model="idPanels[index]" />
         </div>
@@ -68,6 +68,8 @@ Vue.component('choose-select-simple', {
             get() {
                 var vm = this
 
+                var defaultIcon = 'fa-file-signature'
+
                 var settings = {
                     help: `
 <ul>
@@ -79,17 +81,31 @@ Vue.component('choose-select-simple', {
 `,
                     clickable: true,
                     title: "Owners",
-                    icon: 'fa-file-signature',
+                    icon: defaultIcon,
                     total: vm.owners.length,
                     elements: vm.owners
                 }
 
-                settings.click = function(element) {
-                    if (element.active)
+                settings.pick = function(element) {
+                    if (element == undefined)
                         return
 
-                    element.active = true
+                    if (element.sending)
+                        return
 
+                    element.icon = 'fa-spinner fa-pulse'
+                    element.sending = true
+
+                    axios.post(element.links.stage).then(response => {
+                        element.icon = ''
+                        element.sending = false
+                        element.active = true
+
+                        vm.$forceUpdate()
+                    })
+                }
+
+                settings.click = function(element) {
                     vm.addIdSettings(element)
                 }
 
@@ -116,13 +132,13 @@ Vue.component('choose-select-simple', {
     },
     methods: {
 
-        addIdSettings: function(element) {
+        addIdSettings: function(ownerElement) {
             var vm = this
 
             var filters = {
                 selected: false,
                 required: false,
-                owner: element.label,
+                owner: ownerElement.label,
                 id: '',
                 step: 10,
                 from: 0
@@ -142,7 +158,7 @@ Vue.component('choose-select-simple', {
 </ul>
 `,
                 clickable: true,
-                title: "Ids of: " + element.label,
+                title: "Ids of: " + ownerElement.label,
                 icon: 'fa-fingerprint',
                 total: 0,
                 activeCount: 0,
@@ -172,7 +188,6 @@ Vue.component('choose-select-simple', {
 
             settings.close = function() {
                 vm.idPanels.splice(vm.idPanels.indexOf(settings), 1)
-                element.active = false
             }
 
             settings.click = function(element) {
@@ -185,10 +200,25 @@ Vue.component('choose-select-simple', {
                 if (!element.inv.selected) {
                     axios.post(element.inv.links.stage, vm.filters).then(response => {
                         fetch()
+
+                        ownerElement.active = true
+                        if (!ownerElement.subLabel)
+                            ownerElement.subLabel = 1
+                        else
+                            ownerElement.subLabel++
                     })
                 } else {
                     axios.post(element.inv.links.unstage, vm.filters).then(response => {
                         fetch()
+
+
+                        ownerElement.subLabel--
+
+                        if (ownerElement.subLabel == 0) {
+                            ownerElement.active = false
+                            ownerElement.subLabel = null
+                        }
+
                     })
                 }
             }
@@ -211,13 +241,22 @@ Vue.component('choose-select-simple', {
         var vm = this
 
         axios.get(vm.value.api.links.run.owners).then(response => {
-
             response.data.forEach(function(owner) {
-                 vm.owners.push({
-                    active: false,
-                    label: owner.owner,
-                    clickable: true
-                 })
+                var element = {
+                  active: false,
+                  label: owner.owner,
+                  clickable: true,
+                  pickable: true,
+                  links: owner.links,
+                  icon: ''
+                }
+
+                if (owner.requiredBy > 0 || owner.selectedBy > 0) {
+                    element.active = true
+                    element.subLabel = owner.requiredBy + owner.selectedBy
+                }
+
+                vm.owners.push(element)
             })
 
             vm.owners.sort(compareValues('label'))

@@ -1,6 +1,7 @@
 package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 import javax.xml.bind.DatatypeConverter
 import java.nio.file.Files
@@ -41,7 +42,11 @@ class InvInvoker {
         if (scm)
             myNewScript.binding.setProperty("scm", scm)
 
-        myNewScript.run()
+        try {
+            myNewScript.run()
+        } catch(Exception ex) {
+            Logger.error(StackTraceUtils.sanitize(ex))
+        }
     }
 
     static String cache(File scriptFile, String classname) {

@@ -88,18 +88,14 @@ class ScmCommand implements CliCommand {
             }
         } as List<Map>
 
-        def progress = new Progressbar("Reading INV files from scm".toString(), invsFiles.size(), false)
-        progress.start {
 
-            invsFiles.each {
-                invExecutor.read(
-                        it.path as String,
-                        it.scriptFile as File,
-                        it.name as String)
-
-                progress.step()
-            }
+        invsFiles.each {
+            invExecutor.read(
+                    it.path as String,
+                    it.scriptFile as File,
+                    it.name as String)
         }
+
 
         Logger.info("[SCM] done")
 

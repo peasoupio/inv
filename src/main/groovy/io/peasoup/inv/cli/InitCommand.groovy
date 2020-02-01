@@ -25,7 +25,7 @@ class InitCommand implements CliCommand {
     }
 
     boolean rolling() {
-        return true
+        return false
     }
 
     protected ScmExecutor.SCMReport processSCM(File scmFile) {

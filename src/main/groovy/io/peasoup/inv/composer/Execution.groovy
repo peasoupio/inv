@@ -22,7 +22,6 @@ class Execution {
 
     private Process currentProcess
     private List<List<String>> messages = []
-    private File executionLog
 
     Execution(File scmFolder, File externalParametersFolder) {
 
@@ -39,12 +38,11 @@ class Execution {
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
 
-        executionLog = new File(RunsRoller.latest.folder(), "run.txt")
         resizeMessagesChunks()
     }
 
     File latestLog() {
-        return executionLog
+        return new File(RunsRoller.latest.folder(), "run.txt")
     }
 
     boolean isRunning() {
@@ -130,14 +128,14 @@ class Execution {
     }
 
     private void resizeMessagesChunks() {
-        if (!executionLog.exists())
+        if (!latestLog().exists())
             return
 
         messages.clear()
 
         def currentBatch = []
 
-        executionLog.eachLine {
+        latestLog().eachLine {
             if (currentBatch.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
                 messages << currentBatch.collect()
                 currentBatch.clear()
@@ -149,8 +147,6 @@ class Execution {
     }
 
     protected synchronized void sendMessage(String message) {
-        executionLog << message + System.lineSeparator()
-
         MessageStreamer.sessions.each {
             it.remote.sendString(message)
         }
@@ -158,7 +154,7 @@ class Execution {
 
     Map toMap() {
         return [
-            lastExecution: executionLog.lastModified(),
+            lastExecution: latestLog().lastModified(),
             executions: !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                     .findAll { it.name.isInteger() }
                     .collect { it.lastModified() },

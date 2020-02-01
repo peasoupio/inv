@@ -170,7 +170,7 @@ var TimeAgo = (function() {
   self.locales = {
     prefix: '',
     sufix:  'ago',
-
+    never:   'never happened',
     seconds: 'less than a minute',
     minute:  'about a minute',
     minutes: '%d minutes',
@@ -185,6 +185,10 @@ var TimeAgo = (function() {
   };
 
   self.inWords = function(timeAgo) {
+
+    if (!timeAgo)
+        return this.locales['never']
+
     var seconds = Math.floor((new Date() - parseInt(timeAgo)) / 1000),
         separator = this.locales.separator || ' ',
         words = this.locales.prefix + separator,

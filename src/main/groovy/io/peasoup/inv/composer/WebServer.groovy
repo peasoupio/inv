@@ -2,6 +2,7 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Progressbar
@@ -145,13 +146,15 @@ class WebServer {
         })
 
         get("/run/owners", { req, res ->
-            return JsonOutput.toJson(run.owners.keySet().collect {
+            return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
-                        owner: it,
-                        links: [
-                                stage: "/run/stage?owner=${it}",
-                                unstage: "/run/unstage?owner=${it}"
-                        ]
+                    owner: owner,
+                    selectedBy: ids.findAll { run.selected[it.value] && run.selected[it.value].selected }.size(),
+                    requiredBy: ids.findAll { run.selected[it.value] && run.selected[it.value].required }.size(),
+                    links: [
+                            stage: "/run/stage?owner=${owner}",
+                            unstage: "/run/unstage?owner=${owner}"
+                    ]
                 ]
             })
         })
@@ -239,27 +242,52 @@ class WebServer {
         post("/run/stage", { req, res ->
 
             def id = req.queryParams("id")
-            if (!id)
-                return showError("id is required")
+            if (id) {
+                run.stage(id)
+                settings.stage(id)
+                settings.save()
 
-            run.stage(id)
-            settings.stage(id)
-            settings.save()
+                return showResult("Ok")
+            }
 
-            return showResult("Ok")
+            def owner = req.queryParams("owner")
+            if (owner && run.owners[owner]) {
+                run.owners[owner].each {
+                    run.stage(it.value)
+                    settings.stage(it.value)
+                    settings.save()
+                }
+
+                return showResult("Ok")
+            }
+
+
+            return showError("Nothing was done")
         })
 
         post("/run/unstage", { req, res ->
 
             def id = req.queryParams("id")
-            if (!id)
-                return showError("id is required")
+            if (id) {
+                run.unstage(id)
+                settings.unstage(id)
+                settings.save()
 
-            run.unstage(id)
-            settings.unstage(id)
-            settings.save()
+                return showResult("Ok")
+            }
 
-            return showResult("Ok")
+            def owner = req.queryParams("owner")
+            if (owner && run.owners[owner]) {
+                run.owners[owner].each {
+                    run.unstage(it.value)
+                    settings.unstage(it.value)
+                    settings.save()
+                }
+
+                return showResult("Ok")
+            }
+
+            return showError("Nothing was done")
         })
     }
 

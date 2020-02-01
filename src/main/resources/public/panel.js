@@ -46,20 +46,20 @@ Vue.component('panel', {
             <span class="panel-icon" v-if="!element.clickable">
                 <i class="fas fa-lock" aria-hidden="true"></i>
             </span>
-            <span v-if="element.clickable">
-                <span class="panel-icon" v-if="element.icon">
-                    <i class="fas" aria-hidden="true" :class="element.icon"></i>
-                </span>
-                <span class="panel-icon" v-if="value.icon">
-                    <i class="fas" aria-hidden="true" :class="value.icon"></i>
-                </span>
+
+            <span class="panel-icon" v-if="element.clickable && value.icon">
+                <i class="fas" aria-hidden="true" :class="value.icon"></i>
             </span>
 
             <span class="tag is-primary" v-if="element.subLabel" style="margin-right: 0.75em">{{element.subLabel}}</span>
 
-            {{element.label}}
+            <span class="panel-icon" v-if="element.clickable && element.icon">
+                <i class="fas" aria-hidden="true" :class="element.icon"></i>
+            </span>
 
+            <span style="width: 100%" v-html="element.label"></span>
 
+            <a class="button" style="font-size: 0.80em" @click.stop="pick(element)" v-if="element.pickable">Pick</a>
         </a>
     </span>
 
@@ -162,6 +162,18 @@ Vue.component('panel', {
                 return
 
             vm.value.click(element)
+        },
+
+        pick: function(element) {
+            var vm = this
+
+            if (!element.pickable)
+                return
+
+            if (vm.value.pick == undefined)
+                return
+
+            vm.value.pick(element)
         },
 
         raiseFilterKeyUp: function() {

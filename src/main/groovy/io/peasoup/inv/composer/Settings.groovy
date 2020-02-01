@@ -39,13 +39,11 @@ class Settings {
         settings.staged.clear()
     }
 
-
     List<String> staged() {
         return settings.staged
     }
 
-
-    void save() {
+    synchronized void save() {
         settingsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(settings)))
     }
 

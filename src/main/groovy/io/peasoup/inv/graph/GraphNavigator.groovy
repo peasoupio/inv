@@ -49,7 +49,17 @@ class GraphNavigator {
         nodes.put(node.owner, node)
     }
 
+    List<Linkable> requiredBy(Linkable linkable) {
+        assert linkable, 'Linkable is required'
+
+        if (!g.containsVertex(linkable))
+            return null
+
+        return nc.predecessorsOf(linkable).toList()
+    }
+
     Map<Linkable, Integer> requiredByAll(Linkable linkable) {
+        assert linkable, 'Linkable is required'
 
         Map<Linkable, Integer> total = [:]
         List<Linkable> predecessors = []
@@ -86,7 +96,8 @@ class GraphNavigator {
         return total
     }
 
-    Map<Linkable, Integer> requiresAll(Linkable linkable) {
+    Map<Linkable, Integer> requiresAll(Linkable linkable, List<Linkable> excludes = []) {
+        assert linkable, 'Linkable is required'
 
         Map<Linkable, Integer> total = [:]
         List<Linkable> successors = []
@@ -111,6 +122,9 @@ class GraphNavigator {
             }
 
             def successor = successors.pop()
+
+            if (excludes.contains(successor))
+                continue
 
             if (total.containsKey(successor))
                 continue

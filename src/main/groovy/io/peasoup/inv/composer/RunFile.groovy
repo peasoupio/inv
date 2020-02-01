@@ -92,14 +92,13 @@ class RunFile {
      */
     synchronized Map propagate() {
 
-        def checkRequiresByAll = selected
+        Map<String, Selected> checkRequiresByAll = selected
                 .findAll { it.value.selected }
 
         Map<String, Integer> output = [
             all: selected.size() == nodes.size(),
             checked: checkRequiresByAll.size(),
-            added: 0,
-            skipped: 0
+            added: 0
         ] as Map<String, Integer>
 
         // (Re)init with selected only
@@ -110,36 +109,78 @@ class RunFile {
         if (output.all)
             return output
 
-        def checkRequiresByAllList = checkRequiresByAll.entrySet().toList()
 
-        while(!checkRequiresByAllList.isEmpty()) {
-            def chosen = checkRequiresByAllList.pop()
+        List<GraphNavigator.Linkable> alreadyStaged = checkRequiresByAll.values().collect { it.link }
 
-            def links = runGraph.navigator.requiresAll(chosen.value.link as GraphNavigator.Linkable)
+        // If there's more selected than remaining, we'll seek from non-selected
+        boolean reverseMode = selected.size() > (nodes.size() / 2)
+        List<Selected> toCheck
 
-            if (!links) {
-                println "${chosen.value.link.value} is not a valid id"
+        if (!reverseMode)
+            toCheck = checkRequiresByAll.values().toList() as List<Selected>
+        else
+            toCheck = nodes.findAll { !checkRequiresByAll.containsKey(it.value) }.collect { new Selected(link: new GraphNavigator.Id(value: it.value))}
+
+        while(!toCheck.isEmpty()) {
+            def chosen = toCheck.pop()
+            GraphNavigator.Linkable chosenLink = chosen.link
+
+            if (reverseMode) {
+                def links = runGraph.navigator.requiredBy(chosenLink)
+
+                if (!selected.any { links.contains(it.value.link) })
+                    continue
+
+                selected.put(chosenLink.value, new Selected(
+                        required: true,
+                        link: chosenLink
+                ))
+
+                alreadyStaged.add(chosenLink)
+
+                //if (link.isId())
+                output.added++
+
+                continue
+            }
+
+
+            Map<GraphNavigator.Linkable, Integer> links = runGraph.navigator.requiresAll(
+                    chosenLink,
+                    alreadyStaged)
+
+            if (links == null) {
+                println "${chosen.link.value} is not a valid id"
                 continue
             }
 
             for(GraphNavigator.Linkable link : links.keySet()) {
 
+                if (!link.isId())
+                    continue
+
+                /*
                 if (selected.containsKey(link.value)) {
+
+                    int sizeBefore = checkRequiresByAllList.size()
 
                     // If already selected, remove from queue
                     if (checkRequiresByAllList.removeAll { it.key == link.value})
-                        output.skipped++
+                        output.skipped += sizeBefore - checkRequiresByAllList.size()
 
                     continue
                 }
+                 */
 
                 selected.put(link.value, new Selected(
                         required: true,
                         link: link
                 ))
 
-                if (link.isId())
-                    output.added++
+                alreadyStaged.add(link)
+
+                //if (link.isId())
+                output.added++
             }
         }
 

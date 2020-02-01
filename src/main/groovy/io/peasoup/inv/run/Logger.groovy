@@ -87,11 +87,11 @@ class Logger {
         log.debug message
     }
 
-    static void error(Exception ex) {
+    static void error(Throwable ex) {
         log.error ex.getMessage(), ex
     }
 
-    static void error(String invName, Exception ex) {
+    static void error(String invName, Throwable ex) {
         String message = "inv: ${invName}, message:${ex.getMessage()}"
         send(message)
 

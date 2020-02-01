@@ -1,12 +1,12 @@
 Vue.component('install', {
     template: `
 <div>
-    <div style="position: sticky; top: 6em">
+    <div style="position: sticky; top: 6em; z-index: 10">
         <div class="buttons is-right">
-            <a href="#" class="is-link" @click="goToTop()" style="margin-right: 1em;">
+            <a class="is-link" @click="goToTop()" style="margin-right: 1em;">
                 Go to top
             </a>
-            <a href="#" class="is-link" @click="goToEnd()" style="margin-right: 1em;">
+            <a class="is-link" @click="goToEnd()" style="margin-right: 1em;">
                 Go to end
             </a>
             <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
@@ -42,7 +42,7 @@ Vue.component('install', {
             loaded: false,
             loadingMessages: true,
             execution: {},
-            messages: []
+            buffer: []
         }
     },
     methods: {
@@ -92,10 +92,16 @@ Vue.component('install', {
 
                 var steps = vm.execution.links.steps.length
 
+                if (!steps) {
+                    vm.loadingMessages = false
+                    return
+                }
+
                 var get = async function(i) {
                     await axios.get(vm.execution.links.steps[i]).then(response => {
                         response.data.forEach(function(message) {
-                            vm.appendLog(logContainer, message)
+                            //vm.appendLog(logContainer, message)
+                            vm.buffer.push(message)
                         })
 
                         if (i == steps - 1) {
@@ -127,7 +133,8 @@ Vue.component('install', {
 
             const socket = new WebSocket(new_uri)
             socket.addEventListener('message', function (event) {
-                vm.appendLog(logContainer, event.data)
+                //vm.appendLog(logContainer, event.data)
+                vm.buffer.push(event.data)
             })
             socket.addEventListener('open', function (event) {
                 vm.loadingMessages = true
@@ -145,12 +152,23 @@ Vue.component('install', {
             window.scrollTo(0, 0)
         },
         goToEnd: function() {
-            var height = window.document.body.scrollHeight
-            window.scrollTo(0, height)
+            window.scrollTo(0, window.document.body.scrollHeight)
         }
     },
     mounted: function() {
         var vm = this
+
+        var logContainer = this.$refs.logContainer
+        setInterval(function() {
+            if (vm.buffer.length == 0)
+                return
+
+            while(vm.buffer.length > 0) {
+                var message = vm.buffer.shift()
+
+                vm.appendLog(logContainer, message)
+            }
+        }, 125)
 
         vm.refresh()
     },

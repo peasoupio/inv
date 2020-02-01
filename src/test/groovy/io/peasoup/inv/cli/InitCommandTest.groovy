@@ -30,6 +30,6 @@ class InitCommandTest {
 
     @Test
     void rolling() {
-        assert new InitCommand().rolling()
+        assert !new InitCommand().rolling()
     }
 }

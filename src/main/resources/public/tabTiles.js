@@ -2,7 +2,7 @@ Vue.component('tab-tiles', {
     template: `
 <div style="position: sticky !important; top: 6em">
     <div class="tile"
-         v-for="tab in value.tabs"
+         v-for="tab in availableTabs()"
          @click="clickTab(tab)"
          style="margin-bottom: 1em;">
         <article class="tile is-child notification" :class="tab.isWhat !== undefined ? 'is-' + tab.isWhat : 'is-primary'">
@@ -28,11 +28,23 @@ Vue.component('tab-tiles', {
 
     },
     methods: {
+        availableTabs: function() {
+            var vm = this
+
+            return vm.value.tabs.filter(function(tab) {
+                return !tab.disabled
+            })
+        },
         clickTab: function(tab) {
             var vm = this
+
+            // Is it already active?
+            if (vm.activeTab == tab)
+                return
+
             var element = window.document.scrollingElement
 
-            element.scrollTo(0, vm.$parent.$el.offsetTop)
+            element.scrollTo(0, 0)
 
             var scrollIndex = 0
             var lastScrollIndex = -1
@@ -59,11 +71,13 @@ Vue.component('tab-tiles', {
 
             vm.activeTab=tab
             vm.value.tabSet(tab)
-
-
         }
     },
     mounted: function() {
-        this.setTab(this.value.tabs[0])
+        var tabs = this.availableTabs()
+        if (tabs.length == 0)
+            return
+
+        this.setTab(tabs[0])
     }
 })

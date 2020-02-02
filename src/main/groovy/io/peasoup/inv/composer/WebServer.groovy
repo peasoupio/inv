@@ -15,6 +15,8 @@ import static spark.Spark.*
 
 class WebServer {
 
+    Map configs = [:]
+
     private final String webLocation
     private final String runLocation
     private final String scmsLocation
@@ -24,7 +26,6 @@ class WebServer {
     final private ScmFileCollection scms
     final private Execution exec
 
-
     private RunFile run
     private Review review
 
@@ -32,7 +33,7 @@ class WebServer {
 
     WebServer(Map args) {
 
-         def configs = [
+        configs = [
             port: 8080
         ] + args
 
@@ -124,6 +125,7 @@ class WebServer {
         get("/api", { Request req, Response res ->
             return JsonOutput.toJson([
                 links: [
+                    setup: "/setup",
                     run: [
                         default: "/run",
                         search: "/run",
@@ -149,6 +151,13 @@ class WebServer {
                         promote: "/review/promote"
                     ]
                 ]
+            ])
+        })
+
+        get("/setup", { Request req, Response res ->
+            return JsonOutput.toJson([
+                firstTime: run == null,
+                configs: configs
             ])
         })
     }
@@ -335,26 +344,7 @@ class WebServer {
     void scmsMany() {
 
         get("/scms", { Request req, Response res ->
-            Map output = [
-                    descriptors: []
-            ]
-
-            scms.elements.values().each {
-
-                boolean selected = false
-                if (run)
-                    selected = run.isSelected(it.descriptor.name)
-
-                boolean staged = scms.staged.contains(it.descriptor.name)
-
-                def scm = it.toMap()
-                scm.selected = selected
-                scm.staged = staged
-
-                output.descriptors << scm
-            }
-
-            output.total = output.descriptors.size()
+            Map output = scms.toMap(run)
             output.descriptors = pagination.resolve(output.descriptors)
 
             return JsonOutput.toJson(output)
@@ -368,35 +358,7 @@ class WebServer {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            Map output = [
-                    descriptors: []
-            ]
-
-            scms.elements.values().each {
-
-                boolean selected = false
-                boolean staged = scms.staged.contains(it.descriptor.name)
-
-                if (run)
-                    selected = run.isSelected(it.descriptor.name)
-
-                boolean filteredOutSelected = filter.selected && !selected
-                boolean filteredOutStaged = filter.staged && !staged
-
-                if (filteredOutSelected && filteredOutStaged)
-                    return
-
-                def scm = it.toMap(filter, new File(parametersLocation, it.simpleName() + ".json"))
-                if (!scm)
-                    return
-
-                scm.selected = selected
-                scm.staged = staged
-
-                output.descriptors << scm
-            }
-
-            output.total = output.descriptors.size()
+            Map output = scms.toMap(run, filter, parametersLocation)
             output.descriptors = pagination.resolve(
                     output.descriptors,
                     filter.from as Integer,

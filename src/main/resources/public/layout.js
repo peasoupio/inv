@@ -58,7 +58,19 @@ Vue.component('layout', {
     template: `
 <div class="mainContent"  style="padding: 1em">
 
-    <p class="title is-1">INV <span class="subtitle is-3">Composer</span></p>
+    <div class="columns">
+        <div class="column">
+            <p class="title is-1">Composer</p>
+            <p class="subtitle is-3">INV</p>
+        </div>
+        <div class="column">
+            <p class="has-text-right">
+                <a href="https://github.com/peasoupio/inv" target="_blank">@peasoupio/inv <i class="fab fa-github"></i></a><br />
+                <a href="https://github.com/peasoupio/inv/issues" target="_blank">- Report an issue</a><br />
+                <a href="https://github.com/peasoupio/inv/wiki" target="_blank">- Documentation</a><br />
+            </p>
+        </div>
+    </div>
 
     <hr />
 
@@ -98,6 +110,15 @@ Vue.component('layout', {
     </div>
 
     <first-time v-if="shared.setup.firstTime"></first-time>
+
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p>
+                <strong>INV - Composer</strong> by <a href="https://peasoup.io">peasoup.io</a>. The source code is licensed <a href="https://github.com/peasoupio/inv/blob/master/LICENSE">GPL-3.0</a>.<br />
+                The website content is licensed <a href="http://https://creativecommons.org/licenses/by-nd/4.0/">CC BY-ND 4.0</a>.
+            </p>
+        </div>
+    </footer>
 </div>
 `,
     data: function() {

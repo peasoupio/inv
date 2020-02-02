@@ -62,10 +62,14 @@ class WebServer {
             System.err.println(sw.getBuffer().toString())
         })
 
+        def scmsLocationFolder = new File(scmsLocation)
+        if (!scmsLocationFolder.exists())
+            scmsLocationFolder.mkdirs()
+
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        scms = new ScmFileCollection(new File(scmsLocation))
-        exec = new Execution(new File(scmsLocation), new File(parametersLocation))
+        scms = new ScmFileCollection(scmsLocationFolder)
+        exec = new Execution(scmsLocationFolder, new File(parametersLocation))
         review = new Review()
 
         pagination = new Pagination(settings)

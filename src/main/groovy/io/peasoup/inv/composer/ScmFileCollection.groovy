@@ -90,4 +90,53 @@ class ScmFileCollection {
             .collect { elements[it].scriptFile }
     }
 
+    Map toMap(RunFile runFile = null, Map filter = [:], String parametersLocation = null) {
+
+        List<Map> filtered = []
+        Integer selectedCount = 0
+        Integer stagedCount = 0
+
+
+        elements.values().each {
+
+            boolean selected = false
+            boolean staged = staged.contains(it.descriptor.name)
+
+            if (runFile)
+                selected = runFile.isSelected(it.descriptor.name)
+
+            boolean filteredOutSelected = filter.selected && !selected
+            boolean filteredOutStaged = filter.staged && !staged
+
+            if (selected)
+                selectedCount++
+
+            if (staged)
+                stagedCount++
+
+            if (filteredOutSelected && filteredOutStaged)
+                return
+
+            File parameterLocation
+            if (parametersLocation)
+                parameterLocation = new File(parametersLocation, it.simpleName() + ".json")
+
+            def scm = it.toMap(filter, parameterLocation)
+            if (!scm)
+                return
+
+            scm.selected = selected
+            scm.staged = staged
+
+            filtered.add(scm)
+        }
+
+        return [
+            descriptors: filtered,
+            total: filtered.size(),
+            selected: selectedCount,
+            staged: stagedCount
+        ]
+    }
+
 }

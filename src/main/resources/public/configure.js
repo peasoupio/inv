@@ -41,12 +41,12 @@ Vue.component('configure', {
         completedCount: function() {
             var vm = this
 
-            if (vm.value.selectedScms.length == 0)
+            if (vm.value.selectedScms.descriptors.length == 0)
                 return 0
 
             var count = 0
 
-            vm.value.selectedScms.forEach(function(scm) {
+            vm.value.selectedScms.descriptors.forEach(function(scm) {
                 if (!scm.completed) return
 
                 count++
@@ -60,11 +60,19 @@ Vue.component('configure', {
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="value.selectedScms.length == 0">
-        Nothing selected yet...
+    <div v-if="!areSCMsAvailable()">
+        <div class="content">
+            <p class="has-text-warning has-text-centered title is-4">Nothing is staged for now.</p>
+            <p>Have you considered the following?</p>
+            <ul>
+                <li>Staging occurs in the <strong>choose</strong> step</li>
+                <li>You may stage SCMs individually.</li>
+                <li>You may also stage INVs by selecting <i>broadcast statement</i>.</li>
+                <li>Composer determines which SCM is associated to each <i>broadcast statement</i> based on the <strong>run.txt</strong> file</li>
+            </ul>
+        </div>
     </div>
     <div v-else>
-
         <div class="field is-grouped is-grouped-right">
             <div class="field">
                 <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button" style="margin-right: 1em;">
@@ -133,61 +141,60 @@ Vue.component('configure-parameters', {
                 <p class="has-text-centered">Nothing to show</p>
             </div>
         </div>
-    </div>
 
+        <pagination v-model="paginationSettings" style="margin-top: 2em" />
 
-    <pagination v-model="paginationSettings" style="margin-top: 2em" />
-
-    <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
-        <div class="modal-background"></div>
-        <div class="modal-content">
-            <div class="box" v-click-outside="close">
-                <h1 class="title is-5">Parameter(s) of: {{currentScmParameter.name}} </h1>
-                <div v-for="(parameter, index) in currentScmParameter.parameters" style="padding-bottom: 1em;">
-                    <p>{{index +1 }}. {{parameter.name}}</p>
-                    <p class="help">
-                        Usage: {{parameter.usage}}.
-                        Default value:
-                        <a v-if="parameter.defaultValue" @click="setDefault(parameter)">{{parameter.defaultValue}}</a>
-                        <span v-else>(not defined)</span>
-                    </p>
-                    <div class="field has-addons">
-                        <div class="control">
-                            <div v-if="parameter.values.length > 0">
-                                <div class="select" v-if="!areValuesUnavailable(parameter)" style="max-width: 300px;">
-                                    <select v-model="parameter.value" @change="parameter.changed = true">
-                                        <option value="" disabled hidden selected>Select value</option>
-                                        <option v-for="value in parameter.values">{{value}}</option>
-                                    </select>
+        <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
+            <div class="modal-background"></div>
+            <div class="modal-content">
+                <div class="box" v-click-outside="close">
+                    <h1 class="title is-5">Parameter(s) of: {{currentScmParameter.name}} </h1>
+                    <div v-for="(parameter, index) in currentScmParameter.parameters" style="padding-bottom: 1em;">
+                        <p>{{index +1 }}. {{parameter.name}}</p>
+                        <p class="help">
+                            Usage: {{parameter.usage}}.
+                            Default value:
+                            <a v-if="parameter.defaultValue" @click="setDefault(parameter)">{{parameter.defaultValue}}</a>
+                            <span v-else>(not defined)</span>
+                        </p>
+                        <div class="field has-addons">
+                            <div class="control">
+                                <div v-if="parameter.values.length > 0">
+                                    <div class="select" v-if="!areValuesUnavailable(parameter)" style="max-width: 300px;">
+                                        <select v-model="parameter.value" @change="parameter.changed = true">
+                                            <option value="" disabled hidden selected>Select value</option>
+                                            <option v-for="value in parameter.values">{{value}}</option>
+                                        </select>
+                                    </div>
+                                    <div class="field" v-else>
+                                        <input class="input" type="text" value="No match found" disabled></input>
+                                    </div>
                                 </div>
-                                <div class="field" v-else>
-                                    <input class="input" type="text" value="No match found" disabled></input>
+
+                                <div class="field" v-if="parameter.values.length == 0">
+                                    <input class="input" type="text" value="No values available" disabled></input>
                                 </div>
                             </div>
 
-                            <div class="field" v-if="parameter.values.length == 0">
-                                <input class="input" type="text" value="No values available" disabled></input>
-                            </div>
+                            <p class="control is-expanded">
+                                <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
+                            </p>
+                            <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
+                                <span>Saved</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </button>
                         </div>
 
-                        <p class="control is-expanded">
-                            <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
-                        </p>
-                        <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
-                            <span>Saved</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-check"></i>
-                            </span>
-                        </button>
                     </div>
 
+                    <footer class="modal-card-foot">
+                      <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveParameters(currentScmParameter)">Save all</button>
+                      <button class="button" @click="resetParameters(currentScmParameter)">Reset all</button>
+                    </footer>
+
                 </div>
-
-                <footer class="modal-card-foot">
-                  <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveParameters(currentScmParameter)">Save all</button>
-                  <button class="button" @click="resetParameters(currentScmParameter)">Reset all</button>
-                </footer>
-
             </div>
         </div>
     </div>
@@ -196,10 +203,8 @@ Vue.component('configure-parameters', {
     props: ['value'],
     data: function() {
         return {
-            count: 0,
             activeTab: 'find',
             currentScmParameter: null,
-            total: 0,
             filters: {
                 staged: true,
                 selected: true,
@@ -226,13 +231,23 @@ Vue.component('configure-parameters', {
         }
     },
     methods: {
+        areSCMsAvailable: function() {
+            var vm = this
+
+            if (vm.value.selectedScms.selected == undefined)
+                return false
+
+            if (vm.value.selectedScms.staged == undefined)
+                return false
+
+            return (vm.value.selectedScms.selected + vm.value.selectedScms.staged) > 0
+        },
         fetchScms: function() {
             var vm = this
 
             axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
-                vm.total = response.data.total
-                vm.value.selectedScms = response.data.descriptors
-                vm.value.selectedScms.sort(compareValues('name'))
+                vm.value.selectedScms = response.data
+                vm.value.selectedScms.descriptors.sort(compareValues('name'))
             })
         },
         filter: function() {
@@ -240,7 +255,7 @@ Vue.component('configure-parameters', {
 
             var filtered = []
 
-            vm.value.selectedScms.forEach(function(scm) {
+            vm.value.selectedScms.descriptors.forEach(function(scm) {
                 if (scm.completed && vm.filters.hideWhenCompleted) return
 
                 filtered.push(scm)
@@ -385,14 +400,13 @@ Vue.component('configure-parameters', {
         var vm = this
 
         vm.fetchScms()
-
     }
 })
 
 Vue.component('configure-scms', {
     template: `
 <div>
-    <div v-if="count == 0">
+    <div v-if="value.scms.total == undefined || value.scms.total == 0">
         Nothing selected yet...
     </div>
     <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
@@ -630,5 +644,8 @@ Vue.component('configure-scms', {
         closeWhoBroughtMe: function() {
             this.showWhoBroughtMe = ''
         }
+    },
+    created: function() {
+        this.searchScm()
     }
 })

@@ -3,7 +3,7 @@ Vue.component('choose', {
 <div>
     <div class="columns">
         <div class="column is-2">
-            <tab-tiles v-model="tabTilesSettings" />
+            <tab-tiles v-model="tabTilesSettings" v-if="value.setup.firstTime != undefined" />
         </div>
 
         <div class="column" v-show="currentTab.template">
@@ -25,8 +25,8 @@ Vue.component('choose', {
 
                 return {
                     tabs: [
-                        { label: 'Simple', description: 'Select from a simple view of INVs', template: 'choose-select-simple'},
-                        { label: 'Complex', description: 'Select from a more detailed view of INVs', template: 'choose-select-complex'},
+                        { label: 'Simple', description: 'Select from a simple view of INVs', template: 'choose-select-simple', disabled: vm.value.setup.firstTime },
+                        { label: 'Complex', description: 'Select from a more detailed view of INVs', template: 'choose-select-complex', disabled: vm.value.setup.firstTime },
                         { label: 'By SCM', description: 'For more experienced user, choose by SCM', template: 'choose-scm'},
                         //{ label: 'Resume', description: 'A detailed view of your current selections', template: 'choose-summary'}
 
@@ -41,36 +41,17 @@ Vue.component('choose', {
     }
 })
 
-Vue.component('choose-not-available', {
-    template: `
-<div class="content">
-    <p class="has-text-warning has-text-centered title is-4">Oopsy, it seems no run information is available.</p>
-    <p>Have you considered the following?</p>
-    <ul>
-        <li>The error basically means no "run.txt" is available within Composer's reach</li>
-        <li>The first-time usage does not provide a default "run.txt" file. You must start the process by choosing SCM. Take a look at "By SCM". Upon successful completion, "run.txt" will be available.</li>
-        <li>Check on your filesystem under INV_HOME path or the current Composer execution path if "run.txt" is present</li>
-
-    </ul>
-</div>
-`
-})
-
 Vue.component('choose-select-simple', {
     template: `
-<div>
+<div class="columns">
 
-    <choose-not-available v-if="notAvailable"></choose-not-available>
-    <div class="columns" v-else>
+    <div class="column is-5">
+        <panel v-model="ownersSettings" v-show="owners.length > 0"/>
+    </div>
 
-        <div class="column is-5">
-            <panel v-model="ownersSettings" v-show="owners.length > 0"/>
-        </div>
-
-        <div class="column is-7" v-show="idPanels.length > 0">
-            <div v-for="(settings, index) in idPanels">
-                <panel v-model="idPanels[index]" />
-            </div>
+    <div class="column is-7" v-show="idPanels.length > 0">
+        <div v-for="(settings, index) in idPanels">
+            <panel v-model="idPanels[index]" />
         </div>
     </div>
 </div>

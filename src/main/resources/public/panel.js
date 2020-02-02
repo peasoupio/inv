@@ -69,7 +69,7 @@ Vue.component('panel', {
 
 
     <div class="panel-block">
-        <button class="button is-link is-outlined is-fullwidth" @click="filters.input = ''">
+        <button class="button is-link is-outlined is-fullwidth" @click="reset()">
             Reset filter
         </button>
     </div>
@@ -174,6 +174,13 @@ Vue.component('panel', {
                 return
 
             vm.value.pick(element)
+        },
+
+        reset: function() {
+            var vm = this
+
+            vm.filters.input = ''
+            vm.raiseFilterKeyUp()
         },
 
         raiseFilterKeyUp: function() {

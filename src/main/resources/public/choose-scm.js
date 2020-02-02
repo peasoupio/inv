@@ -2,25 +2,22 @@ Vue.component('choose-scm', {
     template: `
 <div>
 
-    <div v-if="count == 0">
+    <div v-if="value.scms.total == undefined || value.scms.total == 0">
         No SCMS available yet...
     </div>
     <div v-else>
-
         <div class="field is-grouped is-grouped-right">
             <div class="field">
                 <button @click="stageAll()"class="button" style="margin-right: 1em;">
-                    Stage all
+                    Stage all ({{value.scms.total - value.scms.staged}})
                 </button>
             </div>
             <div class="field">
                 <button @click="unstageAll()"class="button">
-                    Unstage all
+                    Unstage all ({{value.scms.staged}})
                 </button>
             </div>
         </div>
-
-        <hr />
 
         <table class="table is-striped is-narrow is-hoverable is-fullwidth" >
             <thead>
@@ -49,7 +46,6 @@ Vue.component('choose-scm', {
     props: ['value'],
     data: function() {
         return {
-            count: this.value.scms.length,
             filters: {
                 from: 0,
                 step: 20,
@@ -98,13 +94,19 @@ Vue.component('choose-scm', {
             })
         },
         stage: function(scm) {
+            var vm = this
+
             axios.post(scm.links.stage).then(response => {
                 scm.staged = true
+                vm.value.scms.staged++
             })
         },
         unstage: function(scm) {
+            var vm = this
+
             axios.post(scm.links.unstage).then(response => {
                 scm.staged = false
+                vm.value.scms.staged--
             })
         },
         stageAll: function() {
@@ -121,5 +123,8 @@ Vue.component('choose-scm', {
                 vm.searchScm()
             })
         }
+    },
+    created: function() {
+        this.searchScm()
     }
 })

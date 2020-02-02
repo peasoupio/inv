@@ -1,3 +1,59 @@
+Vue.component('first-time', {
+    template: `
+<div class="modal is-active" v-if="!closed">
+    <div class="modal-background"></div>
+    <div class="modal-content" style="width: 50%">
+        <div class="box" v-click-outside="close">
+            <div class="content">
+                <p class="has-text-warning has-text-centered title is-4">Oopsy, it seems no run information is available.</p>
+                <p>Have you considered the following?</p>
+                <ul>
+                    <li>The error basically means no "run.txt" is available within Composer's reach</li>
+                    <li>The first-time usage does not provide a default "run.txt" file. You must start the process by choosing SCM. Take a look at "By SCM". Upon successful completion, "run.txt" will be available.</li>
+                    <li>Check on your filesystem under INV_HOME path or the current Composer execution path if "run.txt" is present</li>
+                </ul>
+            </div>
+            <p class="has-text-right">
+                <a @click="toggleFirstTimeNotShowAgain()">
+                    Show this message again?
+                    <span v-show="firstTimeNotShowAgain()"><i class="fas fa-check-square"></i></span>
+                    <span v-show="!firstTimeNotShowAgain()"><i class="far fa-square"></i></span>
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+`,
+    data: function() {
+        return {
+           closed: false
+        }
+    },
+    methods: {
+        firstTimeNotShowAgain: function() {
+            if (localStorage.firstTimeNotShowAgain == undefined)
+                return false
+
+            return localStorage.firstTimeNotShowAgain === "false"
+        },
+        toggleFirstTimeNotShowAgain: function() {
+            if (this.firstTimeNotShowAgain())
+                localStorage.firstTimeNotShowAgain = "true"
+            else
+                localStorage.firstTimeNotShowAgain = "false"
+
+            this.$forceUpdate()
+
+        },
+        close: function() {
+            this.closed = true
+        }
+    },
+    mounted: function() {
+        this.closed = this.firstTimeNotShowAgain()
+    }
+})
+
 Vue.component('layout', {
     template: `
 <div class="mainContent"  style="padding: 1em">
@@ -36,9 +92,12 @@ Vue.component('layout', {
     <hr />
 
     <div v-if="ready()" style="min-height: 75vh;">
-        <p class="title is-2">{{currentStep.name}}: </p>
+        <p class="title is-2">{{currentStep.name}}:</p>
+        <p class="subtitle is-5">{{currentStep.description}}</p>
         <component v-bind:is="currentStep.template" v-model="shared" />
     </div>
+
+    <first-time v-if="shared.setup.firstTime"></first-time>
 </div>
 `,
     data: function() {
@@ -53,6 +112,7 @@ Vue.component('layout', {
             ],
             shared: {
                 api: {},
+                setup: {},
                 scms: {},
                 selectedScms: [],
                 invs: {},
@@ -118,14 +178,20 @@ Vue.component('layout', {
         })
 
         axios.get('/api').then(response => {
-
             vm.shared.api = response.data
 
+
+            axios.get(vm.shared.api.links.setup).then(response => {
+                vm.shared.setup = response.data
+            })
+
+            /*
             axios.get(vm.shared.api.links.scms.default).then(response => {
                 vm.shared.scms = response.data
 
                 vm.$forceUpdate()
             })
+            */
         })
     }
 })

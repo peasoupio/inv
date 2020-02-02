@@ -158,10 +158,10 @@ Vue.component('install', {
         },
         getDuration: function() {
             if (!this.execution.lastExecution)
-                return
+                return "never happened"
 
             if (!this.execution.lastExecutionStartedOn)
-                return
+                return "never happened"
 
             return new Date(this.execution.lastExecution - this.execution.lastExecutionStartedOn)
                 .toISOString()

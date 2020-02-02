@@ -9,7 +9,10 @@ class Settings {
         filters: [
             defaultStep: 20
         ],
-        staged: []
+        staged: [
+            ids: [],
+            scms: []
+        ]
     ]
     final private File settingsFile
 
@@ -22,25 +25,40 @@ class Settings {
             settings += new JsonSlurper().parse(settingsFile.newReader())
     }
 
-
     Map filters() {
         return settings.filters
     }
 
-    void stage(String id) {
-        settings.staged << id
+    void stageId(String id) {
+        settings.staged.ids << id
     }
 
-    void unstage(String id) {
-        settings.staged.remove(id)
+    void unstageId(String id) {
+        settings.staged.ids.remove(id)
     }
 
-    void unstageAll() {
-        settings.staged.clear()
+    void unstageAllIds() {
+        settings.staged.ids.clear()
     }
 
-    List<String> staged() {
-        return settings.staged
+    List<String> stagedIds() {
+        return settings.staged.ids
+    }
+
+    void stageSCM(String id) {
+        settings.staged.scms << id
+    }
+
+    void unstageSCM(String id) {
+        settings.staged.scms.remove(id)
+    }
+
+    void unstageAllSCMs() {
+        settings.staged.scms.clear()
+    }
+
+    List<String> stagedSCMs() {
+        return settings.staged.scms
     }
 
     synchronized void save() {

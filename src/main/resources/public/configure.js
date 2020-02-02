@@ -67,7 +67,7 @@ Vue.component('configure-parameters', {
 
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button">
+                <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button" style="margin-right: 1em;">
                     Hide when completed
                 </button>
             </div>
@@ -201,6 +201,8 @@ Vue.component('configure-parameters', {
             currentScmParameter: null,
             total: 0,
             filters: {
+                staged: true,
+                selected: true,
                 to: 20,
                 from: 0,
                 hideWhenCompleted: true
@@ -227,7 +229,7 @@ Vue.component('configure-parameters', {
         fetchScms: function() {
             var vm = this
 
-            axios.post(vm.value.api.links.scms.selected, vm.filters).then(response => {
+            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
                 vm.total = response.data.total
                 vm.value.selectedScms = response.data.descriptors
                 vm.value.selectedScms.sort(compareValues('name'))
@@ -399,8 +401,8 @@ Vue.component('configure-scms', {
             <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
             <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm(true)"></th>
             <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm(true)"></th>
-            <th style="width: 5%">Timeout</th>
-            <th style="width: 5%">Options</th>
+            <th style="width: 8%">Timeout</th>
+            <th style="width: 8%">Options</th>
         </tr>
         </thead>
         <tbody>
@@ -409,7 +411,7 @@ Vue.component('configure-scms', {
             <td>{{scm.descriptor.src}}</td>
             <td><p v-for="entry in scm.descriptor.entry">{{entry}}</p></td>
             <td>{{scm.descriptor.timeout}}</td>
-            <td><button class="button is-success" @click.stop="openEdit(scm)">Edit</button></td>
+            <td><button class="button is-link" @click.stop="openEdit(scm)">Edit</button></td>
         </tr>
         </tbody>
     </table>

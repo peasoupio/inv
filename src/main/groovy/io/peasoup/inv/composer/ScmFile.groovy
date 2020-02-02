@@ -57,6 +57,7 @@ class ScmFile {
          * Returns a Map representation of this ScmFile
          *
          * @param filter filter results, including [name, src, entry]
+         * @param selectionState selection results [selected, staged]
          * @param parametersFile Optional parameters file to parse its values on parameters
          * @return Map object
          */
@@ -119,6 +120,8 @@ class ScmFile {
                     lastModified: lastModified,
                     saved: saved,
                     completed: completedParameters == parameters.size(),
+                    staged: false,
+                    selected: false,
                     descriptor: [
                             name         : descriptor.name,
                             entry        : descriptor.entry,
@@ -129,6 +132,8 @@ class ScmFile {
                     ],
                     links     : [
                             default   : "/scms/view?name=${descriptor.name}",
+                            stage     : "/scms/stage?name=${descriptor.name}",
+                            unstage   : "/scms/unstage?name=${descriptor.name}",
                             save      : "/scms/source?name=${descriptor.name}",
                             parameters: "/scms/parametersValues?name=${descriptor.name}"
                     ]

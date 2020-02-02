@@ -11,6 +11,8 @@ class ScmFileCollection {
 
     final Map<String, ScmFile.SourceFileElement> elements = [:]
 
+    final Set<String> staged = new HashSet<>()
+
     ScmFileCollection(File scmFolder) {
         assert scmFolder != null, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
@@ -65,6 +67,20 @@ class ScmFileCollection {
         return true
     }
 
+    void stage(String name) {
+        if (!elements.containsKey(name))
+            return
+
+        staged.add(name)
+    }
+
+    void unstage(String name) {
+        if (!elements.containsKey(name))
+            return
+
+        staged.remove(name)
+    }
+
     List<File> toFiles(List<String> names = null) {
         if (!names)
             return elements.values().collect { it.scriptFile }
@@ -72,27 +88,6 @@ class ScmFileCollection {
         return names
             .findAll { elements.containsKey(it) }
             .collect { elements[it].scriptFile }
-    }
-
-    Map toMap(Map filter = [:]) {
-
-        List<Map> filtered = []
-
-        Map output = [
-                descriptors: filtered,
-                total: scms.sum { it.elements.size() }
-        ]
-
-        elements.values().each {
-            def element = it.toMap(filter)
-
-            if (!element)
-                return
-
-            filtered.add(element)
-        }
-
-        return output
     }
 
 }

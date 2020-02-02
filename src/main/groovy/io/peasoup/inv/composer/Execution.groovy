@@ -154,9 +154,17 @@ class Execution {
     }
 
     Map toMap() {
+        Long lastExecution = 0
+        Long lastExecutionStartedOn = 0
+
+        if (latestLog().exists()) {
+            lastExecution = latestLog().lastModified()
+            lastExecutionStartedOn = (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
+        }
+
         return [
-            lastExecution: latestLog().lastModified(),
-            lastExecutionStartedOn: (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis(),
+            lastExecution: lastExecution,
+            lastExecutionStartedOn: lastExecutionStartedOn,
             executions: !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                     .findAll { it.name.isInteger() }
                     .collect { it.lastModified() },

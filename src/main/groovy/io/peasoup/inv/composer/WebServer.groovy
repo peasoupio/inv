@@ -3,10 +3,13 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.graph.GraphNavigator
+import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Progressbar
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
+import spark.Request
+import spark.Response
 
 import static spark.Spark.*
 
@@ -18,10 +21,12 @@ class WebServer {
     private final String parametersLocation
 
     final private Settings settings
-    private RunFile run
     final private ScmFileCollection scms
     final private Execution exec
-    final private Review review
+
+
+    private RunFile run
+    private Review review
 
     final private Pagination pagination
 
@@ -58,23 +63,33 @@ class WebServer {
 
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        run = new RunFile(new File(runLocation, "run.txt"))
         scms = new ScmFileCollection(new File(scmsLocation))
         exec = new Execution(new File(scmsLocation), new File(parametersLocation))
-        review = new Review(new File(runLocation, "run.txt"), exec.latestLog())
+        review = new Review()
 
         pagination = new Pagination(settings)
 
+        def runFile = baseFile()
+        if (runFile.exists())
+            run = new RunFile(runFile)
+
         // Process SETTINGS
-        def staged = settings.staged()
-        new Progressbar("Staging from 'settings.xml'", staged.size(), false).start {
-            staged.each {
+        def stagedIds = settings.stagedIds()
+        def stagedScms = settings.stagedSCMs()
+        new Progressbar("Staging from 'settings.xml'", stagedIds.size() + stagedScms.size(), false).start {
+            stagedIds.each {
                 run.stageWithoutPropagate(it)
+                step()
+            }
+
+            stagedScms.each {
+                scms.stage(it)
                 step()
             }
         }
 
-        run.propagate()
+        if (run)
+            run.propagate()
 
         println "Ready!"
     }
@@ -104,9 +119,9 @@ class WebServer {
 
     // System-wise
     void system() {
-        get("/stop", { req, res -> stop() })
+        get("/stop", { Request req, Response res -> stop() })
 
-        get("/api", { req, res ->
+        get("/api", { Request req, Response res ->
             return JsonOutput.toJson([
                 links: [
                     run: [
@@ -121,7 +136,8 @@ class WebServer {
                     scms: [
                         default: "/scms",
                         search: "/scms",
-                        selected: "/scms/selected",
+                        stageAll: "/scms/stageAll",
+                        unstageAll: "/scms/unstageAll",
                         applyDefaultAll: "/scms/applyDefaultAll",
                         resetAll: "/scms/resetAll"
                     ],
@@ -139,14 +155,20 @@ class WebServer {
 
     // Runs
     void runsMany() {
-        get("/run", { req, res ->
+        get("/run", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
+
             def output = run.nodesToMap()
             output.nodes = pagination.resolve(output.nodes)
 
             return JsonOutput.toJson(output)
         })
 
-        get("/run/owners", { req, res ->
+        get("/run/owners", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
+
             return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
                     owner: owner,
@@ -160,7 +182,10 @@ class WebServer {
             })
         })
 
-        get("/run/names", { req, res ->
+        get("/run/names", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
+
             return JsonOutput.toJson(run.names.keySet().collect {
                 [
                         name: it,
@@ -172,7 +197,9 @@ class WebServer {
             })
         })
 
-        post("/run", { req, res ->
+        post("/run", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             String body = req.body()
             Map filter = [:]
@@ -189,7 +216,9 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
-        post("/run/selected", { req, res ->
+        post("/run/selected", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             String body = req.body()
             Map filter = [:]
@@ -208,11 +237,13 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
-        post("/run/stageAll", { req, res ->
+        post("/run/stageAll", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             run.stageAll()
             run.nodes.each {
-                settings.stage(it.value)
+                settings.stageId(it.value)
             }
 
             settings.save()
@@ -220,10 +251,12 @@ class WebServer {
             return showResult("Ok")
         })
 
-        post("/run/unstageAll", { req, res ->
+        post("/run/unstageAll", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             run.unstageAll()
-            settings.unstageAll()
+            settings.unstageAllIds()
             settings.save()
 
             return showResult("Ok")
@@ -231,21 +264,25 @@ class WebServer {
     }
 
     void runsSpecific() {
-        get("/run/requiredBy", { req, res ->
+        get("/run/requiredBy", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (!id)
-                return showError("id is required")
+                return showError(res, "id is required")
 
             return JsonOutput.toJson(run.requireByToMap(id))
         })
 
-        post("/run/stage", { req, res ->
+        post("/run/stage", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (id) {
                 run.stage(id)
-                settings.stage(id)
+                settings.stageId(id)
                 settings.save()
 
                 return showResult("Ok")
@@ -255,7 +292,7 @@ class WebServer {
             if (owner && run.owners[owner]) {
                 run.owners[owner].each {
                     run.stage(it.value)
-                    settings.stage(it.value)
+                    settings.stageId(it.value)
                     settings.save()
                 }
 
@@ -263,15 +300,17 @@ class WebServer {
             }
 
 
-            return showError("Nothing was done")
+            return showError(res, "Nothing was done")
         })
 
-        post("/run/unstage", { req, res ->
+        post("/run/unstage", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (id) {
                 run.unstage(id)
-                settings.unstage(id)
+                settings.unstageId(id)
                 settings.save()
 
                 return showResult("Ok")
@@ -281,45 +320,47 @@ class WebServer {
             if (owner && run.owners[owner]) {
                 run.owners[owner].each {
                     run.unstage(it.value)
-                    settings.unstage(it.value)
+                    settings.unstageId(it.value)
                     settings.save()
                 }
 
                 return showResult("Ok")
             }
 
-            return showError("Nothing was done")
+            return showError(res, "Nothing was done")
         })
     }
 
     // Scms
     void scmsMany() {
 
-        get("/scms", { req, res ->
-            def output = scms.toMap()
+        get("/scms", { Request req, Response res ->
+            Map output = [
+                    descriptors: []
+            ]
+
+            scms.elements.values().each {
+
+                boolean selected = false
+                if (run)
+                    selected = run.isSelected(it.descriptor.name)
+
+                boolean staged = scms.staged.contains(it.descriptor.name)
+
+                def scm = it.toMap()
+                scm.selected = selected
+                scm.staged = staged
+
+                output.descriptors << scm
+            }
+
+            output.total = output.descriptors.size()
             output.descriptors = pagination.resolve(output.descriptors)
 
             return JsonOutput.toJson(output)
         })
 
-        post("/scms", { req, res ->
-
-            Map filter = [:]
-            String body = req.body()
-
-            if (body)
-                filter = new JsonSlurper().parseText(body) as Map
-
-            def output = scms.toMap(filter)
-
-            Integer from = filter.from as Integer
-            Integer to = filter.to as Integer
-            output.descriptors = pagination.resolve(output.descriptors, from, to)
-
-            return JsonOutput.toJson(output)
-        })
-
-        post("/scms/selected", { req, res ->
+        post("/scms", { Request req, Response res ->
 
             Map filter = [:]
             String body = req.body()
@@ -332,10 +373,27 @@ class WebServer {
             ]
 
             scms.elements.values().each {
-                if (!run.isSelected(it.descriptor.name))
+
+                boolean selected = false
+                boolean staged = scms.staged.contains(it.descriptor.name)
+
+                if (run)
+                    selected = run.isSelected(it.descriptor.name)
+
+                boolean filteredOutSelected = filter.selected && !selected
+                boolean filteredOutStaged = filter.staged && !staged
+
+                if (filteredOutSelected && filteredOutStaged)
                     return
 
-                output.descriptors << it.toMap(filter, new File(parametersLocation, it.simpleName() + ".json"))
+                def scm = it.toMap(filter, new File(parametersLocation, it.simpleName() + ".json"))
+                if (!scm)
+                    return
+
+                scm.selected = selected
+                scm.staged = staged
+
+                output.descriptors << scm
             }
 
             output.total = output.descriptors.size()
@@ -347,7 +405,30 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
-        post("/scms/applyDefaultAll", { req, res ->
+        post("/scms/stageAll", { Request req, Response res ->
+            settings.unstageAllSCMs()
+
+            scms.elements.keySet().each {
+                scms.stage(it)
+                settings.stageSCM(it)
+            }
+            settings.save()
+
+            return showResult("staged all")
+        })
+
+        post("/scms/unstageAll", { Request req, Response res ->
+            settings.unstageAllSCMs()
+
+            scms.elements.keySet().each {
+                scms.unstage(it)
+            }
+            settings.save()
+
+            return showResult("unstaged all")
+        })
+
+        post("/scms/applyDefaultAll", { Request req, Response res ->
             scms.elements.values().each { ScmFile.SourceFileElement element ->
 
                 if (!run.isSelected(element.descriptor.name))
@@ -363,7 +444,7 @@ class WebServer {
             return showResult("Ok")
         })
 
-        post("/scms/resetAll", { req, res ->
+        post("/scms/resetAll", { Request req, Response res ->
 
             scms.elements.values().each { ScmFile.SourceFileElement element ->
 
@@ -384,15 +465,15 @@ class WebServer {
 
     void scmsSpecific() {
 
-        get("/scms/view", { req, res ->
+        get("/scms/view", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return showError("name is required")
+                return showError(res, "name is required")
 
             // Make sure to get the latest information
             if (!scms.reload(name))
-                return showError("No SCM found for the specified name")
+                return showError(res, "No SCM found for the specified name")
 
             def element = scms.elements[name]
             def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
@@ -400,15 +481,41 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
-        post("/scms/source", { req, res ->
+        post("/scms/stage", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return showError("name is required")
+                return showError(res, "name is required")
+
+            scms.stage(name)
+            settings.stageSCM(name)
+            settings.save()
+
+            return showResult("staged")
+        })
+
+        post("/scms/unstage", { Request req, Response res ->
+
+            def name = req.queryParams("name")
+            if (!name)
+                return showError(res, "name is required")
+
+            scms.unstage(name)
+            settings.unstageSCM(name)
+            settings.save()
+
+            return showResult("unstaged")
+        })
+
+        post("/scms/source", { Request req, Response res ->
+
+            def name = req.queryParams("name")
+            if (!name)
+                return showError(res, "name is required")
 
             def element = scms.elements[name]
             if (!element)
-                return showError("No descriptor found for the specified name")
+                return showError(res, "No descriptor found for the specified name")
 
             String source = req.body()
             Integer errorCount = 0
@@ -435,11 +542,11 @@ class WebServer {
             ])
         })
 
-        get("/scms/parametersValues", { req, res ->
+        get("/scms/parametersValues", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return showError("name is required")
+                return showError(res, "name is required")
 
             if (!scms.reload(name))
                 return JsonOutput.toJson([:])
@@ -455,22 +562,22 @@ class WebServer {
             if (report[0].isOk)
                 return JsonOutput.toJson(latestElement.getParametersValues())
             else
-                return showError("could not extract SCM")
+                return showError(res, "could not extract SCM")
         })
 
-        post("/scms/parameters", { req, res ->
+        post("/scms/parameters", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return showError("name is required")
+                return showError(res, "name is required")
 
             def parameter = req.queryParams("parameter")
             if (!parameter)
-                return showError("parameter is required")
+                return showError(res, "parameter is required")
 
             def element = scms.elements[name]
             if (!element)
-                return showError("No parameter found for the specified name")
+                return showError(res, "No parameter found for the specified name")
 
             def payload = req.body()
             def parameterValue = payload
@@ -493,11 +600,11 @@ class WebServer {
     //Executions
     @SuppressWarnings("GroovyAssignabilityCheck")
     void execution() {
-        get("/execution", { req, res ->
+        get("/execution", { Request req, Response res ->
             return JsonOutput.toJson(exec.toMap())
         })
 
-        get("/execution/logs/:ìndex", { req, res ->
+        get("/execution/logs/:ìndex", { Request req, Response res ->
 
             def index = req.params("ìndex")
             if (!index)
@@ -506,11 +613,17 @@ class WebServer {
             return JsonOutput.toJson(exec.messages[Integer.parseInt(index)])
         })
 
-        post("/execution/start", { req, res ->
+        post("/execution/start", { Request req, Response res ->
             if (exec.isRunning())
                 return "Already running"
 
-            List<File> scmFiles = scms.toFiles(run.selectedScms()) as List<File>
+            List<String> toExecute = []
+            toExecute += scms.staged
+
+            if (run)
+                toExecute += run.selectedScms()
+
+            List<File> scmFiles = scms.toFiles(toExecute.unique()) as List<File>
 
             exec.start(scmFiles)
             Thread.sleep(50)
@@ -520,7 +633,7 @@ class WebServer {
             ])
         })
 
-        post("/execution/stop", { req, res ->
+        post("/execution/stop", { Request req, Response res ->
             if (!exec.isRunning())
                 return "Already stopped"
 
@@ -532,24 +645,40 @@ class WebServer {
     }
 
     void review() {
-        get("/review", { req, res ->
+        get("/review", { Request req, Response res ->
             if (!exec.latestLog().exists())
-                return showError("Latest execution log does not exists on filesystem")
+                return showError(res, "Latest execution log does not exists on filesystem")
 
-            return JsonOutput.toJson(review.toMap())
+            def base = baseFile()
+
+            if (!base.exists()) {
+                if (!exec.latestLog().exists())
+                    return showError(res, "Review is not ready yet")
+                else {
+                    base = new File(RunsRoller.latest.folder(), ".base.tmp")
+                    base.delete()
+                    base << "Generated automatically by Composer" + System.lineSeparator()
+                    base << "This file is used to allow review on a first run since no promoted run.txt exists" + System.lineSeparator()
+                }
+            }
+
+            return JsonOutput.toJson(review.compare(base, exec.latestLog()))
         })
 
-        post("/review/promote", { req, res ->
+        post("/review/promote", { Request req, Response res ->
             if (!exec.latestLog().exists())
-                return showError("Latest execution log does not exists on filesystem")
+                return showError(res, "Latest execution log does not exists on filesystem")
 
             if (!review.promote())
-                return showError("failed to promote")
-
+                return showError(res, "failed to promote")
 
             // Recalculate RunFile
-            run = new RunFile(new File(runLocation, "run.txt"))
-            settings.unstageAll()
+            run = new RunFile(baseFile())
+            scms.elements.keySet().each {
+                scms.unstage(it)
+            }
+            settings.unstageAllIds()
+            settings.unstageAllSCMs()
             settings.save()
 
             return showResult("promoted")
@@ -557,7 +686,13 @@ class WebServer {
         })
     }
 
-    static String showError(String message) {
+    File baseFile() {
+        return new File(runLocation, "run.txt")
+    }
+
+    static String showError(Response res, String message) {
+        res.status(500)
+
         return JsonOutput.toJson([
                 error: message
         ])
@@ -568,5 +703,4 @@ class WebServer {
             result: message
         ])
     }
-
 }

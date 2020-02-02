@@ -1,9 +1,6 @@
 package io.peasoup.inv.composer
 
-
 import org.junit.Test
-
-import static org.junit.jupiter.api.Assertions.assertThrows
 
 class ReviewTest {
 
@@ -12,30 +9,8 @@ class ReviewTest {
         def base =  new File(getClass().getResource('/logOutput1.txt').toURI())
         def other =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())
 
-        def review = new Review(base, other)
+        def review = new Review()
 
-        assert review.toMap().lines
-    }
-
-    @Test
-    void not_ok() {
-
-        def existing = new File(getClass().getResource('/logOutput1.txt').toURI())
-
-        assertThrows(AssertionError.class, {
-            new Review(null, null)
-        })
-
-        assertThrows(AssertionError.class, {
-            new Review(existing, null)
-        })
-
-        assertThrows(AssertionError.class, {
-            new Review(null, existing)
-        })
-
-        assertThrows(AssertionError.class, {
-            new Review(new File("not-existing"), existing)
-        })
+        assert review.compare(base, other).lines
     }
 }

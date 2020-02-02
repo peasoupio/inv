@@ -1,6 +1,6 @@
 package io.peasoup.inv.composer
 
-import io.peasoup.inv.scm.ScmDescriptor
+
 import org.junit.Before
 import org.junit.Test
 
@@ -57,26 +57,5 @@ class ScmFileCollectionTest {
         assert scmFileCollection.toFiles()
         assert scmFileCollection.toFiles(["undefined"]).isEmpty()
         assert scmFileCollection.toFiles(["scm1"]).size() == 1
-    }
-
-
-    @Test
-    void toMap_filtered() {
-        (1..40).each {
-
-            def desc = new ScmDescriptor()
-            desc.name = it.toString()
-
-            scmFileCollection.elements.put(desc.name,
-                    new ScmFile.SourceFileElement(
-                        desc,
-                        new File(base, "scmA.groovy")
-                    ))
-        }
-
-        def output = scmFileCollection.toMap([name: "1"])
-
-        assert output.descriptors
-        assert !output.descriptors.any { !it.name.contains("1") }
     }
 }

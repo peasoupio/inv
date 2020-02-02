@@ -10,12 +10,12 @@ scm {
   hooks {
 
     init """
-git clone -b ${branch} ${src} .
+git clone ${src} .
     """
 
     update """
 git pull
-    """ 
+    """
   }
 }
 
@@ -31,7 +31,7 @@ scm {
   hooks {
 
     init """
-git clone -b ${branch} ${src} .
+git clone ${src} .
     """
 
     update """

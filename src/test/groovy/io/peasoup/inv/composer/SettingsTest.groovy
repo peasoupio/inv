@@ -15,14 +15,14 @@ class SettingsTest {
 
 
         def settings = new Settings(settingsFile)
-        assert !settings.staged().contains(stageValue)
+        assert !settings.stagedIds().contains(stageValue)
 
-        settings.stage(stageValue)
+        settings.stageId(stageValue)
         settings.save()
 
 
         settings = new Settings(settingsFile)
-        assert settings.staged().contains(stageValue)
+        assert settings.stagedIds().contains(stageValue)
 
         settingsFile
     }

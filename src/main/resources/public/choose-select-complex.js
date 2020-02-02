@@ -1,117 +1,120 @@
 Vue.component('choose-select-complex', {
     template: `
 <div>
-    <div class="field is-grouped is-grouped-right">
-        <div class="field">
-            <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button">
-                Show only selected ({{value.invs.selected}})
-            </button>
-            <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button">
-                Show all required ({{value.invs.requiredByAssociation}})
-            </button>
-        </div>
-        <div class="field">
-            <div class="dropdown is-hoverable">
-                <div class="dropdown-trigger">
-                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                        <span>Options</span>
-                        <span class="icon is-small">
-                            <i class="fas fa-angle-down" aria-hidden="true"></i>
-                        </span>
-                    </button>
-                </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                    <div class="dropdown-content">
-                        <a @click="setStageAll(true)" class="dropdown-item">
-                            Select all
-                        </a>
+    <choose-not-available v-if="notAvailable"></choose-not-available>
+    <div v-else>
+        <div class="field is-grouped is-grouped-right">
+            <div class="field">
+                <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button">
+                    Show only selected ({{value.invs.selected}})
+                </button>
+                <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button">
+                    Show all required ({{value.invs.requiredByAssociation}})
+                </button>
+            </div>
+            <div class="field">
+                <div class="dropdown is-hoverable">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Options</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
                     </div>
-                    <div class="dropdown-content">
-                        <a @click="setStageAll(false)" class="dropdown-item">
-                            Un-select all
-                        </a>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a @click="setStageAll(true)" class="dropdown-item">
+                                Select all
+                            </a>
+                        </div>
+                        <div class="dropdown-content">
+                            <a @click="setStageAll(false)" class="dropdown-item">
+                                Un-select all
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
-        <thead>
-        <tr class="field">
-            <th style="width: 6%">Selected</th>
-            <th style="width: 20%">
-            <div class="dropdown" v-bind:class="{ 'is-active': filterOwners().length > 0 }" style="width: 100%">
-                <div class="dropdown-trigger" style="width: 100%">
-                    <div class="field">
-                        <p class="control is-expanded has-icons-right">
-                            <input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)">
-                            <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
-                        </p>
+        <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
+            <thead>
+            <tr class="field">
+                <th style="width: 6%">Selected</th>
+                <th style="width: 20%">
+                <div class="dropdown" v-bind:class="{ 'is-active': filterOwners().length > 0 }" style="width: 100%">
+                    <div class="dropdown-trigger" style="width: 100%">
+                        <div class="field">
+                            <p class="control is-expanded has-icons-right">
+                                <input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)">
+                                <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a v-for="owner in filterOwners().slice(0,5)" @click="selectOwnerFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
+                        </div>
                     </div>
                 </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                    <div class="dropdown-content">
-                        <a v-for="owner in filterOwners().slice(0,5)" @click="selectOwnerFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
+                </th>
+                <th style="width: 14%">
+                <div class="dropdown" v-bind:class="{ 'is-active': filterNames().length > 0 }" style="width: 100%">
+                    <div class="dropdown-trigger" style="width: 100%">
+                        <div class="field">
+                            <p class="control is-expanded has-icons-right">
+                                <input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)">
+                                <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a v-for="owner in filterNames().slice(0,5)" @click="selectNameFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            </th>
-            <th style="width: 14%">
-            <div class="dropdown" v-bind:class="{ 'is-active': filterNames().length > 0 }" style="width: 100%">
-                <div class="dropdown-trigger" style="width: 100%">
-                    <div class="field">
-                        <p class="control is-expanded has-icons-right">
-                            <input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)">
-                            <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
-                        </p>
-                    </div>
+                </th>
+                <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
+                <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="inv in filter()">
+                <td align="center"><input type="checkbox" v-model="inv.selected" @change="doSelect(inv)" :disabled="inv.required" /></td>
+                <td>{{inv.owner}}</td>
+                <td>{{inv.name}}</td>
+                <td>{{inv.id}}</td>
+                <td>
+                    <span v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
+                    <span v-else>Not defined</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <pagination v-model="paginationSettings" />
+        <div class="modal is-active" v-if="viewScm">
+            <div class="modal-background"></div>
+            <div class="modal-content" style="width: 50%">
+                <div class="box" v-click-outside="close">
+                    <h1 class="subtitle is-1">My scm</h1>
+                    <table class="table is-fullwidth is-bordered">
+                        <thead>
+                        <tr class="field">
+                            <th style="width: 30%">Name</th>
+                            <th>Source</th>
+                            <th style="width: 20%">Entry</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>{{viewScm.name}}</td>
+                            <td>{{viewScm.descriptor.src}}</td>
+                            <td>{{viewScm.descriptor.entry}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                    <div class="dropdown-content">
-                        <a v-for="owner in filterNames().slice(0,5)" @click="selectNameFilterRecommendation(owner)" class="dropdown-item">{{owner}}</a>
-                    </div>
-                </div>
-            </div>
-            </th>
-            <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
-            <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="inv in filter()">
-            <td align="center"><input type="checkbox" v-model="inv.selected" @change="doSelect(inv)" :disabled="inv.required" /></td>
-            <td>{{inv.owner}}</td>
-            <td>{{inv.name}}</td>
-            <td>{{inv.id}}</td>
-            <td>
-                <span v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
-                <span v-else>Not defined</span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <pagination v-model="paginationSettings" />
-    <div class="modal is-active" v-if="viewScm">
-        <div class="modal-background"></div>
-        <div class="modal-content" style="width: 50%">
-            <div class="box" v-click-outside="close">
-                <h1 class="subtitle is-1">My scm</h1>
-                <table class="table is-fullwidth is-bordered">
-                    <thead>
-                    <tr class="field">
-                        <th style="width: 30%">Name</th>
-                        <th>Source</th>
-                        <th style="width: 20%">Entry</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>{{viewScm.name}}</td>
-                        <td>{{viewScm.descriptor.src}}</td>
-                        <td>{{viewScm.descriptor.entry}}</td>
-                    </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -120,6 +123,7 @@ Vue.component('choose-select-complex', {
     props: ['value'],
     data: function() {
         return {
+            notAvailable: false,
             owners: [],
             names: [],
             viewScm: null,
@@ -288,6 +292,9 @@ Vue.component('choose-select-complex', {
 
         axios.get(vm.value.api.links.run.default).then(response => {
             vm.value.invs = response.data
+        })
+        .catch(response => {
+            vm.notAvailable = true
         })
     }
 

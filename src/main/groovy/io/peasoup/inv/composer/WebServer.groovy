@@ -93,10 +93,19 @@ class WebServer {
             }
         }
 
-        if (run)
+        println "Checking for 'run.txt'..."
+
+        if (run) {
             run.propagate()
 
-        println "Ready!"
+            println "Found ${run.owners.size()} INV(s)"
+            println "Found ${run.names.size()} unique name(s)"
+            println "Found ${run.nodes.size()} broadcast(s)"
+        } else {
+            println "Not present right now."
+        }
+
+        println "Ready and listening on http://localhost:${configs.port}"
     }
 
     /**

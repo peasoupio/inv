@@ -42,11 +42,11 @@ Parameters:
                (p.e myfile1.groovy myfile2.groovy)
   <scmFiles>   The SCM file(s) location.
                You can use a file ending with 'scm-list.txt'
-               for it to list all your SCM files references.
+               for it to list all your SCM file references.
                Each line must equal to the absolute path
                of your SCM file on the current filesystems.
   <scmFile>    The SCM file location.
-  <runIndex>   The run index whom promotion will be granted.
+  <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run
                location.

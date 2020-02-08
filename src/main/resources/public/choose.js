@@ -2,7 +2,7 @@ Vue.component('choose', {
     template: `
 <div>
     <div class="columns">
-        <div class="column is-2">
+        <div class="column is-2" style="width: 20%">
             <tab-tiles v-model="tabTilesSettings" v-if="value.setup.firstTime != undefined" />
         </div>
 
@@ -25,9 +25,9 @@ Vue.component('choose', {
 
                 return {
                     tabs: [
-                        { label: 'Simple', description: 'Select from a simple view of INVs', template: 'choose-select-simple', disabled: vm.value.setup.firstTime },
-                        { label: 'Complex', description: 'Select from a more detailed view of INVs', template: 'choose-select-complex', disabled: vm.value.setup.firstTime },
-                        { label: 'By SCM', description: 'For more experienced user, choose by SCM', template: 'choose-scm'},
+                        { label: 'INV', description: 'Select INVs by their name', template: 'choose-select-simple', disabled: vm.value.setup.firstTime },
+                        { label: 'Broadcast', description: 'Select INVs by their specific broadcast(s)', template: 'choose-select-complex', disabled: vm.value.setup.firstTime },
+                        { label: 'SCM', description: 'Select INVs by their specific SCM', template: 'choose-scm'},
                         //{ label: 'Resume', description: 'A detailed view of your current selections', template: 'choose-summary'}
 
                     ],
@@ -81,7 +81,7 @@ Vue.component('choose-select-simple', {
 </ul>
 `,
                     clickable: true,
-                    title: "Owners",
+                    title: "INV(s)",
                     icon: defaultIcon,
                     total: vm.owners.length,
                     elements: vm.owners
@@ -155,7 +155,7 @@ Vue.component('choose-select-simple', {
 </ul>
 `,
                 clickable: true,
-                title: "Ids of: " + ownerElement.label,
+                title: "Broadcast(s) of " + ownerElement.label,
                 icon: 'fa-fingerprint',
                 total: 0,
                 activeCount: 0,

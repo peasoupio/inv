@@ -1,7 +1,7 @@
 scm {
     name "main" // Atleast one scm named 'main' is required.
 
-    path "${env.TEMP}/inv/init" // Change for your need
+    path "${env.TEMP ?: '/tmp'}/inv/init" // Change for your need
     src "https://github.com/peasoupio/inv.git"
 
     hooks {

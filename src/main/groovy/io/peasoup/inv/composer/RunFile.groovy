@@ -15,7 +15,7 @@ class RunFile {
     final private Map<String, RunGraph.FileStatement> invOfScm
 
     final Map<String, Selected> selected = [:]
-    final List<GraphNavigator.Linkable> nodes
+    final Set<GraphNavigator.Linkable> nodes
 
     final Map<String, List<GraphNavigator.Id>> owners
     final Map<String, List<GraphNavigator.Id>> names
@@ -30,7 +30,7 @@ class RunFile {
         ownerOfScm = runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv} ]} as Map<String, List<String>>
         invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
 
-        nodes = (runGraph.g.vertexSet() as List<GraphNavigator.Linkable>).findAll { it.isId() }
+        nodes = runGraph.navigator.links().findAll { it.isId() }
 
         owners = nodes.groupBy { runGraph.navigator.nodes[it.value].owner } as Map<String, List<GraphNavigator.Id>>
         names = nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') } as Map<String, List<GraphNavigator.Id>>
@@ -212,13 +212,13 @@ class RunFile {
 
     Map nodesToMap(Map filter = [:]) {
 
-        List<GraphNavigator.Linkable> links = nodes
-        List<GraphNavigator.Linkable> selectedLinks = selected.values()
+        Collection<GraphNavigator.Linkable> links = nodes
+        Collection<GraphNavigator.Linkable> selectedLinks = selected.values()
                 .findAll { it.selected }
                 .collect { it.link }
                 .findAll { it.isId() }
 
-        List<GraphNavigator.Linkable> requiredLinks = selected.values()
+        Collection<GraphNavigator.Linkable> requiredLinks = selected.values()
                 .findAll { it.required }
                 .collect { it.link }
                 .findAll { it.isId() }
@@ -230,38 +230,38 @@ class RunFile {
             links = requiredLinks
 
         List<Reduced> reduced = links
-                .findAll { GraphNavigator.Linkable link ->  !filter.id || link.value.contains(filter.id as CharSequence)}
-                .collect{ GraphNavigator.Linkable link ->
+                .findAll { GraphNavigator.Linkable link -> !filter.id || link.value.contains(filter.id as CharSequence) }
+                .collect { GraphNavigator.Linkable link ->
                     new Reduced(
-                        link: link,
-                        node: runGraph.navigator.nodes[link.value],
-                        name: link.value.split(' ')[0].replace('[', '').replace(']', ''),
-                        subId: link.value.split(' ')[1].replace('[', '').replace(']', ''))
+                            link: link,
+                            node: runGraph.navigator.nodes[link.value],
+                            name: link.value.split(' ')[0].replace('[', '').replace(']', ''),
+                            subId: link.value.split(' ')[1].replace('[', '').replace(']', ''))
                 }
                 .findAll { it.node }
 
         if (filter.owner)
-            reduced = reduced.findAll { it.node.owner.contains(filter.owner as CharSequence)}
+            reduced = reduced.findAll { it.node.owner.contains(filter.owner as CharSequence) }
 
         if (filter.name)
-            reduced = reduced.findAll { it.name.contains(filter.name as CharSequence)}
+            reduced = reduced.findAll { it.name.contains(filter.name as CharSequence) }
 
-        List<String> names = reduced.collect {it.name}.unique()
-        List<String> owners = reduced.collect {it.node.owner}.unique()
+        List<String> names = reduced.collect { it.name }.unique()
+        List<String> owners = reduced.collect { it.node.owner }.unique()
 
-        Integer requiredCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].required? 1 : 0   } as Integer
-        Integer selectedCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].selected? 1 : 0    } as Integer
+        Integer requiredCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].required ? 1 : 0 } as Integer
+        Integer selectedCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].selected ? 1 : 0 } as Integer
 
         Integer total = reduced.size()
 
         return [
-            count: total,
-            total: nodes.size(),
-            selected: requiredCount,
-            requiredByAssociation: selectedCount,
-            names: names,
-            owners: owners,
-            nodes: reduced.collect {
+                count                : total,
+                total                : nodes.size(),
+                selected             : requiredCount,
+                requiredByAssociation: selectedCount,
+                names                : names,
+                owners               : owners,
+                nodes                : reduced.collect {
 
                     String value = it.link.value as String
                     String owner = it.node.owner as String
@@ -269,18 +269,18 @@ class RunFile {
                     def scm = invOfScm[owner]
 
                     return [
-                        required: selected[value] && selected[value].required,
-                        selected: selected[value] && selected[value].selected,
-                        owner: owner,
-                        name: it.name,
-                        id: it.subId,
-                        scm: scm,
-                        links: [
-                            viewScm: "/scms/view?name=${scm}",
-                            requiredBy: "/run/requiredBy?id=${value}",
-                            stage: "/run/stage?id=${value}",
-                            unstage: "/run/unstage?id=${value}"
-                        ]
+                            required: selected[value] && selected[value].required,
+                            selected: selected[value] && selected[value].selected,
+                            owner   : owner,
+                            name    : it.name,
+                            id      : it.subId,
+                            scm     : scm,
+                            links   : [
+                                    viewScm   : "/scms/view?name=${scm}",
+                                    requiredBy: "/run/requiredBy?id=${value}",
+                                    stage     : "/run/stage?id=${value}",
+                                    unstage   : "/run/unstage?id=${value}"
+                            ]
                     ]
                 }
         ]

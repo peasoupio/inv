@@ -641,8 +641,8 @@ class WebServer {
         })
 
         post("/review/promote", { Request req, Response res ->
-            if (!exec.latestLog().exists())
-                return showError(res, "Latest execution log does not exists on filesystem")
+            if (baseFile().exists())
+                review.mergeWithBase(baseFile())
 
             if (!review.promote())
                 return showError(res, "failed to promote")

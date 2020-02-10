@@ -98,7 +98,7 @@ Vue.component('choose-select-simple', {
                     element.sending = true
 
                     axios.post(element.links.stage).then(response => {
-                        location.reload()
+                        vm.fetchOwners()
                     })
                 }
 
@@ -129,6 +129,35 @@ Vue.component('choose-select-simple', {
     },
     methods: {
 
+        fetchOwners: function() {
+            var vm = this
+            vm.owners = []
+
+            axios.get(vm.value.api.links.run.owners).then(response => {
+                response.data.forEach(function(owner) {
+                    var element = {
+                      active: false,
+                      label: owner.owner,
+                      clickable: true,
+                      pickable: true,
+                      links: owner.links,
+                      icon: ''
+                    }
+
+                    if (owner.requiredBy > 0 || owner.selectedBy > 0) {
+                        element.active = true
+                        element.subLabel = owner.requiredBy + owner.selectedBy
+                    }
+
+                    vm.owners.push(element)
+                })
+
+                vm.owners.sort(compareValues('label'))
+            })
+            .catch(response => {
+                vm.notAvailable = true
+            })
+        },
         addIdSettings: function(ownerElement) {
             var vm = this
 
@@ -235,32 +264,7 @@ Vue.component('choose-select-simple', {
         }
     },
     created: function() {
-        var vm = this
-
-        axios.get(vm.value.api.links.run.owners).then(response => {
-            response.data.forEach(function(owner) {
-                var element = {
-                  active: false,
-                  label: owner.owner,
-                  clickable: true,
-                  pickable: true,
-                  links: owner.links,
-                  icon: ''
-                }
-
-                if (owner.requiredBy > 0 || owner.selectedBy > 0) {
-                    element.active = true
-                    element.subLabel = owner.requiredBy + owner.selectedBy
-                }
-
-                vm.owners.push(element)
-            })
-
-            vm.owners.sort(compareValues('label'))
-        })
-        .catch(response => {
-            vm.notAvailable = true
-        })
+        this.fetchOwners()
     }
 
 })

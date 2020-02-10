@@ -24,13 +24,37 @@ class Review {
 
         assert latestExecution, 'Latest execution file is required'
 
-
         DeltaGraph deltaGraph = new DeltaGraph(baseRun.newReader(), latestExecution.newReader())
+
+        Integer equals = 0, missing = 0, added = 0, removed = 0
+        deltaGraph.deltaLines.each { DeltaGraph.DeltaLine line ->
+            switch (line.state) {
+                case '=':
+                    equals++
+                    break
+                case '+':
+                    added++
+                    break
+                case '-':
+                    missing++
+                    break
+                case 'x':
+                    removed++
+                    break
+            }
+        }
 
         return [
             baseExecution: baseRun.lastModified(),
             lastExecution: latestExecution.lastModified(),
-            lines: deltaGraph.deltaLines
+            lines: deltaGraph.deltaLines,
+            stats: [
+                equals: equals,
+                missing: missing,
+                added: added,
+                removed: removed
+
+            ]
         ]
     }
 

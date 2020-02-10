@@ -4,22 +4,23 @@ import groovy.text.SimpleTemplateEngine
 import io.peasoup.inv.run.RunsRoller
 
 class DeltaGraph {
-
     final private static String lf = System.properties['line.separator']
 
+    final RunGraph baseGraph
+    final RunGraph otherGraph
     final List<DeltaLine> deltaLines = []
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
         assert base != null, 'Base (reader) is required'
         assert other != null, 'Other (reader) is required'
 
-        def baseGraph = new RunGraph(base)
-        def otherGraph = new RunGraph(other)
+        baseGraph = new RunGraph(base)
+        otherGraph = new RunGraph(other)
 
         Map<String, Integer> baseIndexes = baseGraph.navigator.nodes.keySet().withIndex().collectEntries()
         Map<String, Integer> otherIndexes = otherGraph.navigator.nodes.keySet().withIndex().collectEntries()
 
-        for(GraphNavigator.Linkable link : baseGraph.g.vertexSet()) {
+        for(GraphNavigator.Linkable link : baseGraph.navigator.links()) {
 
             if (link.isOwner())
                 continue
@@ -27,19 +28,31 @@ class DeltaGraph {
             Integer index = baseIndexes[link.value]
             String owner = baseGraph.navigator.nodes[link.value].owner
 
-            if (otherGraph.g.containsVertex(link)) {
+            if (otherGraph.navigator.contains(link)) {
                 deltaLines << new DeltaLine(index: index, state: '=', link: link, owner: owner)
             } else {
-                deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: owner)
+
+                def linksNode = baseGraph.navigator.nodes[link.value]
+                assert linksNode, "Link's node cannot be null"
+
+                def linksOwner = linksNode.owner
+                assert linksOwner, "Link's node owner cannot be null or empty"
+
+                def scm = baseGraph.files.find { it.inv == linksOwner }
+
+                if (scm)
+                    deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: owner)
+                else
+                    deltaLines << new DeltaLine(index: index, state: 'x', link: link, owner: owner)
             }
         }
 
-        for(GraphNavigator.Linkable link : otherGraph.g.vertexSet()) {
+        for(GraphNavigator.Linkable link : otherGraph.navigator.links()) {
 
             if (link.isOwner())
                 continue
 
-            if (!baseGraph.g.containsVertex(link)) {
+            if (!baseGraph.navigator.contains(link)) {
                 Integer index = otherIndexes[link.value]
                 String owner = otherGraph.navigator.nodes[link.value].owner
 

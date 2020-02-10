@@ -156,7 +156,7 @@ class ScmFile {
                 List<String> values = parameter.values ?: []
 
                 if (parameter.command) {
-                    String stdout = parameter.command.execute(descriptor.env2, descriptor.path).in.text
+                    String stdout = parameter.command.execute(descriptor.set, descriptor.path).in.text
 
                     Logger.debug "Command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 

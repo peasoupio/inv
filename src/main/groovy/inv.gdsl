@@ -1,0 +1,37 @@
+contributor(context(scope: scriptScope())) {
+    method name: 'inv', type: 'void', params: [closure: 'groovy.lang.Closure']
+    method name: 'scm', type: 'void', params: [closure: 'groovy.lang.Closure']
+}
+
+contributor(context(scope: closureScope())) {
+    if (enclosingCall('inv')) {
+        delegatesTo(findClass('io.peasoup.inv.run.InvDescriptor'))
+    }
+
+    if (enclosingCall('scm')) {
+        delegatesTo(findClass('io.peasoup.inv.scm.ScmDescriptor'))
+    }
+
+    if (enclosingCall('using')) {
+        method name: 'id', type: 'void', params: [id: 'java.lang.Object']
+        method name: 'id', type: 'void', params: [id: 'java.util.Map']
+        method name: 'unbloatable', type: 'void', params: [value: 'java.lang.Boolean']
+        method name: 'ready', type: 'void', params: [closure: 'groovy.lang.Closure']
+        method name: 'resolved', type: 'void', params: [closure: 'groovy.lang.Closure']
+        method name: 'unresolved', type: 'void', params: [closure: 'groovy.lang.Closure']
+    }
+
+    if (enclosingCall('resolved')) {
+        property name: 'response', type: 'java.util.Map'
+        property name: 'resolvedBy', type: 'java.lang.String'
+    }
+
+    if (enclosingCall('hooks')) {
+        property name: 'init', type: 'java.lang.String'
+        property name: 'update', type: 'java.lang.String'
+    }
+
+    if (enclosingCall('ask')) {
+        method name: 'parameter', type: 'void', params: [name: 'java.lang.String', usage: 'java.lang.String', options: 'java.util.Map']
+    }
+}

@@ -85,7 +85,7 @@ Vue.component('install', {
             var logContainer = this.$refs.logContainer
             vm.clearLog(logContainer)
 
-            axios.get(vm.value.api.links.execution.default).then(response => {
+            axios.get(vm.value.api.links.execution.default).then(async (response) => {
                 vm.execution = response.data
                 vm.loadingMessages = true
 
@@ -101,10 +101,9 @@ Vue.component('install', {
                     return
                 }
 
-                var get = async function(i) {
-                    await axios.get(vm.execution.links.steps[i]).then(response => {
+                var fetchLog = async function(index) {
+                    return axios.get(vm.execution.links.steps[index]).then(response => {
                         response.data.forEach(function(message) {
-                            //vm.appendLog(logContainer, message)
                             vm.buffer.push(message)
                         })
 
@@ -116,7 +115,7 @@ Vue.component('install', {
                 }
 
                 for (var i=0;i<steps;i++) {
-                    get(i)
+                    await fetchLog(i)
                 }
             })
         },
@@ -191,9 +190,11 @@ Vue.component('install', {
             if (vm.buffer.length == 0)
                 return
 
-            while(vm.buffer.length > 0) {
-                var message = vm.buffer.shift()
+            var maxPerCycle = 32
+            while(maxPerCycle > 0 && vm.buffer.length > 0) {
+                maxPerCycle--
 
+                var message = vm.buffer.shift()
                 vm.appendLog(logContainer, message)
             }
         }, 125)

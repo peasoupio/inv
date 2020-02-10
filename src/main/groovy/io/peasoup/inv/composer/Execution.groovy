@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @CompileStatic
 class Execution {
 
-    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 10000
+    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 2048
 
     private final File scmFolder
     private final File externalParametersFolder

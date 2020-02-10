@@ -3,7 +3,7 @@ Vue.component('promote', {
 <div>
     <p class="title is-5 has-text-centered">Do you wish to promote your latest run?</p>
     <div class="buttons is-centered">
-        <button class="button is-danger" @click="promote()" :disabled="promoted">
+        <button class="button is-danger" @click="promote()" :disabled="promoted" v-bind:class=" { 'is-loading': promoting }">
             <span>Sure</span>
             <span class="icon is-small" v-show="promoted">
                 <i class="fas fa-check"></i>
@@ -17,6 +17,7 @@ Vue.component('promote', {
     props: ['value'],
     data: function() {
         return {
+            promoting: false,
             promoted: false,
             error: false
         }
@@ -25,12 +26,17 @@ Vue.component('promote', {
         promote: function() {
             var vm = this
 
+            vm.promoting = true
+
             axios.post(vm.value.api.links.review.promote).then(response => {
                 vm.promoted = true
+                vm.promoting = false
+
                 window.location.href = '#choose'
                 window.location.reload(true)
             }).catch(reponse => {
                 vm.promoted = false
+                vm.promoting = false
                 vm.error = true
             })
         }

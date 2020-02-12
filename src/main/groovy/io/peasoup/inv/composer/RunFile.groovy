@@ -249,16 +249,11 @@ class RunFile {
         List<String> names = reduced.collect { it.name }.unique()
         List<String> owners = reduced.collect { it.node.owner }.unique()
 
-        Integer requiredCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].required ? 1 : 0 } as Integer
-        Integer selectedCount = reduced.sum { selected.containsKey(it.link.value) && selected[it.link.value].selected ? 1 : 0 } as Integer
-
-        Integer total = reduced.size()
-
         return [
-                count                : total,
                 total                : nodes.size(),
-                selected             : requiredCount,
-                requiredByAssociation: selectedCount,
+                count                : reduced.size(),
+                selected             : (reduced.sum { (selected.containsKey(it.link.value) && selected[it.link.value].selected) ? 1 : 0 } as Integer) ?: 0,
+                requiredByAssociation: (reduced.sum { (selected.containsKey(it.link.value) && selected[it.link.value].required) ? 1 : 0 } as Integer) ?: 0,
                 names                : names,
                 owners               : owners,
                 nodes                : reduced.collect {

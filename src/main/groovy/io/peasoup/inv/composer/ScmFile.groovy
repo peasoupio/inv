@@ -261,13 +261,12 @@ class ScmFile {
                 Closure merge
                 merge = { Map base, Map extend ->
                     extend.each {
-                        if (!base.containsKey(it.key)) {
-                            base.put(it.key, it.value)
+                        if (base.containsKey(it.key) && it.value instanceof Map) {
+                            merge(base[it.key] as Map, it.value as Map)
                             return
                         }
 
-                        if (it.value instanceof Map)
-                            merge(base[it.key] as Map, it.value as Map)
+                        base.put(it.key, it.value)
                     }
                 }
 

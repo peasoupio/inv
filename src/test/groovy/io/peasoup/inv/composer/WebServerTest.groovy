@@ -249,7 +249,7 @@ scm {
         def jsonAfterApply = new JsonSlurper().parseText(responseAfterApply)
 
         assert jsonAfterApply
-        assert !jsonAfterApply.parameters.any { it.defaultValue != it.value}
+        assert !jsonAfterApply.parameters.any { it.value != it.defaultValue}
 
         //Reset
         post("scms/resetAll")

@@ -27,9 +27,8 @@ Vue.component('review', {
                 <div class="field">
                     <button
                         v-for="(obj, name) in filters"
-                        style="margin-right: 1em"
                         @click="toggleFilter(obj)"
-                        v-bind:class="{ 'is-link': obj.value}" class="button">
+                        v-bind:class="{ 'is-link': obj.value}" class="button breath">
                         Hide {{obj.label}}
                     </button>
                 </div>

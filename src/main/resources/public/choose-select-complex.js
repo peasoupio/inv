@@ -5,11 +5,11 @@ Vue.component('choose-select-complex', {
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button">
-                    Show only selected ({{value.invs.selected}})
+                <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button breath">
+                    Show only selected ({{value.invs.selected}}/{{value.invs.count}})
                 </button>
-                <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button">
-                    Show all required ({{value.invs.requiredByAssociation}})
+                <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button breath">
+                    Show all required ({{value.invs.requiredByAssociation}}/{{value.invs.count}})
                 </button>
             </div>
             <div class="field">
@@ -25,7 +25,7 @@ Vue.component('choose-select-complex', {
                     <div class="dropdown-menu" id="dropdown-menu" role="menu">
                         <div class="dropdown-content">
                             <a @click="setStageAll(true)" class="dropdown-item">
-                                Select all
+                                Select all ({{value.invs.total}})
                             </a>
                         </div>
                         <div class="dropdown-content">
@@ -82,20 +82,21 @@ Vue.component('choose-select-complex', {
             <tbody>
             <tr v-for="inv in filter()">
                 <td align="center"><input type="checkbox" v-model="inv.selected" @change="doSelect(inv)" :disabled="inv.required" /></td>
-                <td>{{inv.owner}}</td>
-                <td>{{inv.name}}</td>
-                <td>{{inv.id}}</td>
+                <td><p class="truncate">{{inv.owner}}</p></td>
+                <td><p class="truncate">{{inv.name}}</p></td>
+                <td><p class="truncate">{{inv.id}}</p></td>
                 <td>
-                    <span v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
+                    <span class="truncate" v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
                     <span v-else>Not defined</span>
                 </td>
             </tr>
             </tbody>
         </table>
         <pagination v-model="paginationSettings" />
+
         <div class="modal is-active" v-if="viewScm">
             <div class="modal-background"></div>
-            <div class="modal-content" style="width: 50%">
+            <div class="modal-content" style="width: 60%">
                 <div class="box" v-click-outside="close">
                     <h1 class="subtitle is-1">My scm</h1>
                     <table class="table is-fullwidth is-bordered">
@@ -103,14 +104,14 @@ Vue.component('choose-select-complex', {
                         <tr class="field">
                             <th style="width: 30%">Name</th>
                             <th>Source</th>
-                            <th style="width: 20%">Entry</th>
+                            <th style="width: 30%">Entry</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
-                            <td>{{viewScm.name}}</td>
-                            <td>{{viewScm.descriptor.src}}</td>
-                            <td>{{viewScm.descriptor.entry}}</td>
+                            <td><p class="truncate">{{viewScm.name}}</p></td>
+                            <td><p class="truncate">{{viewScm.descriptor.src}}</p></td>
+                            <td><p class="truncate" v-for="entry in viewScm.descriptor.entry">{{entry}}</p></td>
                         </tr>
                         </tbody>
                     </table>

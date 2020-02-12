@@ -8,7 +8,7 @@ Vue.component('choose-scm', {
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="stageAll()"class="button" style="margin-right: 1em;">
+                <button @click="stageAll()"class="button breath">
                     Stage all ({{value.scms.total - value.scms.staged}})
                 </button>
             </div>
@@ -34,7 +34,7 @@ Vue.component('choose-scm', {
                 <td>{{scm.descriptor.src}}</td>
                 <td><p v-for="entry in scm.descriptor.entry">{{entry}}</p></td>
                 <td v-if="!scm.staged"><button class="button is-link" @click.stop="stage(scm)" :disabled="scm.selected">Stage</button></td>
-                <td v-if="scm.staged"><button class="button is-success" @click.stop="unstage(scm)">Unstage</button></td>
+                <td v-if="scm.staged"><button class="button is-warning" @click.stop="unstage(scm)">Unstage</button></td>
             </tr>
             </tbody>
         </table>

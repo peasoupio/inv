@@ -75,7 +75,7 @@ Vue.component('configure-parameters', {
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="filters.hideWhenCompleted = !filters.hideWhenCompleted" v-bind:class="{ 'is-link': filters.hideWhenCompleted}" class="button" style="margin-right: 1em;">
+                <button @click="toggleHideOnComplete()" v-bind:class="{ 'is-link': filters.hideOnComplete}" class="button breath">
                     Hide when completed
                 </button>
             </div>
@@ -107,12 +107,16 @@ Vue.component('configure-parameters', {
 
         <hr />
 
-        <div class="columns is-multiline">
-            <div class="column is-one-quarter" v-for="scm in filter()" >
+        <div v-if="value.selectedScms.total == 0" class="container">
+            <p class="has-text-centered">Nothing to show</p>
+        </div>
+        <div class="columns is-multiline" v-else>
+            <div class="column is-one-quarter" v-for="scm in value.selectedScms.descriptors" >
                 <div class="card">
                     <div class="card-content">
                         <p class="title is-5">
                             {{scm.name}}
+                            <span class="tag is-danger" v-show="scm.requiredNotCompletedCount > 0">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
                             <span class="icon is-medium" v-if="scm.loading">
                                 <i class="fas fa-spinner fa-pulse"></i>
                             </span>
@@ -122,8 +126,14 @@ Vue.component('configure-parameters', {
                             <span v-else>never saved</span>
                         </p>
                         <div class="content">
-                            <p># of parameters? <span class="has-text-weight-bold">{{scm.parameters.length}}</span></p>
-                            <p>Completed ? <span class="has-text-weight-bold">{{scm.completed ? "Yes": "No"}}</span></p>
+                            <ul>
+                                <li>Has <span class="has-text-weight-bold">{{scm.parameters.length}}</span> parameter(s)</li>
+                                <li>Has <span class="has-text-weight-bold">{{scm.requiredCount}}</span> required parameter(s)</li>
+                                <li>
+                                    <span v-if="scm.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
+                                    <span v-else>Has <span class="has-text-weight-bold has-text-warning">not answered</span> all of its parameters</span>
+                                 </li>
+                            </ul>
                         </div>
                     </div>
 
@@ -136,9 +146,6 @@ Vue.component('configure-parameters', {
                         </p>
                     </footer>
                 </div>
-            </div>
-            <div v-if="count == 0" class="container">
-                <p class="has-text-centered">Nothing to show</p>
             </div>
         </div>
 
@@ -210,7 +217,7 @@ Vue.component('configure-parameters', {
                 selected: true,
                 to: 20,
                 from: 0,
-                hideWhenCompleted: true
+                hideOnComplete: true
             }
         }
     },
@@ -225,7 +232,7 @@ Vue.component('configure-parameters', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.to,
-                    total: vm.total
+                    total: vm.value.selectedScms.total
                 }
             }
         }
@@ -248,23 +255,32 @@ Vue.component('configure-parameters', {
             axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
                 vm.value.selectedScms = response.data
                 vm.value.selectedScms.descriptors.sort(compareValues('name'))
+
+                // Calculate parameters metrics
+                vm.value.selectedScms.descriptors.forEach(function(scm) {
+                    scm.requiredCount = 0
+                    scm.requiredNotCompletedCount = 0
+                    scm.completedCount = 0
+
+                    scm.parameters.forEach(function(parameter) {
+                        if (parameter.required) {
+                            scm.requiredCount++
+
+                            if (parameter.value == undefined)
+                                scm.requiredNotCompletedCount++
+                        }
+
+                        if (parameter.value != undefined)
+                            scm.completedCount++
+                    })
+                })
             })
         },
-        filter: function() {
+        toggleHideOnComplete: function() {
             var vm = this
 
-            var filtered = []
-
-            vm.value.selectedScms.descriptors.forEach(function(scm) {
-                if (scm.completed && vm.filters.hideWhenCompleted) return
-
-                filtered.push(scm)
-            })
-
-            vm.count = filtered.length
-
-            return filtered.sort(compareValues('owner'))
-
+            vm.filters.hideOnComplete = !vm.filters.hideOnComplete
+            vm.fetchScms()
         },
         applyDefaultToAll: function() {
             var vm = this
@@ -391,8 +407,9 @@ Vue.component('configure-parameters', {
                 vm.currentScmParameter.saved = response.data.saved
                 vm.currentScmParameter.lastModified = response.data.lastModified
                 vm.currentScmParameter.completed = response.data.completed
-
                 vm.currentScmParameter = null
+
+                vm.fetchScms()
             })
         }
     },
@@ -406,7 +423,7 @@ Vue.component('configure-parameters', {
 Vue.component('configure-scms', {
     template: `
 <div>
-    <div v-if="value.scms.total == undefined || value.scms.total == 0">
+    <div v-if="value.scms.total == undefined">
         Nothing selected yet...
     </div>
     <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-else>
@@ -579,23 +596,18 @@ Vue.component('configure-scms', {
         openEdit: function(scm) {
             var vm = this
 
-            vm.codeMirror.on("change",function(cm,change){
-                // Wait for script to be available since setValue will trigger change
-                if (vm.editScript == null)
-                    return
-
-                vm.saved = false
-                vm.edited = true
-            })
-
             axios.get(scm.links.default).then(response => {
-
                 var latestScm = response.data
 
                 vm.codeMirror.setValue(latestScm.script.text)
                 vm.codeMirror.refresh()
 
                 vm.editScript = latestScm
+
+                vm.codeMirror.on("change",function(cm,change){
+                    vm.saved = false
+                    vm.edited = true
+                })
             })
         },
         saveSource: function() {

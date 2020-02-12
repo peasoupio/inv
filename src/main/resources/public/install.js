@@ -3,10 +3,10 @@ Vue.component('install', {
 <div>
     <div style="position: sticky; top: 6em; z-index: 10">
         <div class="buttons is-right">
-            <a class="is-link" @click="goToTop()" style="margin-right: 1em;">
+            <a class="is-link breath-heavy" @click="goToTop()">
                 Go to top
             </a>
-            <a class="is-link" @click="goToEnd()" style="margin-right: 1em;">
+            <a class="is-link breath-heavy" @click="goToEnd()">
                 Go to end
             </a>
             <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">

@@ -116,7 +116,7 @@ class ScmDescriptor {
             if (options.defaultValue && options.defaultValue instanceof CharSequence)
                 parameter.defaultValue = options.defaultValue as String
 
-            if (options.required && options.required instanceof Boolean)
+            if (options.required != null && options.required instanceof Boolean)
                 parameter.required = options.required as Boolean
 
             if (options.values && options.values instanceof Collection<String>)

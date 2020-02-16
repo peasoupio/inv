@@ -197,11 +197,8 @@ Vue.component('install', {
                 var message = vm.buffer.shift()
                 vm.appendLog(logContainer, message)
             }
-        }, 125)
+        }, 50)
 
         vm.refresh()
-    },
-    updated: function() {
-
     }
 })

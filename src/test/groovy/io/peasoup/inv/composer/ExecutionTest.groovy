@@ -14,6 +14,8 @@ class ExecutionTest {
 
     @Test
     void ok_alreadyExists() {
+        RunsRoller.latest.roll() // make sure to roll once
+
         def totalLines = Execution.MESSAGES_STATIC_CLUSTER_SIZE * 2
 
         def executionLog = new File(RunsRoller.latest.folder(), "run.txt")

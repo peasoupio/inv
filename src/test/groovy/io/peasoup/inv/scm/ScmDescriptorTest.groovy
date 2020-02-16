@@ -27,7 +27,7 @@ class ScmDescriptorTest {
 
     @Test
     void path_using_invHome() {
-        def relativePath = "/my/path"
+        def relativePath = "./my/path"
         def absolutePath = new File(Main.currentHome, "/my/path").absolutePath
         def descriptor = new ScmDescriptor()
 

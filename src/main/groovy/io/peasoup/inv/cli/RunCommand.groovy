@@ -19,7 +19,7 @@ class RunCommand implements CliCommand {
         if (patterns.isEmpty())
             return -1
 
-        def executor = new InvExecutor()
+        def invExecutor = new InvExecutor()
 
         patterns.each {
             def lookupPattern = it
@@ -27,7 +27,7 @@ class RunCommand implements CliCommand {
             def lookupFile = new File(lookupPattern)
 
             if (!lookupFile.isDirectory() && lookupFile.exists())
-                executor.read(lookupFile)
+                invExecutor.read(lookupFile)
             else {
 
                 Logger.debug "pattern without parent: ${lookupPattern}"
@@ -62,7 +62,7 @@ class RunCommand implements CliCommand {
                 progress.start {
 
                     invFiles.each {
-                        executor.read(it)
+                        invExecutor.read(it)
 
                         progress.step()
                     }
@@ -70,7 +70,8 @@ class RunCommand implements CliCommand {
             }
         }
 
-        executor.execute()
+        if (!invExecutor.execute().isOk())
+            return -1
 
         return 0
     }

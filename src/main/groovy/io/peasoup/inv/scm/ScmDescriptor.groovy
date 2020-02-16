@@ -31,11 +31,18 @@ class ScmDescriptor {
         if (!value)
             return
 
-        def rawFile = new File(value)
-        if (Main.currentHome != Main.DEFAULT_HOME)
+        File filePath = new File(value)
+        if (filePath.isAbsolute())
+            this.path = filePath
+        else
+            this.path = new File(Main.currentHome, value)
+
+        /*if (Main.currentHome != Main.DEFAULT_HOME)
             this.path = new File(Main.currentHome, value)
         else
             this.path = rawFile
+
+         */
     }
 
     String src

@@ -1,11 +1,13 @@
 package io.peasoup.inv.scm
 
-
+import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class ScmInvokerTest {
 
     ScmExecutor scmExecutor
@@ -20,7 +22,7 @@ class ScmInvokerTest {
     @Test
     void ok() {
 
-        def scmFile =  new File(getClass().getResource('/scm.groovy').toURI())
+        def scmFile =  new File(TempHome.testResources,  '/scm.groovy')
         def executor = new ScmExecutor()
         executor.read(scmFile)
 
@@ -31,7 +33,7 @@ class ScmInvokerTest {
         assert report
         assert report.repository.entry.size() == 1
         assert report.repository.entry[0].contains("mainTestScript.groovy")
-        assert report.repository.path.absolutePath.contains("scm")
+        assert report.repository.path.absolutePath.contains("test-resources")
     }
 
     @Test

@@ -1,10 +1,13 @@
 package io.peasoup.inv.scm
 
 import io.peasoup.inv.Main
+import io.peasoup.inv.TempHome
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class ScmDescriptorTest {
 
     @Test
@@ -24,21 +27,15 @@ class ScmDescriptorTest {
 
     @Test
     void path_using_invHome() {
-        assert !Main.currentHome.isAbsolute()
-
-        def path = "/my/path"
+        def relativePath = "/my/path"
+        def absolutePath = new File(Main.currentHome, "/my/path").absolutePath
         def descriptor = new ScmDescriptor()
 
-        descriptor.path(path)
-        assert descriptor.path.toString() == new File(path).toString()
+        descriptor.path(relativePath)
+        assert descriptor.path.absolutePath == new File(Main.currentHome, relativePath).absolutePath
 
-        Main.currentHome = new File("./sub/folder").absoluteFile
-        assert Main.currentHome.isAbsolute()
-
-        descriptor.path(path)
-        assert descriptor.path.absolutePath == new File(Main.currentHome.toString(), path).absolutePath
-
-        Main.currentHome = Main.DEFAULT_HOME
+        descriptor.path(absolutePath)
+        assert descriptor.path.toString() == absolutePath
     }
 
     @Test

@@ -1,10 +1,12 @@
 package io.peasoup.inv.composer
 
-
+import io.peasoup.inv.TempHome
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class SettingsTest {
 
     @Test

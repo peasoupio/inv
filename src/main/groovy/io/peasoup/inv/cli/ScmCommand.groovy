@@ -12,6 +12,7 @@ import java.nio.file.Files
 @CompileStatic
 class ScmCommand implements CliCommand {
 
+    public static final String LIST_FILE_SUFFIX = 'scm-list.txt'
     List<String> scmFiles
 
     int call() {
@@ -23,7 +24,7 @@ class ScmCommand implements CliCommand {
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
-        if (scmFiles.size() == 1 && scmFiles[0].endsWith("scm-list.txt")) {
+        if (scmFiles.size() == 1 && scmFiles[0].endsWith(LIST_FILE_SUFFIX)) {
             def scmListPath = scmFiles[0]
             def scmListFile = new File(scmListPath)
 
@@ -34,7 +35,7 @@ class ScmCommand implements CliCommand {
 
             def lines = scmListFile.readLines()
 
-            def progress = new Progressbar("Reading SCM from '${scmListPath}'".toString(), lines.size(), false)
+            def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), lines.size(), false)
             progress.start {
 
                 lines.each {
@@ -101,7 +102,8 @@ class ScmCommand implements CliCommand {
 
         Logger.info("[SCM] done")
 
-        invExecutor.execute()
+        if (!invExecutor.execute().isOk())
+            return -1
 
         return 0
     }

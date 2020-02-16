@@ -7,7 +7,6 @@ import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 
 import java.nio.file.Files
@@ -197,12 +196,5 @@ class Execution {
         void closed(Session session, int statusCode, String reason) {
             sessions.remove(session)
         }
-
-        @OnWebSocketMessage
-        void message(Session session, String message) throws IOException {
-            System.out.println("Got: " + message);   // Print message
-            session.getRemote().sendString(message); // and send it back
-        }
-
     }
 }

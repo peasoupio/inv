@@ -6,4 +6,6 @@ inv {
             response.installPod("my-mod-for-app-3")
         }
     }
+
+    broadcast inv.App(id: 'AppA')
 }

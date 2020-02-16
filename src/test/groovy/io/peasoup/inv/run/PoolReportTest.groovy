@@ -3,7 +3,7 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-
+import static org.junit.jupiter.api.Assertions.assertNotNull
 import static org.junit.jupiter.api.Assertions.assertThrows
 
 class PoolReportTest {
@@ -13,6 +13,14 @@ class PoolReportTest {
     @Before
     void setup() {
         poolReport = new PoolReport([], new LinkedList<PoolReport.PoolException>(), false)
+    }
+
+    @Test
+    void ctor() {
+        def pool = new PoolReport()
+
+        assertNotNull pool.digested
+        assertNotNull pool.exceptions
     }
 
     @Test

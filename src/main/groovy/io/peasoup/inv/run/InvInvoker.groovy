@@ -1,6 +1,7 @@
 package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.runtime.StackTraceUtils
 
 import javax.xml.bind.DatatypeConverter
@@ -10,6 +11,8 @@ import java.security.MessageDigest
 
 @CompileStatic
 class InvInvoker {
+
+    private final static CommonLoader loader = new CommonLoader()
 
     static void invoke(InvHandler invHandler, File scriptPath) {
         assert invHandler, 'InvHandler is required'
@@ -31,9 +34,7 @@ class InvInvoker {
         Logger.debug("file: ${scriptFile.canonicalPath}")
 
         String preferredClassname = (normalizeClassName(scriptFile) + '_' + checksum(scriptFile)).toLowerCase()
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
-
-        Script myNewScript = (Script)groovyClass.newInstance()
+        Script myNewScript = loader.parseClass(scriptFile.text, cache(scriptFile, preferredClassname)).newInstance() as Script
 
         myNewScript.binding.setProperty("inv", invHandler)
         myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)

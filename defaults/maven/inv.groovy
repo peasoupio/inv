@@ -11,12 +11,13 @@ inv {
             def instance = [:]
             instance << [
                 $: {
-                    def copy = (instance.analyze as Closure)
+                    def analyse = instance.analyze as Closure
+                    def copy = analyse
                             .dehydrate()
                             .rehydrate(
                                     delegate,
-                                    instance.analyze.owner,
-                                    instance.analyze.thisObject)
+                                    analyse.owner,
+                                    analyse.thisObject)
                     copy.resolveStrategy = Closure.DELEGATE_FIRST
 
                     return copy(path) // using default path of Inv

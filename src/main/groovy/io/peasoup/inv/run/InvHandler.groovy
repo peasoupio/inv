@@ -18,23 +18,23 @@ class InvHandler {
         //ExpandoMetaClass.enableGlobally()
     }
 
-    void call(Closure body) {
+    void call(@DelegatesTo(InvDescriptor) Closure body) {
         assert body, 'Body is required'
 
-        this.call(body, body.owner.class.simpleName)
+        this.call(body, body.owner.getClass().simpleName)
     }
 
-    void call(Closure body, String defaultName) {
+    void call(@DelegatesTo(InvDescriptor) Closure body, String defaultName) {
         assert body, 'Body is required'
 
         Inv inv = new Inv(executor.pool)
 
         // Is loading from script ?
-        Boolean isScript = body.owner.properties["binding"]
+        Script script =  (body.owner instanceof Script)? body.owner as Script : null
 
-        if (isScript) {
+        if (script) {
             // Set default path
-            inv.delegate.path =  body.binding.variables["pwd"]
+            inv.delegate.path =  script.binding.variables["pwd"]
         }
 
         if (defaultName)
@@ -57,9 +57,9 @@ class InvHandler {
             inv.dumpDelegate()
         }
 
-        if (isScript) {
-            String scm =  body.binding.variables["scm"]
-            String file =  body.binding.variables["\$0"]
+        if (script) {
+            String scm =  script.binding.variables["scm"]
+            String file =  script.binding.variables["\$0"]
 
             Logger.info "[$scm] [${file}] [${inv.name}]"
         }
@@ -67,7 +67,7 @@ class InvHandler {
 
     static class INVOptionRequiredException extends Exception {
 
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/Syntax-INV"
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-Syntax"
 
         INVOptionRequiredException(String option) {
             super("Option ${option} is not valid. Please visit ${HELP_LINK} for more information")

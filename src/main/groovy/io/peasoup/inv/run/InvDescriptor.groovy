@@ -31,71 +31,30 @@ class InvDescriptor {
         this.ready = readyBody
     }
 
-    StatementDescriptor broadcast(StatementDescriptor statementDescriptor) {
+    BroadcastDescriptor broadcast(StatementDescriptor statementDescriptor) {
         assert statementDescriptor, 'Statement descriptor is required'
 
-        BroadcastStatement broadcastValuable = new BroadcastStatement()
+        BroadcastStatement broadcastStatement = new BroadcastStatement()
 
-        broadcastValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
-        broadcastValuable.name = statementDescriptor.name
+        broadcastStatement.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        broadcastStatement.name = statementDescriptor.name
 
-        statementDescriptor.usingDigestor = { Closure usingBody ->
-            assert usingBody, 'Using body is required'
+        statements << broadcastStatement
 
-            BroadcastDescriptor broadcastDescriptor = new BroadcastDescriptor()
-
-            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
-            usingBody.delegate = broadcastDescriptor
-            usingBody.call()
-
-            if (broadcastDescriptor.id)
-                broadcastValuable.id = broadcastDescriptor.id
-
-            broadcastValuable.ready = broadcastDescriptor.ready
-        }
-
-        statements << broadcastValuable
-
-        return statementDescriptor
+        return new BroadcastDescriptor(statementDescriptor, broadcastStatement)
     }
 
-    StatementDescriptor require(StatementDescriptor statementDescriptor) {
+    RequireDescriptor require(StatementDescriptor statementDescriptor) {
         assert statementDescriptor, 'Statement descriptor is required'
 
-        RequireStatement requireValuable = new RequireStatement()
+        RequireStatement requireStatement = new RequireStatement()
 
-        requireValuable.id = statementDescriptor.id ?: Statement.DEFAULT_ID
-        requireValuable.name = statementDescriptor.name
+        requireStatement.id = statementDescriptor.id ?: Statement.DEFAULT_ID
+        requireStatement.name = statementDescriptor.name
 
-        statementDescriptor.usingDigestor = { Closure usingBody ->
-            assert usingBody, 'Using body is required'
+        statements << requireStatement
 
-            RequireDescriptor requireDescriptor = new RequireDescriptor()
-
-            usingBody.resolveStrategy = Closure.DELEGATE_FIRST
-            usingBody.delegate = requireDescriptor
-            usingBody.call()
-
-            if (requireDescriptor.id)
-                requireValuable.id = requireDescriptor.id
-
-            if (requireDescriptor.defaults != null)
-                requireValuable.defaults = requireDescriptor.defaults
-
-            if (requireDescriptor.unbloatable != null)
-                requireValuable.unbloatable = requireDescriptor.unbloatable
-
-            requireValuable.resolved = requireDescriptor.resolved
-            requireValuable.unresolved = requireDescriptor.unresolved
-        }
-
-        statementDescriptor.intoDigestor = { String into ->
-            requireValuable.into = into
-        }
-
-        statements << requireValuable
-
-        return statementDescriptor
+        return new RequireDescriptor(statementDescriptor, requireStatement)
     }
 
     void step(Closure stepBody) {

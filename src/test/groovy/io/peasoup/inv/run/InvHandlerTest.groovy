@@ -84,6 +84,13 @@ class InvHandlerTest {
     }
 
     @Test
+    void call_without_name() {
+        assertThrows(InvHandler.INVOptionRequiredException.class, {
+            inv.call({}, '')
+        })
+    }
+
+    @Test
     void call_broadcast_twice() {
 
         inv {

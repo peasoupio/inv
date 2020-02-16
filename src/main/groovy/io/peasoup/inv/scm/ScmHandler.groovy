@@ -41,7 +41,7 @@ class ScmHandler {
 
     static class SCMOptionRequiredException extends Exception {
 
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/Syntax-SCM"
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/SCM-Syntax"
 
         SCMOptionRequiredException(String option) {
             super("Option ${option} is not valid. Please visit ${HELP_LINK} for more information")

@@ -32,10 +32,10 @@ class InvDescriptorTest {
 
     @Test
     void broadcast() {
-        def nvd = new StatementDescriptor("name")
+        def statementDescriptor = new StatementDescriptor("name")
 
-        assert nvd == myself.broadcast(nvd)
-        assert nvd.usingDigestor != null
+        def broadcastDescriptor = myself.broadcast(statementDescriptor)
+        assert broadcastDescriptor
     }
 
     @Test
@@ -75,51 +75,52 @@ class InvDescriptorTest {
 
     @Test
     void require_set_defaults() {
-        def nvd = new StatementDescriptor("name")
+        def statementDescriptor = new StatementDescriptor("name")
+        def requireDescriptor = myself.require(statementDescriptor)
 
-        myself.require(nvd)
         def delegate = myself.statements.get(0) as RequireStatement
 
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert delegate.defaults
 
-        nvd.using {
+        requireDescriptor.using {
             defaults false
         }
 
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert !delegate.defaults
 
-        nvd.using {
+        requireDescriptor.using {
             defaults true
         }
 
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert delegate.defaults
     }
 
     @Test
     void require_set_unbloatable() {
-        def nvd = new StatementDescriptor("name")
+        def statementDescriptor = new StatementDescriptor("name")
 
-        myself.require(nvd)
+        def requireDescriptor = myself.require(statementDescriptor)
+        assert requireDescriptor
+
         def delegate = myself.statements.get(0) as RequireStatement
-
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert !delegate.unbloatable
 
-        nvd.using {
+        requireDescriptor.using {
             unbloatable false
         }
 
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert !delegate.unbloatable
 
-        nvd.using {
+        requireDescriptor.using {
             unbloatable true
         }
 
-        assert delegate.name == nvd.name
+        assert delegate.name == statementDescriptor.name
         assert delegate.unbloatable
     }
 

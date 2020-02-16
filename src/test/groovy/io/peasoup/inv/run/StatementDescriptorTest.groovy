@@ -58,27 +58,4 @@ class StatementDescriptorTest {
             myself.call((Map)null)
         })
     }
-
-    @Test
-    void using_ok() {
-        myself.usingDigestor = { }
-
-        myself.using { }
-    }
-
-    @Test
-    void using__not_ok() {
-
-        // requires usingDigestor
-        assertThrows(AssertionError.class, {
-            myself.using {}
-        })
-
-        assertThrows(AssertionError.class, {
-            myself.usingDigestor = {}
-            myself.using()
-        })
-
-
-    }
 }

@@ -30,6 +30,21 @@ class MainTest {
     }
 
     @Test
+    void main_secure() {
+        // Enable capture
+        def logs = Logger.capture([])
+
+        def script = MainTest.class.getResource("/mainTestScript.groovy")
+        assert script
+
+        def canonicalPath = new File(script.path).canonicalPath
+
+        Main.main("run", "-s", script.path)
+
+        assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
     void main_no_args() {
         Stdout.capture ({ Main.main() }, {
             assert it.contains("Usage")

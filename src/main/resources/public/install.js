@@ -2,13 +2,20 @@ Vue.component('install', {
     template: `
 <div>
     <div style="position: sticky; top: 6em; z-index: 10">
+
         <div class="buttons is-right">
+
             <a class="is-link breath-heavy" @click="goToTop()">
                 Go to top
             </a>
             <a class="is-link breath-heavy" @click="goToEnd()">
                 Go to end
             </a>
+            <button class="button is-link" @click="enableSecureMode=!enableSecureMode" :disabled="execution.running">
+                <span>Secure</span>
+                <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
+                <span class="icon is-small" v-if="!enableSecureMode"><i class="far fa-square"></i></span>
+            </button>
             <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
                 Execute
             </button>
@@ -38,12 +45,16 @@ Vue.component('install', {
     props: ['value'],
     data: function() {
         return {
+
+            enableSecureMode: true,
+
             runningTimestamp: 0,
-            refreshInterval: {},
-            refreshTime: 1000,
+
             loaded: false,
             loadingMessages: true,
             execution: {},
+            bufferProcessSize: 128,
+            bufferProcessCycleMs: 500,
             buffer: []
         }
     },
@@ -68,10 +79,9 @@ Vue.component('install', {
             if (vm.execution.running)
                 return
 
-            vm.follow()
-
-            axios.post(vm.execution.links.start).then(response => {
+            axios.post(vm.execution.links.start, {secureMode: vm.enableSecureMode}).then(response => {
                 vm.execution.lastExecutionStartedOn = Date.now()
+                location.reload()
             })
         },
         stop: function() {
@@ -190,14 +200,14 @@ Vue.component('install', {
             if (vm.buffer.length == 0)
                 return
 
-            var maxPerCycle = 32
+            var maxPerCycle = vm.bufferProcessSize
             while(maxPerCycle > 0 && vm.buffer.length > 0) {
                 maxPerCycle--
 
                 var message = vm.buffer.shift()
                 vm.appendLog(logContainer, message)
             }
-        }, 50)
+        }, vm.bufferProcessCycleMs)
 
         vm.refresh()
     }

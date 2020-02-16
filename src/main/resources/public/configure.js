@@ -115,14 +115,22 @@ Vue.component('configure-parameters', {
                 <div class="card">
                     <div class="card-content">
                         <p class="title is-5">
-                            {{scm.name}}
-                            <span class="tag is-danger" v-show="scm.requiredNotCompletedCount > 0">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
+                            <span v-bind:class="{ 'has-text-danger': scm.errors.length > 0 }">{{scm.name}}</span>
                             <span class="icon is-medium" v-if="scm.loading">
                                 <i class="fas fa-spinner fa-pulse"></i>
                             </span>
+                            <p>
+                                <span @mouseover="scm.showErrors=true" @mouseleave="scm.showErrors=false" class="tag is-danger" v-show="scm.errors.length > 0">{{scm.errors.length}} error(s) caught</span>
+                                <span class="tag is-warning" v-show="scm.requiredNotCompletedCount > 0">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
+                            </p>
                         </p>
+                        <div class="notification is-primary content" v-show="scm.showErrors" style="position: absolute; z-index: 10">
+                            <ul>
+                                <li v-for="error in scm.errors">{{error.message}}, {{whenError(error)}}.</li>
+                            </ul>
+                        </div>
                         <p class="subtitle is-6" style="color: lightgrey">
-                            <span  v-if="scm.saved">Last edit: {{getRelativeTimestamp(scm)}}</span>
+                            <span  v-if="scm.saved">Last edit: {{whenLastSaved(scm)}}</span>
                             <span v-else>never saved</span>
                         </p>
                         <div class="content">
@@ -258,9 +266,14 @@ Vue.component('configure-parameters', {
 
                 // Calculate parameters metrics
                 vm.value.selectedScms.descriptors.forEach(function(scm) {
+                    // dependency metrics
                     scm.requiredCount = 0
                     scm.requiredNotCompletedCount = 0
                     scm.completedCount = 0
+
+                    // errors stack
+                    scm.errors = []
+                    vm.$set(scm, 'showErrors', false)
 
                     scm.parameters.forEach(function(parameter) {
                         if (parameter.required) {
@@ -296,10 +309,15 @@ Vue.component('configure-parameters', {
                 vm.fetchScms()
             })
         },
-        getRelativeTimestamp: function(scmParameters) {
+        whenLastSaved: function(scmParameters) {
             var vm = this
 
             return TimeAgo.inWords(scmParameters.lastModified)
+        },
+        whenError: function(error) {
+            var vm = this
+
+            return TimeAgo.inWords(error.when)
         },
         editParameters: function(scmParameters) {
 
@@ -330,8 +348,15 @@ Vue.component('configure-parameters', {
 
                 vm.$forceUpdate()
             })
-            .catch(response => {
-                console.log(response.data)
+            .catch(error  => {
+
+                scmParameters.changed = false
+                scmParameters.loaded = false
+                scmParameters.loading = false
+
+                scmParameters.errors.push(error.response.data)
+
+                vm.$forceUpdate()
             })
         },
         areValuesUnavailable: function(scmParameters) {
@@ -438,7 +463,7 @@ Vue.component('configure-scms', {
         </thead>
         <tbody>
         <tr v-for="scm in filter()">
-            <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{getRelativeTimestamp(scm)}}</span></td>
+            <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{whenLastEdit(scm)}}</span></td>
             <td>{{scm.descriptor.src}}</td>
             <td><p v-for="entry in scm.descriptor.entry">{{entry}}</p></td>
             <td>{{scm.descriptor.timeout}}</td>
@@ -590,7 +615,7 @@ Vue.component('configure-scms', {
                 vm.value.scms = response.data
             })
         },
-        getRelativeTimestamp: function(scm) {
+        whenLastEdit: function(scm) {
             return TimeAgo.inWords(scm.script.lastEdit)
         },
         openEdit: function(scm) {

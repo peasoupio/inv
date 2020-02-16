@@ -12,22 +12,24 @@ import java.security.MessageDigest
 @CompileStatic
 class InvInvoker {
 
+    public static final String UNDEFINED_SCM = 'undefined'
+
     private final static CommonLoader loader = new CommonLoader()
 
     static void invoke(InvHandler invHandler, File scriptPath) {
         assert invHandler, 'InvHandler is required'
         assert scriptPath, 'ScriptPath is required'
 
-        invoke(invHandler, scriptPath.parent, scriptPath)
+        invoke(invHandler, scriptPath.parent, scriptPath, UNDEFINED_SCM)
     }
 
-    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm = "undefined") {
+    static void invoke(InvHandler invHandler, String pwd, File scriptFile, String scm) {
         assert invHandler, 'InvHandler is required'
         assert pwd, 'Pwd (current working directory) is required'
         assert scriptFile, 'Script file is required'
 
         if (!scriptFile.exists()) {
-            Logger.warn "INV file does not exists: ${scriptFile.absolutePath}"
+            Logger.warn "INV file does not exists: ${scriptFile.canonicalPath}"
             return
         }
 
@@ -41,9 +43,7 @@ class InvInvoker {
         myNewScript.binding.setProperty("inv", invHandler)
         myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)
         myNewScript.binding.setProperty("pwd", checkSubordinateSlash(pwd))
-
-        if (scm)
-            myNewScript.binding.setProperty("scm", scm)
+        myNewScript.binding.setProperty("scm", scm ?: UNDEFINED_SCM)
 
         try {
             myNewScript.run()

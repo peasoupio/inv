@@ -16,7 +16,9 @@ class Review {
         final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "promote", RunsRoller.latest.folder().name]
 
         def currentProcess = args.execute(envs, Main.currentHome)
-        def exitValue = currentProcess.waitFor()
+        currentProcess.waitForProcessOutput()
+
+        def exitValue = currentProcess.exitValue()
 
         return exitValue > -1
     }
@@ -29,7 +31,7 @@ class Review {
      *
      * @param baseRun the base run file to compare (can be null or not present on filesystem)
      */
-    private void mergeWithBase(File baseRun) {
+    void mergeWithBase(File baseRun) {
         if (!baseRun)
             return
 
@@ -55,24 +57,34 @@ class Review {
             files.put(it.inv, it)
         }
 
-        files.values().each {
-            generatedRun << "[INV] [${it.scm}] [${it.file}] [${it.inv}]${System.lineSeparator()}"
+        // Process lines
+        List<DeltaGraph.DeltaLine> approuvedLines =  deltaGraph.deltaLines
+                .findAll { DeltaGraph.DeltaLine line -> line.state != 'x' } // get non removed lines
+
+        // Get scm for lines
+        List<RunGraph.FileStatement> approuvedFiles = approuvedLines.collect { files[it.owner] }
+
+        // Write files
+        approuvedFiles.each { RunGraph.FileStatement fileStatement ->
+            generatedRun << "[INV] [${fileStatement.scm}] [${fileStatement.file}] [${fileStatement.inv}]${System.lineSeparator()}"
         }
 
-        deltaGraph.deltaLines
-                .findAll { it.state != 'x' } // get non removed lines
+        // Write lines
+        approuvedLines
                 .sort { it.index }
-                .each {
-                    def owner = deltaGraph.otherGraph.navigator.nodes[it.link.value]
+                .each { DeltaGraph.DeltaLine line ->
+                    def owner = deltaGraph.otherGraph.navigator.nodes[line.link.value]
 
                     if (!owner)
-                        owner = deltaGraph.baseGraph.navigator.nodes[it.link.value]
+                        owner = deltaGraph.baseGraph.navigator.nodes[line.link.value]
 
-                    if (it.link.isId())
-                        generatedRun << "[INV] [${owner.owner}] => [BROADCAST] ${it.link.value}${System.lineSeparator()}"
-                    if (it.link.isOwner())
-                        generatedRun << "[INV] [${owner.owner}] => [REQUIRE] ${it.link.value}${System.lineSeparator()}"
+                    if (line.link.isId())
+                        generatedRun << "[INV] [${owner.owner}] => [BROADCAST] ${line.link.value}${System.lineSeparator()}"
+                    if (line.link.isOwner())
+                        generatedRun << "[INV] [${owner.owner}] => [REQUIRE] ${line.link.value}${System.lineSeparator()}"
                 }
+
+        generatedRun << "# file(s): ${approuvedFiles.size()}, broadcast(s): ${approuvedLines.size()}"
     }
 
     Map compare(File baseRun, File latestExecution) {

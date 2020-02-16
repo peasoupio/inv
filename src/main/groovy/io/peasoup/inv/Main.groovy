@@ -59,6 +59,16 @@ Parameters:
   dot          Graph Description Language (DOT) output structure
 """
 
+    /**
+     * Determines whether or not the main is embedded into another JVM process or has its own
+     */
+    static boolean embedded = false
+
+    /**
+     * Returns the latest run exit code
+     */
+    static int exitCode = 0
+
     static final File DEFAULT_HOME = new File("./")
     static File currentHome
 
@@ -101,7 +111,7 @@ Parameters:
         }
 
         // Execute command
-        int result = 0
+        int result
 
         try {
             result = command.call()
@@ -157,7 +167,12 @@ Parameters:
     }
 
     static void main(String[] args) {
-        InvokerHelper.runScript(Main, args)
+        exitCode = InvokerHelper.runScript(Main, args) as int
+
+        if (embedded)
+            return
+
+        System.exit(exitCode)
     }
 
 }

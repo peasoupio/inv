@@ -3,6 +3,7 @@ package io.peasoup.inv.scm
 import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 import org.apache.commons.lang.RandomStringUtils
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 import java.util.concurrent.*
 
@@ -47,15 +48,15 @@ class ScmExecutor {
                     // Make sure path is clean before init
                     repository.path.deleteDir()
 
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [INIT] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] start")
                     report.isOk = executeCommands(repository, repository.hooks.init)
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [INIT] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] done")
 
                 } else if (repository.hooks.update) {
 
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [UPDATE] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] start")
                     report.isOk = executeCommands(repository, repository.hooks.update)
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.absolutePath} [UPDATE] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] done")
                 }
 
                 return report
@@ -69,7 +70,7 @@ class ScmExecutor {
             }
         }
         catch(Exception ex) {
-            Logger.error(ex)
+            Logger.error(StackTraceUtils.sanitize(ex))
         }
         finally {
             pool.shutdownNow()

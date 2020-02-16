@@ -1,6 +1,7 @@
 package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
+import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 
 class DeltaGraph {
@@ -25,25 +26,27 @@ class DeltaGraph {
             if (link.isOwner())
                 continue
 
+            // Get properties
             Integer index = baseIndexes[link.value]
-            String owner = baseGraph.navigator.nodes[link.value].owner
+            assert index, 'Index is required for link'
 
+            def linksNode = baseGraph.navigator.nodes[link.value]
+            assert linksNode, "Link's node cannot be null"
+
+            def linksOwner = linksNode.owner
+            assert linksOwner, "Link's node owner cannot be null or empty"
+
+            // Process state
             if (otherGraph.navigator.contains(link)) {
-                deltaLines << new DeltaLine(index: index, state: '=', link: link, owner: owner)
+                deltaLines << new DeltaLine(index: index, state: '=', link: link, owner: linksOwner)
             } else {
 
-                def linksNode = baseGraph.navigator.nodes[link.value]
-                assert linksNode, "Link's node cannot be null"
+                def fileStatement = baseGraph.files.find { it.inv == linksOwner }
 
-                def linksOwner = linksNode.owner
-                assert linksOwner, "Link's node owner cannot be null or empty"
-
-                def scm = baseGraph.files.find { it.inv == linksOwner }
-
-                if (scm)
-                    deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: owner)
+                if (fileStatement && fileStatement.scm != InvInvoker.UNDEFINED_SCM)
+                    deltaLines << new DeltaLine(index: index, state: '-', link: link, owner: linksOwner)
                 else
-                    deltaLines << new DeltaLine(index: index, state: 'x', link: link, owner: owner)
+                    deltaLines << new DeltaLine(index: index, state: 'x', link: link, owner: linksOwner)
             }
         }
 
@@ -52,11 +55,33 @@ class DeltaGraph {
             if (link.isOwner())
                 continue
 
-            if (!baseGraph.navigator.contains(link)) {
-                Integer index = otherIndexes[link.value]
-                String owner = otherGraph.navigator.nodes[link.value].owner
+            // Get properties
+            Integer index = otherIndexes[link.value]
+            assert index, 'Index is required for link'
 
-                deltaLines << new DeltaLine(index: index, state: '+', link: link, owner: owner)
+            def linksNode = otherGraph.navigator.nodes[link.value]
+            assert linksNode, "Link's node cannot be null"
+
+            def linksOwner = linksNode.owner
+            assert linksOwner, "Link's node owner cannot be null or empty"
+
+            // Process state
+            def fileStatement = otherGraph.files.find { it.inv == linksOwner }
+            if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM) {
+
+                // Check if a deltaLine was added from base when a correspondence was found in other.
+                // In that case, if other as not defined an SCM, it must be removed.
+                def alreadyProcessed = deltaLines.find { it.owner == linksOwner && it.state == '=' }
+                if (alreadyProcessed)
+                    alreadyProcessed.state = 'x'
+                else
+                    deltaLines << new DeltaLine(index: index, state: 'x', link: link, owner: linksOwner)
+
+                return
+            }
+
+            if (!baseGraph.navigator.contains(link)) {
+                deltaLines << new DeltaLine(index: index, state: '+', link: link, owner: linksOwner)
             }
         }
     }

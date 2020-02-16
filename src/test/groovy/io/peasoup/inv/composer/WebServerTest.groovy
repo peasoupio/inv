@@ -2,14 +2,17 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+import org.junit.runner.RunWith
 import spark.Spark
 
 import java.nio.charset.Charset
 
+@RunWith(TempHome.class)
 class WebServerTest {
 
     static String base = "./src/main/example/composer/"

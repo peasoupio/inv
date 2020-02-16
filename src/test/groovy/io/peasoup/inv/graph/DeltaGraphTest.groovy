@@ -9,8 +9,8 @@ class DeltaGraphTest {
 
     @Test
     void ok() {
-        def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
-        def logAfterOutput1Txt =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())
+        def logOutput1Txt =  new File(getClass().getResource('/baseRun.txt').toURI())
+        def logAfterOutput1Txt =  new File(getClass().getResource('/subsetRun.txt').toURI())
 
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
 
@@ -19,8 +19,8 @@ class DeltaGraphTest {
 
     @Test
     void html() {
-        def logOutput1Txt =  new File(getClass().getResource('/logOutput1.txt').toURI())
-        def logAfterOutput1Txt =  new File(getClass().getResource('/logAfterOutput1.txt').toURI())
+        def logOutput1Txt =  new File(getClass().getResource('/baseRun.txt').toURI())
+        def logAfterOutput1Txt =  new File(getClass().getResource('/subsetRun.txt').toURI())
 
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
 
@@ -32,7 +32,7 @@ class DeltaGraphTest {
     @Test
     void not_ok() {
 
-        def existing = new File(getClass().getResource('/logOutput1.txt').toURI())
+        def existing = new File(getClass().getResource('/baseRun.txt').toURI())
 
         assertThrows(AssertionError.class, {
             new DeltaGraph(null, null)

@@ -6,4 +6,6 @@ inv {
             response.deploy("my-web-app")
         }
     }
+
+    broadcast inv.App(id: 'AppB')
 }

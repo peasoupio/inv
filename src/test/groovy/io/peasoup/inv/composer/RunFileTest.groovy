@@ -1,11 +1,14 @@
 package io.peasoup.inv.composer
 
+import io.peasoup.inv.TempHome
 import io.peasoup.inv.utils.Stdout
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class RunFileTest {
 
     RunFile runFile

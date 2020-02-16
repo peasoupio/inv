@@ -1,10 +1,11 @@
 package io.peasoup.inv.security
 
-import org.codehaus.groovy.control.MultipleCompilationErrorsException
+
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.assertNotNull
+import static org.junit.jupiter.api.Assertions.assertNull
 
 class CommonLoaderTest {
 
@@ -17,44 +18,36 @@ class CommonLoaderTest {
 
     @Test
     void ok() {
-        loader.parseClass('''
+        assertNotNull loader.parseClass('''
 println "Hello world!"
 ''')
     }
 
     @Test
     void insecure_package() {
-        assertThrows(MultipleCompilationErrorsException.class, {
-            loader.parseClass('''
+        assertNull loader.parseClass('''
 package io.peasoup.inv
 ''')
-        })
     }
 
     @Test
     void insecure_system() {
-        assertThrows(MultipleCompilationErrorsException.class, {
-            loader.parseClass('''
+        assertNull loader.parseClass('''
 System.lineSeparator()
 ''')
-        })
     }
 
     @Test
     void insecure_thread() {
-        assertThrows(MultipleCompilationErrorsException.class, {
-            loader.parseClass('''
+        assertNull loader.parseClass('''
 Thread.currentThread()
 ''')
-        })
     }
 
     @Test
     void insecure_eval() {
-        assertThrows(MultipleCompilationErrorsException.class, {
-            loader.parseClass('''
+        assertNull loader.parseClass('''
 Eval.me('1+1')
 ''')
-        })
     }
 }

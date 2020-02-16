@@ -34,7 +34,9 @@ class InvInvoker {
         Logger.debug("file: ${scriptFile.canonicalPath}")
 
         String preferredClassname = (normalizeClassName(scriptFile) + '_' + checksum(scriptFile)).toLowerCase()
-        Script myNewScript = loader.parseClass(scriptFile.text, cache(scriptFile, preferredClassname)).newInstance() as Script
+        Script myNewScript = loader.parseClass(scriptFile.text, cache(scriptFile, preferredClassname))
+        if (!myNewScript)
+            return
 
         myNewScript.binding.setProperty("inv", invHandler)
         myNewScript.binding.setProperty("\$0", scriptFile.canonicalPath)

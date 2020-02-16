@@ -1,6 +1,7 @@
 package io.peasoup.inv.run
 
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 import java.util.concurrent.*
 
@@ -90,7 +91,9 @@ class NetworkValuablePool {
                 try {
                     return inv.digest()
                 } catch (Exception ex) {
-                    exceptions.add(new PoolReport.PoolException(inv: inv, exception: ex))
+                    exceptions.add(new PoolReport.PoolException(
+                            inv: inv,
+                            exception: StackTraceUtils.sanitize(ex) as Exception))
 
                     // issues:8
                     remainingInvs.remove(inv)

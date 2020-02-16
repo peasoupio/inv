@@ -47,7 +47,7 @@ class ScmDescriptor {
     Integer timeout = DefaultTimeout
     def timeout(Integer value) { this.timeout = value }
 
-    def hooks(Closure hooksBody) {
+    def hooks(@DelegatesTo(HookDescriptor) Closure hooksBody) {
         assert hooksBody, "Hook's body is required"
 
         hooksBody.resolveStrategy = Closure.DELEGATE_ONLY
@@ -55,7 +55,7 @@ class ScmDescriptor {
         hooksBody()
     }
 
-    def ask(Closure askBody) {
+    def ask(@DelegatesTo(AskDescriptor) Closure askBody) {
         assert askBody, "Ask's body is required"
 
         askBody.resolveStrategy = Closure.DELEGATE_ONLY

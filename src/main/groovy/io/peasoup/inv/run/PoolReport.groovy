@@ -62,7 +62,8 @@ class PoolReport {
 
                 output.append "- ${remaining.name} has ${remaining.remainingStatements.size()} statement(s) left:${System.lineSeparator()}"
 
-                def requirements = tree.getRemainingRequireStatements(remaining)
+                //def requirements = tree.getRemainingRequireStatements(remaining)
+                def requirements = tree.sortRemainingRequireStatementByWeight(remaining)
 
                 if (!requirements.isEmpty()) {
                     output.append "\t${requirements.size()} requirement(s):${System.lineSeparator()}"

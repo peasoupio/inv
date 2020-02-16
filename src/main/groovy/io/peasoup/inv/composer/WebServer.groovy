@@ -6,6 +6,7 @@ import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
+import io.peasoup.inv.security.CommonLoader
 import io.peasoup.inv.utils.Progressbar
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
@@ -498,7 +499,7 @@ class WebServer {
 
 
             try {
-                new GroovyShell().parse(source)
+                new CommonLoader().parseClass(source)
             } catch(MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

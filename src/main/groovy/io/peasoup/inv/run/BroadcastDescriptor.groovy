@@ -5,36 +5,31 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class BroadcastDescriptor {
 
-    Object id
-    Closure ready
+    private final StatementDescriptor statementDescriptor
+    private final BroadcastStatement broadcastStatement
 
-    /**
-     * Defines the broadcast id from a generic object
-     * NOTE : Null is authorized and is meant as an "undefined/global" id.
-     *        In this case, the network valuable name must be relevant enough.
-     * @param id the object id
-     */
-    void id(Object id) {
-        this.id = id
+    BroadcastDescriptor(StatementDescriptor statementDescriptor, BroadcastStatement broadcastStatement) {
+        assert statementDescriptor, 'StatementDescriptor is required'
+        assert broadcastStatement, 'BroadcastStatement is required'
+
+        this.statementDescriptor = statementDescriptor
+        this.broadcastStatement = broadcastStatement
     }
 
-    /**
-     * Defines the broadcast id from a Map object
-     * @param id the map id
-     */
-    void id(Map id) {
-        this.id = id
-    }
+    BroadcastDescriptor using(@DelegatesTo(BroadcastUsingDescriptor) Closure usingBody) {
+        assert usingBody, 'Using body is required'
 
-    /**
-     * Event raised when broadcast is ready during the running cycle.
-     * A return value is expected if something is meant to be shared to other requirements.
-     * Otherwise, "null" will be shared.
-     *
-     * @param resolvedBody the closure body receiving the ready event
-     */
-    void ready(Closure readyBody) {
-        this.ready = readyBody
-    }
+        BroadcastUsingDescriptor broadcastUsingDescriptor = new BroadcastUsingDescriptor()
 
+        usingBody.resolveStrategy = Closure.DELEGATE_FIRST
+        usingBody.delegate = broadcastUsingDescriptor
+        usingBody.call()
+
+        if (broadcastUsingDescriptor.id)
+            broadcastStatement.id = broadcastUsingDescriptor.id
+
+        broadcastStatement.ready = broadcastUsingDescriptor.ready
+
+        return this
+    }
 }

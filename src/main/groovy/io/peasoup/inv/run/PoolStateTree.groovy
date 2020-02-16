@@ -65,18 +65,18 @@ class PoolStateTree {
 
         return getRemainingRequireStatements(inv)
                 .sort { a, b ->
-                    Integer weightA = 1
-                    Integer weightB = 1
+                    Integer weightA = -1
+                    Integer weightB = -1
 
                     if (a.couldMatch)
-                        weightA = 0
+                        weightA = 1
                     if (a.wouldMatch)
-                        weightA = -1
+                        weightA = 0
 
                     if (b.couldMatch)
-                        weightB = 0
+                        weightB = 1
                     if (b.wouldMatch)
-                        weightB = -1
+                        weightB = 0
 
                     return weightA - weightB
                 }

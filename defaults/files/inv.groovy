@@ -1,4 +1,7 @@
+import groovy.ant.FileNameFinder
+
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /*
@@ -40,10 +43,10 @@ inv {
 
                 Files.walk(Paths.get(pwd))
                         .parallel()
-                        .filter({ f -> Files.isRegularFile(f) })
-                        .collect{ it.toFile() }
-                        .findAll { !exclude || !it.absolutePath.contains(exclude) }
-                        .findAll { !pattern || it.absolutePath.contains(pattern) }
+                        .filter({ Path p -> Files.isRegularFile(p) })
+                        .collect{ Path p -> p.toFile() }
+                        .findAll { File f -> !exclude || !f.absolutePath.contains(exclude) }
+                        .findAll { File f -> !pattern || f.absolutePath.contains(pattern) }
             }
 
         ]}

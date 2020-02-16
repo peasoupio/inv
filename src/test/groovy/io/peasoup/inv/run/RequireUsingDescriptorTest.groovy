@@ -3,13 +3,13 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-class RequireDescriptorTest {
+class RequireUsingDescriptorTest {
 
-    RequireDescriptor myself
+    RequireUsingDescriptor myself
 
     @Before
     void setup() {
-        myself = new RequireDescriptor()
+        myself = new RequireUsingDescriptor()
     }
 
     @Test

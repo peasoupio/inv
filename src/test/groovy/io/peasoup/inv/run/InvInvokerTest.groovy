@@ -11,7 +11,7 @@ class InvInvokerTest {
     void invoke() {
         Logger.enableDebug()
 
-        def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
+        def script = InvInvokerTest.class.getResource("/inv-invoker-script.groovy")
         assert script
 
         def scriptFile = new File(script.path)
@@ -19,14 +19,14 @@ class InvInvokerTest {
         // Resolve with filename as classname
         def inv = new InvHandler(new InvExecutor())
         Stdout.capture ({ InvInvoker.invoke(inv, scriptFile) }, {
-            assert it.contains("From invokertestscript")
+            assert it.contains("inv-invoker-script.groovy")
         })
     }
 
     @Test
     void cache() {
 
-        def script = InvInvokerTest.class.getResource("/invokerTestScript.groovy")
+        def script = InvInvokerTest.class.getResource("/inv-invoker-script.groovy")
         assert script
 
         // Clean if already existing

@@ -9,6 +9,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer
 import org.codehaus.groovy.control.messages.ExceptionMessage
+import org.codehaus.groovy.runtime.StackTraceUtils
 
 class CommonLoader {
 
@@ -109,13 +110,13 @@ class CommonLoader {
     private boolean hasFatalException(MultipleCompilationErrorsException ex) {
         ExceptionMessage notAllowed =  ex.collector.errors.find {it.cause instanceof MethodCallNotAllowedException }
         if (notAllowed) {
-            Logger.error(notAllowed.cause)
+            Logger.error(StackTraceUtils.sanitize(notAllowed.cause))
             return true
         }
 
         ExceptionMessage notSecure =  ex.collector.errors.find {it.cause instanceof SecurityException }
         if (notSecure) {
-            Logger.error(notSecure.cause)
+            Logger.error(StackTraceUtils.sanitize(notSecure.cause))
             return true
         }
 

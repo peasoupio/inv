@@ -18,7 +18,10 @@ class ScmInvoker {
             return
         }
 
-        Script myNewScript = loader.parseClass(scmFile).newInstance() as Script
+        Script myNewScript = loader.parseClass(scmFile)
+        if (!myNewScript)
+            return
+
         myNewScript.binding.setProperty("scm", scmHandler)
         myNewScript.run()
     }

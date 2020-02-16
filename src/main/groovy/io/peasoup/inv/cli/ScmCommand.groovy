@@ -77,7 +77,7 @@ class ScmCommand implements CliCommand {
 
                 if (!scriptFile.exists()) {
                     Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
-                    return
+                    return null
                 }
 
                 return [
@@ -89,12 +89,14 @@ class ScmCommand implements CliCommand {
         } as List<Map>
 
 
-        invsFiles.each {
-            invExecutor.read(
-                    it.path as String,
-                    it.scriptFile as File,
-                    it.name as String)
-        }
+        invsFiles
+            .findAll()
+            .each {
+                invExecutor.read(
+                        it.path as String,
+                        it.scriptFile as File,
+                        it.name as String)
+            }
 
 
         Logger.info("[SCM] done")

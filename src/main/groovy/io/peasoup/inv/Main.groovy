@@ -5,6 +5,7 @@ import io.peasoup.inv.cli.*
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
 
@@ -98,7 +99,14 @@ Parameters:
         }
 
         // Execute command
-        int result = command.call()
+        int result = 0
+
+        try {
+            result = command.call()
+        } catch(Exception ex) {
+            Logger.error(StackTraceUtils.sanitize(ex))
+            result = -99
+        }
 
         // If rolling, make sure to update success and fail symlinks
         if (command.rolling()) {

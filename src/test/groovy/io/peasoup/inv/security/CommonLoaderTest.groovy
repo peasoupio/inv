@@ -13,7 +13,7 @@ class CommonLoaderTest {
 
     @Before
     void setup() {
-        loader = new CommonLoader()
+        loader = new CommonLoader(true)
     }
 
     @Test

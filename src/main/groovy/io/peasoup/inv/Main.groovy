@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
+import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.docopt.Docopt
@@ -15,10 +16,10 @@ class Main extends Script {
     String usage = """Inv.
 
 Usage:
-  inv run [-x] [-e <label>] <patterns>...
-  inv scm [-x] <scmFiles>...
-  inv composer [-x]
-  inv init [-x] <scmFile>
+  inv run [-x] [-s] [-e <label>] <patterns>...
+  inv scm [-x] [-s] <scmFiles>...
+  inv composer [-x] [-s]
+  inv init [-x] [-s] <scmFile>
   inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
@@ -32,6 +33,7 @@ Options:
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
   -x --debug   Debug out. Excellent for troubleshooting.
+  -s --secure  Enable the secure mode for script files.
   -e --exclude Exclude files from loading.
   -h --help    Show this screen.
   
@@ -122,6 +124,9 @@ Parameters:
     CliCommand proceedWithCommands() {
         if (arguments["--debug"])
             Logger.enableDebug()
+
+        if (arguments["--secure"])
+            CommonLoader.enableSecureMode()
 
         if (arguments["run"])
             return new RunCommand(

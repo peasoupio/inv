@@ -12,10 +12,30 @@ import org.codehaus.groovy.control.messages.ExceptionMessage
 
 class CommonLoader {
 
-    private GroovyClassLoader generalClassLoader
-    private GroovyClassLoader securedClassLoader
+    private static boolean systemSecureModeEnabled = false
+    /**¸
+     * Determine system-wide secure mode preference
+     */
+    static void enableSecureMode() {
+        systemSecureModeEnabled = true
+    }
 
+    private final boolean secureMode = false
+    private final GroovyClassLoader generalClassLoader
+    private final GroovyClassLoader securedClassLoader
+
+    /**
+     * Create a common loader using system-wide secure mode preference
+     */
     CommonLoader() {
+        this(systemSecureModeEnabled)
+    }
+
+    /**
+     * Create a common loader
+     * @param secureMode Determines if using secure mode or not
+     */
+    CommonLoader(boolean secureMode) {
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration().with {
 
@@ -36,11 +56,16 @@ class CommonLoader {
             return delegate
         }
 
-        generalClassLoader = new GroovyClassLoader()
-        securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration)
+        this.secureMode = secureMode
+        this.generalClassLoader = new GroovyClassLoader()
+        this.securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration)
     }
 
     Script parseClass(File file) throws CompilationFailedException {
+
+        if (!secureMode)
+            return generalClassLoader.parseClass(file).newInstance() as Script
+
         try {
             return securedClassLoader.parseClass(file).newInstance() as Script
         } catch (MultipleCompilationErrorsException ex) {
@@ -52,6 +77,10 @@ class CommonLoader {
     }
 
     Script parseClass(String text) throws CompilationFailedException {
+
+        if (!secureMode)
+            return generalClassLoader.parseClass(text).newInstance() as Script
+
         try {
             securedClassLoader.parseClass(text).newInstance() as Script
         } catch(MultipleCompilationErrorsException ex) {
@@ -63,6 +92,10 @@ class CommonLoader {
     }
 
     Script parseClass(String text, String fileName) throws CompilationFailedException {
+
+        if (!secureMode)
+            return generalClassLoader.parseClass(text, fileName).newInstance() as Script
+
         try {
             securedClassLoader.parseClass(text, fileName).newInstance() as Script
         } catch(MultipleCompilationErrorsException ex) {

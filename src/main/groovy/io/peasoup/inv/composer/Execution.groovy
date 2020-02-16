@@ -50,7 +50,7 @@ class Execution {
         currentProcess && currentProcess.isAlive()
     }
 
-    void start(List<File> scms) {
+    void start(boolean secureMode, List<File> scms) {
         assert scms, 'SCM collection is required'
 
         if (scms.isEmpty()) {
@@ -71,7 +71,13 @@ class Execution {
         RunsRoller.runsFolder().mkdirs()
         final def scmListFile = new File(RunsRoller.runsFolder(), "scm-list.txt")
         final def myClassPath = System.getProperty("java.class.path")
-        final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "scm", scmListFile.absolutePath]
+        final def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
+        final def appArgs = ["scm"]
+
+        if (secureMode)
+            appArgs << "-s"
+
+        appArgs << scmListFile.absolutePath
 
         scmListFile.delete()
         scms.each {
@@ -82,7 +88,7 @@ class Execution {
 
             def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Main.currentHome.absolutePath}".toString()]
 
-            currentProcess = args.execute(envs, Main.currentHome)
+            currentProcess =  (jvmArgs + appArgs).execute(envs, Main.currentHome)
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @Override

@@ -529,7 +529,7 @@ class WebServer {
 
             def latestElement = scms.elements[name]
 
-            // Make sure we atleast try to get repository with default or no parameters
+            // Make sure we at least try to get repository with default or no parameters
             List<ScmExecutor.SCMReport> report = new ScmExecutor().with {
                 add(latestElement.descriptor)
                 return execute()
@@ -596,12 +596,20 @@ class WebServer {
             List<String> toExecute = []
             toExecute += scms.staged
 
+            def secureMode = false
+
+            def body = req.body()
+            if (body) {
+                def options = new JsonSlurper().parseText(body) as Map
+                secureMode = options.secureMode
+            }
+
             if (run)
                 toExecute += run.selectedScms()
 
             List<File> scmFiles = scms.toFiles(toExecute.unique()) as List<File>
 
-            exec.start(scmFiles)
+            exec.start(secureMode, scmFiles)
             Thread.sleep(50)
 
             return JsonOutput.toJson([
@@ -670,7 +678,8 @@ class WebServer {
         res.status(500)
 
         return JsonOutput.toJson([
-                error: message
+                message: message,
+                when: System.currentTimeMillis()
         ])
     }
 

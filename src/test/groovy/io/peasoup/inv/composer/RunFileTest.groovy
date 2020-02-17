@@ -55,12 +55,12 @@ class RunFileTest {
 
     @Test
     void stageWithoutPropagate() {
-        assert runFile.selected.isEmpty()
+        assert runFile.staged.isEmpty()
 
         runFile.stageWithoutPropagate("my-id")
         runFile.stageWithoutPropagate("my-id") // can handle twice
 
-        assert runFile.selected.containsKey("my-id")
+        assert runFile.staged.containsKey("my-id")
     }
 
     @Test
@@ -68,18 +68,27 @@ class RunFileTest {
         String myId = "my-id"
 
         runFile.stageWithoutPropagate(myId)
-        assert runFile.selected.containsKey(myId)
+        assert runFile.staged.containsKey(myId)
 
         runFile.unstage(myId)
         runFile.unstage(myId) // can handle twice
 
-        assert !runFile.selected.containsKey(myId)
+        assert !runFile.staged.containsKey(myId)
     }
 
     @Test
     void propagate() {
         runFile.stageWithoutPropagate(runFile.nodes[3].value)
         assert runFile.propagate().added > 0
+    }
+
+    @Test
+    void propagate_reverse() {
+        runFile.nodes.toList()[1..6].each {
+            runFile.stageWithoutPropagate(it.value)
+        }
+
+        assert runFile.propagate().added == 1
     }
 
     @Test

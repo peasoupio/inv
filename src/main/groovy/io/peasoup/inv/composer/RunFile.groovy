@@ -14,7 +14,7 @@ class RunFile {
     final private Map<String, List<String>> ownerOfScm
     final private Map<String, RunGraph.FileStatement> invOfScm
 
-    final Map<String, Selected> selected = [:]
+    final Map<String, StagedId> staged = [:]
     final Set<GraphNavigator.Linkable> nodes
 
     final Map<String, List<GraphNavigator.Id>> owners
@@ -39,13 +39,13 @@ class RunFile {
     synchronized void stage(String id) {
         assert id, 'Id is required'
 
-        if (selected.containsKey(id))
+        if (staged.containsKey(id))
             return
 
-        selected.put(id, new Selected(
-                selected: true,
-                link: new GraphNavigator.Id(value: id)
-        ))
+        def stagedId = new StagedId(new GraphNavigator.Id(value: id))
+        stagedId.selected = true
+
+        staged.put(id, stagedId)
 
         propagate()
     }
@@ -53,37 +53,37 @@ class RunFile {
     synchronized void stageWithoutPropagate(String id) {
         assert id, 'Id is required'
 
-        if (selected.containsKey(id))
+        if (staged.containsKey(id))
             return
 
-        selected.put(id, new Selected(
-                selected: true,
-                link: new GraphNavigator.Id(value: id)
-        ))
+        def stagedId = new StagedId(new GraphNavigator.Id(value: id))
+        stagedId.selected = true
+
+        staged.put(id, stagedId)
     }
 
     synchronized void stageAll() {
         nodes.each { GraphNavigator.Linkable link ->
-            selected.put(link.value, new Selected(
-                    selected: true,
-                    link: link
-            ))
+            def stagedId = new StagedId(link)
+            stagedId.selected = true
+
+            staged.put(link.value, stagedId)
         }
     }
 
     synchronized void unstage(String id) {
         assert id, 'Id is required'
 
-        if (!selected.containsKey(id))
+        if (!staged.containsKey(id))
             return
 
-        selected.remove(id)
+        staged.remove(id)
 
         propagate()
     }
 
     synchronized void unstageAll() {
-        selected.clear()
+        staged.clear()
     }
 
     /**
@@ -92,34 +92,35 @@ class RunFile {
      */
     synchronized Map propagate() {
 
-        Map<String, Selected> checkRequiresByAll = selected
+        Map<String, StagedId> checkRequiresByAll = staged
                 .findAll { it.value.selected }
 
         Map<String, Integer> output = [
-            all: selected.size() == nodes.size(),
+            all: staged.size() == nodes.size(),
             checked: checkRequiresByAll.size(),
             added: 0
         ] as Map<String, Integer>
 
         // (Re)init with selected only
-        selected.clear()
-        selected.putAll(checkRequiresByAll)
+        staged.clear()
+        staged.putAll(checkRequiresByAll)
 
         // Are all nodes required ?
         if (output.all)
             return output
 
-
         List<GraphNavigator.Linkable> alreadyStaged = checkRequiresByAll.values().collect { it.link }
 
         // If there's more selected than remaining, we'll seek from non-selected
-        boolean reverseMode = selected.size() > (nodes.size() / 2)
-        List<Selected> toCheck
+        boolean reverseMode = staged.size() > (nodes.size() / 2)
+        List<StagedId> toCheck
 
         if (!reverseMode)
-            toCheck = checkRequiresByAll.values().toList() as List<Selected>
+            toCheck = checkRequiresByAll.values().toList() as List<StagedId>
         else
-            toCheck = nodes.findAll { !checkRequiresByAll.containsKey(it.value) }.collect { new Selected(link: new GraphNavigator.Id(value: it.value))}
+            toCheck = nodes.findAll { !checkRequiresByAll.containsKey(it.value) }.collect {
+                new StagedId(new GraphNavigator.Id(value: it.value))
+            }
 
         while(!toCheck.isEmpty()) {
             def chosen = toCheck.pop()
@@ -128,22 +129,28 @@ class RunFile {
             if (reverseMode) {
                 def links = runGraph.navigator.requiredBy(chosenLink)
 
-                if (!selected.any { links.contains(it.value.link) })
+                boolean matched = false
+
+                for(GraphNavigator.Linkable owner : links) {
+                    def node = runGraph.navigator.nodes[owner.value]
+                    if (!staged.containsKey(node.id))
+                        continue
+
+                    matched = true
+                    break
+                }
+
+                if (!matched)
                     continue
 
-                selected.put(chosenLink.value, new Selected(
-                        required: true,
-                        link: chosenLink
-                ))
+                chosen.required = true
+                staged.put(chosenLink.value, chosen)
 
                 alreadyStaged.add(chosenLink)
-
-                //if (link.isId())
                 output.added++
 
                 continue
             }
-
 
             Map<GraphNavigator.Linkable, Integer> links = runGraph.navigator.requiresAll(
                     chosenLink,
@@ -159,27 +166,12 @@ class RunFile {
                 if (!link.isId())
                     continue
 
-                /*
-                if (selected.containsKey(link.value)) {
+                StagedId selectedId = new StagedId(link)
+                selectedId.required = true
 
-                    int sizeBefore = checkRequiresByAllList.size()
-
-                    // If already selected, remove from queue
-                    if (checkRequiresByAllList.removeAll { it.key == link.value})
-                        output.skipped += sizeBefore - checkRequiresByAllList.size()
-
-                    continue
-                }
-                 */
-
-                selected.put(link.value, new Selected(
-                        required: true,
-                        link: link
-                ))
+                staged.put(link.value, selectedId)
 
                 alreadyStaged.add(link)
-
-                //if (link.isId())
                 output.added++
             }
         }
@@ -197,12 +189,12 @@ class RunFile {
             if (!node)
                 return false
 
-            return selected.containsKey(node.id) && selected[node.id].selected
+            return staged.containsKey(node.id) && staged[node.id].selected
         }
     }
 
     List<String> selectedScms() {
-        return selected.values()
+        return staged.values()
                 .collect { runGraph.navigator.nodes[it.link.value] }
                 .findAll { it }
                 .collect { invOfScm[it.owner] }
@@ -213,12 +205,12 @@ class RunFile {
     Map nodesToMap(Map filter = [:]) {
 
         Collection<GraphNavigator.Linkable> links = nodes
-        Collection<GraphNavigator.Linkable> selectedLinks = selected.values()
+        Collection<GraphNavigator.Linkable> selectedLinks = staged.values()
                 .findAll { it.selected }
                 .collect { it.link }
                 .findAll { it.isId() }
 
-        Collection<GraphNavigator.Linkable> requiredLinks = selected.values()
+        Collection<GraphNavigator.Linkable> requiredLinks = staged.values()
                 .findAll { it.required }
                 .collect { it.link }
                 .findAll { it.isId() }
@@ -252,8 +244,8 @@ class RunFile {
         return [
                 total                : nodes.size(),
                 count                : reduced.size(),
-                selected             : (reduced.sum { (selected.containsKey(it.link.value) && selected[it.link.value].selected) ? 1 : 0 } as Integer) ?: 0,
-                requiredByAssociation: (reduced.sum { (selected.containsKey(it.link.value) && selected[it.link.value].required) ? 1 : 0 } as Integer) ?: 0,
+                selected             : (reduced.sum { (staged.containsKey(it.link.value) && staged[it.link.value].selected) ? 1 : 0 } as Integer) ?: 0,
+                requiredByAssociation: (reduced.sum { (staged.containsKey(it.link.value) && staged[it.link.value].required) ? 1 : 0 } as Integer) ?: 0,
                 names                : names,
                 owners               : owners,
                 nodes                : reduced.collect {
@@ -264,8 +256,8 @@ class RunFile {
                     def scm = invOfScm[owner]
 
                     return [
-                            required: selected[value] && selected[value].required,
-                            selected: selected[value] && selected[value].selected,
+                            required: staged[value] && staged[value].required,
+                            selected: staged[value] && staged[value].selected,
                             owner   : owner,
                             name    : it.name,
                             id      : it.subId,
@@ -284,7 +276,7 @@ class RunFile {
     Map requireByToMap(String id) {
 
         def nodes = []
-        def linkableToCheck = selected.find { it.value.link.value == id }
+        def linkableToCheck = staged.find { it.value.link.value == id }
 
         if (linkableToCheck) {
             for (Map.Entry<GraphNavigator.Linkable, Integer> entry : runGraph.navigator.requiredByAll(linkableToCheck.value.link)) {
@@ -307,8 +299,8 @@ class RunFile {
                     id: subId,
                     owner: node.owner,
                     iteration: iteration,
-                    required: selected[node.id] && selected[node.id].required,
-                    selected: selected[node.id] && selected[node.id].selected,
+                    required: staged[node.id] && staged[node.id].required,
+                    selected: staged[node.id] && staged[node.id].selected,
                 ])
             }
         }
@@ -319,10 +311,17 @@ class RunFile {
 
     }
 
-    private static class Selected {
+    private static class StagedId {
+        final GraphNavigator.Linkable link
+
         boolean required
         boolean selected
-        GraphNavigator.Linkable link
+
+        StagedId(GraphNavigator.Linkable link) {
+            assert link, 'Link is required'
+
+            this.link = link
+        }
     }
 
     private static class Reduced {

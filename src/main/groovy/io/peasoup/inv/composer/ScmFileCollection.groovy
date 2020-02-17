@@ -102,13 +102,11 @@ class ScmFileCollection {
             boolean selected = false
             boolean staged = staged.contains(it.descriptor.name)
 
-
             if (runFile)
                 selected = runFile.isSelected(it.descriptor.name)
 
             boolean filteredOutSelected = filter.selected && !selected
             boolean filteredOutStaged = filter.staged && !staged
-
 
             if (selected)
                 selectedCount++

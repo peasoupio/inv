@@ -1,7 +1,9 @@
 package io.peasoup.inv.composer
 
+import groovy.mock.interceptor.MockFor
 import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.RunsRoller
+import org.eclipse.jetty.websocket.api.Session
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -40,5 +42,21 @@ class ExecutionTest {
         assertThrows(AssertionError.class, {
             new Execution(new File(base, "scms/"), null)
         })
+    }
+
+    @Test
+    void messageStreamer() {
+        assert Execution.MessageStreamer.sessions != null
+        assert Execution.MessageStreamer.sessions.isEmpty()
+
+        Session sessionMock = new MockFor(Session).proxy as Session
+
+        def messageStreamer = new Execution.MessageStreamer()
+
+        messageStreamer.connected(sessionMock)
+        assert Execution.MessageStreamer.sessions.contains(sessionMock)
+
+        messageStreamer.closed(sessionMock, 0, null)
+        assert !Execution.MessageStreamer.sessions.contains(sessionMock)
     }
 }

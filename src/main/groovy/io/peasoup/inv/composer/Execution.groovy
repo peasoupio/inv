@@ -87,7 +87,7 @@ class Execution {
 
             def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Main.currentHome.absolutePath}".toString()]
 
-            currentProcess =  (jvmArgs + appArgs).execute(envs, Main.currentHome)
+            currentProcess = (jvmArgs + appArgs).execute(envs, Main.currentHome)
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @Override
@@ -168,24 +168,24 @@ class Execution {
         }
 
         return [
-            lastExecution: lastExecution,
-            lastExecutionStartedOn: lastExecutionStartedOn,
-            executions: !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
-                    .findAll { it.name.isInteger() }
-                    .collect { it.lastModified() },
-                running: isRunning(),
-                links: [
-                steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },
-                start: "/execution/start",
-                stop: "/execution/stop"
-            ]
+                lastExecution         : lastExecution,
+                lastExecutionStartedOn: lastExecutionStartedOn,
+                executions            : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
+                        .findAll { it.name.isInteger() }
+                        .collect { it.lastModified() },
+                running               : isRunning(),
+                links                 : [
+                        steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },
+                        start: "/execution/start",
+                        stop : "/execution/stop"
+                ]
         ]
     }
 
     @WebSocket
     static class MessageStreamer {
 
-        private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>()
+        protected static final Queue<Session> sessions = new ConcurrentLinkedQueue<>()
 
         @OnWebSocketConnect
         void connected(Session session) {

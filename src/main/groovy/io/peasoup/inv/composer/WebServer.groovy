@@ -195,8 +195,8 @@ class WebServer {
             return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
                     owner: owner,
-                    selectedBy: ids.findAll { run.selected[it.value] && run.selected[it.value].selected }.size(),
-                    requiredBy: ids.findAll { run.selected[it.value] && run.selected[it.value].required }.size(),
+                    selectedBy: ids.findAll { run.staged[it.value] && run.staged[it.value].selected }.size(),
+                    requiredBy: ids.findAll { run.staged[it.value] && run.staged[it.value].required }.size(),
                     links: [
                             stage: "/run/stage?owner=${owner}",
                             unstage: "/run/unstage?owner=${owner}"
@@ -666,7 +666,6 @@ class WebServer {
             settings.save()
 
             return showResult("promoted")
-
         })
     }
 

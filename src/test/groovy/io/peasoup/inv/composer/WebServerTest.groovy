@@ -17,6 +17,7 @@ class WebServerTest {
 
     static String base = "./src/main/example/composer/"
     static Integer port = 5555
+    static WebServer webServer
 
     static void clean() {
         new File(base, "executions/").deleteDir()
@@ -40,10 +41,11 @@ scm {
 }
 """
 
-        new WebServer(
+        webServer = new WebServer(
             port: port,
             workspace: base
-        ).map()
+        )
+        webServer.map()
 
         sleep(1000)
     }
@@ -93,7 +95,7 @@ scm {
     }
 
     @Test
-    void run_stage_and_unstage() {
+    void run_stage_and_unstage_id() {
         post("run/stage?id=[Kubernetes]%20undefined")
 
         def responseStage = get("run/requiredBy?id=[Server]%20[name:server-a]")
@@ -106,6 +108,31 @@ scm {
         assert jsonStage.nodes.any { it.name == "Kubernetes"}
 
         post("run/unstage?id=[Kubernetes]%20undefined")
+
+        def responseUnstage = get("run/requiredBy?id=[Server]%20[name:server-a]")
+        assert responseUnstage
+
+        def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
+
+        assert jsonUnstage
+        assert jsonUnstage.nodes != null
+        assert jsonUnstage.nodes.isEmpty()
+    }
+
+    @Test
+    void run_stage_and_unstage_owner() {
+        post("run/stage?owner=Kubernetes")
+
+        def responseStage = get("run/requiredBy?id=[Server]%20[name:server-a]")
+        assert responseStage
+
+        def jsonStage = new JsonSlurper().parseText(responseStage)
+
+        assert jsonStage
+        assert jsonStage.nodes
+        assert jsonStage.nodes.any { it.name == "Kubernetes"}
+
+        post("run/unstage?owner=Kubernetes")
 
         def responseUnstage = get("run/requiredBy?id=[Server]%20[name:server-a]")
         assert responseUnstage
@@ -224,6 +251,61 @@ scm {
         assert json
         assert json.name == "scm7"
         assert json.script.text.contains("my-src")
+    }
+
+    @Test
+    void scm_stage_and_unstage() {
+
+        def stageScmName = 'scm1'
+        post("scms/stage?name=${stageScmName}")
+
+        def responseStage = post("scms")
+        assert responseStage
+
+        def jsonStage = new JsonSlurper().parseText(responseStage)
+
+        assert jsonStage
+        assert jsonStage.descriptors
+
+        def scmStaged = jsonStage.descriptors.find { it.staged }
+        assert scmStaged
+        assert scmStaged.name == stageScmName
+
+        post("scms/unstage?name=${stageScmName}")
+
+        def responseUnstage = post("scms")
+        assert responseUnstage
+
+        def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
+
+        assert jsonUnstage
+        assert jsonUnstage.descriptors != null
+        assert !jsonUnstage.descriptors.any { it.staged }
+    }
+
+    @Test
+    void scm_stageAll_and_unstageAll() {
+        post("scms/stageAll")
+
+        def responseStage = post("scms")
+        assert responseStage
+
+        def jsonStage = new JsonSlurper().parseText(responseStage)
+
+        assert jsonStage
+        assert jsonStage.descriptors != null
+        assert !jsonStage.descriptors.any { !it.staged }
+
+        post("scms/unstageAll")
+
+        def responseUnstage = post("scms")
+        assert responseUnstage
+
+        def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
+
+        assert jsonUnstage
+        assert jsonUnstage.descriptors != null
+        assert !jsonUnstage.descriptors.any { it.staged }
     }
 
     @Test
@@ -365,6 +447,25 @@ scm {
         jsonEnd = new JsonSlurper().parseText(responseEnd)
 
         assert jsonEnd.running == false
+
+
+        def responseReview = get("review")
+        assert responseReview
+
+        def jsonReview = new JsonSlurper().parseText(responseReview)
+        assert jsonReview
+        assert jsonReview.baseExecution != null
+        assert jsonReview.lastExecution != null
+        assert jsonReview.lines
+        assert jsonReview.stats
+
+        def responsePromote = post("review/promote")
+        assert responsePromote
+
+        def jsonPromote = new JsonSlurper().parseText(responsePromote)
+        assert jsonPromote
+
+        assert jsonPromote.result == 'promoted'
     }
 
     @Test
@@ -398,6 +499,18 @@ scm {
 
         assert jsonEnd
         assert jsonEnd.running == false
+    }
+    @Test
+    void execution_logs() {
+        def messages = ['my-message']
+        webServer.exec.messages = [messages]
+
+        def response = get("/execution/logs/0")
+        assert response
+
+        def jsonMessages = new JsonSlurper().parseText(response)
+        assert jsonMessages instanceof List
+        assert jsonMessages[0] == messages[0]
     }
 
     String get(String context) {

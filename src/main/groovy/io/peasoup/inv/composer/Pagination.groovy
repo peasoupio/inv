@@ -1,5 +1,8 @@
 package io.peasoup.inv.composer
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class Pagination {
 
     final Settings settings
@@ -17,7 +20,7 @@ class Pagination {
         Integer resolvedFrom = from ?: 0
         resolvedFrom = resolvedFrom + 1 > element.size() ? 0 : resolvedFrom
 
-        Integer resolvedTo = to ?: settings.filters().defaultStep
+        Integer resolvedTo = to ?: (Integer)settings.filters().defaultStep
         resolvedTo = Math.min(element.size(), resolvedFrom + resolvedTo)
 
         return element[resolvedFrom..resolvedTo - 1]

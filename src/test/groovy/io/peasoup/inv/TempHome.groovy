@@ -17,13 +17,13 @@ class TempHome extends BlockJUnit4ClassRunner {
                 return
 
             // Set temp INV_HOME and clean if already present on filesystem
-            Main.currentHome = new File((System.getenv()["TEMP"] ?: '/tmp') + '/inv')
-            Main.currentHome.deleteDir()
-            Main.currentHome.mkdirs()
+            Home.current = new File((System.getenv()["TEMP"] ?: '/tmp') + '/inv')
+            Home.current.deleteDir()
+            Home.current.mkdirs()
 
             // Move test resources to temp INV_HOME
             def testResourcesSource = new File("./", "src/test/resources")
-            testResources = new File(Main.currentHome, "test-resources")
+            testResources = new File(Home.current, "test-resources")
             FileUtils.copyDirectoryStructure(testResourcesSource, testResources)
 
             initialized = true

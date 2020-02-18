@@ -52,7 +52,7 @@ class InvDescriptorTest {
 
         myself.require(nvd)
 
-        def delegate = myself.statements.get(0) as RequireStatement
+        def delegate = myself.statements.first() as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.id == nvd.id
@@ -67,7 +67,7 @@ class InvDescriptorTest {
 
         myself.require(nvd)
 
-        def delegate = myself.statements.get(0) as RequireStatement
+        def delegate = myself.statements.first() as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.id == Statement.DEFAULT_ID
@@ -78,7 +78,7 @@ class InvDescriptorTest {
         def statementDescriptor = new StatementDescriptor("name")
         def requireDescriptor = myself.require(statementDescriptor)
 
-        def delegate = myself.statements.get(0) as RequireStatement
+        def delegate = myself.statements.first() as RequireStatement
 
         assert delegate.name == statementDescriptor.name
         assert delegate.defaults
@@ -105,7 +105,7 @@ class InvDescriptorTest {
         def requireDescriptor = myself.require(statementDescriptor)
         assert requireDescriptor
 
-        def delegate = myself.statements.get(0) as RequireStatement
+        def delegate = myself.statements.first() as RequireStatement
         assert delegate.name == statementDescriptor.name
         assert !delegate.unbloatable
 

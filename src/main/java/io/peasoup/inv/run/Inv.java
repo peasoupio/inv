@@ -1,0 +1,231 @@
+package io.peasoup.inv.run;
+
+import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.codehaus.groovy.runtime.StringGroovyMethods;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class Inv {
+    private final Digestion digestionSummary = new Digestion();
+    private final InvDescriptor delegate = new InvDescriptor();
+    private final Queue<Statement> remainingStatements = new LinkedBlockingQueue<>();
+    private final Queue<Statement> totalStatements = new LinkedBlockingQueue<>();
+    private final Queue<Closure> steps = new LinkedBlockingQueue<>();
+    private final NetworkValuablePool pool;
+    private String name;
+    private String path;
+    private Closure ready;
+
+    public Inv(NetworkValuablePool pool) {
+        assert pool != null : "Pool is required";
+
+        this.pool = pool;
+    }
+
+    public synchronized boolean dumpDelegate() {
+        if (StringUtils.isEmpty(name)) name = delegate.getName();
+        if (StringUtils.isEmpty(path)) path = delegate.getPath();
+        if (ready == null) ready = delegate.getReady();
+
+        Boolean dumpedSomething = pool.process(this);
+
+        if (!delegate.getSteps().isEmpty()) {
+            steps.addAll(delegate.getSteps());
+            dumpedSomething = true;
+        }
+
+        // use for-loop to keep order
+        for (Statement statement : delegate.getStatements()) {
+
+            dumpedSomething = true;
+
+            statement.setInv(this);
+
+            this.totalStatements.add(statement);
+            this.remainingStatements.add(statement);
+
+            pool.checkAvailability(statement.getName());
+        }
+
+        delegate.reset();
+
+        return dumpedSomething;
+    }
+
+    /**
+     * Digest this inv.
+     * This method is meant to be called during a digest cycle of the pool.
+     * This method is also meant to be called synchronously.
+     * <p>
+     * It allows to match the remaining statements.
+     * Steps are also handled here.
+     *
+     * @return
+     */
+    public synchronized Digestion digest() {
+        assert pool.isDigesting() : "digest() is only callable during its pool digest cycle";
+
+        boolean stopUnbloating = false;
+
+        Digestion digestion = new Digestion();
+
+        // Loop because dump
+        while (true) {
+
+            List toRemove = new ArrayList();
+
+            // Use fori-loop for speed
+            for (Statement statement : this.remainingStatements) {
+
+                // (try to) manage statement
+                statement.getMatch().manage(pool, statement);
+
+                // Process results for digestion
+                digestion.addResults(statement);
+
+                if (statement.getState() == Statement.FAILED) break;
+
+                toRemove.add(statement);
+
+                if (pool.preventUnbloating(statement)) {
+                    stopUnbloating = true;
+                    break;
+                }
+
+            }
+
+            // Remove all NV meant to be deleted
+            this.remainingStatements.removeAll(toRemove);
+
+            if (stopUnbloating) break;
+
+            boolean hasDumpedSomething = false;
+
+            // Check for new steps if :
+            // 1. has a remaining step
+            // 2. has not (previously dumped something)
+            // 3. has no more statements
+            // 4. Is not halting
+            while (!steps.isEmpty() && !hasDumpedSomething && this.remainingStatements.isEmpty() && !pool.runningState.equals(NetworkValuablePool.getHALTING())) {
+
+                // Call next step
+                Closure step = steps.poll();
+                step.setResolveStrategy(Closure.DELEGATE_FIRST);
+                step.call();
+
+                // If the step dumped something, remainingStatements won't be empty and exit loop
+                hasDumpedSomething = dumpDelegate();
+            }
+
+
+            // Check for new dumps
+            if (!hasDumpedSomething) break;
+        }
+
+        digestionSummary.concat(digestion);
+        return digestion;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!StringGroovyMethods.asBoolean(name)) return false;
+        if (!DefaultGroovyMethods.asBoolean(o)) return false;
+        if (!(o instanceof Inv)) return false;
+
+        Inv invO = DefaultGroovyMethods.asType(o, Inv.class);
+
+        return name.equals(invO.getName());
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public Closure getReady() {
+        return ready;
+    }
+
+    public final Digestion getDigestionSummary() {
+        return digestionSummary;
+    }
+
+    public final InvDescriptor getDelegate() {
+        return delegate;
+    }
+
+    public final Collection<Statement> getRemainingStatements() {
+        return remainingStatements;
+    }
+
+    public final Collection<Statement> getTotalStatements() {
+        return totalStatements;
+    }
+
+    public final Collection<Closure> getSteps() {
+        return steps;
+    }
+
+    public final NetworkValuablePool getPool() {
+        return pool;
+    }
+
+    public static class Digestion {
+        private Integer requires = 0;
+        private Integer broadcasts = 0;
+        private Integer unbloats = 0;
+
+        public void addResults(Statement statement) {
+            assert statement != null : "Statement is required";
+
+            if (statement.getState() >= Statement.SUCCESSFUL) {
+                if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
+                    requires = requires++;
+                }
+
+                if (statement.getMatch().equals(BroadcastStatement.BROADCAST)) {
+                    broadcasts = broadcasts++;
+                }
+            }
+
+            if (statement.getState() == Statement.UNBLOADTING) {
+                unbloats = unbloats++;
+            }
+
+        }
+
+        public void concat(Digestion digestion) {
+            assert digestion != null : "Digestion is required";
+
+            this.requires += digestion.getRequires();
+            this.broadcasts += digestion.getBroadcasts();
+            this.unbloats += digestion.getUnbloats();
+        }
+
+        public Integer getRequires() {
+            return requires;
+        }
+
+        public Integer getBroadcasts() {
+            return broadcasts;
+        }
+
+        public Integer getUnbloats() {
+            return unbloats;
+        }
+    }
+}

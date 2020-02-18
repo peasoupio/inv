@@ -1,7 +1,7 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 
@@ -19,7 +19,7 @@ class InitCommand implements CliCommand {
         }
 
         // Change currentHome for current process (and others spawned by composer.Execution
-        Main.currentHome = report.repository.path
+        Home.current = report.repository.path
 
         new ComposerCommand().call()
     }

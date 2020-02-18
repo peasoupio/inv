@@ -1,5 +1,8 @@
 package io.peasoup.inv.composer
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
 import io.peasoup.inv.Main
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
@@ -7,15 +10,17 @@ import io.peasoup.inv.run.RunsRoller
 
 import java.nio.file.Files
 
+@CompileStatic
 class Review {
 
+    @CompileDynamic
     boolean promote() {
-        def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Main.currentHome.absolutePath}".toString()]
+        def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.current.absolutePath}".toString()]
 
         final def myClassPath = System.getProperty("java.class.path")
         final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "promote", RunsRoller.latest.folder().name]
 
-        def currentProcess = args.execute(envs, Main.currentHome)
+        def currentProcess = args.execute(envs, Home.current)
         currentProcess.waitForProcessOutput()
 
         def exitValue = currentProcess.exitValue()
@@ -31,6 +36,7 @@ class Review {
      *
      * @param baseRun the base run file to compare (can be null or not present on filesystem)
      */
+    @CompileDynamic
     void mergeWithBase(File baseRun) {
         if (!baseRun)
             return
@@ -87,6 +93,7 @@ class Review {
         generatedRun << "# file(s): ${approuvedFiles.size()}, broadcast(s): ${approuvedLines.size()}"
     }
 
+    @CompileDynamic
     Map compare(File baseRun, File latestExecution) {
         assert baseRun, 'Base run file is required'
         assert baseRun.exists(), 'Base run file must exist on filesystem'

@@ -26,7 +26,7 @@ class Settings {
     }
 
     Map filters() {
-        return settings.filters
+        return settings.filters as Map
     }
 
     void stageId(String id) {

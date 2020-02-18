@@ -1,5 +1,6 @@
 package io.peasoup.inv.composer
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.graph.RunGraph
@@ -17,8 +18,8 @@ class RunFile {
     final Map<String, StagedId> staged = [:]
     final Set<GraphNavigator.Linkable> nodes
 
-    final Map<String, List<GraphNavigator.Id>> owners
-    final Map<String, List<GraphNavigator.Id>> names
+    final Map<String, List<GraphNavigator.Linkable>> owners
+    final Map<String, List<GraphNavigator.Linkable>> names
 
     RunFile(File runFile) {
         assert runFile != null, 'Run file is required'
@@ -27,13 +28,13 @@ class RunFile {
         this.runFile = runFile
         runGraph = new RunGraph(runFile.newReader())
 
-        ownerOfScm = runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv} ]} as Map<String, List<String>>
+        ownerOfScm = (Map<String, List<String>>)runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv} ]}
         invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
 
         nodes = runGraph.navigator.links().findAll { it.isId() }
 
-        owners = nodes.groupBy { runGraph.navigator.nodes[it.value].owner } as Map<String, List<GraphNavigator.Id>>
-        names = nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') } as Map<String, List<GraphNavigator.Id>>
+        owners = (Map<String, List<GraphNavigator.Linkable>>) nodes.groupBy { runGraph.navigator.nodes[it.value].owner }
+        names = (Map<String, List<GraphNavigator.Linkable>>) nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') }
     }
 
     synchronized void stage(String id) {
@@ -90,6 +91,7 @@ class RunFile {
      * Iterate through the nodes to get the required ones by association
      * @return Number of required added
      */
+    @CompileDynamic
     synchronized Map propagate() {
 
         Map<String, StagedId> checkRequiresByAll = staged

@@ -2,7 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.io.FileType
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
@@ -43,7 +43,7 @@ class RunCommand implements CliCommand {
                 Logger.debug "resolved pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
-                Main.currentHome.eachFileRecurse(FileType.FILES) {
+                Home.current.eachFileRecurse(FileType.FILES) {
 
                     // Exclude
                     if (exclude && it.path.contains(exclude))

@@ -1,15 +1,17 @@
 package io.peasoup.inv.cli
 
-import io.peasoup.inv.Main
+import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
+@CompileStatic
 class PromoteCommand implements CliCommand {
 
-    private static final DEFAULT = RunsRoller.latest.successFolder()
+    private static final File DEFAULT = RunsRoller.latest.successFolder()
 
     String runIndex // optional
 
@@ -31,9 +33,9 @@ class PromoteCommand implements CliCommand {
             return -2
         }
 
-        Files.copy(runFile.toPath(), new File(Main.currentHome, "run.txt").toPath(), StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(runFile.toPath(), new File(Home.current, "run.txt").toPath(), StandardCopyOption.REPLACE_EXISTING)
 
-        Logger.debug "${runFile.canonicalPath} has been promoted to ${Main.currentHome.canonicalPath}"
+        Logger.debug "${runFile.canonicalPath} has been promoted to ${Home.current.canonicalPath}"
 
         return 0
     }

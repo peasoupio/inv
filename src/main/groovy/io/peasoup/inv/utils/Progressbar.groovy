@@ -1,9 +1,11 @@
 package io.peasoup.inv.utils
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 
 import java.util.concurrent.atomic.AtomicInteger
 
+@CompileStatic
 class Progressbar {
 
     private final static Integer LOOP_MS = 500
@@ -90,14 +92,14 @@ class Progressbar {
             int upperBound = upperBound.get()
 
             float stepSize = upperBound / CHAR_WIDTH
-            int reachStep = Math.floor(index / stepSize)
-            int percentage = Math.floor(index / upperBound * 100)
+            int reachStep = (int) Math.floor(index / stepSize as double)
+            int percentage = (int) Math.floor(index / upperBound * 100 as double)
 
-            report(out, reachStep, index, upperBound, percentage)
+            report(out as PrintStream, reachStep, index, upperBound, percentage)
             sleep(LOOP_MS)
         }
 
-        report(out, CHAR_WIDTH, index.get(), upperBound.get())
+        report(out as PrintStream, CHAR_WIDTH, index.get(), upperBound.get())
         out.print(System.lineSeparator())
     }
 

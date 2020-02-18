@@ -1,6 +1,8 @@
 package io.peasoup.inv.composer
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
 import io.peasoup.inv.Main
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
@@ -49,6 +51,7 @@ class Execution {
         currentProcess && currentProcess.isAlive()
     }
 
+    @CompileDynamic
     void start(boolean secureMode, List<File> scms) {
         assert scms, 'SCM collection is required'
 
@@ -57,7 +60,7 @@ class Execution {
             return
         }
 
-        if (!Main.currentHome.exists()) {
+        if (!Home.current.exists()) {
             Logger.warn "INV_HOME does not exists"
             return
         }
@@ -85,11 +88,12 @@ class Execution {
 
         new Thread({
 
-            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Main.currentHome.absolutePath}".toString()]
+            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.current.absolutePath}".toString()]
 
-            currentProcess = (jvmArgs + appArgs).execute(envs, Main.currentHome)
+            currentProcess = (jvmArgs + appArgs).execute(envs, Home.current)
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
+                        @CompileStatic
                         @Override
                         void write(String str) {
                             if (str == "\n")
@@ -101,6 +105,7 @@ class Execution {
                         }
                     },
                     new StringWriter() {
+                        @CompileStatic
                         @Override
                         void write(String str) {
                             if (str == "\n")

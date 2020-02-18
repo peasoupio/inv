@@ -1,8 +1,10 @@
 package io.peasoup.inv.scm
 
+import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.security.CommonLoader
 
+@CompileStatic
 class ScmInvoker {
 
     private final static CommonLoader loader = new CommonLoader()

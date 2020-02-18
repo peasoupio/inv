@@ -28,7 +28,7 @@ class MainTest {
     @Test
     void main() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
@@ -44,7 +44,7 @@ class MainTest {
     @Test
     void main_secure() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
@@ -69,7 +69,7 @@ class MainTest {
     @Test
     void main_with_expansion() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
             new File(TempHome.testResources, "/mainTestScript.groovy").canonicalPath,
@@ -86,7 +86,7 @@ class MainTest {
     @Test
     void main_with_pattern() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
                 new File(TempHome.testResources, "/mainTestScript.groovy").canonicalPath,
@@ -105,7 +105,7 @@ class MainTest {
     void main_with_pattern_2() {
 
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
             new File(TempHome.testResources, "/pattern/inside/folder/mainTestScript.groovy").canonicalPath,
@@ -165,7 +165,7 @@ class MainTest {
 
     @Test
     void main_launchScm_relative() {
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def scmFile = new File(TempHome.testResources, '/scm-relative.groovy')
 
@@ -183,7 +183,7 @@ class MainTest {
 
     @Test
     void main_launchScm_list() {
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def scm1 = new File(TempHome.testResources, '/scm.groovy')
         def scm2 = new File(TempHome.testResources, '/scm-relative.groovy')

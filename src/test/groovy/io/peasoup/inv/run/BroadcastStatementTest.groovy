@@ -3,8 +3,6 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
-
 class BroadcastStatementTest {
 
     InvExecutor executor
@@ -14,13 +12,6 @@ class BroadcastStatementTest {
     void setup() {
         executor = new InvExecutor()
         inv = new InvHandler(executor)
-    }
-
-    @Test
-    void asdelegate_not_ok() {
-        assertThrows(AssertionError.class, {
-            new BroadcastStatement.Response().asDelegate(null, false)
-        })
     }
 
     @Test
@@ -215,8 +206,8 @@ class BroadcastStatementTest {
         NetworkValuablePool pool = new NetworkValuablePool()
 
         pool.availableStatements.put(statement.name, [
-                (statement.id): new BroadcastStatement.Response()
-        ] as Map<Object, BroadcastStatement.Response>)
+                (statement.id): new BroadcastResponse()
+        ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
         assert statement.state == Statement.ALREADY_BROADCAST
@@ -225,8 +216,8 @@ class BroadcastStatementTest {
         statement.state = Statement.NOT_PROCESSED
 
         pool.stagingStatements.put(statement.name, [
-                (statement.id): new BroadcastStatement.Response()
-        ] as Map<Object, BroadcastStatement.Response>)
+                (statement.id): new BroadcastResponse()
+        ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
         assert statement.state == Statement.ALREADY_BROADCAST

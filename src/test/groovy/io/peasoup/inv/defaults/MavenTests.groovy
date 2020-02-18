@@ -18,7 +18,7 @@ class MavenTests {
     void mavenSimpleLookup() {
 
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def app1 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app1").path).absolutePath
         def app2 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app2").path).absolutePath
@@ -50,7 +50,7 @@ class MavenTests {
                 defaults false
 
                 resolved {
-                    analyze(app2)
+                    response.analyze(app2)
                 }
             }
         }

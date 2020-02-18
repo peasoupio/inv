@@ -1,6 +1,6 @@
 package io.peasoup.inv.cli
 
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 import io.peasoup.inv.run.RunsRoller
 import org.junit.Test
 
@@ -14,7 +14,7 @@ class PromoteCommandTest {
         run.delete()
         run << "something"
 
-        def dest = new File(Main.currentHome, "run.txt")
+        def dest = new File(Home.current, "run.txt")
 
         assert new PromoteCommand().call() == 0
         assert dest.exists()

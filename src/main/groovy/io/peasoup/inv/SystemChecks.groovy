@@ -14,7 +14,7 @@ class SystemChecks {
     boolean consistencyFails(Main main) {
         assert main, 'Main is required'
 
-        return checkInvHome(Main.currentHome)
+        return checkInvHome(Home.current)
     }
 
     boolean checkInvHome(File invHome) {

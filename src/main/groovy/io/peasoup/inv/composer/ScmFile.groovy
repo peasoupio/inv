@@ -86,11 +86,13 @@ class ScmFile {
 
                 String savedValue
 
-                if (externalProperties)
-                    savedValue = externalProperties?[descriptor.name]?[parameter.name]
+                if (externalProperties) {
+                    savedValue = externalProperties[descriptor.name][parameter.name]
+                }
 
-                if (savedValue)
+                if (savedValue) {
                     completedParameters++
+                }
 
                 parameters << [
                         name: parameter.name,

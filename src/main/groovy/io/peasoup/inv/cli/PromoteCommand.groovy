@@ -33,9 +33,9 @@ class PromoteCommand implements CliCommand {
             return -2
         }
 
-        Files.copy(runFile.toPath(), new File(Home.current, "run.txt").toPath(), StandardCopyOption.REPLACE_EXISTING)
+        Files.copy(runFile.toPath(), new File(Home.getCurrent(), "run.txt").toPath(), StandardCopyOption.REPLACE_EXISTING)
 
-        Logger.debug "${runFile.canonicalPath} has been promoted to ${Home.current.canonicalPath}"
+        Logger.debug "${runFile.canonicalPath} has been promoted to ${Home.getCurrent().canonicalPath}"
 
         return 0
     }

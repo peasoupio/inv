@@ -44,15 +44,14 @@ public class InvHandler {
             exception.setException(ex);
 
             executor.getReport().getExceptions().add(exception);
-        } finally {
-
-            // Make sure, at any cost, delegate.name is not empty before dumping for the first time
-            if (StringUtils.isEmpty(inv.getDelegate().getName()))
-                throw new INVOptionRequiredException("name");
-
-            // Attempt to dump delegate to insert it into pool
-            inv.dumpDelegate();
         }
+
+        // Make sure, at any cost, delegate.name is not empty before dumping for the first time
+        if (StringUtils.isEmpty(inv.getDelegate().getName()))
+            throw new INVOptionRequiredException("name");
+
+        // Attempt to dump delegate to insert it into pool
+        inv.dumpDelegate();
 
         if (script != null) {
             String scm = (String) script.getBinding().getVariables().get("scm");

@@ -5,14 +5,12 @@ import groovy.lang.Script;
 import groovy.transform.TypeChecked;
 import io.peasoup.inv.run.Logger;
 import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.Message;
-import org.codehaus.groovy.runtime.StackTraceUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +56,7 @@ public class CommonLoader {
         this.securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration);
     }
 
-    public Script parseClass(File file) throws CompilationFailedException, IOException, IllegalAccessException, InstantiationException {
+    public Script parseClass(File file) throws IOException, IllegalAccessException, InstantiationException {
 
         if (!secureMode) return (Script) generalClassLoader.parseClass(file).newInstance();
 
@@ -71,7 +69,7 @@ public class CommonLoader {
 
     }
 
-    public Script parseClass(String text) throws CompilationFailedException, IllegalAccessException, InstantiationException {
+    public Script parseClass(String text) throws IllegalAccessException, InstantiationException {
 
         if (!secureMode)
             return (Script)generalClassLoader.parseClass(text).newInstance();
@@ -85,7 +83,7 @@ public class CommonLoader {
 
     }
 
-    public Script parseClass(String text, String fileName) throws CompilationFailedException, IllegalAccessException, InstantiationException {
+    public Script parseClass(String text, String fileName) throws IllegalAccessException, InstantiationException {
         if (!secureMode) return (Script) generalClassLoader.parseClass(text, fileName).newInstance();
 
         try {
@@ -107,12 +105,12 @@ public class CommonLoader {
             Exception cause = exceptionMessage.getCause();
 
             if (cause instanceof MethodCallNotAllowedException) {
-                Logger.error(StackTraceUtils.sanitize(cause));
+                Logger.error(cause);
                 return true;
             }
 
             if (cause instanceof SecurityException) {
-                Logger.error(StackTraceUtils.sanitize(cause));
+                Logger.error(cause);
                 return true;
             }
         }

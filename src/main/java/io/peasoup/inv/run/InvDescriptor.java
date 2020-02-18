@@ -9,7 +9,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class InvDescriptor {
-    private final InvNames inv = InvNames.Instance;
+    private final static InvNames inv = InvNames.Instance;
     private final Queue<Statement> statements = new LinkedBlockingQueue<>();
     private final Queue<Closure> steps = new LinkedBlockingQueue<>();
     private String name;

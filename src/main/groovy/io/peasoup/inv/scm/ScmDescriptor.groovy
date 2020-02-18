@@ -26,7 +26,7 @@ class ScmDescriptor {
     String name
     def name(String value) { this.name = value }
 
-    File path = Home.current
+    File path = Home.getCurrent()
     def path(String value) {
         if (!value)
             return
@@ -35,7 +35,7 @@ class ScmDescriptor {
         if (filePath.isAbsolute())
             this.path = filePath
         else
-            this.path = new File(Home.current, value)
+            this.path = new File(Home.getCurrent(), value)
 
         /*if (Main.currentHome != Main.DEFAULT_HOME)
             this.path = new File(Main.currentHome, value)

@@ -28,11 +28,11 @@ class ScmDescriptorTest {
     @Test
     void path_using_invHome() {
         def relativePath = "./my/path"
-        def absolutePath = new File(Home.current, "/my/path").absolutePath
+        def absolutePath = new File(Home.getCurrent(), "/my/path").absolutePath
         def descriptor = new ScmDescriptor()
 
         descriptor.path(relativePath)
-        assert descriptor.path.absolutePath == new File(Home.current, relativePath).absolutePath
+        assert descriptor.path.absolutePath == new File(Home.getCurrent(), relativePath).absolutePath
 
         descriptor.path(absolutePath)
         assert descriptor.path.toString() == absolutePath

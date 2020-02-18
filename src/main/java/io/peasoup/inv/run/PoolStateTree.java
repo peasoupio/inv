@@ -158,8 +158,8 @@ public class PoolStateTree {
     }
 
     private final NetworkValuablePool pool;
-    private final Map<String, Map<Object, List<RequireStatement>>> remainingRequirements = new LinkedHashMap<String, Map<Object, List<RequireStatement>>>();
-    private final Map<String, Map<Object, BroadcastStatement>> remainingBroadcasts = new LinkedHashMap<String, Map<Object, BroadcastStatement>>();
+    private final Map<String, Map<Object, List<RequireStatement>>> remainingRequirements = new LinkedHashMap<>();
+    private final Map<String, Map<Object, BroadcastStatement>> remainingBroadcasts = new LinkedHashMap<>();
 
     public static class RemainingRequire {
 

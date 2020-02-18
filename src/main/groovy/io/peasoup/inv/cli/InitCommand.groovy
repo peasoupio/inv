@@ -19,7 +19,7 @@ class InitCommand implements CliCommand {
         }
 
         // Change currentHome for current process (and others spawned by composer.Execution
-        Home.current = report.repository.path
+        Home.setCurrent(report.repository.path)
 
         new ComposerCommand().call()
     }

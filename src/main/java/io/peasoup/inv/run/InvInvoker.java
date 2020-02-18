@@ -4,7 +4,6 @@ import groovy.lang.Script;
 import io.peasoup.inv.security.CommonLoader;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.codehaus.groovy.runtime.StackTraceUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
@@ -45,11 +44,8 @@ public class InvInvoker {
 
         try {
             myNewScript = loader.parseClass(ResourceGroovyMethods.getText(scriptFile), cache(scriptFile, preferredClassname));
-        } catch (IllegalAccessException e) {
-            Logger.error(StackTraceUtils.sanitize(e));
-            return;
-        } catch (InstantiationException e) {
-            Logger.error(StackTraceUtils.sanitize(e));
+        } catch (IllegalAccessException|InstantiationException e) {
+            Logger.error(e);
             return;
         }
 
@@ -63,7 +59,7 @@ public class InvInvoker {
         try {
             myNewScript.run();
         } catch (Exception ex) {
-            Logger.error(StackTraceUtils.sanitize(ex));
+            Logger.error(ex);
         }
 
     }
@@ -77,10 +73,12 @@ public class InvInvoker {
 
         // Make sure cache is available with minimal accesses
         if (!cache.exists()) {
-            cache.mkdir();
-            cache.setExecutable(true);
+            cache.mkdirs();
+
+            // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
+            assert cache.setExecutable(true) : "Could not set executable";
             cache.setWritable(true);
-            cache.setReadable(true);
+            assert cache.setReadable(true) : "Could not set readable";
         }
 
 
@@ -102,9 +100,9 @@ public class InvInvoker {
     protected static String normalizeClassName(File script) {
         if (script.getParent() == null) return script.getName().split("\\.")[0];
 
-        if (script.getName().toLowerCase().equals("inv")) return script.getParentFile().getName();
+        if (script.getName().equalsIgnoreCase("inv")) return script.getParentFile().getName();
 
-        if (script.getName().toLowerCase().equals("inv.groovy")) return script.getParentFile().getName();
+        if (script.getName().equalsIgnoreCase("inv.groovy")) return script.getParentFile().getName();
 
         return script.getName().split("\\.")[0];
     }
@@ -124,8 +122,20 @@ public class InvInvoker {
         } catch (NoSuchAlgorithmException e) {
             Logger.error(e);
         } finally {
-            oos.close();
-            baos.close();
+            if (oos != null) {
+                try {
+                    oos.close();
+                } catch(IOException e){
+                    Logger.error(e);
+                }
+            }
+            if (baos != null ) {
+                try {
+                    baos.close();
+                } catch(IOException e){
+                    Logger.error(e);
+                }
+            }
         }
 
         return checksumValue;

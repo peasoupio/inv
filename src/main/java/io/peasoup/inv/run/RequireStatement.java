@@ -109,7 +109,7 @@ public class RequireStatement implements Statement {
         public void manage(NetworkValuablePool pool, RequireStatement requireValuable) {
 
             // Reset to make sure NV is fine
-            requireValuable.setState(RequireStatement.NOT_PROCESSED);
+            requireValuable.setState(Statement.NOT_PROCESSED);
 
             // Do nothing if halting
             if (pool.runningState.equals(NetworkValuablePool.getHALTING())) return;
@@ -122,7 +122,7 @@ public class RequireStatement implements Statement {
             if (broadcast == null) {
 
                 // By default
-                requireValuable.setState(RequireStatement.FAILED);
+                requireValuable.setState(Statement.FAILED);
 
                 boolean toUnbloat = false;
 
@@ -133,7 +133,7 @@ public class RequireStatement implements Statement {
 
 
                 // Does this one unbloats
-                if (pool.runningState.equals(NetworkValuablePool.getUNBLOATING()) && requireValuable.getUnbloatable()) {
+                if (NetworkValuablePool.getUNBLOATING().equals(pool.runningState) && requireValuable.getUnbloatable()) {
                     toUnbloat = true;
 
                     // Cache for later
@@ -143,7 +143,7 @@ public class RequireStatement implements Statement {
 
                 if (toUnbloat) {
 
-                    requireValuable.setState(RequireStatement.UNBLOADTING);
+                    requireValuable.setState(Statement.UNBLOADTING);
                     Logger.info(requireValuable);
 
                     if (requireValuable.getUnresolved() != null) {
@@ -158,7 +158,7 @@ public class RequireStatement implements Statement {
                 return;
             }
 
-            requireValuable.setState(RequireStatement.SUCCESSFUL);
+            requireValuable.setState(Statement.SUCCESSFUL);
 
             Logger.info(requireValuable);
 

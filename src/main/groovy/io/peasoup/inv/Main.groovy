@@ -6,7 +6,6 @@ import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.runtime.InvokerHelper
-import org.codehaus.groovy.runtime.StackTraceUtils
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
 
@@ -75,7 +74,7 @@ Parameters:
     Object run() {
 
         if (System.getenv('INV_HOME'))
-            Home.current = new File(System.getenv('INV_HOME'))
+            Home.setCurrent(new File(System.getenv('INV_HOME')))
 
         try {
             arguments = new Docopt(usage)
@@ -109,7 +108,7 @@ Parameters:
         try {
             result = command.call()
         } catch(Exception ex) {
-            Logger.error(StackTraceUtils.sanitize(ex))
+            Logger.error(ex)
             result = -99
         }
 

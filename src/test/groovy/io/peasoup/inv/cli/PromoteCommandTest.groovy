@@ -14,7 +14,7 @@ class PromoteCommandTest {
         run.delete()
         run << "something"
 
-        def dest = new File(Home.current, "run.txt")
+        def dest = new File(Home.getCurrent(), "run.txt")
 
         assert new PromoteCommand().call() == 0
         assert dest.exists()

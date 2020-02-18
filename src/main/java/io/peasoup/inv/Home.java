@@ -5,9 +5,21 @@ import java.io.File;
 public class Home {
 
     public static final File DEFAULT_HOME = new File("./");
-    public static File current;
 
-    static {
-        current = DEFAULT_HOME;
+    private static File current;
+
+    public static File getCurrent() {
+        if (current == null)
+            current = DEFAULT_HOME;
+
+        return current;
+    }
+
+    public static void setCurrent(File current) {
+        Home.current = current;
+    }
+
+    private Home() {
+
     }
 }

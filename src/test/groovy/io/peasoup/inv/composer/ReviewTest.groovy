@@ -33,7 +33,7 @@ class ReviewTest {
 
         new Review().promote()
 
-        def baseRun = new File(Home.current, 'run.txt')
+        def baseRun = new File(Home.getCurrent(), 'run.txt')
 
         assert baseRun.exists()
         assert baseRun.text == testContent
@@ -44,7 +44,7 @@ class ReviewTest {
         RunsRoller.latest.roll() // make sure to roll once
 
         // Generate base
-        def baseRun = new File(Home.current, 'run.txt')
+        def baseRun = new File(Home.getCurrent(), 'run.txt')
         baseRun.delete()
         baseRun << new File(getClass().getResource('/baseRun.txt').toURI()).text
 

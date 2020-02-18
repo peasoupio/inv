@@ -1,7 +1,6 @@
 package io.peasoup.inv.run;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.StackTraceUtils;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -59,6 +58,7 @@ public class NetworkValuablePool {
         try {
             return proceedDigest();
         } catch (Exception ex) {
+            Logger.error(ex);
             throw ex;
         } finally {
             isDigesting = false;
@@ -103,15 +103,15 @@ public class NetworkValuablePool {
                 } catch (Exception ex) {
                     PoolReport.PoolException exception = new PoolReport.PoolException();
                     exception.setInv(inv);
-                    exception.setException((Exception) StackTraceUtils.sanitize(ex));
+                    exception.setException(ex);
 
                     exceptions.add(exception);
 
                     // issues:8
                     remainingInvs.remove(inv);
-                } finally {
-                    return currentDigest;
                 }
+
+                return currentDigest;
             };
 
             if (runningState.equals(RUNNING)) {
@@ -121,17 +121,15 @@ public class NetworkValuablePool {
 
                 try {
                     Inv.Digestion digestResult = eat.call();
-
-                    if (digestResult == null)
-                        continue;
+                    if (digestResult == null) continue;
 
                     digestion.concat(digestResult);
                 } catch (Exception e) {
                     Logger.error(e);
-                } finally {
-                    // If changed, quit
-                    if (!stateBefore.equals(runningState)) break;
                 }
+
+                // If changed, quit
+                if (!stateBefore.equals(runningState)) break;
             }
         }
 

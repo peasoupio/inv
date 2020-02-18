@@ -71,48 +71,34 @@ public class Inv {
     public synchronized Digestion digest() {
         assert pool.isDigesting() : "digest() is only callable during its pool digest cycle";
 
-        boolean stopUnbloating = false;
-
         Digestion digestion = new Digestion();
+        boolean checkOnce = true;
+        boolean hasDumpedSomething = false;
 
         // Loop because dump
-        while (true) {
+        while (checkOnce || hasDumpedSomething) {
+            // Reset flags
+            checkOnce = false;
+            hasDumpedSomething = false;
 
-            List toRemove = new ArrayList();
+            List<Statement> toRemove = new ArrayList();
 
-            // Use fori-loop for speed
-            for (Statement statement : this.remainingStatements) {
-
-                // (try to) manage statement
-                statement.getMatch().manage(pool, statement);
-
-                // Process results for digestion
-                digestion.addResults(statement);
-
-                if (statement.getState() == Statement.FAILED) break;
-
-                toRemove.add(statement);
-
-                if (pool.preventUnbloating(statement)) {
-                    stopUnbloating = true;
-                    break;
-                }
-
-            }
+            boolean keepGoing = manageStatements(digestion, toRemove);
 
             // Remove all NV meant to be deleted
             this.remainingStatements.removeAll(toRemove);
 
-            if (stopUnbloating) break;
-
-            boolean hasDumpedSomething = false;
+            if (!keepGoing) break;
 
             // Check for new steps if :
             // 1. has a remaining step
             // 2. has not (previously dumped something)
             // 3. has no more statements
             // 4. Is not halting
-            while (!steps.isEmpty() && !hasDumpedSomething && this.remainingStatements.isEmpty() && !pool.runningState.equals(NetworkValuablePool.getHALTING())) {
+            while (!steps.isEmpty() &&
+                   !hasDumpedSomething &&
+                   this.remainingStatements.isEmpty() &&
+                   !pool.runningState.equals(NetworkValuablePool.getHALTING())) {
 
                 // Call next step
                 Closure step = steps.poll();
@@ -122,14 +108,33 @@ public class Inv {
                 // If the step dumped something, remainingStatements won't be empty and exit loop
                 hasDumpedSomething = dumpDelegate();
             }
-
-
-            // Check for new dumps
-            if (!hasDumpedSomething) break;
         }
 
         digestionSummary.concat(digestion);
         return digestion;
+    }
+
+    private boolean manageStatements(Digestion currentDigestion, List<Statement> done) {
+        // Use fori-loop for speed
+        for (Statement statement : this.remainingStatements) {
+
+            // (try to) manage statement
+            statement.getMatch().manage(pool, statement);
+
+            // Process results for digestion
+            currentDigestion.addResults(statement);
+
+            if (statement.getState() == Statement.FAILED) break;
+
+            done.add(statement);
+
+            if (pool.preventUnbloating(statement)) {
+                return false;
+            }
+
+        }
+
+        return true;
     }
 
     @Override
@@ -194,16 +199,16 @@ public class Inv {
 
             if (statement.getState() >= Statement.SUCCESSFUL) {
                 if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
-                    requires = requires++;
+                    requires++;
                 }
 
                 if (statement.getMatch().equals(BroadcastStatement.BROADCAST)) {
-                    broadcasts = broadcasts++;
+                    broadcasts++;
                 }
             }
 
             if (statement.getState() == Statement.UNBLOADTING) {
-                unbloats = unbloats++;
+                unbloats++;
             }
 
         }

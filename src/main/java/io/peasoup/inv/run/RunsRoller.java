@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class RunsRoller {
     public static File runsFolder() {
-        return new File(Home.current, ".runs/");
+        return new File(Home.getCurrent(), ".runs/");
     }
 
     public File folder() {
@@ -38,9 +38,12 @@ public class RunsRoller {
     public void latestHaveFailed() throws IOException {
         if (!folder().exists()) return;
 
-
-        if (Files.isSymbolicLink(failFolder().toPath())) failFolder().delete();
-        else ResourceGroovyMethods.deleteDir(failFolder());
+        if (failFolder().exists()) {
+            if (failFolder().isDirectory())
+                ResourceGroovyMethods.deleteDir(failFolder());
+            else
+                assert failFolder().delete() : "Could not delete fail symlink";
+        }
 
         Files.createSymbolicLink(failFolder().toPath(), folder().getCanonicalFile().toPath());
     }
@@ -48,9 +51,12 @@ public class RunsRoller {
     public void latestHaveSucceed() throws IOException {
         if (!folder().exists()) return;
 
-
-        if (Files.isSymbolicLink(successFolder().toPath())) successFolder().delete();
-        else ResourceGroovyMethods.deleteDir(successFolder());
+        if (successFolder().exists()) {
+            if (successFolder().isDirectory())
+                ResourceGroovyMethods.deleteDir(successFolder());
+            else
+                assert successFolder().delete() : "Could not delete success symlink";
+        }
 
         Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
     }
@@ -65,8 +71,12 @@ public class RunsRoller {
         ResourceGroovyMethods.deleteDir(nextFolder);
         nextFolder.mkdirs();
 
-        if (Files.isSymbolicLink(latestSymlink().toPath())) latestSymlink().delete();
-        else ResourceGroovyMethods.deleteDir(latestSymlink());
+        if (latestSymlink().exists()) {
+            if (latestSymlink().isDirectory())
+                ResourceGroovyMethods.deleteDir(latestSymlink());
+            else
+                assert latestSymlink().delete(): "Could not delete latest symlink";
+        }
 
         Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());
     }

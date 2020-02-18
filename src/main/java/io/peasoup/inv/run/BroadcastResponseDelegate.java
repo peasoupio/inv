@@ -69,7 +69,7 @@ public class BroadcastResponseDelegate {
         copy.setResolveStrategy(Closure.DELEGATE_FIRST);
         Object defaultResponse = copy.call();
 
-        if (defaultResponse != null && defaultResponse instanceof Map) {
+        if (defaultResponse instanceof Map) {
             properties.putAll((Map)defaultResponse);
         }
     }

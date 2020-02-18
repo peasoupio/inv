@@ -69,20 +69,13 @@ Parameters:
      */
     static int exitCode = 0
 
-    static final File DEFAULT_HOME = new File("./")
-    static File currentHome
-
-    static {
-        currentHome = DEFAULT_HOME
-    }
-
     private Map<String, Object> arguments
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
         if (System.getenv('INV_HOME'))
-            currentHome = new File(System.getenv('INV_HOME'))
+            Home.current = new File(System.getenv('INV_HOME'))
 
         try {
             arguments = new Docopt(usage)

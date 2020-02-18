@@ -1,6 +1,6 @@
 package io.peasoup.inv.scm
 
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,11 +28,11 @@ class ScmDescriptorTest {
     @Test
     void path_using_invHome() {
         def relativePath = "./my/path"
-        def absolutePath = new File(Main.currentHome, "/my/path").absolutePath
+        def absolutePath = new File(Home.current, "/my/path").absolutePath
         def descriptor = new ScmDescriptor()
 
         descriptor.path(relativePath)
-        assert descriptor.path.absolutePath == new File(Main.currentHome, relativePath).absolutePath
+        assert descriptor.path.absolutePath == new File(Home.current, relativePath).absolutePath
 
         descriptor.path(absolutePath)
         assert descriptor.path.toString() == absolutePath

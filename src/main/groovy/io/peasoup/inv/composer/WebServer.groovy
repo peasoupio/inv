@@ -2,6 +2,8 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmDescriptor
@@ -14,6 +16,7 @@ import spark.Response
 
 import static spark.Spark.*
 
+@CompileStatic
 class WebServer {
 
     Map configs = [:]
@@ -32,6 +35,7 @@ class WebServer {
 
     final private Pagination pagination
 
+    @CompileDynamic
     WebServer(Map args) {
 
         configs = [
@@ -113,6 +117,7 @@ class WebServer {
      * Map available routes
      * @return
      */
+    @CompileDynamic
     int map() {
 
         webSocket("/execution/log/stream", Execution.MessageStreamer.class)
@@ -177,6 +182,7 @@ class WebServer {
     }
 
     // Runs
+    @CompileDynamic
     void runsMany() {
         get("/run", { Request req, Response res ->
             if (!run)
@@ -313,9 +319,9 @@ class WebServer {
 
             def owner = req.queryParams("owner")
             if (owner && run.owners[owner]) {
-                run.owners[owner].each {
-                    run.stage(it.value)
-                    settings.stageId(it.value)
+                run.owners[owner].each { GraphNavigator.Id graphId ->
+                    run.stage(graphId.value)
+                    settings.stageId(graphId.value)
                     settings.save()
                 }
 
@@ -341,9 +347,9 @@ class WebServer {
 
             def owner = req.queryParams("owner")
             if (owner && run.owners[owner]) {
-                run.owners[owner].each {
-                    run.unstage(it.value)
-                    settings.unstageId(it.value)
+                run.owners[owner].each { GraphNavigator.Id graphId ->
+                    run.unstage(graphId.value)
+                    settings.unstageId(graphId.value)
                     settings.save()
                 }
 
@@ -355,6 +361,7 @@ class WebServer {
     }
 
     // Scms
+    @CompileDynamic
     void scmsMany() {
 
         get("/scms", { Request req, Response res ->
@@ -439,6 +446,7 @@ class WebServer {
         })
     }
 
+    @CompileDynamic
     void scmsSpecific() {
 
         get("/scms/view", { Request req, Response res ->
@@ -574,6 +582,7 @@ class WebServer {
     }
 
     //Executions
+    @CompileDynamic
     @SuppressWarnings("GroovyAssignabilityCheck")
     void execution() {
         get("/execution", { Request req, Response res ->

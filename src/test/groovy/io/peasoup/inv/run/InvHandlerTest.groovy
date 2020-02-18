@@ -433,12 +433,12 @@ class InvHandlerTest {
 
         Stream.of("A", "B","C", "D", "E")
             .parallel()
-            .forEach { provider ->
+            .each { provider ->
                 patternProvider(provider)
 
                 Stream.of("A", "B","C", "D", "E")
                     .parallel()
-                    .forEach {consumer ->
+                    .each {consumer ->
                         patternConsumer(provider, provider + consumer)
                     }
             }

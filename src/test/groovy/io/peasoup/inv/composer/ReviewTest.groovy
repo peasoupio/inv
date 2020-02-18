@@ -1,6 +1,6 @@
 package io.peasoup.inv.composer
 
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 import io.peasoup.inv.TempHome
 import io.peasoup.inv.graph.DeltaGraph
 import io.peasoup.inv.graph.RunGraph
@@ -33,7 +33,7 @@ class ReviewTest {
 
         new Review().promote()
 
-        def baseRun = new File(Main.currentHome, 'run.txt')
+        def baseRun = new File(Home.current, 'run.txt')
 
         assert baseRun.exists()
         assert baseRun.text == testContent
@@ -44,7 +44,7 @@ class ReviewTest {
         RunsRoller.latest.roll() // make sure to roll once
 
         // Generate base
-        def baseRun = new File(Main.currentHome, 'run.txt')
+        def baseRun = new File(Home.current, 'run.txt')
         baseRun.delete()
         baseRun << new File(getClass().getResource('/baseRun.txt').toURI()).text
 

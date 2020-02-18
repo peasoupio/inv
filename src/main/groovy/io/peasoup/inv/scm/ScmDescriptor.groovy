@@ -2,7 +2,7 @@ package io.peasoup.inv.scm
 
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 
 @CompileStatic
 class ScmDescriptor {
@@ -26,7 +26,7 @@ class ScmDescriptor {
     String name
     def name(String value) { this.name = value }
 
-    File path = Main.currentHome
+    File path = Home.current
     def path(String value) {
         if (!value)
             return
@@ -35,7 +35,7 @@ class ScmDescriptor {
         if (filePath.isAbsolute())
             this.path = filePath
         else
-            this.path = new File(Main.currentHome, value)
+            this.path = new File(Home.current, value)
 
         /*if (Main.currentHome != Main.DEFAULT_HOME)
             this.path = new File(Main.currentHome, value)

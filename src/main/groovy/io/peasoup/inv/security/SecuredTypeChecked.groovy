@@ -1,12 +1,15 @@
 package io.peasoup.inv.security
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import io.peasoup.inv.run.InvDescriptor
 import io.peasoup.inv.scm.ScmDescriptor
 import org.codehaus.groovy.transform.stc.GroovyTypeCheckingExtensionSupport
 
+@CompileStatic
 class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeCheckingDSL {
 
-    def blacklistedClasses = [
+    List<String> blacklistedClasses = [
             'java.lang.System',
             'java.lang.Thread',
             'groovy.util.Eval'
@@ -17,8 +20,9 @@ class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeChecking
             'scm': ScmDescriptor,
             'ask': ScmDescriptor.AskDescriptor,
             'hooks': ScmDescriptor.HookDescriptor
-    ]
+    ] as Map<String, Class>
 
+    @CompileDynamic
     @Override
     Object run() {
 

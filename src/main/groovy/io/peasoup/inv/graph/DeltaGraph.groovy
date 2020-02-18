@@ -1,9 +1,11 @@
 package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
+import groovy.transform.CompileStatic
 import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 
+@CompileStatic
 class DeltaGraph {
     final private static String lf = System.properties['line.separator']
 
@@ -57,7 +59,7 @@ class DeltaGraph {
 
             // Get properties
             Integer index = otherIndexes[link.value]
-            assert index, 'Index is required for link'
+            assert index != null, 'Index is required for link'
 
             def linksNode = otherGraph.navigator.nodes[link.value]
             assert linksNode, "Link's node cannot be null"

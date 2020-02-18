@@ -3,7 +3,6 @@ package io.peasoup.inv.scm
 import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 import org.apache.commons.lang.RandomStringUtils
-import org.codehaus.groovy.runtime.StackTraceUtils
 
 import java.util.concurrent.*
 
@@ -70,7 +69,7 @@ class ScmExecutor {
             }
         }
         catch(Exception ex) {
-            Logger.error(StackTraceUtils.sanitize(ex))
+            Logger.error(ex)
         }
         finally {
             pool.shutdownNow()

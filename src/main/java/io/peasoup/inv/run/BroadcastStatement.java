@@ -62,7 +62,7 @@ public class BroadcastStatement implements Statement {
         public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastValuable) {
 
             // Reset to make sure NV is fine
-            broadcastValuable.state = BroadcastStatement.NOT_PROCESSED;
+            broadcastValuable.state = Statement.NOT_PROCESSED;
 
             // Do nothing if halting
             if (pool.runningState.equals(NetworkValuablePool.getHALTING())) return;
@@ -73,12 +73,12 @@ public class BroadcastStatement implements Statement {
             if (channel.containsKey(broadcastValuable.getId()) || staging.containsKey(broadcastValuable.getId())) {
                 Logger.warn(broadcastValuable.getId() + " already broadcasted. Skipped");
 
-                broadcastValuable.state = BroadcastStatement.ALREADY_BROADCAST;
+                broadcastValuable.state = Statement.ALREADY_BROADCAST;
                 return;
 
             }
 
-            broadcastValuable.state = BroadcastStatement.SUCCESSFUL;
+            broadcastValuable.state = Statement.SUCCESSFUL;
 
             Logger.info(broadcastValuable);
 
@@ -92,7 +92,7 @@ public class BroadcastStatement implements Statement {
                     responseObject = (Map) rawReponnse;
 
                     // Resolve default closure
-                    if (responseObject != null && responseObject.get("$") instanceof Closure) {
+                    if (responseObject.get("$") instanceof Closure) {
                         defaultClosure = (Closure<Map>) responseObject.get("$");
                         responseObject.remove("$");
                     }

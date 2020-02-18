@@ -8,7 +8,7 @@ import io.peasoup.inv.composer.WebServer
 class ComposerCommand implements CliCommand {
 
     int call() {
-        return new WebServer(workspace: Home.current.absolutePath)
+        return new WebServer(workspace: Home.getCurrent().absolutePath)
                 .map()
     }
 

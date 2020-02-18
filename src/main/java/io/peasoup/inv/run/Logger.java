@@ -17,8 +17,12 @@ import java.util.Queue;
 public class Logger {
     private static final Level INV = Level.forName("INV", Level.INFO.intLevel());
     private static org.apache.logging.log4j.Logger log = LogManager.getRootLogger();
-    private static volatile Queue captureQueue = null;
-    private static volatile Closure captureClosure = null;
+    private static Queue captureQueue = null;
+    private static Closure captureClosure = null;
+
+    private Logger() {
+
+    }
 
     public static void setupRolling() throws IOException {
         RunsRoller.getLatest().roll();
@@ -70,7 +74,7 @@ public class Logger {
     }
 
     public static void error(Throwable ex) {
-        log.error(ex.getMessage(), ex);
+        log.error(ex.getMessage(), StackTraceUtils.sanitize(ex));
     }
 
     public static void error(final String invName, final Throwable ex) {

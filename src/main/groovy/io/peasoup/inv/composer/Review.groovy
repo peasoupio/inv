@@ -15,12 +15,12 @@ class Review {
 
     @CompileDynamic
     boolean promote() {
-        def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.current.absolutePath}".toString()]
+        def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.getCurrent().absolutePath}".toString()]
 
         final def myClassPath = System.getProperty("java.class.path")
         final def args = ["java", "-classpath", myClassPath, Main.class.canonicalName, "promote", RunsRoller.latest.folder().name]
 
-        def currentProcess = args.execute(envs, Home.current)
+        def currentProcess = args.execute(envs, Home.getCurrent())
         currentProcess.waitForProcessOutput()
 
         def exitValue = currentProcess.exitValue()

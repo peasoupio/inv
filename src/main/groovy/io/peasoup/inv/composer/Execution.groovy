@@ -60,7 +60,7 @@ class Execution {
             return
         }
 
-        if (!Home.current.exists()) {
+        if (!Home.getCurrent().exists()) {
             Logger.warn "INV_HOME does not exists"
             return
         }
@@ -88,9 +88,9 @@ class Execution {
 
         new Thread({
 
-            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.current.absolutePath}".toString()]
+            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.getCurrent().absolutePath}".toString()]
 
-            currentProcess = (jvmArgs + appArgs).execute(envs, Home.current)
+            currentProcess = (jvmArgs + appArgs).execute(envs, Home.getCurrent())
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @CompileStatic

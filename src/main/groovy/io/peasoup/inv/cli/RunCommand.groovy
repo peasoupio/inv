@@ -43,7 +43,7 @@ class RunCommand implements CliCommand {
                 Logger.debug "resolved pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
-                Home.current.eachFileRecurse(FileType.FILES) {
+                Home.getCurrent().eachFileRecurse(FileType.FILES) {
 
                     // Exclude
                     if (exclude && it.path.contains(exclude))

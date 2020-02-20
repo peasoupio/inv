@@ -42,7 +42,7 @@ public class RunsRoller {
             if (failFolder().isDirectory())
                 ResourceGroovyMethods.deleteDir(failFolder());
             else
-                assert failFolder().delete() : "Could not delete fail symlink";
+                Files.delete(failFolder().toPath());
         }
 
         Files.createSymbolicLink(failFolder().toPath(), folder().getCanonicalFile().toPath());
@@ -55,7 +55,7 @@ public class RunsRoller {
             if (successFolder().isDirectory())
                 ResourceGroovyMethods.deleteDir(successFolder());
             else
-                assert successFolder().delete() : "Could not delete success symlink";
+                Files.delete(successFolder().toPath());
         }
 
         Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
@@ -75,7 +75,7 @@ public class RunsRoller {
             if (latestSymlink().isDirectory())
                 ResourceGroovyMethods.deleteDir(latestSymlink());
             else
-                assert latestSymlink().delete(): "Could not delete latest symlink";
+                Files.delete(latestSymlink().toPath());
         }
 
         Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());

@@ -9,8 +9,12 @@ public class StatementDescriptor {
     private Object id;
 
     public StatementDescriptor(String name) {
-        assert StringUtils.isNotEmpty(name) : "Name is required";
-        assert StringUtils.isAlphanumeric(name) : "Name must be an alphanumeric value";
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (!StringUtils.isAlphanumeric(name)) {
+            throw new IllegalArgumentException("Name must be an alphanumeric value");
+        }
 
         this.name = name;
     }
@@ -20,7 +24,9 @@ public class StatementDescriptor {
     }
 
     public StatementDescriptor call(Object id) {
-        assert id != null : "Id, as an object, is required";
+        if (id == null) {
+            throw new IllegalArgumentException("Id, as an object, is required");
+        }
 
         this.id = id;
 
@@ -28,7 +34,9 @@ public class StatementDescriptor {
     }
 
     public StatementDescriptor call(Map id) {
-        assert id != null : "Id, as a Map, is required";
+        if (id == null) {
+            throw new IllegalArgumentException("Id, as a Map, is required");
+        }
 
         this.id = id;
 

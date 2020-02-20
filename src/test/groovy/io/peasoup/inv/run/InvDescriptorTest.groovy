@@ -24,7 +24,7 @@ class InvDescriptorTest {
 
     @Test
     void name_not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             String name = null
             myself.name(name)
         })
@@ -40,7 +40,7 @@ class InvDescriptorTest {
 
     @Test
     void broadcast_not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             myself.broadcast()
         })
     }
@@ -70,7 +70,7 @@ class InvDescriptorTest {
         def delegate = myself.statements.first() as RequireStatement
 
         assert delegate.name == nvd.name
-        assert delegate.id == Statement.DEFAULT_ID
+        assert delegate.id == InvDescriptor.DEFAULT_ID
     }
 
     @Test
@@ -126,7 +126,7 @@ class InvDescriptorTest {
 
     @Test
     void require_not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             myself.require()
         })
     }

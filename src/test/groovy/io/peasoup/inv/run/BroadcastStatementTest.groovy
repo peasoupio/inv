@@ -193,7 +193,7 @@ class BroadcastStatementTest {
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
 
-        assert statement.state == Statement.NOT_PROCESSED
+        assert statement.state == StatementStatus.NOT_PROCESSED
     }
 
     @Test
@@ -210,16 +210,16 @@ class BroadcastStatementTest {
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
-        assert statement.state == Statement.ALREADY_BROADCAST
+        assert statement.state == StatementStatus.ALREADY_BROADCAST
 
         pool.availableStatements[statement.name].clear()
-        statement.state = Statement.NOT_PROCESSED
+        statement.state = StatementStatus.NOT_PROCESSED
 
         pool.stagingStatements.put(statement.name, [
                 (statement.id): new BroadcastResponse()
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
-        assert statement.state == Statement.ALREADY_BROADCAST
+        assert statement.state == StatementStatus.ALREADY_BROADCAST
     }
 }

@@ -71,14 +71,14 @@ class InvHandlerTest {
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new InvHandler(null)
         })
     }
 
     @Test
     void call_not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             inv.call(null)
         })
     }
@@ -148,7 +148,7 @@ class InvHandlerTest {
             .findAll { it.name.contains("my-webservice") }
             .collect { it.totalStatements }
             .any {
-                it.state == Statement.ALREADY_BROADCAST
+                it.state == StatementStatus.ALREADY_BROADCAST
             }
     }
 
@@ -406,7 +406,7 @@ class InvHandlerTest {
 
         def report = executor.execute()
 
-        report.exceptions.each {
+        report.errors.each {
             it.exception.printStackTrace()
         }
 
@@ -450,7 +450,7 @@ class InvHandlerTest {
     @Test
     void call_with_halting() {
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             inv.call(null)
         })
 
@@ -533,12 +533,12 @@ class InvHandlerTest {
         def report = executor.execute()
         assert !report.isOk()
 
-        assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.inv.name == "my-exception" }
-        assert report.exceptions.find { it.exception.message == "fail" }
+        assert !report.errors.isEmpty()
+        assert report.errors.find { it.inv.name == "my-exception" }
+        assert report.errors.find { it.exception.message == "fail" }
 
 
-        report.exceptions.each {
+        report.errors.each {
             println "=================="
             println "INV: ${it.inv.name}"
             it.exception.printStackTrace()
@@ -562,8 +562,8 @@ class InvHandlerTest {
         def report = executor.execute()
         assert !report.isOk()
 
-        assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.exception.message == "fail-broadcast" }
+        assert !report.errors.isEmpty()
+        assert report.errors.find { it.exception.message == "fail-broadcast" }
     }
 
     @Test
@@ -588,7 +588,7 @@ class InvHandlerTest {
         def report = executor.execute()
         assert !report.isOk()
 
-        assert !report.exceptions.isEmpty()
-        assert report.exceptions.find { it.exception.message == "fail-require" }
+        assert !report.errors.isEmpty()
+        assert report.errors.find { it.exception.message == "fail-require" }
     }
 }

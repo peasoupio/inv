@@ -9,7 +9,7 @@ public class NetworkValuablePool {
     private static final String HALTING = "HALTED";
     private static final String UNBLOATING = "UNBLOATING";
     private static final String RUNNING = "RUNNING";
-    private final Queue<String> names = new ConcurrentLinkedQueue<String>();
+    private final Queue<String> names = new ConcurrentLinkedQueue<>();
     private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
@@ -18,18 +18,6 @@ public class NetworkValuablePool {
     protected volatile String runningState = RUNNING;
     private volatile boolean isDigesting = false;
     private ExecutorService invExecutor;
-
-    public static String getHALTING() {
-        return HALTING;
-    }
-
-    public static String getUNBLOATING() {
-        return UNBLOATING;
-    }
-
-    public static String getRUNNING() {
-        return RUNNING;
-    }
 
     /**
      * Digest invs and theirs statements.
@@ -69,14 +57,11 @@ public class NetworkValuablePool {
     private PoolReport proceedDigest() {
 
         // If running in halted mode, skip cycle
-        if (runningState.equals(HALTING))
+        if (isHalting())
             return new PoolReport(
                     new ArrayList<>(),
                     new LinkedList<>(),
                     true);
-
-        // Multithreading is allowed only in a RUNNING cycle
-        if (invExecutor == null) invExecutor = Executors.newFixedThreadPool(4);
 
         // All digestions
         Inv.Digestion digestion = new Inv.Digestion();
@@ -85,76 +70,103 @@ public class NetworkValuablePool {
         if (runningState.equals(UNBLOATING))
             sorted.sort(Comparator.comparing(o -> o.getDigestionSummary().getUnbloats()));
 
-        List<Future<Inv.Digestion>> futures = new ArrayList<>();
-        final BlockingDeque<PoolReport.PoolException> exceptions = new LinkedBlockingDeque<>();
+        // Eat invs
+        Queue<PoolReport.PoolError> errorsCaught;
 
-        // Use fori-loop for speed
-        for (int i = 0; i < sorted.size(); i++) {
-
-            final Inv inv = sorted.get(i);
-
-            // If is in RUNNING state, we are allowed to do parallel stuff.
-            // Otherwise, we may change the sequence.
-            Callable<Inv.Digestion> eat = () -> {
-                Inv.Digestion currentDigest = null;
-
-                try {
-                    currentDigest = inv.digest();
-                } catch (Exception ex) {
-                    PoolReport.PoolException exception = new PoolReport.PoolException();
-                    exception.setInv(inv);
-                    exception.setException(ex);
-
-                    exceptions.add(exception);
-
-                    // issues:8
-                    remainingInvs.remove(inv);
-                }
-
-                return currentDigest;
-            };
-
-            if (runningState.equals(RUNNING)) {
-                futures.add(invExecutor.submit(eat));
-            } else {
-                String stateBefore = runningState;
-
-                try {
-                    Inv.Digestion digestResult = eat.call();
-                    if (digestResult == null) continue;
-
-                    digestion.concat(digestResult);
-                } catch (Exception e) {
-                    Logger.error(e);
-                }
-
-                // If changed, quit
-                if (!stateBefore.equals(runningState)) break;
-            }
-        }
-
-        // Wait for invs to be digested in parallel.
-        if (!futures.isEmpty()) {
-            for (Future<Inv.Digestion> future : futures) {
-                try {
-                    Inv.Digestion digestResult = future.get();
-
-                    if (digestResult == null)
-                        continue;
-
-                    digestion.concat(digestResult);
-                } catch (Exception e) {
-                    Logger.error(e);
-                }
-            }
-        }
-
+        // Eat invs
+        if (isRunning())
+            errorsCaught = eatSynchronized(sorted, digestion);
+        else
+            errorsCaught = eatMultithreaded(sorted, digestion);
 
         // Batch all require resolve at once
         boolean hasResolvedSomething = digestion.getRequires() != 0;
 
-        // Batch and add staging broadcasts once to prevent double-broadcasts on the same digest
+        // Check for new broadcasts
+        boolean hasStagedSomething = stageBroadcasts();
+
+        // Check for new dumps
+        List<Inv> invsCompleted = cleanCompletedInvs();
+
+        // Prepare state for next cycle
+        evaluateState(
+                !invsCompleted.isEmpty(),
+                hasResolvedSomething,
+                hasStagedSomething
+        );
+
+        return new PoolReport(invsCompleted, errorsCaught, runningState.equals(HALTING));
+    }
+
+    private Queue<PoolReport.PoolError> eatSynchronized(List<Inv> invs, Inv.Digestion currentDigestion) {
+
+        final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
+
+        // Use fori-loop for speed
+        for (int i = 0; i < invs.size(); i++) {
+            final Inv inv = invs.get(i);
+
+            String stateBefore = runningState;
+            currentDigestion.concat(eatInv(inv, poolErrors));
+
+            // If changed, quit
+            if (!stateBefore.equals(runningState)) break;
+        }
+
+        return poolErrors;
+    }
+
+    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion currentDigestion) {
+        List<Future<Inv.Digestion>> futures = new ArrayList<>();
+        final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
+
+        // Multithreading is allowed only in a RUNNING cycle
+        if (invExecutor == null) invExecutor = Executors.newFixedThreadPool(4);
+
+        // Use fori-loop for speed
+        for (int i = 0; i < invs.size(); i++) {
+            final Inv inv = invs.get(i);
+            futures.add(invExecutor.submit(() -> eatInv(inv, poolErrors) ));
+        }
+
+        // Wait for invs to be digested in parallel.
+        for (Future<Inv.Digestion> future : futures) {
+            try {
+                currentDigestion.concat(future.get());
+            } catch (Exception e) {
+                Logger.error(e);
+            }
+        }
+
+        return poolErrors;
+    }
+
+    private Inv.Digestion eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
+        Inv.Digestion currentDigest = null;
+
+        try {
+            currentDigest = inv.digest();
+        } catch (Exception ex) {
+            PoolReport.PoolError exception = new PoolReport.PoolError();
+            exception.setInv(inv);
+            exception.setException(ex);
+
+            poolErrors.add(exception);
+
+            // issues:8
+            remainingInvs.remove(inv);
+        }
+
+        return currentDigest;
+    }
+
+    /**
+     * Batch and add staging broadcasts once to prevent double-broadcasts on the same digest.
+     * @return true if a broadcast was digested, or false if none.
+     */
+    private boolean stageBroadcasts() {
         boolean hasStagedSomething = false;
+
         for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : stagingStatements.entrySet()) {
             availableStatements.get(statements.getKey()).putAll(statements.getValue());
 
@@ -163,20 +175,37 @@ public class NetworkValuablePool {
             statements.getValue().clear();
         }
 
-        // Check for new dumps
+        return hasStagedSomething;
+    }
+
+    /**
+     * Determine and remove completed invs from the remaining ones
+     * @return a list with the removed invs
+     */
+    private List<Inv> cleanCompletedInvs() {
         List<Inv> invsDone = new ArrayList<>();
         for (Inv inv : remainingInvs) {
 
-            if (!inv.getSteps().isEmpty()) continue;
-
-            if (!inv.getRemainingStatements().isEmpty()) continue;
+            // Has more steps or statements, it is not done yet
+            if (!inv.getSteps().isEmpty() ||
+                !inv.getRemainingStatements().isEmpty()) continue;
 
             invsDone.add(inv);
         }
 
         remainingInvs.removeAll(invsDone);
 
-        if (!invsDone.isEmpty()) {// Has completed Invs
+        return invsDone;
+    }
+
+    /**
+     * Determine the next cycle state
+     * @param hasDoneSomething invs were completed
+     * @param hasResolvedSomething requires statements where met
+     * @param hasStagedSomething broadcast statements where met
+     */
+    private void evaluateState(boolean hasDoneSomething, boolean hasResolvedSomething, boolean hasStagedSomething) {
+        if (hasDoneSomething) {// Has completed Invs
             startRunning();
         } else if (hasResolvedSomething) {// Has completed requirements
             startRunning();
@@ -189,12 +218,12 @@ public class NetworkValuablePool {
             Logger.info("nothing done");
             startUnbloating();// Should start unbloating
         }
-
-        return new PoolReport(invsDone, exceptions, runningState.equals(HALTING));
     }
 
-    public boolean process(Inv inv) {
-        assert inv != null : "Inv is required";
+    public boolean include(Inv inv) {
+        if (inv == null) {
+            throw new IllegalArgumentException("Inv is required");
+        }
 
         if (StringUtils.isEmpty(inv.getName()))
             return false;
@@ -215,7 +244,9 @@ public class NetworkValuablePool {
      * @param name string value of the name to check
      */
     public void checkAvailability(String name) {
-        assert StringUtils.isNotEmpty(name) : "Name is required";
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Name is required");
+        }
 
         if (names.contains(name)) return;
 
@@ -229,6 +260,24 @@ public class NetworkValuablePool {
             unbloatedStatements.put(name, new ConcurrentLinkedQueue<>());
         }
     }
+
+    /**
+     * Determines if pool is doing an unbloating cycle
+     * @return true if so, otherwise false
+     */
+    public boolean isUnbloating() { return UNBLOATING.equals(runningState); }
+
+    /**
+     * Determines if pool is doing an halting cycle
+     * @return true if so, otherwise false
+     */
+    public boolean isHalting() { return HALTING.equals(runningState); }
+
+    /**
+     * Determines if pool is doing a running cycle
+     * @return true if so, otherwise false
+     */
+    public boolean isRunning() { return RUNNING.equals(runningState); }
 
     public synchronized void startRunning() {
         runningState = RUNNING;
@@ -268,15 +317,19 @@ public class NetworkValuablePool {
      * @return
      */
     public synchronized boolean preventUnbloating(Statement statement) {
-        assert statement != null : "Statement is required";
-        assert isDigesting : "Can't prevent unbloating outside a digest cycle";
+        if (statement == null) {
+            throw new IllegalArgumentException("Statement is required");
+        }
+        if (!isDigesting) {
+            throw new IllegalArgumentException("Can't prevent unbloating outside a digest cycle");
+        }
 
         if (!runningState.equals(UNBLOATING)) {
             return false;
         }
 
 
-        if (statement.getState() != Statement.SUCCESSFUL) {
+        if (statement.getState() != StatementStatus.SUCCESSFUL) {
             return false;
         }
 

@@ -52,27 +52,27 @@ class InvInvokerTest {
     @Test
     void invoke_not_ok() {
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(null, null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(new InvHandler(), null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(null, null, null, null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(new InvHandler(), null, null, null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(new InvHandler(), 'pwd', null, null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(new InvHandler(), 'pwd', new File("filename"), null)
         })
     }

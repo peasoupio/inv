@@ -9,19 +9,25 @@ public class InvHandler {
     private final InvExecutor executor;
 
     public InvHandler(InvExecutor executor) {
-        assert executor != null : "Executor is required to handle INV script(s)";
+        if (executor == null) {
+            throw new IllegalArgumentException("Executor is required to handle INV script(s)");
+        }
 
         this.executor = executor;
     }
 
     public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws INVOptionRequiredException {
-        assert body != null : "Body is required";
+        if (body == null) {
+            throw new IllegalArgumentException("Body is required");
+        }
 
         this.call(body, body.getOwner().getClass().getSimpleName());
     }
 
     public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws INVOptionRequiredException {
-        assert body != null : "Body is required";
+        if (body == null) {
+            throw new IllegalArgumentException("Body is required");
+        }
 
         final Inv inv = new Inv(executor.getPool());
 
@@ -39,11 +45,11 @@ public class InvHandler {
         try {
             body.call();
         } catch (Exception ex) {
-            PoolReport.PoolException exception = new PoolReport.PoolException();
+            PoolReport.PoolError exception = new PoolReport.PoolError();
             exception.setInv(inv);
             exception.setException(ex);
 
-            executor.getReport().getExceptions().add(exception);
+            executor.getReport().getErrors().add(exception);
         }
 
         // Make sure, at any cost, delegate.name is not empty before dumping for the first time

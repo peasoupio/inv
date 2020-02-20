@@ -7,39 +7,47 @@ import java.util.Queue;
 
 public class PoolReport {
     private final Queue<Inv> digested = new LinkedList<>();
-    private final Queue<PoolException> exceptions = new LinkedList<>();
+    private final Queue<PoolError> poolErrors = new LinkedList<>();
     private volatile boolean halted = false;
 
     public PoolReport() {
 
     }
 
-    public PoolReport(List<Inv> digested, Queue<PoolException> exceptions, Boolean halted) {
-        assert digested != null : "Digested collection is required. NOTE: can be empty";
-        assert exceptions != null : "Exceptions collection is required. NOTE: can be empty";
+    public PoolReport(List<Inv> digested, Queue<PoolError> poolErrors, Boolean halted) {
+        if (digested == null) {
+            throw new IllegalArgumentException("Digested collection is required. NOTE: can be empty");
+        }
+        if (poolErrors == null) {
+            throw new IllegalArgumentException("Exceptions collection is required. NOTE: can be empty");
+        }
 
-        concat(digested, exceptions, halted);
+        concat(digested, poolErrors, halted);
     }
 
     public void eat(PoolReport other) {
-        assert other != null : "Other (pool report) is required";
+        if (other == null) {
+            throw new IllegalArgumentException("Other (pool report) is required");
+        }
 
-        concat(other.getDigested(), other.getExceptions(), other.getHalted());
+        concat(other.getDigested(), other.getErrors(), other.isHalted());
     }
 
     public boolean isOk() {
         if (halted) return false;
 
-        return exceptions.isEmpty();
+        return poolErrors.isEmpty();
     }
 
     public void reset() {
         digested.clear();
-        exceptions.clear();
+        poolErrors.clear();
     }
 
     public void printPoolTrace(final NetworkValuablePool pool) {
-        assert pool != null : "Pool is required";
+        if (pool == null) {
+            throw new IllegalArgumentException("Pool is required");
+        }
 
         Logger.info("Completed INV(s): " + (pool.getTotalInvs().size() - pool.getRemainingInvs().size()));
         Logger.info("Incompleted INV(s): " + pool.getRemainingInvs().size());
@@ -73,7 +81,7 @@ public class PoolReport {
                             output.append("\t\t[WOULD MATCH] " + remainingRequire.getStatement().toString() + System.lineSeparator());
                         else if (remainingRequire.isCouldMatch())
                             output.append("\t\t[COULD MATCH] " + remainingRequire.getStatement().toString() + System.lineSeparator());
-                        else if (remainingRequire.getStatement().getUnbloatable())
+                        else if (Boolean.TRUE.equals(remainingRequire.getStatement().getUnbloatable()))
                             output.append("\t\t[UNBLOATABLE] " + remainingRequire.getStatement().toString() + System.lineSeparator());
                         else
                             output.append("\t\t[NOT MATCHED] " + remainingRequire.getStatement().toString() + System.lineSeparator());
@@ -99,22 +107,26 @@ public class PoolReport {
 
         if (output.length() > 0) Logger.warn(output.toString());
 
-        if (!exceptions.isEmpty()) {
-            Logger.info("Exception(s) caught: " + getExceptions().size());
+        if (!poolErrors.isEmpty()) {
+            Logger.info("Exception(s) caught: " + getErrors().size());
 
-            for (PoolException ex : exceptions) {
+            for (PoolError ex : poolErrors) {
                 Logger.error(ex.getInv().getName(), ex.getException());
             }
         }
 
     }
 
-    private void concat(Collection<Inv> digested, Collection<PoolException> exceptions, boolean halted) {
-        assert digested != null : "Digested collection is required. NOTE: can be empty";
-        assert exceptions != null : "Exceptions collection is required. NOTE: can be empty";
+    private void concat(Collection<Inv> digested, Collection<PoolError> exceptions, boolean halted) {
+        if (digested == null) {
+            throw new IllegalArgumentException("Digested collection is required. NOTE: can be empty");
+        }
+        if (exceptions == null) {
+            throw new IllegalArgumentException("Exceptions collection is required. NOTE: can be empty");
+        }
 
         this.digested.addAll(digested);
-        this.exceptions.addAll(exceptions);
+        this.poolErrors.addAll(exceptions);
 
         // Once halted, can't put it back on
         if (halted) this.halted = true;
@@ -124,19 +136,15 @@ public class PoolReport {
         return digested;
     }
 
-    public final Queue<PoolException> getExceptions() {
-        return exceptions;
-    }
-
-    public boolean getHalted() {
-        return halted;
+    public final Queue<PoolError> getErrors() {
+        return poolErrors;
     }
 
     public boolean isHalted() {
         return halted;
     }
 
-    public static class PoolException {
+    public static class PoolError {
         private Inv inv;
         private Exception exception;
 

@@ -17,7 +17,7 @@ public class RequireStatement implements Statement {
     private String into;
     private Closure resolved;
     private Closure unresolved;
-    private int state = NOT_PROCESSED;
+    private StatementStatus state = StatementStatus.NOT_PROCESSED;
 
     public Manageable getMatch() {
         return REQUIRE;
@@ -92,12 +92,8 @@ public class RequireStatement implements Statement {
         this.unresolved = unresolved;
     }
 
-    public int getState() {
+    public StatementStatus getState() {
         return state;
-    }
-
-    public void setState(int state) {
-        this.state = state;
     }
 
     public static class Require implements Manageable<RequireStatement> {
@@ -106,78 +102,89 @@ public class RequireStatement implements Statement {
             DefaultGroovyMethods.invokeMethod(DefaultGroovyMethods.getMetaClass(delegate), "setProperty", new Object[]{propertyName, value});
         }
 
-        public void manage(NetworkValuablePool pool, RequireStatement requireValuable) {
+        public void manage(NetworkValuablePool pool, RequireStatement requireStatement) {
+            if (pool == null || requireStatement == null)
+                return;
 
-            // Reset to make sure NV is fine
-            requireValuable.setState(Statement.NOT_PROCESSED);
+            // Reset state
+            requireStatement.state = StatementStatus.NOT_PROCESSED;
 
-            // Do nothing if halting
-            if (pool.runningState.equals(NetworkValuablePool.getHALTING())) return;
-
+            if (pool.isHalting()) // Do nothing if halting
+                return;
 
             // Get broadcast
-            Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(requireValuable.getName());
-            BroadcastResponse broadcast = channel.get(requireValuable.getId());
+            Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(requireStatement.getName());
+            BroadcastResponse broadcastResponse = channel.get(requireStatement.getId());
 
-            if (broadcast == null) {
-
-                // By default
-                requireValuable.setState(Statement.FAILED);
-
-                boolean toUnbloat = false;
-
-                // Did it already unbloated
-                if (pool.getUnbloatedStatements().get(requireValuable.getName()).contains(requireValuable.getId())) {
-                    toUnbloat = true;
-                }
-
-
-                // Does this one unbloats
-                if (NetworkValuablePool.getUNBLOATING().equals(pool.runningState) && requireValuable.getUnbloatable()) {
-                    toUnbloat = true;
-
-                    // Cache for later
-                    pool.getUnbloatedStatements().get(requireValuable.getName()).add(requireValuable.getId());
-                }
-
-
-                if (toUnbloat) {
-
-                    requireValuable.setState(Statement.UNBLOADTING);
-                    Logger.info(requireValuable);
-
-                    if (requireValuable.getUnresolved() != null) {
-                        LinkedHashMap<String, Object> map = new LinkedHashMap<>(3);
-                        map.put("name", requireValuable.getName());
-                        map.put("id", requireValuable.getId());
-                        map.put("owner", requireValuable.getInv().getName());
-                        requireValuable.getUnresolved().call(map);
-                    }
-                }
-
+            if (!isBroadcastAvailable(pool, requireStatement, broadcastResponse))
                 return;
+
+            requireStatement.state = StatementStatus.SUCCESSFUL;
+
+            Logger.info(requireStatement);
+
+            // Resolve require statement with broadcast response
+            resolveRequire(requireStatement, broadcastResponse);
+        }
+
+        private boolean isBroadcastAvailable(NetworkValuablePool pool, RequireStatement requireStatement, BroadcastResponse broadcastResponse) {
+            if (broadcastResponse != null)
+                return true;
+
+            // By default
+            requireStatement.state = StatementStatus.FAILED;
+
+            boolean toUnbloat = false;
+
+            // Did it already unbloated
+            if (pool.getUnbloatedStatements().get(requireStatement.getName()).contains(requireStatement.getId())) {
+                toUnbloat = true;
             }
 
-            requireValuable.setState(Statement.SUCCESSFUL);
 
-            Logger.info(requireValuable);
+            // Does this one unbloats
+            if (pool.isUnbloating() && Boolean.TRUE.equals(requireStatement.getUnbloatable())) {
+                toUnbloat = true;
 
+                // Cache for later
+                pool.getUnbloatedStatements().get(requireStatement.getName()).add(requireStatement.getId());
+            }
+
+
+            if (toUnbloat) {
+
+                requireStatement.state = StatementStatus.UNBLOADTING;
+                Logger.info(requireStatement);
+
+                if (requireStatement.getUnresolved() != null) {
+                    LinkedHashMap<String, Object> map = new LinkedHashMap<>(3);
+                    map.put("name", requireStatement.getName());
+                    map.put("id", requireStatement.getId());
+                    map.put("owner", requireStatement.getInv().getName());
+                    requireStatement.getUnresolved().call(map);
+                }
+            }
+
+            return false;
+        }
+
+        private void resolveRequire(RequireStatement requireStatement, BroadcastResponse broadcastResponse) {
             // Implement variable into NV inv (if defined)
-            if (StringUtils.isNotEmpty(requireValuable.getInto()))
+            if (StringUtils.isNotEmpty(requireStatement.getInto()))
                 setPropertyToDelegate(
-                        requireValuable.getInv().getDelegate(),
-                        requireValuable.getInto(),
-                        new BroadcastResponseDelegate(broadcast, requireValuable.getInv(), requireValuable.getDefaults()));
+                        requireStatement.getInv().getDelegate(),
+                        requireStatement.getInto(),
+                        new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
 
             // Sends message to resolved (if defined)
-            if (requireValuable.getResolved() != null) {
-                requireValuable.getResolved().setDelegate(new BroadcastResponseDelegate(broadcast, requireValuable.getInv(), requireValuable.getDefaults()));
-                requireValuable.getResolved().setResolveStrategy(Closure.DELEGATE_FIRST);
-                requireValuable.getResolved().call();
+            if (requireStatement.getResolved() != null) {
+                requireStatement.getResolved().setDelegate(new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
+                requireStatement.getResolved().setResolveStrategy(Closure.DELEGATE_FIRST);
+                requireStatement.getResolved().call();
             }
 
             // Check if NV would have dumped something
-            requireValuable.getInv().dumpDelegate();
+            requireStatement.getInv().dumpDelegate();
         }
 
     }

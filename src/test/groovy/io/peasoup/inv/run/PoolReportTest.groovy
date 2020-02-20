@@ -12,7 +12,7 @@ class PoolReportTest {
 
     @Before
     void setup() {
-        poolReport = new PoolReport([], new LinkedList<PoolReport.PoolException>(), false)
+        poolReport = new PoolReport([], new LinkedList<PoolReport.PoolError>(), false)
     }
 
     @Test
@@ -20,29 +20,29 @@ class PoolReportTest {
         def pool = new PoolReport()
 
         assertNotNull pool.digested
-        assertNotNull pool.exceptions
+        assertNotNull pool.errors
     }
 
     @Test
     void fail() {
 
-        assertThrows(AssertionError.class, {
-            new PoolReport(null, new LinkedList<PoolReport.PoolException>(), false)
+        assertThrows(IllegalArgumentException.class, {
+            new PoolReport(null, new LinkedList<PoolReport.PoolError>(), false)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new PoolReport([], null, false)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             poolReport.eat(null)
         })
 
-        assertThrows(AssertionError.class, {
-            poolReport.eat(new PoolReport(null, new LinkedList<PoolReport.PoolException>(), false))
+        assertThrows(IllegalArgumentException.class, {
+            poolReport.eat(new PoolReport(null, new LinkedList<PoolReport.PoolError>(), false))
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             poolReport.eat(new PoolReport([], null, false))
         })
     }

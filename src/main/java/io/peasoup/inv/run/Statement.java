@@ -2,15 +2,6 @@ package io.peasoup.inv.run;
 
 interface Statement {
 
-    int NOT_PROCESSED = -1, // Not processed yet
-            FAILED = 0, // Negative match
-            UNBLOADTING = 1, // No match verified
-            HALTING = 2, // Processed during halting
-            SUCCESSFUL = 3, // Positive match
-            ALREADY_BROADCAST = 4; // Positive match
-
-    String DEFAULT_ID = "undefined";
-
     // Identification
     Object getId();
 
@@ -22,7 +13,7 @@ interface Statement {
     void setInv(Inv value);
 
     // When processed
-    int getState();
+    StatementStatus getState();
 
     Manageable getMatch();
 

@@ -11,7 +11,7 @@ public class BroadcastStatement implements Statement {
     private String name;
     private Closure<Map> ready;
     private Inv inv;
-    private int state = NOT_PROCESSED;
+    private StatementStatus state = StatementStatus.NOT_PROCESSED;
 
     public Manageable getMatch() {
         return BROADCAST;
@@ -54,18 +54,20 @@ public class BroadcastStatement implements Statement {
         this.inv = inv;
     }
 
-    public int getState() {
+    public StatementStatus getState() {
         return state;
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
         public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastValuable) {
+            if (pool == null || broadcastValuable == null)
+                return;
 
-            // Reset to make sure NV is fine
-            broadcastValuable.state = Statement.NOT_PROCESSED;
+            // Reset state
+            broadcastValuable.state = StatementStatus.NOT_PROCESSED;
 
-            // Do nothing if halting
-            if (pool.runningState.equals(NetworkValuablePool.getHALTING())) return;
+            if (pool.isHalting()) // Do nothing if halting
+                return;
 
             Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastValuable.getName());
             Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastValuable.getName());
@@ -73,12 +75,12 @@ public class BroadcastStatement implements Statement {
             if (channel.containsKey(broadcastValuable.getId()) || staging.containsKey(broadcastValuable.getId())) {
                 Logger.warn(broadcastValuable.getId() + " already broadcasted. Skipped");
 
-                broadcastValuable.state = Statement.ALREADY_BROADCAST;
+                broadcastValuable.state = StatementStatus.ALREADY_BROADCAST;
                 return;
 
             }
 
-            broadcastValuable.state = Statement.SUCCESSFUL;
+            broadcastValuable.state = StatementStatus.SUCCESSFUL;
 
             Logger.info(broadcastValuable);
 

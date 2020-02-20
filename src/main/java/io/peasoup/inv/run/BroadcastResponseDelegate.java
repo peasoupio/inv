@@ -22,8 +22,12 @@ public class BroadcastResponseDelegate {
      * @param defaults active or not default closure
      */
     BroadcastResponseDelegate(BroadcastResponse broadcastResponse, Inv caller, boolean defaults) {
-        assert broadcastResponse != null : "BroadcastResponse is required";
-        assert caller != null : "Caller is required";
+        if (broadcastResponse == null) {
+            throw new IllegalArgumentException("BroadcastResponse is required");
+        }
+        if (caller == null) {
+            throw new IllegalArgumentException("Caller is required");
+        }
 
         this.broadcastResponse = broadcastResponse;
         this.caller = caller;

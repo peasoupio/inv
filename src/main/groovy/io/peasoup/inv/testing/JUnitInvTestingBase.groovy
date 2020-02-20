@@ -29,7 +29,7 @@ abstract class JUnitInvTestingBase {
     }
 
     boolean getHasExceptions() {
-        report && !report.exceptions.isEmpty()
+        report && !report.errors.isEmpty()
     }
 
     void sequence(String... files) {

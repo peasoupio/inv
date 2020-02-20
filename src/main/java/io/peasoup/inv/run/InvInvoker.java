@@ -19,17 +19,31 @@ public class InvInvoker {
     public static final String UNDEFINED_SCM = "undefined";
     private static final CommonLoader loader = new CommonLoader();
 
+    private InvInvoker() {
+
+    }
+
     public static void invoke(InvHandler invHandler, File scriptPath) throws IOException {
-        assert invHandler != null : "InvHandler is required";
-        assert scriptPath != null : "ScriptPath is required";
+        if (invHandler == null) {
+            throw new IllegalArgumentException("InvHandler is required");
+        }
+        if (scriptPath == null) {
+            throw new IllegalArgumentException("ScriptPath is required");
+        }
 
         invoke(invHandler, scriptPath.getParent(), scriptPath, UNDEFINED_SCM);
     }
 
     public static void invoke(InvHandler invHandler, String pwd, final File scriptFile, String scm) throws IOException {
-        assert invHandler != null : "InvHandler is required";
-        assert StringUtils.isNotEmpty(pwd) : "Pwd (current working directory) is required";
-        assert scriptFile != null : "Script file is required";
+        if (invHandler == null) {
+            throw new IllegalArgumentException("InvHandler is required");
+        }
+        if (StringUtils.isEmpty(pwd)) {
+            throw new IllegalArgumentException("Pwd (current working directory) is required");
+        }
+        if (scriptFile == null) {
+            throw new IllegalArgumentException("Script file is required");
+        }
 
         if (!scriptFile.exists()) {
             Logger.warn("INV file does not exists: " + scriptFile.getCanonicalPath());
@@ -65,9 +79,15 @@ public class InvInvoker {
     }
 
     public static String cache(File scriptFile, final String classname) throws IOException {
-        assert scriptFile != null : "Script file is required";
-        assert scriptFile.exists() : "Script file must exists";
-        assert StringUtils.isNotEmpty(classname) : "Classname is required";
+        if (scriptFile == null) {
+            throw new IllegalArgumentException("Script file is required");
+        }
+        if (!scriptFile.exists()) {
+            throw new IllegalArgumentException("Script file must exists");
+        }
+        if (StringUtils.isEmpty(classname)) {
+            throw new IllegalArgumentException("Classname is required");
+        }
 
         File cache = new File(RunsRoller.getLatest().folder(), "scripts/");
 
@@ -76,9 +96,16 @@ public class InvInvoker {
             cache.mkdirs();
 
             // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
-            assert cache.setExecutable(true) : "Could not set executable";
-            cache.setWritable(true);
-            assert cache.setReadable(true) : "Could not set readable";
+            if (!cache.setExecutable(true)) {
+                throw new IllegalArgumentException("Could not set executable");
+            }
+            
+            boolean writabledSet = cache.setWritable(true);
+            Logger.debug("writable set to: " + writabledSet);
+
+            if (!cache.setReadable(true)) {
+                throw new IllegalArgumentException("Could not set readable");
+            }
         }
 
 
@@ -108,34 +135,21 @@ public class InvInvoker {
     }
 
     private static String checksum(File path) throws IOException {
-        ByteArrayOutputStream baos = null;
-        ObjectOutputStream oos = null;
+
         String checksumValue = path.getName();
 
         try {
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
-            oos.writeObject(path.getAbsolutePath());
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] thedigest = md.digest(baos.toByteArray());
-            checksumValue = DatatypeConverter.printHexBinary(thedigest);
+            try (
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(baos);
+            ) {
+                oos.writeObject(path.getAbsolutePath());
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                byte[] thedigest = md.digest(baos.toByteArray());
+                checksumValue = DatatypeConverter.printHexBinary(thedigest);
+            }
         } catch (NoSuchAlgorithmException e) {
             Logger.error(e);
-        } finally {
-            if (oos != null) {
-                try {
-                    oos.close();
-                } catch(IOException e){
-                    Logger.error(e);
-                }
-            }
-            if (baos != null ) {
-                try {
-                    baos.close();
-                } catch(IOException e){
-                    Logger.error(e);
-                }
-            }
         }
 
         return checksumValue;

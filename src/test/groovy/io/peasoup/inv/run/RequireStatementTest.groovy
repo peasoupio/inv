@@ -29,7 +29,7 @@ class RequireStatementTest {
                     unresolvedRaised = true
 
                     assert it.name == "Bloatable"
-                    assert it.id == Statement.DEFAULT_ID
+                    assert it.id == InvDescriptor.DEFAULT_ID
                     assert it.owner == "consume"
                 }
             }
@@ -95,6 +95,6 @@ class RequireStatementTest {
 
         RequireStatement.REQUIRE.manage(pool, statement)
 
-        assert statement.state == Statement.NOT_PROCESSED
+        assert statement.state == StatementStatus.NOT_PROCESSED
     }
 }

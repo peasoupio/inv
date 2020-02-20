@@ -8,13 +8,17 @@ public class RequireDescriptor {
     private final RequireStatement requireStatement;
 
     public RequireDescriptor(RequireStatement requireStatement) {
-        assert requireStatement != null : "RequireStatement is required";
+        if (requireStatement == null) {
+            throw new IllegalArgumentException("RequireStatement is required");
+        }
 
         this.requireStatement = requireStatement;
     }
 
     public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure usingBody) {
-        assert usingBody != null : "Using body is required";
+        if (usingBody == null) {
+            throw new IllegalArgumentException("Using body is required");
+        }
 
         RequireUsingDescriptor requireUsingDescriptor = new RequireUsingDescriptor();
 
@@ -38,7 +42,9 @@ public class RequireDescriptor {
     }
 
     public RequireDescriptor into(String variable) {
-        assert StringUtils.isNotEmpty(variable) : "Variable is required";
+        if (StringUtils.isEmpty(variable)) {
+            throw new IllegalArgumentException("Variable is required");
+        }
 
         requireStatement.setInto(variable);
 

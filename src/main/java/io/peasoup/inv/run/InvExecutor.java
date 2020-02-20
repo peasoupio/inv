@@ -51,7 +51,7 @@ public class InvExecutor {
 
 
             // Run for eternity
-            while (!report.getHalted()) {
+            while (!report.isHalted()) {
 
                 // has no more work to do
                 if (pool.isEmpty()) break;

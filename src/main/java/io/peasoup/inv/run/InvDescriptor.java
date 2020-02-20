@@ -2,68 +2,83 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class InvDescriptor {
-    private final static InvNames inv = InvNames.Instance;
+
+    private static final String DEFAULT_ID = "undefined";
+    private static final InvNames inv = InvNames.Instance;
     private final Queue<Statement> statements = new LinkedBlockingQueue<>();
     private final Queue<Closure> steps = new LinkedBlockingQueue<>();
+
     private String name;
     private String path;
     private Closure ready;
 
+
     public void name(String name) {
-        assert StringUtils.isNotEmpty(name) : "Name is required";
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("Name is required");
+        }
 
         this.name = name;
     }
 
     public void path(String path) {
-        assert StringUtils.isNotEmpty(path) : "Path is required";
+        if (StringUtils.isEmpty(path)) {
+            throw new IllegalArgumentException("Path is required");
+        }
 
         this.path = path;
     }
 
     public void ready(Closure readyBody) {
-        assert readyBody != null : "Ready body is required";
+        if (readyBody == null) {
+            throw new IllegalArgumentException("Ready body is required");
+        }
 
         this.ready = readyBody;
     }
 
     public BroadcastDescriptor broadcast(StatementDescriptor statementDescriptor) {
-        assert statementDescriptor != null : "Statement descriptor is required";
+        if (statementDescriptor == null) {
+            throw new IllegalArgumentException("Statement descriptor is required");
+        }
 
         BroadcastStatement broadcastStatement = new BroadcastStatement();
 
         final Object id = statementDescriptor.getId();
-        broadcastStatement.setId(DefaultGroovyMethods.asBoolean(id) ? id : Statement.DEFAULT_ID);
+        broadcastStatement.setId(id != null ? id : DEFAULT_ID);
         broadcastStatement.setName(statementDescriptor.getName());
 
-        DefaultGroovyMethods.leftShift(statements, broadcastStatement);
+        statements.add(broadcastStatement);
 
         return new BroadcastDescriptor(broadcastStatement);
     }
 
     public RequireDescriptor require(StatementDescriptor statementDescriptor) {
-        assert statementDescriptor != null : "Statement descriptor is required";
+        if (statementDescriptor == null) {
+            throw new IllegalArgumentException("Statement descriptor is required");
+        }
 
         RequireStatement requireStatement = new RequireStatement();
 
         final Object id = statementDescriptor.getId();
-        requireStatement.setId(DefaultGroovyMethods.asBoolean(id) ? id : Statement.DEFAULT_ID);
+        requireStatement.setId(id != null ? id : DEFAULT_ID);
         requireStatement.setName(statementDescriptor.getName());
 
-        DefaultGroovyMethods.leftShift(statements, requireStatement);
+        statements.add(requireStatement);
 
         return new RequireDescriptor(requireStatement);
     }
 
     public void step(Closure stepBody) {
-        assert stepBody != null : "Step body is required";
+        if (stepBody == null) {
+            throw new IllegalArgumentException("Step body is required");
+        }
 
         steps.add(stepBody);
     }

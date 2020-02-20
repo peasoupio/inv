@@ -7,13 +7,17 @@ public class BroadcastDescriptor {
     private final BroadcastStatement broadcastStatement;
 
     public BroadcastDescriptor(BroadcastStatement broadcastStatement) {
-        assert broadcastStatement != null : "BroadcastStatement is required";
+        if (broadcastStatement == null) {
+            throw new IllegalArgumentException("BroadcastStatement is required");
+        }
 
         this.broadcastStatement = broadcastStatement;
     }
 
     public BroadcastDescriptor using(@DelegatesTo(BroadcastUsingDescriptor.class) Closure usingBody) {
-        assert usingBody != null : "Using body is required";
+        if (usingBody == null) {
+            throw new IllegalArgumentException("Using body is required");
+        }
 
         BroadcastUsingDescriptor broadcastUsingDescriptor = new BroadcastUsingDescriptor();
 

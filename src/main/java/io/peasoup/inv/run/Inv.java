@@ -23,7 +23,9 @@ public class Inv {
     private Closure ready;
 
     public Inv(NetworkValuablePool pool) {
-        assert pool != null : "Pool is required";
+        if (pool == null) {
+            throw new IllegalArgumentException("Pool is required");
+        }
 
         this.pool = pool;
     }
@@ -33,7 +35,7 @@ public class Inv {
         if (StringUtils.isEmpty(path)) path = delegate.getPath();
         if (ready == null) ready = delegate.getReady();
 
-        Boolean dumpedSomething = pool.process(this);
+        Boolean dumpedSomething = pool.include(this);
 
         if (!delegate.getSteps().isEmpty()) {
             steps.addAll(delegate.getSteps());
@@ -69,7 +71,9 @@ public class Inv {
      * @return
      */
     public synchronized Digestion digest() {
-        assert pool.isDigesting() : "digest() is only callable during its pool digest cycle";
+        if (!pool.isDigesting()) {
+            throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
+        }
 
         Digestion digestion = new Digestion();
         boolean checkOnce = true;
@@ -98,7 +102,7 @@ public class Inv {
             while (!steps.isEmpty() &&
                    !hasDumpedSomething &&
                    this.remainingStatements.isEmpty() &&
-                   !pool.runningState.equals(NetworkValuablePool.getHALTING())) {
+                   !pool.isHalting()) {
 
                 // Call next step
                 Closure step = steps.poll();
@@ -124,7 +128,7 @@ public class Inv {
             // Process results for digestion
             currentDigestion.addResults(statement);
 
-            if (statement.getState() == Statement.FAILED) break;
+            if (statement.getState() == StatementStatus.FAILED) break;
 
             done.add(statement);
 
@@ -195,9 +199,11 @@ public class Inv {
         private Integer unbloats = 0;
 
         public void addResults(Statement statement) {
-            assert statement != null : "Statement is required";
+            if (statement == null) {
+                throw new IllegalArgumentException("Statement is required");
+            }
 
-            if (statement.getState() >= Statement.SUCCESSFUL) {
+            if (statement.getState().level >= StatementStatus.SUCCESSFUL.level) {
                 if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
                     requires++;
                 }
@@ -207,14 +213,16 @@ public class Inv {
                 }
             }
 
-            if (statement.getState() == Statement.UNBLOADTING) {
+            if (statement.getState() == StatementStatus.UNBLOADTING) {
                 unbloats++;
             }
 
         }
 
         public void concat(Digestion digestion) {
-            assert digestion != null : "Digestion is required";
+            if (digestion == null) {
+                return;
+            }
 
             this.requires += digestion.getRequires();
             this.broadcasts += digestion.getBroadcasts();

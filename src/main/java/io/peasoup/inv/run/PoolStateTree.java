@@ -5,8 +5,12 @@ import java.util.stream.Collectors;
 
 public class PoolStateTree {
     public PoolStateTree(NetworkValuablePool pool) {
-        assert pool != null: "Pool is required";
-        assert !pool.getIsDigesting() : "It is unsafe to get a pool state during a pool digestion cycle";
+        if (pool == null) {
+            throw new IllegalArgumentException("Pool is required");
+        }
+        if (pool.getIsDigesting()) {
+            throw new IllegalArgumentException("It is unsafe to get a pool state during a pool digestion cycle");
+        }
 
         this.pool = pool;
 
@@ -37,7 +41,9 @@ public class PoolStateTree {
     }
 
     public List<RemainingBroadcast> getRemainingBroadcastStatements(Inv inv) {
-        assert inv != null : "Inv is required";
+        if (inv == null) {
+            throw new IllegalArgumentException("Inv is required");
+        }
 
         return inv.getRemainingStatements()
                 .stream()
@@ -50,7 +56,9 @@ public class PoolStateTree {
     }
 
     public List<RemainingRequire> getRemainingRequireStatements(Inv inv) {
-        assert inv != null : "Inv is required";
+        if (inv == null) {
+            throw new IllegalArgumentException("Inv is required");
+        }
 
         return inv.getRemainingStatements()
                 .stream()
@@ -69,7 +77,9 @@ public class PoolStateTree {
     }
 
     public List<RemainingRequire> sortRemainingRequireStatementByWeight(Inv inv) {
-        assert inv != null : "Inv is required";
+        if (inv == null) {
+            throw new IllegalArgumentException("Inv is required");
+        }
 
         List<RemainingRequire> sortedRequireStatements = getRemainingRequireStatements(inv);
 

@@ -16,11 +16,11 @@ class StatementDescriptorTest {
 
     @Test
     void ctor_not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new StatementDescriptor(null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new StatementDescriptor("%\$;")
         })
     }
@@ -46,15 +46,15 @@ class StatementDescriptorTest {
     @Test()
     void call_not_ok() {
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             myself.call(null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             myself.call((Object)null)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             myself.call((Map)null)
         })
     }

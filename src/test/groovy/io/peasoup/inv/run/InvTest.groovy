@@ -1,6 +1,6 @@
 package io.peasoup.inv.run
 
-import io.peasoup.inv.scm.ScmHandler
+
 import org.junit.Before
 import org.junit.Test
 
@@ -44,20 +44,21 @@ class InvTest {
 
         assert !pool.isDigesting()
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             inv.digest()
         })
+    }
+
+    @Test
+    void digestion_concat_null() {
+        new Inv.Digestion().concat(null)
     }
 
 
     @Test
     void digestion_fail() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new Inv.Digestion().addResults(null)
-        })
-
-        assertThrows(AssertionError.class, {
-            new Inv.Digestion().concat(null)
         })
     }
 

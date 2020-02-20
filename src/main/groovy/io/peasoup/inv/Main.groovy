@@ -164,6 +164,9 @@ Parameters:
         if (embedded)
             return
 
+        if (exitCode == 0)
+            return
+
         System.exit(exitCode)
     }
 

@@ -2,17 +2,10 @@ package io.peasoup.inv.defaults
 
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.InvHandler
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Stdout
-import org.junit.Before
 import org.junit.Test
 
 class FilesTests {
-
-    @Before
-    void setup() {
-        Logger.enableDebug()
-    }
 
     @Test
     void glob() {

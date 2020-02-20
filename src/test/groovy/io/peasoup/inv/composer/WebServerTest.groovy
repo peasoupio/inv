@@ -28,8 +28,6 @@ class WebServerTest {
 
     @BeforeClass
     static void setup() {
-        Logger.enableDebug()
-
         clean()
 
         def scm7 = new File(base + "scms/", "scm7.groovy")
@@ -58,7 +56,6 @@ scm {
         // Spark stop
         Spark.stop()
 
-        Logger.disableDebug()
         Logger.resetCapture()
     }
 

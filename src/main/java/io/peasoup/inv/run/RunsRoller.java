@@ -89,7 +89,7 @@ public class RunsRoller {
 
         return (int)Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))
-                .count();
+                .count() - 1;
     }
 
     public static RunsRoller getLatest() {

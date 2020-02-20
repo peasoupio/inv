@@ -64,13 +64,10 @@ public class RunsRoller {
     public void roll() throws IOException {
         runsFolder().mkdirs();
 
-        Integer nextInder = latestIndex() + 1;
-        File nextFolder = new File(runsFolder(), nextInder.toString());
+        Integer nextIndex = latestIndex() + 1;
+        File nextFolder = new File(runsFolder(), nextIndex.toString());
 
-        // Make sure it's clean
-        ResourceGroovyMethods.deleteDir(nextFolder);
-        nextFolder.mkdirs();
-
+        // Clean symlink for previous roll
         if (latestSymlink().exists()) {
             if (latestSymlink().isDirectory())
                 ResourceGroovyMethods.deleteDir(latestSymlink());
@@ -78,6 +75,11 @@ public class RunsRoller {
                 Files.delete(latestSymlink().toPath());
         }
 
+        // Make sure it's clean
+        ResourceGroovyMethods.deleteDir(nextFolder);
+        nextFolder.mkdirs();
+
+        // Create new symlink for new run folder
         Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());
     }
 

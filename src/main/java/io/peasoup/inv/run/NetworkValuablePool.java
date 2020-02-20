@@ -313,8 +313,8 @@ public class NetworkValuablePool {
      * If we caught a successful broadcast during the unbloating cycle, we need to
      * restart digest since this broadcasts can altered the remaining cycles
      *
-     * @param statement
-     * @return
+     * @param statement statement who could prevent unbloating
+     * @return true if prevented, otherwise, false.
      */
     public synchronized boolean preventUnbloating(Statement statement) {
         if (statement == null) {
@@ -342,6 +342,8 @@ public class NetworkValuablePool {
 
     /**
      * Shutting down any remaining tasks in the pool
+     *
+     * @return true if shutdown, otherwise false.
      */
     public boolean shutdown() {
         if (invExecutor == null) return false;

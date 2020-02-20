@@ -64,11 +64,10 @@ public class Inv {
      * Digest this inv.
      * This method is meant to be called during a digest cycle of the pool.
      * This method is also meant to be called synchronously.
-     * <p>
      * It allows to match the remaining statements.
      * Steps are also handled here.
      *
-     * @return
+     * @return A new digestion instance
      */
     public synchronized Digestion digest() {
         if (!pool.isDigesting()) {

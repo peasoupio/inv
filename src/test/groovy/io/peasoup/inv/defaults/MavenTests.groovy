@@ -11,7 +11,6 @@ class MavenTests {
     @Before
     void setup() {
         Logger.capture(null)
-        Logger.enableDebug()
     }
 
     @Test

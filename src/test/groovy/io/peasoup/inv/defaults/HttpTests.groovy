@@ -2,16 +2,9 @@ package io.peasoup.inv.defaults
 
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.InvHandler
-import io.peasoup.inv.run.Logger
-import org.junit.Before
 import org.junit.Test
 
 class HttpTests {
-
-    @Before
-    void setup() {
-        Logger.enableDebug()
-    }
 
     @Test
     void get() {

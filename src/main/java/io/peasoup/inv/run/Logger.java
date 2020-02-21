@@ -1,16 +1,12 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.codehaus.groovy.runtime.StringGroovyMethods;
 
 import java.util.Queue;
 
 public class Logger {
-    private static final Level INV = Level.forName("INV", Level.INFO.intLevel());
-    private static org.apache.logging.log4j.Logger log = LogManager.getRootLogger();
     private static Queue captureQueue = null;
     private static Closure captureClosure = null;
 
@@ -22,39 +18,39 @@ public class Logger {
         String message = arg.toString();
         send(message);
 
-        log.fatal(message);
+        org.tinylog.Logger.error("[FAIL] " + message);
     }
 
     public static void warn(Object arg) {
         String message = arg.toString();
         send(message);
 
-        log.warn(message);
+        org.tinylog.Logger.warn("[WARN] " + message);
     }
 
     public static void info(Object arg) {
         String message = arg.toString();
         send(message);
 
-        log.log(INV, message);
+        org.tinylog.Logger.info("[INV] " + message);
     }
 
     public static void debug(Object arg) {
         String message = arg.toString();
         send(message);
 
-        log.debug(message);
+        org.tinylog.Logger.debug("[DEBUG] " + message);
     }
 
     public static void error(Throwable ex) {
-        log.error(ex.getMessage(), StackTraceUtils.sanitize(ex));
+        org.tinylog.Logger.error("[ERROR] " + ex.getMessage(), StackTraceUtils.sanitize(ex));
     }
 
     public static void error(final String invName, final Throwable ex) {
         String message = "inv: " + invName + ", message:" + ex.getMessage();
         send(message);
 
-        log.error(message, StackTraceUtils.sanitize(ex));
+        org.tinylog.Logger.error("[ERROR] " + message, StackTraceUtils.sanitize(ex));
     }
 
     public static Object capture(Object value) {

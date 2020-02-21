@@ -2,7 +2,7 @@ package io.peasoup.inv.run;
 
 import io.peasoup.inv.Home;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,19 +31,13 @@ public class RunsRoller {
     }
 
     private RunsRoller() {
-        // Make sure .runs/ exists
-        runsFolder().mkdirs();
     }
 
     public void latestHaveFailed() throws IOException {
         if (!folder().exists()) return;
 
-        if (failFolder().exists()) {
-            if (failFolder().isDirectory())
-                ResourceGroovyMethods.deleteDir(failFolder());
-            else
-                Files.delete(failFolder().toPath());
-        }
+        if (failFolder().exists())
+            Files.delete(failFolder().toPath());
 
         Files.createSymbolicLink(failFolder().toPath(), folder().getCanonicalFile().toPath());
     }
@@ -51,12 +45,8 @@ public class RunsRoller {
     public void latestHaveSucceed() throws IOException {
         if (!folder().exists()) return;
 
-        if (successFolder().exists()) {
-            if (successFolder().isDirectory())
-                ResourceGroovyMethods.deleteDir(successFolder());
-            else
-                Files.delete(successFolder().toPath());
-        }
+        if (successFolder().exists())
+            Files.delete(successFolder().toPath());
 
         Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
     }
@@ -68,15 +58,12 @@ public class RunsRoller {
         File nextFolder = new File(runsFolder(), nextIndex.toString());
 
         // Clean symlink for previous roll
-        if (latestSymlink().exists()) {
-            if (latestSymlink().isDirectory())
-                ResourceGroovyMethods.deleteDir(latestSymlink());
-            else
-                Files.delete(latestSymlink().toPath());
-        }
+        if (latestSymlink().exists())
+            Files.delete(latestSymlink().toPath());
+
 
         // Make sure it's clean
-        ResourceGroovyMethods.deleteDir(nextFolder);
+        FileUtils.deleteDirectory(nextFolder);
         nextFolder.mkdirs();
 
         // Create new symlink for new run folder
@@ -91,10 +78,13 @@ public class RunsRoller {
 
         return (int)Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))
-                .count() - 1;
+                .count();
     }
 
     public static RunsRoller getLatest() {
+        // Make sure .runs/ exists
+        runsFolder().mkdirs();
+
         return latest;
     }
 

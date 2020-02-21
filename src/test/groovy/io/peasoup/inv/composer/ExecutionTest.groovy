@@ -20,7 +20,7 @@ class ExecutionTest {
 
         def totalLines = Execution.MESSAGES_STATIC_CLUSTER_SIZE * 2
 
-        def executionLog = new File(RunsRoller.latest.folder(), "run.txt")
+        def executionLog = new File(RunsRoller.latest.folder(), "log.txt")
         executionLog.delete()
         executionLog << (1..totalLines).collect { "myLog#${it}\n" }.join()
 

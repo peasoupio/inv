@@ -164,7 +164,6 @@ Parameters:
         String logFilepath = new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath()
         Configuration.set("writer1", 'file')
         Configuration.set("writer1.file", logFilepath)
-        Configuration.set("writer1.buffered", "true")
         Configuration.set("writer1.format", "{message}")
 
 

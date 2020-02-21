@@ -66,9 +66,9 @@ public class NetworkValuablePool {
         // All digestions
         Inv.Digestion digestion = new Inv.Digestion();
 
-        List<Inv> sorted = new ArrayList<>(remainingInvs);
-        if (runningState.equals(UNBLOATING))
-            sorted.sort(Comparator.comparing(o -> o.getDigestionSummary().getUnbloats()));
+
+        // Get sorted INV
+        List<Inv> sorted = sortRemainingInvs();
 
         // Eat invs
         Queue<PoolReport.PoolError> errorsCaught;
@@ -98,6 +98,32 @@ public class NetworkValuablePool {
         return new PoolReport(invsCompleted, errorsCaught, runningState.equals(HALTING));
     }
 
+    private List<Inv> sortRemainingInvs() {
+        List<Inv> sorted = new ArrayList<>(remainingInvs);
+        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloats()));
+        sorted.sort((a, b) -> {
+
+            if (a.isPop() == b.isPop() && a.isTail() == b.isTail())
+                return 0;
+
+            if (a.isPop())
+                return -1;
+
+            if (a.isTail())
+                return 1;
+
+            return 0;
+        });
+
+        return sorted;
+    }
+
+    /**
+     * Eat synchronously INV collection
+     * @param invs INV collection to eat
+     * @param currentDigestion Current digestion
+     * @return Pool errors
+     */
     private Queue<PoolReport.PoolError> eatSynchronized(List<Inv> invs, Inv.Digestion currentDigestion) {
 
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
@@ -116,6 +142,12 @@ public class NetworkValuablePool {
         return poolErrors;
     }
 
+    /**
+     * Eat "multithread-ly" INV collection
+     * @param invs INV collection to eat
+     * @param currentDigestion Current digestion
+     * @return Pool errors
+     */
     private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion currentDigestion) {
         List<Future<Inv.Digestion>> futures = new ArrayList<>();
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
@@ -141,6 +173,12 @@ public class NetworkValuablePool {
         return poolErrors;
     }
 
+    /**
+     * Do the actual "eating" for a single INV
+     * @param inv The INV to eat
+     * @param poolErrors Pool errors collection
+     * @return A new digestion for this specific INV
+     */
     private Inv.Digestion eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
         Inv.Digestion currentDigest = null;
 

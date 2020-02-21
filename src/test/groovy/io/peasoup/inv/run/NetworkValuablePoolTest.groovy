@@ -117,4 +117,84 @@ class NetworkValuablePoolTest {
     void shutdown_without_executor() {
         assert !pool.shutdown()
     }
+
+    @Test
+    void sort() {
+        def invs = [
+            new Inv(pool).with {
+                name = "3"
+
+                tail = false
+                pop = false
+
+                digestionSummary.unbloats = 0
+
+                return delegate
+            },
+
+            new Inv(pool).with {
+                name = "2"
+
+                tail = false
+                pop = false
+
+                digestionSummary.unbloats = 0
+
+                return delegate
+            },
+            new Inv(pool).with {
+                name = "0"
+
+                tail = false
+                pop = true
+
+                digestionSummary.unbloats = 0
+
+                return delegate
+            },
+
+            new Inv(pool).with {
+                name = "4"
+
+                tail = true
+                pop = false
+
+                digestionSummary.unbloats = 10
+
+                return delegate
+            },
+            new Inv(pool).with {
+                name = "5"
+
+                tail = true
+                pop = false
+
+                digestionSummary.unbloats = 999
+
+                return delegate
+            },
+            new Inv(pool).with {
+                name = "1"
+
+                tail = false
+                pop = true
+
+                digestionSummary.unbloats = 999
+
+                return delegate
+            }
+        ]
+
+        pool.remainingInvs.clear()
+        pool.remainingInvs.addAll(invs)
+
+        def sortedInvs = pool.sortRemainingInvs()
+
+        assert sortedInvs[0].name == "0"
+        assert sortedInvs[1].name == "1"
+        assert sortedInvs[2].name == "2"
+        assert sortedInvs[3].name == "3"
+        assert sortedInvs[4].name == "4"
+        assert sortedInvs[5].name == "5"
+    }
 }

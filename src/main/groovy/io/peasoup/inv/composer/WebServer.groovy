@@ -319,7 +319,7 @@ class WebServer {
 
             def owner = req.queryParams("owner")
             if (owner && run.owners[owner]) {
-                run.owners[owner].each { GraphNavigator.Id graphId ->
+                run.owners[owner].each { GraphNavigator.Linkable graphId ->
                     run.stage(graphId.value)
                     settings.stageId(graphId.value)
                     settings.save()
@@ -347,7 +347,7 @@ class WebServer {
 
             def owner = req.queryParams("owner")
             if (owner && run.owners[owner]) {
-                run.owners[owner].each { GraphNavigator.Id graphId ->
+                run.owners[owner].each { GraphNavigator.Linkable graphId ->
                     run.unstage(graphId.value)
                     settings.unstageId(graphId.value)
                     settings.save()
@@ -605,11 +605,13 @@ class WebServer {
             List<String> toExecute = []
             toExecute += scms.staged
 
+            def debugMode = false
             def secureMode = false
 
             def body = req.body()
             if (body) {
                 def options = new JsonSlurper().parseText(body) as Map
+                debugMode = options.debugMode
                 secureMode = options.secureMode
             }
 
@@ -618,7 +620,10 @@ class WebServer {
 
             List<File> scmFiles = scms.toFiles(toExecute.unique()) as List<File>
 
-            exec.start(secureMode, scmFiles)
+            exec.start(
+                    debugMode,
+                    secureMode,
+                    scmFiles)
             Thread.sleep(50)
 
             return JsonOutput.toJson([

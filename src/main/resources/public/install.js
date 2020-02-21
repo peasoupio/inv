@@ -11,6 +11,11 @@ Vue.component('install', {
             <a class="is-link breath-heavy" @click="goToEnd()">
                 Go to end
             </a>
+            <button class="button is-link" @click="toggleDebugMode()" :disabled="execution.running">
+                <span>Debug</span>
+                <span class="icon is-small" v-show="enableDebugMode"><i class="fas fa-check-square"></i></span>
+                <span class="icon is-small" v-if="!enableDebugMode"><i class="far fa-square"></i></span>
+            </button>
             <button class="button is-link" @click="toggleSecureMode()" :disabled="execution.running">
                 <span>Secure</span>
                 <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
@@ -47,6 +52,7 @@ Vue.component('install', {
         return {
 
             enableSecureMode: true,
+            enableDebugMode: false,
 
             runningTimestamp: 0,
 
@@ -73,6 +79,12 @@ Vue.component('install', {
 
             logContainer.appendChild(pre)
         },
+        toggleDebugMode: function() {
+            var vm = this
+
+            vm.enableDebugMode = !vm.enableDebugMode
+            localStorage.enableDebugMode = vm.enableDebugMode
+        },
         toggleSecureMode: function() {
             var vm = this
 
@@ -85,7 +97,12 @@ Vue.component('install', {
             if (vm.execution.running)
                 return
 
-            axios.post(vm.execution.links.start, {secureMode: vm.enableSecureMode}).then(response => {
+            var cfg = {
+                debugMode: vm.enableDebugMode,
+                secureMode: vm.enableSecureMode
+            }
+
+            axios.post(vm.execution.links.start, cfg).then(response => {
                 vm.execution.lastExecutionStartedOn = Date.now()
                 location.reload()
             })
@@ -198,8 +215,11 @@ Vue.component('install', {
     mounted: function() {
         var vm = this
 
+        if (localStorage.enableDebugMode != undefined)
+            vm.enableDebugMode = localStorage.enableDebugMode == "true" ? true : false
+
         if (localStorage.enableSecureMode != undefined)
-            vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
+                    vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
 
         var logContainer = this.$refs.logContainer
         setInterval(function() {

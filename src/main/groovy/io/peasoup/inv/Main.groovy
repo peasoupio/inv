@@ -97,7 +97,7 @@ Parameters:
 
         // Make sure we setup the rolling mechanism property BEFORE any logging
         if (command.rolling())
-            setupRolling(arguments["--debug"] != null)
+            setupRolling(arguments["--debug"] as boolean)
 
         // Do system checks
         if (new SystemChecks().consistencyFails(this)) {
@@ -162,7 +162,11 @@ Parameters:
         RunsRoller.getLatest().roll()
 
         String logFilepath = new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath()
+        Configuration.set("writer1", 'file')
         Configuration.set("writer1.file", logFilepath)
+        Configuration.set("writer1.buffered", "true")
+        Configuration.set("writer1.format", "{message}")
+
 
         if (debug)
             Configuration.set("level", "debug")

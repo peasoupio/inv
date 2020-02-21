@@ -12,22 +12,24 @@ class TempHome extends BlockJUnit4ClassRunner {
     TempHome(Class<?> klass) throws InitializationError {
         super(klass)
 
-        synchronized (TempHome.class) {
-            if (initialized)
-                return
+        createHome()
+    }
 
-            // Set temp INV_HOME and clean if already present on filesystem
-            Home.setCurrent(new File((System.getenv()["TEMP"] ?: '/tmp') + '/inv'))
-            Home.getCurrent().deleteDir()
-            Home.getCurrent().mkdirs()
+    synchronized void createHome() {
+        if (initialized)
+            return
 
-            // Move test resources to temp INV_HOME
-            def testResourcesSource = new File("./", "src/test/resources")
-            testResources = new File(Home.getCurrent(), "test-resources")
-            FileUtils.copyDirectoryStructure(testResourcesSource, testResources)
+        // Set temp INV_HOME and clean if already present on filesystem
+        Home.setCurrent(new File((System.getenv()["TEMP"] ?: '/tmp') + '/inv'))
+        Home.getCurrent().deleteDir()
+        Home.getCurrent().mkdirs()
 
-            initialized = true
-        }
+        // Move test resources to temp INV_HOME
+        def testResourcesSource = new File("./", "src/test/resources")
+        testResources = new File(Home.getCurrent(), "test-resources")
+        FileUtils.copyDirectoryStructure(testResourcesSource, testResources)
+
+        initialized = true
     }
 }
 

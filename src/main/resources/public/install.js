@@ -59,7 +59,7 @@ Vue.component('install', {
             loaded: false,
             loadingMessages: true,
             execution: {},
-            bufferProcessSize: 128,
+            bufferProcessSize: 512,
             bufferProcessCycleMs: 500,
             buffer: []
         }

@@ -644,13 +644,13 @@ class WebServer {
 
     void review() {
         get("/review", { Request req, Response res ->
-            if (!exec.latestLog().exists())
+            if (!exec.latestRun().exists())
                 return showError(res, "Latest execution log does not exists on filesystem")
 
             def base = baseFile()
 
             if (!base.exists()) {
-                if (!exec.latestLog().exists())
+                if (!exec.latestRun().exists())
                     return showError(res, "Review is not ready yet")
                 else {
                     base = new File(RunsRoller.latest.folder(), ".base.tmp")
@@ -660,7 +660,7 @@ class WebServer {
                 }
             }
 
-            return JsonOutput.toJson(review.compare(base, exec.latestLog()))
+            return JsonOutput.toJson(review.compare(base, exec.latestRun()))
         })
 
         post("/review/promote", { Request req, Response res ->

@@ -43,9 +43,14 @@ class Execution {
         resizeMessagesChunks()
     }
 
-    File latestLog() {
+    File latestRun() {
         return new File(RunsRoller.latest.folder(), "run.txt")
     }
+
+    File latestLog() {
+        return new File(RunsRoller.latest.folder(), "log.txt")
+    }
+
 
     boolean isRunning() {
         currentProcess && currentProcess.isAlive()
@@ -68,32 +73,30 @@ class Execution {
         if (isRunning())
             return
 
+        // Create new run folder
+        RunsRoller.runsFolder().mkdirs()
+
+        // Erase previous logs
+        latestLog().delete()
         messages.clear()
 
-        RunsRoller.runsFolder().mkdirs()
-        final def scmListFile = new File(RunsRoller.runsFolder(), "scm-list.txt")
-        final def myClassPath = System.getProperty("java.class.path")
-        final def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
-        final def appArgs = ["scm"]
+        // Prepare log writer
+        BufferedWriter logWriter
 
-        if (debugMode)
-            appArgs << "-x"
-
-        if (secureMode)
-            appArgs << "-s"
-
-        appArgs << scmListFile.absolutePath
-
-        scmListFile.delete()
-        scms.each {
-            scmListFile << it.absolutePath + System.lineSeparator()
-        }
+        // Get args
+        final File scmListFile = generateScmListFile(scms)
+        final List<String> args = resolveArgs(debugMode, secureMode, scmListFile)
 
         new Thread({
 
-            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } + ["INV_HOME=${Home.getCurrent().absolutePath}".toString()]
+            // Resolve environment variables
+            def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } +
+                    ["INV_HOME=${Home.getCurrent().absolutePath}".toString()]
 
-            currentProcess = (jvmArgs + appArgs).execute(envs, Home.getCurrent())
+            // Do the actual execution
+            currentProcess = args.execute(envs, Home.getCurrent())
+
+            // Process output
             currentProcess.waitForProcessOutput(
                     new StringWriter() {
                         @CompileStatic
@@ -102,7 +105,12 @@ class Execution {
                             if (str == "\n")
                                 return
 
-                            sendMessage(str)
+                            // Make sure to create from latest folder
+                            if (!logWriter)
+                                logWriter = latestLog().newWriter()
+
+                            logWriter.writeLine(str)
+                            streamMessage(str)
 
                             System.out.println str
                         }
@@ -114,7 +122,12 @@ class Execution {
                             if (str == "\n")
                                 return
 
-                            sendMessage(str)
+                            // Make sure to create from latest folder
+                            if (!logWriter)
+                                logWriter = latestLog().newWriter()
+
+                            logWriter.writeLine(str)
+                            streamMessage(str)
 
                             System.out.println str
                         }
@@ -123,6 +136,7 @@ class Execution {
             println "Execution: stopped"
 
             // Closing stuffs
+            logWriter.flush()
             scmListFile.delete()
             resizeMessagesChunks()
             MessageStreamer.sessions.each {
@@ -160,7 +174,8 @@ class Execution {
         messages << currentBatch.collect()
     }
 
-    protected synchronized void sendMessage(String message) {
+    protected synchronized void streamMessage(String message) {
+        // Stream message
         MessageStreamer.sessions.each {
             it.remote.sendString(message)
         }
@@ -170,9 +185,9 @@ class Execution {
         Long lastExecution = 0
         Long lastExecutionStartedOn = 0
 
-        if (latestLog().exists()) {
-            lastExecution = latestLog().lastModified()
-            lastExecutionStartedOn = (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
+        if (latestRun().exists()) {
+            lastExecution = latestRun().lastModified()
+            lastExecutionStartedOn = (Files.getAttribute(latestRun().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
         }
 
         return [
@@ -188,6 +203,33 @@ class Execution {
                         stop : "/execution/stop"
                 ]
         ]
+    }
+
+    private List<String> resolveArgs(boolean debugMode, boolean secureMode, File scmListFile) {
+
+        def myClassPath = System.getProperty("java.class.path")
+        def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
+        def appArgs = ["scm"]
+
+        if (debugMode)
+            appArgs << "-x"
+
+        if (secureMode)
+            appArgs << "-s"
+
+        appArgs << scmListFile.absolutePath
+
+        return jvmArgs + appArgs
+    }
+
+    private File generateScmListFile(List<File> scms) {
+        def scmListFile = new File(RunsRoller.runsFolder(), "scm-list.txt")
+        scmListFile.delete()
+        scms.each {
+            scmListFile << it.absolutePath + System.lineSeparator()
+        }
+
+        return scmListFile
     }
 
     @WebSocket

@@ -20,6 +20,8 @@ public class Inv {
     private final NetworkValuablePool pool;
     private String name;
     private String path;
+    private boolean tail;
+    private boolean pop;
     private Closure ready;
 
     public Inv(NetworkValuablePool pool) {
@@ -34,6 +36,9 @@ public class Inv {
         if (StringUtils.isEmpty(name)) name = delegate.getName();
         if (StringUtils.isEmpty(path)) path = delegate.getPath();
         if (ready == null) ready = delegate.getReady();
+
+        tail = delegate.isTail();
+        pop = delegate.isPop();
 
         Boolean dumpedSomething = pool.include(this);
 
@@ -190,6 +195,14 @@ public class Inv {
 
     public final NetworkValuablePool getPool() {
         return pool;
+    }
+
+    public boolean isTail() {
+        return tail;
+    }
+
+    public boolean isPop() {
+        return pop;
     }
 
     public static class Digestion {

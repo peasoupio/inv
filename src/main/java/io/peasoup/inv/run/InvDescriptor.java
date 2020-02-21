@@ -16,8 +16,15 @@ public class InvDescriptor {
 
     private String name;
     private String path;
+    private boolean tail;
+    private boolean pop;
     private Closure ready;
 
+    protected void reset() {
+        ready = null;
+        steps.clear();
+        statements.clear();
+    }
 
     public void name(String name) {
         if (StringUtils.isEmpty(name)) {
@@ -33,6 +40,22 @@ public class InvDescriptor {
         }
 
         this.path = path;
+    }
+
+    public void tail(boolean value) {
+        if (value && isPop()) {
+            throw new IllegalArgumentException("Can't have both 'tail' and 'pop' set both to true.");
+        }
+
+        this.tail = value;
+    }
+
+    public void pop(boolean value) {
+        if (value && isTail()) {
+            throw new IllegalArgumentException("Can't have both 'tail' and 'pop' set both to true.");
+        }
+
+        this.pop = value;
     }
 
     public void ready(Closure readyBody) {
@@ -107,9 +130,11 @@ public class InvDescriptor {
         return steps;
     }
 
-    protected void reset() {
-        ready = null;
-        steps.clear();
-        statements.clear();
+    public boolean isTail() {
+        return tail;
+    }
+
+    public boolean isPop() {
+        return pop;
     }
 }

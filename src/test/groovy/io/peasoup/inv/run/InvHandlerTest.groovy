@@ -591,4 +591,69 @@ class InvHandlerTest {
         assert !report.errors.isEmpty()
         assert report.errors.find { it.exception.message == "fail-require" }
     }
+
+    @Test
+    void pop_and_tail() {
+
+        int index = 0
+
+        inv {
+            name "3"
+
+            pop false
+            tail true
+
+            broadcast inv.Something("3") using {
+                ready {
+                    assert index == 3
+                }
+            }
+        }
+
+
+        inv {
+            name "2"
+
+            pop false
+            tail true
+
+            broadcast inv.Something("2") using {
+                ready {
+                    assert index == 2
+                    index++
+                }
+            }
+        }
+
+        inv {
+            name "1"
+
+            pop false
+            tail false
+
+            broadcast inv.Something("1") using {
+                ready {
+                    assert index == 1
+                    index++
+                }
+            }
+        }
+
+        inv {
+            name "0"
+
+            pop true
+            tail false
+
+            broadcast inv.Something("0") using {
+                ready {
+                    assert index == 0
+                    index++
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
 }

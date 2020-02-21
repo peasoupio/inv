@@ -130,4 +130,38 @@ class InvDescriptorTest {
             myself.require()
         })
     }
+
+    @Test
+    void pop_ok() {
+        boolean value = true
+
+        myself.pop(value)
+
+        assert myself.pop == value
+    }
+
+    @Test
+    void tail_ok() {
+        boolean value = true
+
+        myself.tail(value)
+
+        assert myself.tail == value
+    }
+
+    @Test
+    void pop_tail_true() {
+        assertThrows(IllegalArgumentException.class, {
+            myself.pop(true)
+            myself.tail(true)
+        })
+    }
+
+    @Test
+    void tail_pop_true() {
+        assertThrows(IllegalArgumentException.class, {
+            myself.tail(true)
+            myself.pop(true)
+        })
+    }
 }

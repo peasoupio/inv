@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Map;
 
@@ -28,6 +29,11 @@ public class BroadcastResponse {
 
     public void setDefaultClosure(Closure defaultClosure) {
         this.defaultClosure = defaultClosure;
+    }
+
+    @Override
+    public String toString() {
+        return DefaultGroovyMethods.toString(response);
     }
 
     private String resolvedBy;

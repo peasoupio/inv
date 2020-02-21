@@ -62,6 +62,11 @@ public class BroadcastResponseDelegate {
         return copy.invokeMethod("call", args);
     }
 
+    @Override
+    public String toString() {
+        return broadcastResponse.toString();
+    }
+
     private void checkDefault() {
         // If response has a default closure, call it right now
         if (!defaults || broadcastResponse.getDefaultClosure() == null)

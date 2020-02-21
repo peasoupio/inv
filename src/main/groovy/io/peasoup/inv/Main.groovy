@@ -5,14 +5,10 @@ import io.peasoup.inv.cli.*
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.security.CommonLoader
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.core.LoggerContext
-import org.apache.logging.log4j.core.appender.FileAppender
-import org.apache.logging.log4j.core.config.Configuration
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
+import org.tinylog.configuration.Configuration
 
 @CompileStatic
 class Main extends Script {
@@ -165,23 +161,11 @@ Parameters:
     private static void setupRolling(boolean debug) throws IOException {
         RunsRoller.getLatest().roll()
 
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false)
-        final Configuration config = ctx.getConfiguration()
-
-        // Make sur FILE is not already configured
-        config.getRootLogger().removeAppender("FILE")
-        ctx.updateLoggers()
-
         String logFilepath = new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath()
+        Configuration.set("writer1.file", logFilepath)
 
-        // Define FILE appender
-        FileAppender fileAppender = FileAppender.createAppender(logFilepath, "false", "false", "FILE", "true", "false", "false", "4000", config.getAppenders().get("stdout").getLayout(), null, "false", null, config)
-
-        // Start FILE appender
-        fileAppender.start()
-        config.getRootLogger().addAppender(fileAppender, null, null)
-        config.getRootLogger().setLevel(debug ? Level.DEBUG : Level.INFO)
-        ctx.updateLoggers()
+        if (debug)
+            Configuration.set("level", "debug")
     }
 
     static void main(String[] args) {
@@ -195,5 +179,4 @@ Parameters:
 
         System.exit(exitCode)
     }
-
 }

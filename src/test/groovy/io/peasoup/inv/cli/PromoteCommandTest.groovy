@@ -1,9 +1,12 @@
 package io.peasoup.inv.cli
 
 import io.peasoup.inv.Home
+import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.RunsRoller
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(TempHome.class)
 class PromoteCommandTest {
 
     @Test
@@ -29,13 +32,8 @@ class PromoteCommandTest {
 
     @Test
     void runfile_not_existing() {
-        def tenthRun = new File(RunsRoller.runsFolder(), "10")
-        if (!tenthRun.exists())
-             tenthRun.mkdirs()
-        else {
-            def tenthRunFile = new File(tenthRun, "run.txt")
-            tenthRunFile.delete()
-        }
+        def run = new File(RunsRoller.runsFolder(), "10")
+        run.mkdirs()
 
         assert new PromoteCommand(runIndex: "10").call() == -2
     }

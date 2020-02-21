@@ -52,7 +52,7 @@ class Execution {
     }
 
     @CompileDynamic
-    void start(boolean secureMode, List<File> scms) {
+    void start(boolean debugMode, boolean secureMode, List<File> scms) {
         assert scms, 'SCM collection is required'
 
         if (scms.isEmpty()) {
@@ -75,6 +75,9 @@ class Execution {
         final def myClassPath = System.getProperty("java.class.path")
         final def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
         final def appArgs = ["scm"]
+
+        if (debugMode)
+            appArgs << "-x"
 
         if (secureMode)
             appArgs << "-s"

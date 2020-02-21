@@ -11,7 +11,7 @@ Vue.component('install', {
             <a class="is-link breath-heavy" @click="goToEnd()">
                 Go to end
             </a>
-            <button class="button is-link" @click="enableSecureMode=!enableSecureMode" :disabled="execution.running">
+            <button class="button is-link" @click="toggleSecureMode()" :disabled="execution.running">
                 <span>Secure</span>
                 <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
                 <span class="icon is-small" v-if="!enableSecureMode"><i class="far fa-square"></i></span>
@@ -72,6 +72,12 @@ Vue.component('install', {
             pre.appendChild(document.createTextNode(message))
 
             logContainer.appendChild(pre)
+        },
+        toggleSecureMode: function() {
+            var vm = this
+
+            vm.enableSecureMode = !vm.enableSecureMode
+            localStorage.enableSecureMode = vm.enableSecureMode
         },
         start: function() {
             var vm = this
@@ -191,6 +197,9 @@ Vue.component('install', {
     },
     mounted: function() {
         var vm = this
+
+        if (localStorage.enableSecureMode != undefined)
+            vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
 
         var logContainer = this.$refs.logContainer
         setInterval(function() {

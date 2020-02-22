@@ -47,10 +47,9 @@ public class Logger {
     }
 
     public static void error(final String invName, final Throwable ex) {
-        String message = "inv: " + invName + ", message:" + ex.getMessage();
-        send(message);
+        send("inv: " + invName + ", message:" + ex.getMessage());
 
-        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] " + message);
+        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] inv: " + invName);
     }
 
     public static Object capture(Object value) {

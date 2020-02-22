@@ -149,7 +149,7 @@ public class PoolStateTree {
     }
 
     private int getRequiredByCount(BroadcastStatement statement) {
-        if (getRemainingRequirements().containsKey(statement.getName()))
+        if (!getRemainingRequirements().containsKey(statement.getName()))
             return 0;
 
         Map<Object, List<RequireStatement>> ids = getRemainingRequirements().get(statement.getName());

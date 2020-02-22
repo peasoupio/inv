@@ -43,14 +43,14 @@ public class Logger {
     }
 
     public static void error(Throwable ex) {
-        org.tinylog.Logger.error("[ERROR] " + ex.getMessage(), StackTraceUtils.sanitize(ex));
+        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] " + ex.getMessage());
     }
 
     public static void error(final String invName, final Throwable ex) {
         String message = "inv: " + invName + ", message:" + ex.getMessage();
         send(message);
 
-        org.tinylog.Logger.error("[ERROR] " + message, StackTraceUtils.sanitize(ex));
+        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] " + message);
     }
 
     public static Object capture(Object value) {

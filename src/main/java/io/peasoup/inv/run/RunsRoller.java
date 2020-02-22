@@ -54,7 +54,7 @@ public class RunsRoller {
     public void roll() throws IOException {
         runsFolder().mkdirs();
 
-        Integer nextIndex = latestIndex() + 1;
+        Integer nextIndex = hasRuns()? latestIndex() + 1 : 1;
         File nextFolder = new File(runsFolder(), nextIndex.toString());
 
         // Clean symlink for previous roll
@@ -79,6 +79,15 @@ public class RunsRoller {
         return (int)Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))
                 .count();
+    }
+
+    private boolean hasRuns() {
+        File[] files =  runsFolder().listFiles();
+
+        if (files == null)
+            return false;
+
+        return files.length > 0;
     }
 
     public static RunsRoller getLatest() {

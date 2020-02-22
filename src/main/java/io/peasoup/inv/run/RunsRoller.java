@@ -74,7 +74,7 @@ public class RunsRoller {
         File[] files = runsFolder().listFiles();
 
         if (files.length == 0)
-            return 0;
+            return 1;
 
         return (int)Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))

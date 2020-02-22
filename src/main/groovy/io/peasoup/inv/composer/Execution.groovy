@@ -135,13 +135,19 @@ class Execution {
             )
             println "Execution: stopped"
 
-            // Closing stuffs
-            logWriter.flush()
-            scmListFile.delete()
-            resizeMessagesChunks()
+            // Flushing writer(s)
+            if (logWriter)
+                logWriter.flush()
+
             MessageStreamer.sessions.each {
                 it.close()
             }
+
+            // Cleaning scm list file
+            scmListFile.delete()
+
+            // Resize chunk
+            resizeMessagesChunks()
 
         } as Runnable).start()
     }

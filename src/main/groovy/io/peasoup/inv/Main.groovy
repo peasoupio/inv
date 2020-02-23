@@ -74,9 +74,14 @@ Parameters:
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
+        // Set current home from environment variable INV_HOME
         if (System.getenv('INV_HOME'))
             Home.setCurrent(new File(System.getenv('INV_HOME')))
 
+        // Set current UTC timezone
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
+        // Parse docopt arguments
         try {
             arguments = new Docopt(usage)
                     .withExit(false)
@@ -86,9 +91,7 @@ Parameters:
             return -1
         }
 
-
-
-        // Resolved command
+        // Find a matching command
         CliCommand command = findCommand()
         if (!command) {
             println usage

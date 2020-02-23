@@ -25,8 +25,10 @@ class Execution {
     private Process currentProcess
     private List<List<String>> messages = []
 
-    Execution(File scmFolder, File externalParametersFolder) {
+    private long lastExecution = 0
+    private long lastExecutionStartedOn = 0
 
+    Execution(File scmFolder, File externalParametersFolder) {
         assert scmFolder, 'SCM location (folder) is required'
         if (!scmFolder.exists())
             scmFolder.mkdir()
@@ -41,6 +43,12 @@ class Execution {
         this.externalParametersFolder = externalParametersFolder
 
         resizeMessagesChunks()
+
+        // Set initial last execution times
+        if (latestLog().exists()) {
+            lastExecution = latestLog().lastModified()
+            lastExecutionStartedOn = (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
+        }
     }
 
     File latestRun() {
@@ -50,7 +58,6 @@ class Execution {
     File latestLog() {
         return new File(RunsRoller.latest.folder(), "log.txt")
     }
-
 
     boolean isRunning() {
         currentProcess && currentProcess.isAlive()
@@ -88,6 +95,9 @@ class Execution {
         final List<String> args = resolveArgs(debugMode, secureMode, scmListFile)
 
         new Thread({
+
+            // Reset latest started on time
+            lastExecutionStartedOn = new Date().time
 
             // Resolve environment variables
             def envs = System.getenv().collect { "${it.key}=${it.value}".toString() } +
@@ -134,6 +144,9 @@ class Execution {
                     }
             )
             println "Execution: stopped"
+
+            // Set latest execution time
+            lastExecution = new Date().time
 
             // Flushing writer(s)
             if (logWriter)
@@ -188,14 +201,6 @@ class Execution {
     }
 
     Map toMap() {
-        Long lastExecution = 0
-        Long lastExecutionStartedOn = 0
-
-        if (latestRun().exists()) {
-            lastExecution = latestRun().lastModified()
-            lastExecutionStartedOn = (Files.getAttribute(latestRun().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
-        }
-
         return [
                 lastExecution         : lastExecution,
                 lastExecutionStartedOn: lastExecutionStartedOn,

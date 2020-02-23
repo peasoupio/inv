@@ -102,12 +102,10 @@ public class BroadcastStatement implements Statement {
             }
 
             // Staging response
-            BroadcastResponse broadcastResponse = new BroadcastResponse();
-            broadcastResponse.setResolvedBy(broadcastValuable.getInv().getName());
-            broadcastResponse.setResponse(responseObject);
-            broadcastResponse.setDefaultClosure(defaultClosure);
-
-            staging.put(broadcastValuable.getId(), broadcastResponse);
+            staging.put(broadcastValuable.getId(), new BroadcastResponse(
+                    broadcastValuable.getInv().getName(),
+                    responseObject,
+                    defaultClosure));
         }
 
     }

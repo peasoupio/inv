@@ -206,7 +206,7 @@ class BroadcastStatementTest {
         NetworkValuablePool pool = new NetworkValuablePool()
 
         pool.availableStatements.put(statement.name, [
-                (statement.id): new BroadcastResponse()
+                (statement.id): new BroadcastResponse("resolvedByMe", null,null)
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
@@ -216,7 +216,7 @@ class BroadcastStatementTest {
         statement.state = StatementStatus.NOT_PROCESSED
 
         pool.stagingStatements.put(statement.name, [
-                (statement.id): new BroadcastResponse()
+                (statement.id): new BroadcastResponse("resolvedByMe", null,null)
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)

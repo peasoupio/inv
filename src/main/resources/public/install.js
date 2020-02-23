@@ -38,7 +38,7 @@ Vue.component('install', {
         <span class="icon is-small" v-if="loadingMessages">
             <i class="fas fa-spinner fa-pulse"></i>
         </span>
-        <p class="subtitle is-6" v-if="!execution.running">Last execution: {{getRelativeTimestamp()}}, duration: {{getDuration()}}</p>
+        <p class="subtitle is-6" v-if="!execution.running">Last execution ended: {{getEndedAgo()}}, duration: {{getDuration()}}</p>
         <p class="subtitle is-6" v-else :key="runningTimestamp">Started: {{getStartedAgo()}}
     </p>
     <div class="output">
@@ -185,7 +185,7 @@ Vue.component('install', {
                 })
             })
         },
-        getRelativeTimestamp: function() {
+        getEndedAgo: function() {
             return TimeAgo.inWords(this.execution.lastExecution)
         },
         getDuration: function() {

@@ -32,9 +32,9 @@ class BroadcastStatementTest {
             require inv.Element using {
 
                 resolved {
-                    assert my
-                    assert my instanceof Closure
-                    assert my() == "method"
+                    assert response.my
+                    assert response.my instanceof Closure
+                    assert response.my() == "method"
                 }
             }
         }

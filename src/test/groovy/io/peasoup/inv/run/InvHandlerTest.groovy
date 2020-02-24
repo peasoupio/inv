@@ -407,7 +407,7 @@ class InvHandlerTest {
         def report = executor.execute()
 
         report.errors.each {
-            it.exception.printStackTrace()
+            it.throwable.printStackTrace()
         }
 
         assert report.isOk()
@@ -535,13 +535,13 @@ class InvHandlerTest {
 
         assert !report.errors.isEmpty()
         assert report.errors.find { it.inv.name == "my-exception" }
-        assert report.errors.find { it.exception.message == "fail" }
+        assert report.errors.find { it.throwable.message == "fail" }
 
 
         report.errors.each {
             println "=================="
             println "INV: ${it.inv.name}"
-            it.exception.printStackTrace()
+            it.throwable.printStackTrace()
             println "=================="
         }
     }
@@ -563,7 +563,7 @@ class InvHandlerTest {
         assert !report.isOk()
 
         assert !report.errors.isEmpty()
-        assert report.errors.find { it.exception.message == "fail-broadcast" }
+        assert report.errors.find { it.throwable.message == "fail-broadcast" }
     }
 
     @Test
@@ -589,7 +589,32 @@ class InvHandlerTest {
         assert !report.isOk()
 
         assert !report.errors.isEmpty()
-        assert report.errors.find { it.exception.message == "fail-require" }
+        assert report.errors.find { it.throwable.message == "fail-require" }
+    }
+
+    @Test
+    void call_with_exception_4() {
+
+        inv {
+            name "provide"
+
+            broadcast inv.Something
+        }
+
+        inv {
+            name "my-exception"
+
+            require inv.Something using {
+                resolved {
+                    assert 1 == 2, "Does not equal"
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assert !report.isOk()
+
+        assert !report.errors.isEmpty()
     }
 
     @Test

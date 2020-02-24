@@ -184,10 +184,10 @@ public class NetworkValuablePool {
 
         try {
             currentDigest = inv.digest();
-        } catch (Exception ex) {
+        } catch (Throwable t) {
             PoolReport.PoolError exception = new PoolReport.PoolError();
             exception.setInv(inv);
-            exception.setException(ex);
+            exception.setThrowable(t);
 
             poolErrors.add(exception);
 

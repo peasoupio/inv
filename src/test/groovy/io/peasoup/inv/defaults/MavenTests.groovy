@@ -57,7 +57,7 @@ class MavenTests {
         def report = executor.execute()
 
         report.errors.each {
-            it.exception.printStackTrace()
+            it.throwable.printStackTrace()
         }
         assert report.isOk()
 

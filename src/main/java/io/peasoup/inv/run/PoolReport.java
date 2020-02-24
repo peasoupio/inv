@@ -111,7 +111,7 @@ public class PoolReport {
             Logger.info("Exception(s) caught: " + getErrors().size());
 
             for (PoolError ex : poolErrors) {
-                Logger.error(ex.getInv().getName(), ex.getException());
+                Logger.error(ex.getInv().getName(), ex.getThrowable());
             }
         }
 
@@ -146,7 +146,7 @@ public class PoolReport {
 
     public static class PoolError {
         private Inv inv;
-        private Exception exception;
+        private Throwable throwable;
 
         public Inv getInv() {
             return inv;
@@ -156,12 +156,12 @@ public class PoolReport {
             this.inv = inv;
         }
 
-        public Exception getException() {
-            return exception;
+        public Throwable getThrowable() {
+            return throwable;
         }
 
-        public void setException(Exception exception) {
-            this.exception = exception;
+        public void setThrowable(Throwable throwable) {
+            this.throwable = throwable;
         }
     }
 }

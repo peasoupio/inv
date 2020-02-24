@@ -47,7 +47,7 @@ public class InvHandler {
         } catch (Exception ex) {
             PoolReport.PoolError exception = new PoolReport.PoolError();
             exception.setInv(inv);
-            exception.setException(ex);
+            exception.setThrowable(ex);
 
             executor.getReport().getErrors().add(exception);
         }

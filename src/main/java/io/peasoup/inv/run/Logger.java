@@ -42,14 +42,14 @@ public class Logger {
         org.tinylog.Logger.debug("[DEBUG] " + message);
     }
 
-    public static void error(Throwable ex) {
-        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] " + ex.getMessage());
+    public static void error(Throwable throwable) {
+        org.tinylog.Logger.error(StackTraceUtils.sanitize(throwable), "[ERROR] " + throwable.getMessage());
     }
 
-    public static void error(final String invName, final Throwable ex) {
-        send("inv: " + invName + ", message:" + ex.getMessage());
+    public static void error(final String invName, final Throwable throwable) {
+        send("inv: " + invName + ", message:" + throwable.getMessage());
 
-        org.tinylog.Logger.error(StackTraceUtils.sanitize(ex), "[ERROR] inv: " + invName);
+        org.tinylog.Logger.error(StackTraceUtils.sanitize(throwable), "[ERROR] inv: " + invName);
     }
 
     public static Object capture(Object value) {

@@ -41,8 +41,8 @@ Vue.component('install', {
         <p class="subtitle is-6" v-if="!execution.running">Last execution ended: {{getEndedAgo()}}, duration: {{getDuration()}}</p>
         <p class="subtitle is-6" v-else :key="runningTimestamp">Started: {{getStartedAgo()}}
     </p>
-    <div class="output">
-        <div ref="logContainer"></div>
+    <div class="output" style="height: 75vh; overflow-y: scroll; scroll-behavior: smooth;">
+        <div ref="logContainer" ></div>
         <div class="anchor"></div>
     </div>
 </div>
@@ -206,10 +206,12 @@ Vue.component('install', {
             return TimeAgo.inWords(this.execution.lastExecutionStartedOn)
         },
         goToTop: function() {
-            window.scrollTo(0, 0)
+            var logContainerParent = this.$refs.logContainer.parentElement
+            logContainerParent.scrollTo(0, 0)
         },
         goToEnd: function() {
-            window.scrollTo(0, window.document.body.scrollHeight)
+            var logContainerParent = this.$refs.logContainer.parentElement
+            logContainerParent.scrollTo(0, logContainerParent.scrollHeight)
         }
     },
     mounted: function() {

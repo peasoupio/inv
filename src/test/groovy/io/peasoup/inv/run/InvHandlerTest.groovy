@@ -681,4 +681,253 @@ class InvHandlerTest {
         def report = executor.execute()
         assert report.isOk()
     }
+
+    @Test
+    void tags_ok() {
+        inv {
+            name "3"
+
+            tags (
+                my: 'tag'
+            )
+
+            step {
+                assert tags.my
+                assert tags.my == 'tag'
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
+
+    @Test
+    void when_ok() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all tag (my: 'tag') completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert reached
+    }
+
+    @Test
+    void when_ok_created() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+
+            require inv.Something
+        }
+
+        inv {
+            name "2"
+
+            when all tag (my: 'tag') created {
+                reached = true
+            }
+        }
+
+        executor.execute()
+        assert reached
+    }
+
+    @Test
+    void when_ok_completed() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            broadcast inv.Something
+        }
+
+        inv {
+            name "2"
+
+            tags (
+                    my: 'tag'
+            )
+
+            require inv.Something
+        }
+
+        inv {
+            name "3"
+
+            when all tag (my: 'tag') completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert reached
+    }
+
+    @Test
+    void when_tag_not_ok() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all tag (my: 'other-tag') completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert !report.isOk()
+        assert !reached
+    }
+
+    @Test
+    void when_name_ok() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all name "1" completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert reached
+    }
+
+    @Test
+    void when_name_ok_contains() {
+
+        boolean reached = false
+
+        inv {
+            name "123"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all name "1" completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert reached
+    }
+
+    @Test
+    void when_name_not_ok() {
+
+        boolean reached = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all name "2" completed {
+                reached = true
+            }
+        }
+
+        def report = executor.execute()
+        assert !report.isOk()
+        assert !reached
+    }
+
+    @Test
+    void when_ok_broadcasts() {
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+        }
+
+        inv {
+            name "2"
+
+            when all tag (my: 'tag') completed {
+                step {
+                    broadcast inv.Something
+                }
+            }
+        }
+
+        inv {
+            name "3"
+
+            require inv.Something
+
+            broadcast inv.Else
+        }
+
+        inv {
+            name "4"
+
+            require inv.Else
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
 }

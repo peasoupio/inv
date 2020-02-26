@@ -224,9 +224,12 @@ public class NetworkValuablePool {
         List<Inv> invsDone = new ArrayList<>();
         for (Inv inv : remainingInvs) {
 
-            // Has more steps or statements, it is not done yet
-            if (!inv.getSteps().isEmpty() ||
-                !inv.getRemainingStatements().isEmpty()) continue;
+            // Has more steps, more whens or statements, it is not done yet
+            if (!inv.getRemainingStatements().isEmpty() ||
+                !inv.getSteps().isEmpty() ||
+                !inv.getWhens().isEmpty()) {
+                continue;
+            }
 
             invsDone.add(inv);
         }

@@ -60,12 +60,22 @@ public class PoolReport {
             output.append("Incompleted INV(s) details: " + System.lineSeparator());
 
             for (Inv remaining : tree.sortRemainingByRequireWeight()) {
+                boolean noMoreStatement = remaining.getRemainingStatements().isEmpty();
 
-                if (remaining.getRemainingStatements().isEmpty()) {
-                    output.append("- " + remaining.getName() + " has no statement left. Look below for exception(s).");
-                    continue;
+                if (noMoreStatement) {
+                    output.append("- " + remaining.getName() + " has no statement left. Look below for exception(s) are when criteria(s) not met." + System.lineSeparator());
                 }
 
+                if (!remaining.getWhens().isEmpty()) {
+                    output.append("\t" + remaining.getName() + " has " + remaining.getWhens().size() + " when criteria(s) left." + System.lineSeparator());
+
+                    for(WhenData remainingWhen : remaining.getWhens()) {
+                        output.append("\t\t" + remainingWhen.toString() + System.lineSeparator());
+                    }
+                }
+
+                if (noMoreStatement)
+                    continue;;
 
                 output.append("- " + remaining.getName() + " has " + remaining.getRemainingStatements().size() + " statement(s) left:" + System.lineSeparator());
 

@@ -97,10 +97,6 @@ public class RequireStatement implements Statement {
     }
 
     public static class Require implements Manageable<RequireStatement> {
-        public static void setPropertyToDelegate(Object delegate, String propertyName, Object value) {
-            //noinspection GroovyAssignabilityCheck
-            DefaultGroovyMethods.invokeMethod(DefaultGroovyMethods.getMetaClass(delegate), "setProperty", new Object[]{propertyName, value});
-        }
 
         public void manage(NetworkValuablePool pool, RequireStatement requireStatement) {
             if (pool == null || requireStatement == null)
@@ -171,8 +167,7 @@ public class RequireStatement implements Statement {
         private void resolveRequire(RequireStatement requireStatement, BroadcastResponse broadcastResponse) {
             // Implement variable into NV inv (if defined)
             if (StringUtils.isNotEmpty(requireStatement.getInto()))
-                setPropertyToDelegate(
-                        requireStatement.getInv().getDelegate(),
+                requireStatement.getInv().addProperty(
                         requireStatement.getInto(),
                         new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
 

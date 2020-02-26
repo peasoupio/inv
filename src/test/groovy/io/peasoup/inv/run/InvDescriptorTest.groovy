@@ -7,11 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 
 class InvDescriptorTest {
 
+    InvDescriptor.Properties properties
     InvDescriptor myself
 
     @Before
     void setup() {
-        myself = new InvDescriptor()
+        properties = new InvDescriptor.Properties()
+        myself = new InvDescriptor(properties)
     }
 
     @Test
@@ -52,7 +54,7 @@ class InvDescriptorTest {
 
         myself.require(nvd)
 
-        def delegate = myself.statements.first() as RequireStatement
+        def delegate = properties.statements.first() as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.id == nvd.id
@@ -67,7 +69,7 @@ class InvDescriptorTest {
 
         myself.require(nvd)
 
-        def delegate = myself.statements.first() as RequireStatement
+        def delegate = properties.statements.first() as RequireStatement
 
         assert delegate.name == nvd.name
         assert delegate.id == InvDescriptor.DEFAULT_ID
@@ -78,7 +80,7 @@ class InvDescriptorTest {
         def statementDescriptor = new StatementDescriptor("name")
         def requireDescriptor = myself.require(statementDescriptor)
 
-        def delegate = myself.statements.first() as RequireStatement
+        def delegate = properties.statements.first() as RequireStatement
 
         assert delegate.name == statementDescriptor.name
         assert delegate.defaults
@@ -105,7 +107,7 @@ class InvDescriptorTest {
         def requireDescriptor = myself.require(statementDescriptor)
         assert requireDescriptor
 
-        def delegate = myself.statements.first() as RequireStatement
+        def delegate = properties.statements.first() as RequireStatement
         assert delegate.name == statementDescriptor.name
         assert !delegate.unbloatable
 
@@ -137,7 +139,7 @@ class InvDescriptorTest {
 
         myself.pop(value)
 
-        assert myself.pop == value
+        assert properties.pop == value
     }
 
     @Test
@@ -146,7 +148,7 @@ class InvDescriptorTest {
 
         myself.tail(value)
 
-        assert myself.tail == value
+        assert properties.tail == value
     }
 
     @Test
@@ -162,6 +164,26 @@ class InvDescriptorTest {
         assertThrows(IllegalArgumentException.class, {
             myself.tail(true)
             myself.pop(true)
+        })
+    }
+
+    @Test
+    void tags_ok() {
+        Map<String, String> tags = [my: 'tag']
+
+        myself.tags(tags)
+
+        assert myself.getTags() == tags
+    }
+
+    @Test
+    void tags_fail() {
+        assertThrows(IllegalArgumentException.class, {
+            myself.tags(null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.tags([:])
         })
     }
 }

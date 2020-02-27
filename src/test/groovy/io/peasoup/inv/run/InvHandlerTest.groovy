@@ -536,14 +536,6 @@ class InvHandlerTest {
         assert !report.errors.isEmpty()
         assert report.errors.find { it.inv.name == "my-exception" }
         assert report.errors.find { it.throwable.message == "fail" }
-
-
-        report.errors.each {
-            println "=================="
-            println "INV: ${it.inv.name}"
-            it.throwable.printStackTrace()
-            println "=================="
-        }
     }
 
     @Test
@@ -717,7 +709,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tag (my: 'tag') completed {
+            when all tags (my: 'tag') completed {
                 reached = true
             }
         }
@@ -745,7 +737,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tag (my: 'tag') created {
+            when all tags (my: 'tag') created {
                 reached = true
             }
         }
@@ -778,7 +770,7 @@ class InvHandlerTest {
         inv {
             name "3"
 
-            when all tag (my: 'tag') completed {
+            when all tags (my: 'tag') completed {
                 reached = true
             }
         }
@@ -804,7 +796,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tag (my: 'other-tag') completed {
+            when all tags (my: 'other-tag') completed {
                 reached = true
             }
         }
@@ -906,7 +898,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tag (my: 'tag') completed {
+            when all tags (my: 'tag') completed {
                 step {
                     broadcast inv.Something
                 }
@@ -929,5 +921,73 @@ class InvHandlerTest {
 
         def report = executor.execute()
         assert report.isOk()
+    }
+
+    @Test
+    void when_ok_require() {
+
+        boolean raised = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+
+            broadcast inv.Something
+        }
+
+        inv {
+            name "2"
+
+            tags (
+                    my: 'tag'
+            )
+
+            require inv.Something
+
+            when all tags (my: 'tag') completed {
+                raised = true
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert raised
+    }
+
+    @Test
+    void when_error_require() {
+
+        boolean raised = false
+
+        inv {
+            name "1"
+
+            tags (
+                    my: 'tag'
+            )
+
+            broadcast inv.Something
+        }
+
+        inv {
+            name "2"
+
+            tags (
+                    my: 'tag'
+            )
+
+            require inv.Else
+
+            when all tags (my: 'tag') completed {
+                raised = true
+            }
+        }
+
+        def report = executor.execute()
+        assert !report.isOk()
+        assert !raised
     }
 }

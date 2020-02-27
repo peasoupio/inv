@@ -7,7 +7,7 @@ public class WhenData {
 
     private final WhenScope scope;
     private WhenEvent.Events event;
-    private WhenType.Types type;
+    private WhenType.TypeProcessor processor;
 
     private Object value;
     private Closure callback;
@@ -20,17 +20,36 @@ public class WhenData {
         this.scope = scope;
     }
 
+    /**
+     * @return Determines if this WhenData has all the needed information before any processing
+     */
     public boolean isOk() {
         return
             event != null &&
-            type != null &&
+            processor != null &&
             value != null &&
             callback != null;
     }
 
+    /**
+     * Raise the callback for a specific INV
+     * @param inv Inv object who owns the callback
+     * @return True if dumped something, otherwise false
+     */
+    public boolean raiseCallback(Inv inv) {
+        if (inv == null) {
+            throw new IllegalArgumentException("Inv is required");
+        }
+
+        callback.setResolveStrategy(Closure.DELEGATE_FIRST);
+        callback.call();
+
+        return inv.dumpDelegate();
+    }
+
     @Override
     public String toString() {
-        return scope.value + " " + type.value + " " + DefaultGroovyMethods.toString(value) + " " + event.value;
+        return scope.value + " " + processor.toString() + " " + DefaultGroovyMethods.toString(value) + " " + event.value;
     }
 
     public WhenScope getScope() {
@@ -45,12 +64,12 @@ public class WhenData {
         this.event = event;
     }
 
-    public WhenType.Types getType() {
-        return type;
+    public WhenType.TypeProcessor getProcessor() {
+        return processor;
     }
 
-    public void setType(WhenType.Types type) {
-        this.type = type;
+    public void setProcessor(WhenType.TypeProcessor processor) {
+        this.processor = processor;
     }
 
     public Object getValue() {
@@ -61,9 +80,7 @@ public class WhenData {
         this.value = value;
     }
 
-    public Closure getCallback() {
-        return callback;
-    }
+
 
     public void setCallback(Closure callback) {
         this.callback = callback;

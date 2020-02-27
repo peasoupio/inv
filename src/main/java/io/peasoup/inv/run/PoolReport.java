@@ -57,29 +57,29 @@ public class PoolReport {
 
         if (!pool.getRemainingInvs().isEmpty()) {
 
-            output.append("Incompleted INV(s) details: " + System.lineSeparator());
+            output.append("Incompleted INV(s): " + System.lineSeparator());
 
             for (Inv remaining : tree.sortRemainingByRequireWeight()) {
-                boolean noMoreStatement = remaining.getRemainingStatements().isEmpty();
+                boolean noMoreStatement = remaining.getRemainingStatements().isEmpty() &&
+                                          remaining.getWhens().isEmpty();
 
                 if (noMoreStatement) {
-                    output.append("- " + remaining.getName() + " has no statement left. Look below for exception(s) are when criteria(s) not met." + System.lineSeparator());
+                    output.append("- [" + remaining.getName() + "] has no statement and when criteria's left. Look below for exception(s).");
+                    continue;
                 }
 
+                output.append("- [" + remaining.getName() + "] has " + remaining.getRemainingStatements().size() + " statement(s) and has " + remaining.getWhens().size() + " when criteria(s) left:" + System.lineSeparator());
+
                 if (!remaining.getWhens().isEmpty()) {
-                    output.append("\t" + remaining.getName() + " has " + remaining.getWhens().size() + " when criteria(s) left." + System.lineSeparator());
+
+                    output.append("\t" + remaining.getWhens().size() + " when's criteria(s):" + System.lineSeparator());
 
                     for(WhenData remainingWhen : remaining.getWhens()) {
-                        output.append("\t\t" + remainingWhen.toString() + System.lineSeparator());
+                        String stateMessage = whenStateToMessage(remainingWhen.getProcessor().qualifyState(pool, remaining));
+                        output.append("\t\t[" + stateMessage + "] "  + remainingWhen.toString() + System.lineSeparator());
                     }
                 }
 
-                if (noMoreStatement)
-                    continue;;
-
-                output.append("- " + remaining.getName() + " has " + remaining.getRemainingStatements().size() + " statement(s) left:" + System.lineSeparator());
-
-                //def requirements = tree.getRemainingRequireStatements(remaining)
                 final List<PoolStateTree.RemainingRequire> requirements = tree.sortRemainingRequireStatementByWeight(remaining);
 
                 if (!requirements.isEmpty()) {
@@ -96,9 +96,7 @@ public class PoolReport {
                         else
                             output.append("\t\t[NOT MATCHED] " + remainingRequire.getStatement().toString() + System.lineSeparator());
                     }
-
                 }
-
 
                 final List<PoolStateTree.RemainingBroadcast> broadcasts = tree.getRemainingBroadcastStatements(remaining);
                 if (!broadcasts.isEmpty()) {
@@ -110,15 +108,14 @@ public class PoolReport {
                 }
 
             }
-
-
-            output.append(System.lineSeparator());
         }
 
         if (output.length() > 0) Logger.warn(output.toString());
 
-        if (!poolErrors.isEmpty()) {
-            Logger.info("Exception(s) caught: " + getErrors().size());
+        if (poolErrors.isEmpty()) {
+            output.append(System.lineSeparator());
+        } else {
+            Logger.warn("Caught exception(s): " + getErrors().size());
 
             for (PoolError ex : poolErrors) {
                 Logger.error(ex.getInv().getName(), ex.getThrowable());
@@ -140,6 +137,17 @@ public class PoolReport {
 
         // Once halted, can't put it back on
         if (halted) this.halted = true;
+    }
+
+    private String whenStateToMessage(int state) {
+        switch(state) {
+            case -1: return "HAS REMAININGS";
+            case -2: return "NO VALID MATCH";
+            case 0: return  "NO VALUE MATCH";
+            case 1: return  "CREATED MATCH";
+            case 2: return  "COMPLETED MATCH";
+            default: return "";
+        }
     }
 
     public final Queue<Inv> getDigested() {

@@ -8,7 +8,6 @@ import org.codehaus.groovy.runtime.StringGroovyMethods;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
 
 public class Inv {
 
@@ -124,7 +123,6 @@ public class Inv {
         while (checkOnce || hasDumpedSomething) {
             // Reset flag
             checkOnce = false;
-
             List<Statement> toRemove = new ArrayList();
 
             // Manage statements
@@ -214,100 +212,27 @@ public class Inv {
         boolean hasDumpedSomething = false;
         List<WhenData> completedWhenData = new ArrayList<>();
 
+        // Do not process until ALL statements are managed
+        if (!this.remainingStatements.isEmpty())
+            return false;
+
         for(WhenData whenData : whens) {
+
             // Do not process not completed When request
             if (!whenData.isOk())
                 continue;
 
-            if (whenData.getType() == WhenType.Types.Name) {
-                String whenStringValue = (String)whenData.getValue();
+            // Process When data
+            boolean processedPositively = whenData.getProcessor().qualify(pool, this);
 
-                Inv other = pool.getTotalInvs().stream()
-                        .filter(inv -> inv.name.contains(whenStringValue))
-                        .findFirst()
-                        .orElse(null);
+            // If processed, raise callback and check for dumps
+            if (processedPositively) {
+                // Tell this 'WhenData' is completed
+                completedWhenData.add(whenData);
 
-                // Did not find, so skip
-                if (other == null)
-                    continue;
-
-                // If we look only when created, raise right now
-                if (whenData.getEvent() == WhenEvent.Events.Created) {
-                    completedWhenData.add(whenData);
-
-                    Closure callback = whenData.getCallback();
-                    callback.setResolveStrategy(Closure.DELEGATE_FIRST);
-                    callback.call();
-
-                    if (dumpDelegate())
-                        hasDumpedSomething = true;
-
-                    continue;
-                }
-
-                // Otherwise, make sure it's not remaining, thus not completed
-                if (whenData.getEvent() == WhenEvent.Events.Completed &&
-                    !pool.getRemainingInvs().contains(other)) {
-                    completedWhenData.add(whenData);
-
-                    Closure callback = whenData.getCallback();
-                    callback.setResolveStrategy(Closure.DELEGATE_FIRST);
-                    callback.call();
-
-                    if (dumpDelegate())
-                        hasDumpedSomething = true;
-
-                    continue;
-                }
-            }
-
-            if (whenData.getType() == WhenType.Types.Tags) {
-                Map<String, String> whenMapValue = (Map<String, String>)whenData.getValue();
-                List<Inv> matchInvs = pool.getTotalInvs().stream()
-                        .filter(inv ->
-                                // Make sure it has a valid tags
-                                inv.tags != null &&  !inv.tags.isEmpty() &&
-                                // Do not process same INV
-                                inv != this &&
-                                // Check if all tags from when data is included
-                                whenMapValue.equals(DefaultGroovyMethods.intersect(inv.tags, whenMapValue)))
-                        .collect(Collectors.toList());
-
-                // If nothing was matched, skip
-                if (matchInvs.isEmpty()) {
-                    continue;
-                }
-
-                // If we look only when created, raise right now
-                if (whenData.getEvent() == WhenEvent.Events.Created) {
-                    completedWhenData.add(whenData);
-
-                    Closure callback = whenData.getCallback();
-                    callback.setResolveStrategy(Closure.DELEGATE_FIRST);
-                    callback.call();
-
-                    if (dumpDelegate())
-                        hasDumpedSomething = true;
-
-                    continue;
-                }
-
-                // Otherwise, make sure it's not remaining, thus not completed
-                if (whenData.getEvent() == WhenEvent.Events.Completed &&
-                    matchInvs.stream()
-                            // Check if any is NOT completed
-                            .filter(inv -> !pool.getRemainingInvs().contains(inv))
-                            .count() == 0) {
-                    completedWhenData.add(whenData);
-
-                    Closure callback = whenData.getCallback();
-                    callback.setResolveStrategy(Closure.DELEGATE_FIRST);
-                    callback.call();
-
-                    if (dumpDelegate())
-                        hasDumpedSomething = true;
-
-                    continue;
+                // Raise callback
+                if (whenData.raiseCallback(this)) {
+                    hasDumpedSomething = true;
                 }
             }
         }
@@ -340,6 +265,10 @@ public class Inv {
 
     public String getPath() {
         return path;
+    }
+
+    public Map<String, String> getTags() {
+        return tags;
     }
 
     public Closure getReady() {

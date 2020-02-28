@@ -223,7 +223,7 @@ public class Inv {
                 continue;
 
             // Process When data
-            boolean processedPositively = whenData.getProcessor().qualify(pool, this);
+            boolean processedPositively = whenData.getProcessor().qualify(pool, this) > 0;
 
             // If processed, raise callback and check for dumps
             if (processedPositively) {

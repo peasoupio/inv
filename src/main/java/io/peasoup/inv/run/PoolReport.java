@@ -75,7 +75,7 @@ public class PoolReport {
                     output.append("\t" + remaining.getWhens().size() + " when's criteria(s):" + System.lineSeparator());
 
                     for(WhenData remainingWhen : remaining.getWhens()) {
-                        String stateMessage = whenStateToMessage(remainingWhen.getProcessor().qualifyState(pool, remaining));
+                        String stateMessage = whenStateToMessage(remainingWhen.getProcessor().qualify(pool, remaining));
                         output.append("\t\t[" + stateMessage + "] "  + remainingWhen.toString() + System.lineSeparator());
                     }
                 }

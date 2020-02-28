@@ -19,7 +19,7 @@ public class WhenEvent {
             throw new IllegalArgumentException("Body is required");
         }
 
-        data.setEvent(Events.Created);
+        data.setEvent(Events.CREATED);
         data.setCallback(body);
     }
 
@@ -28,13 +28,13 @@ public class WhenEvent {
             throw new IllegalArgumentException("Body is required");
         }
 
-        data.setEvent(Events.Completed);
+        data.setEvent(Events.COMPLETED);
         data.setCallback(body);
     }
 
     enum Events {
-        Created("CREATED"),
-        Completed("COMPLETED");
+        CREATED("CREATED"),
+        COMPLETED("COMPLETED");
 
         String value;
 

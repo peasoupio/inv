@@ -42,8 +42,7 @@ public class WhenType {
     }
 
     interface TypeProcessor {
-        boolean qualify(NetworkValuablePool pool, Inv inv);
-        int qualifyState(NetworkValuablePool pool, Inv inv);
+        int qualify(NetworkValuablePool pool, Inv inv);
     }
 
     static final class NameProcessor implements TypeProcessor {
@@ -58,12 +57,7 @@ public class WhenType {
         }
 
         @Override
-        public boolean qualify(NetworkValuablePool pool, Inv inv) {
-            return qualifyState(pool, inv) > 0;
-        }
-
-        @Override
-        public int qualifyState(NetworkValuablePool pool, Inv inv) {
+        public int qualify(NetworkValuablePool pool, Inv inv) {
             // Do not process until ALL statements are managed
             if (!inv.getRemainingStatements().isEmpty())
                 return -1;
@@ -81,12 +75,12 @@ public class WhenType {
                 return -2;
 
             // If we look only when created, raise right now
-            if (whenData.getEvent() == WhenEvent.Events.Created)
+            if (whenData.getEvent() == WhenEvent.Events.CREATED)
                 return 1;
 
 
             // Otherwise, make sure it's not remaining, thus not completed
-            if (whenData.getEvent() == WhenEvent.Events.Completed &&
+            if (whenData.getEvent() == WhenEvent.Events.COMPLETED &&
                 !pool.getRemainingInvs().contains(other))
                 return 2;
 
@@ -111,14 +105,8 @@ public class WhenType {
             this.whenData = whenData;
         }
 
-
         @Override
-        public boolean qualify(NetworkValuablePool pool, Inv inv) {
-            return qualifyState(pool, inv) > 0;
-        }
-
-        @Override
-        public int qualifyState(NetworkValuablePool pool, Inv inv) {
+        public int qualify(NetworkValuablePool pool, Inv inv) {
             // Do not process until ALL statements are managed
             if (!inv.getRemainingStatements().isEmpty())
                 return -1;
@@ -139,32 +127,36 @@ public class WhenType {
                 return -2;
 
             // If we look only when created, raise right now
-            if (whenData.getEvent() == WhenEvent.Events.Created)
+            if (whenData.getEvent() == WhenEvent.Events.CREATED)
                 return 1;
 
             // Otherwise, make sure it's not remaining, thus not completed
-            if (whenData.getEvent() == WhenEvent.Events.Completed) {
+            if (whenData.getEvent() == WhenEvent.Events.COMPLETED) {
 
                 Logger.debug("Check match results for " + whenData.toString());
 
-                boolean allCompleted = true;
-                for(Inv matchInv : matchInvs) {
-                    boolean completed = !pool.getRemainingInvs().contains(matchInv) &&
-                                        pool.getTotalInvs().contains(matchInv);
-
-                    Logger.debug("\t" + matchInv.getName() + " is " + (completed? "completed": "not completed"));
-
-                    if (!completed)
-                        allCompleted = false;
-                }
-
                 // If all matched INVS are completed
-                if (allCompleted)
+                if (checkAllCompleted(pool, matchInvs))
                     return 2;
             }
 
             // By default, return false
             return 0;
+        }
+
+        private boolean checkAllCompleted(NetworkValuablePool pool, List<Inv> matchInvs) {
+            boolean allCompleted = true;
+            for(Inv matchInv : matchInvs) {
+                boolean completed = !pool.getRemainingInvs().contains(matchInv) &&
+                        pool.getTotalInvs().contains(matchInv);
+
+                Logger.debug("\t" + matchInv.getName() + " is " + (completed? "completed": "not completed"));
+
+                if (!completed)
+                    allCompleted = false;
+            }
+
+            return allCompleted;
         }
 
         @Override

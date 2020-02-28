@@ -43,7 +43,7 @@ public class CommonLoader {
         secureASTCustomizer.setPackageAllowed(false);
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
 
-        LinkedHashMap<String, String> map = new LinkedHashMap<String, String>(1);
+        LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
         map.put("extensions", "io.peasoup.inv.security.SecuredTypeChecked");
         ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
 

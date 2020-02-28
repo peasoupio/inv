@@ -1,8 +1,8 @@
 package io.peasoup.inv.run;
 
 public enum WhenScope {
-    All("ALL"),
-    Any("ANY");
+    ALL("ALL"),
+    ANY("ANY");
 
     String value;
 

@@ -140,9 +140,9 @@ public class InvDescriptor {
         return inv;
     }
 
-    public WhenScope getAll() {return WhenScope.All; }
+    public WhenScope getAll() {return WhenScope.ALL; }
 
-    public WhenScope getAny() {return WhenScope.Any; }
+    public WhenScope getAny() {return WhenScope.ANY; }
 
     /**
      * Keep and hides descriptor current properties

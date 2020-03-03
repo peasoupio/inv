@@ -71,13 +71,14 @@ public class NetworkValuablePool {
         List<Inv> sorted = sortRemainingInvs();
 
         // Eat invs
-        Queue<PoolReport.PoolError> errorsCaught;
+        Queue<PoolReport.PoolError> errorsCaught = null;
 
         // Eat invs
         if (isRunning())
-            errorsCaught = eatSynchronized(sorted, digestion);
-        else
             errorsCaught = eatMultithreaded(sorted, digestion);
+
+        if (isUnbloating())
+            errorsCaught = eatSynchronized(sorted, digestion);
 
         // Batch all require resolve at once
         boolean hasResolvedSomething = digestion.getRequires() != 0;

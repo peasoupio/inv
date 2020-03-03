@@ -670,8 +670,12 @@ class InvHandlerTest {
             }
         }
 
-        def report = executor.execute()
-        assert report.isOk()
+        def remainingInvs = executor.pool.sortRemainingInvs()
+
+        assert remainingInvs[0].name == "0"
+        assert remainingInvs[1].name == "1"
+        assert remainingInvs[2].name == "2"
+        assert remainingInvs[3].name == "3"
     }
 
     @Test

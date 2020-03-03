@@ -51,7 +51,7 @@ public class InvInvoker {
         }
 
 
-        Logger.debug("file: " + scriptFile.getCanonicalPath());
+        Logger.debug("[INVOKER] file: " + scriptFile.getCanonicalPath());
 
         String preferredClassname = (normalizeClassName(scriptFile) + "_" + checksum(scriptFile)).toLowerCase();
         Script myNewScript;
@@ -101,13 +101,12 @@ public class InvInvoker {
             }
             
             boolean writabledSet = cache.setWritable(true);
-            Logger.debug("writable set to: " + writabledSet);
+            Logger.debug("[SECURITY] writable: " + writabledSet);
 
             if (!cache.setReadable(true)) {
                 throw new IllegalArgumentException("Could not set readable");
             }
         }
-
 
         final File filename = new File(cache, classname + ".groovy");
         filename.mkdirs();
@@ -119,7 +118,7 @@ public class InvInvoker {
         //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
         Files.copy(Paths.get(scriptFile.getAbsolutePath()), Paths.get(filename.getAbsolutePath()));
 
-        Logger.debug("created copy for " + classname + " here: " + filename.getAbsolutePath());
+        Logger.debug("[CACHE] file: " + filename.getAbsolutePath());
 
         return filename.getAbsolutePath();
     }

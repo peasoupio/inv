@@ -169,7 +169,6 @@ Parameters:
         Configuration.set("writer1.file", logFilepath)
         Configuration.set("writer1.format", "{message}")
 
-
         if (debug)
             Configuration.set("level", "debug")
     }

@@ -30,7 +30,7 @@ class RunCommand implements CliCommand {
                 invExecutor.read(lookupFile)
             else {
 
-                Logger.debug "pattern without parent: ${lookupPattern}"
+                Logger.debug "[RUN] pattern: ${lookupPattern}"
 
                 // Convert Ant pattern to regex
                 def resolvedPattern = lookupPattern
@@ -40,7 +40,7 @@ class RunCommand implements CliCommand {
                         .replace("*", ".*")
                         .replace("?", ".*")
 
-                Logger.debug "resolved pattern: ${resolvedPattern}"
+                Logger.debug "[RUN] resolved_pattern: ${resolvedPattern}"
 
                 List<File> invFiles = []
                 Home.getCurrent().eachFileRecurse(FileType.FILES) {

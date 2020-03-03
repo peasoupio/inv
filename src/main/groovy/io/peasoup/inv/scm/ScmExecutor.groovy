@@ -102,7 +102,7 @@ class ScmExecutor {
         def envs = repository.env.collect { "${it.key}=${it.value}"}
         def process = cmd.execute(envs, repository.path.canonicalFile)
 
-        Logger.debug cmd
+        Logger.debug "[SCM] ${cmd}"
 
         // Consome output and wait until done.
         process.consumeProcessOutput(System.out, System.err)

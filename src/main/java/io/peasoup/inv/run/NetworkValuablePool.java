@@ -17,7 +17,9 @@ public class NetworkValuablePool {
     private final Set<Inv> totalInvs = new HashSet<>();
     protected volatile String runningState = RUNNING;
     private volatile boolean isDigesting = false;
+
     private ExecutorService invExecutor;
+    private CompletionService<Inv.Digestion> invCompletionService;
 
     /**
      * Digest invs and theirs statements.
@@ -150,22 +152,24 @@ public class NetworkValuablePool {
      * @return Pool errors
      */
     private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion currentDigestion) {
-        List<Future<Inv.Digestion>> futures = new ArrayList<>();
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
 
-        // Multithreading is allowed only in a RUNNING cycle
-        if (invExecutor == null) invExecutor = Executors.newFixedThreadPool(4);
+        // Create executor and completion service
+        if (invExecutor == null) {
+            invExecutor = Executors.newFixedThreadPool(4);
+            invCompletionService = new ExecutorCompletionService<>(invExecutor);
+        }
 
         // Use fori-loop for speed
         for (int i = 0; i < invs.size(); i++) {
             final Inv inv = invs.get(i);
-            futures.add(invExecutor.submit(() -> eatInv(inv, poolErrors) ));
+            invCompletionService.submit(() -> eatInv(inv, poolErrors) );
         }
 
         // Wait for invs to be digested in parallel.
-        for (Future<Inv.Digestion> future : futures) {
+        for (int i = 0; i < invs.size(); i++) {
             try {
-                currentDigestion.concat(future.get());
+                currentDigestion.concat(invCompletionService.take().get());
             } catch (Exception e) {
                 Logger.error(e);
             }
@@ -233,6 +237,8 @@ public class NetworkValuablePool {
             }
 
             invsDone.add(inv);
+
+            Logger.debug("[POOL] inv: " + inv.getName() + " COMPLETED");
         }
 
         remainingInvs.removeAll(invsDone);
@@ -390,7 +396,7 @@ public class NetworkValuablePool {
     public boolean shutdown() {
         if (invExecutor == null) return false;
 
-        Logger.debug("executor is shutting down");
+        Logger.debug("[POOL] closed: true");
         invExecutor.shutdownNow();
         invExecutor = null;
 

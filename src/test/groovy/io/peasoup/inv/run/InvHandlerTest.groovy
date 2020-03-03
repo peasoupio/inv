@@ -994,4 +994,84 @@ class InvHandlerTest {
         assert !report.isOk()
         assert !raised
     }
+
+    @Test
+    void multiple_steps() {
+
+        def size = 10
+        def steps = []
+        1.upto(size, { final Number reference ->
+            steps << {
+                assert reference == it + 1
+            }
+        })
+
+        inv {
+
+            name "steps"
+
+            for(Closure body : steps) {
+                step(body)
+            }
+        }
+        def report = executor.execute()
+        assert report.isOk()
+    }
+
+    @Test
+    void multiple_steps_require_and_broadcasts() {
+
+
+        inv {
+            name "step1"
+
+            step {
+                assert it == 0
+
+                require inv.Something
+            }
+
+            step {
+                assert it == 1
+
+                broadcast inv.Else
+                require inv.More
+            }
+
+            step {
+                assert it == 2
+
+                broadcast inv.Final
+            }
+        }
+
+        def steps2 = [
+
+        ]
+        inv {
+            name "step2"
+
+            step {
+                assert it == 0
+
+                broadcast inv.Something
+            }
+
+            step {
+                assert it == 1
+
+                require inv.Else
+                broadcast inv.More
+            }
+
+            step {
+                assert it == 2
+
+                require inv.Final
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
 }

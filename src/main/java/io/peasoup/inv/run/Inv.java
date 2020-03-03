@@ -17,19 +17,20 @@ public class Inv {
     private final InvDescriptor delegate;
     private final InvDescriptor.Properties properties;
 
+
     private String name;
     private String path;
     private Map<String, String> tags;
     private Boolean tail;
     private Boolean pop;
 
-
     private Closure ready;
     private final Queue<Statement> remainingStatements;
-    private final Queue<Closure> steps;
+    private final Queue<Step> steps;
     private final Queue<WhenData> whens;
 
     private final Queue<Statement> totalStatements;
+    private int stepCount;
 
     public Inv(NetworkValuablePool pool) {
         if (pool == null) {
@@ -70,11 +71,13 @@ public class Inv {
             this.remainingStatements.add(statement);
 
             pool.checkAvailability(statement.getName());
+
+            Logger.debug("[STATEMENT] " + statement.toString() + " [INIT]");
         }
 
         // Transfer Step(s) from delegate to INV
-        if (!properties.getSteps().isEmpty()) {
-            steps.addAll(properties.getSteps());
+        for(Closure body : properties.getSteps()) {
+            steps.add(new Step(this, body, stepCount++));
             dumpedSomething = true;
         }
 
@@ -196,12 +199,9 @@ public class Inv {
                 !pool.isHalting()) {
 
             // Call next step
-            Closure step = steps.poll();
-            step.setResolveStrategy(Closure.DELEGATE_FIRST);
-            step.call();
-
+            Step step = steps.poll();
             // If the step dumped something, remainingStatements won't be empty and exit loop
-            hasDumpedSomething = dumpDelegate();
+            hasDumpedSomething = step.execute();
         }
 
         return hasDumpedSomething;
@@ -291,7 +291,7 @@ public class Inv {
         return totalStatements;
     }
 
-    public final Collection<Closure> getSteps() {
+    public final Collection<Step> getSteps() {
         return steps;
     }
 

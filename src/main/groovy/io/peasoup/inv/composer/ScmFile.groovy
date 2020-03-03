@@ -153,14 +153,14 @@ class ScmFile {
             Map<String, List<String>> output = [:]
 
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
-                Logger.debug "Resolving '${parameter.name}' for ${descriptor.name}"
+                Logger.debug "[PARAMETER] scm: ${descriptor.name}, name: '${parameter.name}'"
 
                 List<String> values = parameter.values ?: []
 
                 if (parameter.command) {
                     String stdout = parameter.command.execute(descriptor.set, descriptor.path).in.text
 
-                    Logger.debug "Command: ${parameter.command}:${System.lineSeparator()}${stdout}"
+                    Logger.debug "[PARAMETER] command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 
                     values = stdout.split(Regexes.NEWLINES) as List<String>
                 }

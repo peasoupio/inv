@@ -1,30 +1,22 @@
 package io.peasoup.inv.composer
 
-
 import groovy.transform.CompileStatic
-import io.peasoup.inv.utils.Progressbar
 
 @CompileStatic
 class ScmFileCollection {
 
+
     private final List<ScmFile> scms = [].asSynchronized() as List<ScmFile>
 
+    final File scmFolder
     final Map<String, ScmFile.SourceFileElement> elements = [:]
-
     final Set<String> staged = new HashSet<>()
 
     ScmFileCollection(File scmFolder) {
         assert scmFolder != null, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
-        def files = scmFolder.listFiles()
-        def progress = new Progressbar("Reading from '${scmFolder.absolutePath}'".toString(), files.size(), false)
-        progress.start {
-            files.each {
-                load(it)
-                progress.step()
-            }
-        }
+        this.scmFolder = scmFolder
     }
 
     void load(File file) {

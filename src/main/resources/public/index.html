@@ -10,8 +10,8 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <link rel="stylesheet" href="bulma.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-pageloader@0.3.0/dist/css/bulma-pageloader.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
@@ -73,6 +73,18 @@
         }
         .breath-heavy {
              margin-right: 1em;
+        }
+
+        .pageloader {
+            background: #f9e49a;
+        }
+
+        .pageloader .title {
+            color: #000;
+        }
+
+        .pageloader::after {
+            border-color: #000;
         }
 
         /*************** Main view **************/
@@ -251,6 +263,18 @@ function compareValues(key, order = 'asc') {
       (order === 'desc') ? (comparison * -1) : comparison
     );
   };
+}
+
+function websocketHost() {
+    var loc = window.location, new_uri
+    if (loc.protocol === "https:") {
+        new_uri = "wss:"
+    } else {
+        new_uri = "ws:"
+    }
+    new_uri += "//" + loc.host + loc.pathname
+
+    return new_uri
 }
 
 

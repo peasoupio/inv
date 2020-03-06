@@ -1,17 +1,25 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.codehaus.groovy.runtime.StringGroovyMethods;
+import org.tinylog.configuration.Configuration;
 
 import java.util.Queue;
 
-public class Logger {
+public final class Logger {
     private static Queue captureQueue = null;
     private static Closure captureClosure = null;
 
     private Logger() {
 
+    }
+
+    /**
+     * Enable debug mode
+     */
+    public static void enableDebug() {
+        Configuration.set("level", "debug");
     }
 
     public static void fail(Object arg) {
@@ -52,6 +60,16 @@ public class Logger {
         org.tinylog.Logger.error(StackTraceUtils.sanitize(throwable), "[ERROR] inv: " + invName);
     }
 
+    /**
+     * Enables the single logging file
+     * @param logFilepath the log file absolute path
+     */
+    public static void enableFileLogging(String logFilepath) {
+        Configuration.set("writer1", "file");
+        Configuration.set("writer1.file", logFilepath);
+        Configuration.set("writer1.format", "{message}");
+    }
+
     public static Object capture(Object value) {
 
         // Reset both so only one works at the time
@@ -65,17 +83,16 @@ public class Logger {
         return value;
     }
 
+    private static void send(String message) {
+        if (StringUtils.isEmpty(message))
+            return;
+
+        if (captureQueue != null) captureQueue.add(message);
+        if (captureClosure != null) captureClosure.call(message);
+    }
+
     public static void resetCapture() {
         captureQueue = null;
         captureClosure = null;
-    }
-
-    private static void send(String message) {
-        if (!StringGroovyMethods.asBoolean(message)) return;
-
-
-        if (captureQueue != null) captureQueue.add(message);
-
-        if (captureClosure != null) captureClosure.call(message);
     }
 }

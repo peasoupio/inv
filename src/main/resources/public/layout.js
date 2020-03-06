@@ -115,8 +115,6 @@ Vue.component('layout', {
 
     <first-time v-if="shared.setup.firstTime"></first-time>
 
-
-
     <footer class="footer">
         <div class="content has-text-centered">
             <p>

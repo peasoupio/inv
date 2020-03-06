@@ -130,12 +130,9 @@ public class WhenType {
             if (whenData.getEvent() == WhenEvent.Events.CREATED)
                 return 1;
 
-            // Otherwise, make sure it's not remaining, thus not completed
-            if (whenData.getEvent() == WhenEvent.Events.COMPLETED) {
-
-                // If all matched INVS are completed
-                if (checkAllCompleted(pool, inv, matchInvs))
-                    return 2;
+            // Otherwise, make sure it has no remaining, thus not completed
+            if (whenData.getEvent() == WhenEvent.Events.COMPLETED && checkAllCompleted(pool, inv, matchInvs)) {
+                return 2;
             }
 
             // By default, return false
@@ -145,19 +142,20 @@ public class WhenType {
         private boolean checkAllCompleted(NetworkValuablePool pool, Inv inv, List<Inv> matchInvs) {
             boolean allCompleted = true;
 
-            String debugOutput = "[WHEN] inv: " + inv.getName() + ", criteria: " + whenData.toString() + ", results: ";
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("[WHEN] inv: " + inv.getName() + ", criteria: " + whenData.toString() + ", results: ");
 
             for(Inv matchInv : matchInvs) {
                 boolean completed = !pool.getRemainingInvs().contains(matchInv) &&
                         pool.getTotalInvs().contains(matchInv);
 
-                debugOutput += "[" + matchInv.getName() + "] is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ";
+                stringBuilder.append("[" + matchInv.getName() + "] is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ");
 
                 if (!completed)
                     allCompleted = false;
             }
 
-            Logger.debug(debugOutput);
+            Logger.debug(stringBuilder.toString());
 
             return allCompleted;
         }

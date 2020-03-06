@@ -15,7 +15,13 @@ class ScmFileCollectionTest {
 
     @Before
     void setup() {
-        scmFileCollection = new ScmFileCollection(new File(base))
+        def scmFolder = new File(base)
+        scmFileCollection = new ScmFileCollection(scmFolder)
+
+        // Load scm files
+        scmFolder.listFiles().each {
+            scmFileCollection.load(it)
+        }
     }
 
     @Test

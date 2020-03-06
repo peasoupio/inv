@@ -9,7 +9,6 @@ import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.security.CommonLoader
-import io.peasoup.inv.utils.Progressbar
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -21,19 +20,21 @@ class WebServer {
 
     Map configs = [:]
 
-    private final String webLocation
-    private final String runLocation
-    private final String scmsLocation
-    private final String parametersLocation
+    final private String runLocation
+    final private String scmsLocation
+    final private String parametersLocation
 
-    final private Settings settings
-    final private ScmFileCollection scms
-    final private Execution exec
-
-    private RunFile run
-    private Review review
-
+    final private Boot boot
     final private Pagination pagination
+
+    final protected Settings settings
+    final protected ScmFileCollection scms
+    final protected Execution exec
+
+    protected RunFile run
+    protected Review review
+
+
 
     @CompileDynamic
     WebServer(Map args) {
@@ -77,40 +78,8 @@ class WebServer {
         exec = new Execution(scmsLocationFolder, new File(parametersLocation))
         review = new Review()
 
+        boot = new Boot(this)
         pagination = new Pagination(settings)
-
-        def runFile = baseFile()
-        if (runFile.exists())
-            run = new RunFile(runFile)
-
-        // Process SETTINGS
-        def stagedIds = settings.stagedIds()
-        def stagedScms = settings.stagedSCMs()
-        new Progressbar("Staging from 'settings.xml'", stagedIds.size() + stagedScms.size(), false).start {
-            stagedIds.each {
-                run.stageWithoutPropagate(it)
-                step()
-            }
-
-            stagedScms.each {
-                scms.stage(it)
-                step()
-            }
-        }
-
-        println "Checking for 'run.txt'..."
-
-        if (run) {
-            run.propagate()
-
-            println "Found ${run.owners.size()} INV(s)"
-            println "Found ${run.names.size()} unique name(s)"
-            println "Found ${run.nodes.size()} broadcast(s)"
-        } else {
-            println "Not present right now."
-        }
-
-        println "Ready and listening on http://localhost:${configs.port}"
     }
 
     /**
@@ -120,8 +89,11 @@ class WebServer {
     @CompileDynamic
     int map() {
 
+        // Register websockets
         webSocket("/execution/log/stream", Execution.MessageStreamer.class)
+        webSocket("/boot/stream", Boot.MessageStreamer.class)
 
+        // Register API
         system()
 
         runsMany()
@@ -133,6 +105,9 @@ class WebServer {
         execution()
 
         review()
+
+        // Boot
+        boot.run()
 
         return 0
     }
@@ -164,6 +139,7 @@ class WebServer {
                             ],
                             execution: [
                                     default          : "/execution",
+                                    stream           : "execution/log/stream",
                                     downloadLatestLog: "/execution/latest/download"
                             ],
                             review   : [
@@ -176,8 +152,12 @@ class WebServer {
 
         get("/setup", { Request req, Response res ->
             return JsonOutput.toJson([
+                    booted: boot.isDone(),
                     firstTime: run == null,
-                    configs  : configs
+                    configs  : configs,
+                    links: [
+                        stream: "boot/stream"
+                    ]
             ])
         })
     }

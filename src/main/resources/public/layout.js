@@ -58,6 +58,10 @@ Vue.component('layout', {
     template: `
 <div class="mainContent"  style="padding: 1em">
 
+    <div class="pageloader" v-bind:class="{ 'is-active': shared.setup.booted == false }">
+        <span class="title">Booting... {{progression()}}</span>
+    </div>
+
     <div class="columns">
         <div class="column">
             <p class="title is-1">Composer</p>
@@ -111,6 +115,8 @@ Vue.component('layout', {
 
     <first-time v-if="shared.setup.firstTime"></first-time>
 
+
+
     <footer class="footer">
         <div class="content has-text-centered">
             <p>
@@ -119,11 +125,18 @@ Vue.component('layout', {
             </p>
         </div>
     </footer>
+
+
 </div>
 `,
     data: function() {
         return {
             currentStep: {},
+            bootData: {
+                todo: 0,
+                done: 0
+            },
+
             steps: [
                 { name: 'Choose', template: 'choose', index: 1, showHelp: false, description: 'Choose your INVs'  },
                 { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and scms' },
@@ -142,8 +155,51 @@ Vue.component('layout', {
         }
     },
     methods: {
+        setup: function() {
+            var vm = this
+
+            // Get Setup Data
+            axios.get(vm.shared.api.links.setup).then(response => {
+                vm.shared.setup = response.data
+
+                if (!vm.shared.setup.booted) {
+                    vm.followBoot()
+                }
+            })
+        },
+        followBoot: function() {
+            var vm = this
+
+            const socket = new WebSocket(websocketHost() + vm.shared.setup.links.stream)
+            socket.addEventListener('message', function (event) {
+                var data = JSON.parse(event.data)
+
+                vm.bootData.todo = data.thingsToDo
+                vm.bootData.done = data.thingsDone
+            })
+            socket.addEventListener('open', function (event) {
+
+            })
+            socket.addEventListener('close', function (event) {
+                vm.setup()
+            })
+        },
+        progression: function() {
+            var done = this.bootData.done
+            var todo = this.bootData.todo
+
+            if (!done || !todo)
+                return '0%'
+
+            var percent = done / todo * 100
+            return parseFloat(percent).toFixed(0)+"%"
+        },
         ready: function() {
-            return this.currentStep && this.shared.api.links != undefined
+            var vm = this
+
+            return vm.currentStep &&
+                   vm.shared.api.links != undefined &&
+                   vm.shared.setup.booted
         },
         setCurrentStep: function(step) {
             var vm = this
@@ -198,13 +254,11 @@ Vue.component('layout', {
             vm.setCurrentStep(step)
         })
 
+        // Get API
         axios.get('/api').then(response => {
             vm.shared.api = response.data
 
-
-            axios.get(vm.shared.api.links.setup).then(response => {
-                vm.shared.setup = response.data
-            })
+            vm.setup()
 
             /*
             axios.get(vm.shared.api.links.scms.default).then(response => {

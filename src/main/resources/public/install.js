@@ -184,19 +184,10 @@ Vue.component('install', {
         follow: function() {
             var vm = this
 
-            var loc = window.location, new_uri
-            if (loc.protocol === "https:") {
-                new_uri = "wss:"
-            } else {
-                new_uri = "ws:"
-            }
-            new_uri += "//" + loc.host;
-            new_uri += loc.pathname + "execution/log/stream";
-
             var logContainer = this.$refs.logContainer
             vm.clearLog(logContainer)
 
-            const socket = new WebSocket(new_uri)
+            const socket = new WebSocket(websocketHost() + vm.value.api.links.execution.stream)
             socket.addEventListener('message', function (event) {
                 //vm.appendLog(logContainer, event.data)
                 vm.buffer.push(event.data)

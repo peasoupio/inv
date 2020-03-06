@@ -152,9 +152,9 @@ class Execution {
             if (logWriter)
                 logWriter.flush()
 
-            MessageStreamer.sessions.each {
-                it.close()
-            }
+            // Close sessions
+            MessageStreamer.sessions.each { it.close() }
+            MessageStreamer.sessions.clear()
 
             // Cleaning scm list file
             scmListFile.delete()

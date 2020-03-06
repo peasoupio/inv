@@ -35,6 +35,9 @@ Vue.component('install', {
 
     <p class="title is-5">
         Output
+        <span v-if="execution.lastExecution > 0">
+            <a @click="downloadLatestLog()">(raw log)</a>
+        </span>
         <span class="icon is-small" v-if="loadingMessages">
             <i class="fas fa-spinner fa-pulse"></i>
         </span>
@@ -59,6 +62,7 @@ Vue.component('install', {
             loaded: false,
             loadingMessages: true,
             execution: {},
+            bufferProcessMaxSize: 5120,
             bufferProcessSize: 512,
             bufferProcessCycleMs: 500,
             buffer: []
@@ -74,10 +78,35 @@ Vue.component('install', {
             }
         },
         appendLog: function(logContainer, message) {
+            var vm = this
+
+            if (logContainer.children.length > vm.bufferProcessMaxSize) {
+                logContainer.removeChild(logContainer.childNodes[0])
+            }
+
             var pre = document.createElement("PRE")
             pre.appendChild(document.createTextNode(message))
 
             logContainer.appendChild(pre)
+        },
+        downloadLatestLog: function() {
+            var vm = this
+            var latestLog = vm.execution.lastExecution
+
+            axios({
+                url: vm.value.api.links.execution.downloadLatestLog,
+                method: 'GET',
+                responseType: 'blob',
+            }).then((response) => {
+                var fileURL = window.URL.createObjectURL(new Blob([response.data]));
+                var fileLink = document.createElement('a');
+
+                fileLink.href = fileURL;
+                fileLink.setAttribute('download', 'inv-' + latestLog + '-log.txt');
+                document.body.appendChild(fileLink);
+
+                fileLink.click();
+            })
         },
         toggleDebugMode: function() {
             var vm = this

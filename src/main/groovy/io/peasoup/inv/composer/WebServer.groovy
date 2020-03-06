@@ -39,7 +39,7 @@ class WebServer {
     WebServer(Map args) {
 
         configs = [
-            port: 8080
+                port: 8080
         ] + args
 
         assert configs.workspace, "Args must include a 'workspace' (String) property."
@@ -143,40 +143,41 @@ class WebServer {
 
         get("/api", { Request req, Response res ->
             return JsonOutput.toJson([
-                links: [
-                    setup: "/setup",
-                    run: [
-                        default: "/run",
-                        search: "/run",
-                        owners: "/run/owners",
-                        names: "/run/names",
-                        selected: "/run/selected",
-                        stageAll: "/run/stageAll",
-                        unstageAll: "/run/unstageAll",
-                    ],
-                    scms: [
-                        default: "/scms",
-                        search: "/scms",
-                        stageAll: "/scms/stageAll",
-                        unstageAll: "/scms/unstageAll",
-                        applyDefaultAll: "/scms/applyDefaultAll",
-                        resetAll: "/scms/resetAll"
-                    ],
-                    execution: [
-                        default: "/execution"
-                    ],
-                    review: [
-                        default: "/review",
-                        promote: "/review/promote"
+                    links: [
+                            setup    : "/setup",
+                            run      : [
+                                    default   : "/run",
+                                    search    : "/run",
+                                    owners    : "/run/owners",
+                                    names     : "/run/names",
+                                    selected  : "/run/selected",
+                                    stageAll  : "/run/stageAll",
+                                    unstageAll: "/run/unstageAll",
+                            ],
+                            scms     : [
+                                    default        : "/scms",
+                                    search         : "/scms",
+                                    stageAll       : "/scms/stageAll",
+                                    unstageAll     : "/scms/unstageAll",
+                                    applyDefaultAll: "/scms/applyDefaultAll",
+                                    resetAll       : "/scms/resetAll"
+                            ],
+                            execution: [
+                                    default          : "/execution",
+                                    downloadLatestLog: "/execution/latest/download"
+                            ],
+                            review   : [
+                                    default: "/review",
+                                    promote: "/review/promote"
+                            ]
                     ]
-                ]
             ])
         })
 
         get("/setup", { Request req, Response res ->
             return JsonOutput.toJson([
-                firstTime: run == null,
-                configs: configs
+                    firstTime: run == null,
+                    configs  : configs
             ])
         })
     }
@@ -200,13 +201,13 @@ class WebServer {
 
             return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
-                    owner: owner,
-                    selectedBy: ids.findAll { run.staged[it.value] && run.staged[it.value].selected }.size(),
-                    requiredBy: ids.findAll { run.staged[it.value] && run.staged[it.value].required }.size(),
-                    links: [
-                            stage: "/run/stage?owner=${owner}",
-                            unstage: "/run/unstage?owner=${owner}"
-                    ]
+                        owner     : owner,
+                        selectedBy: ids.findAll { run.staged[it.value] && run.staged[it.value].selected }.size(),
+                        requiredBy: ids.findAll { run.staged[it.value] && run.staged[it.value].required }.size(),
+                        links     : [
+                                stage  : "/run/stage?owner=${owner}",
+                                unstage: "/run/unstage?owner=${owner}"
+                        ]
                 ]
             })
         })
@@ -217,9 +218,9 @@ class WebServer {
 
             return JsonOutput.toJson(run.names.keySet().collect {
                 [
-                        name: it,
+                        name : it,
                         links: [
-                                stage: "/run/stage?name=${it}",
+                                stage  : "/run/stage?name=${it}",
                                 unstage: "/run/unstage?name=${it}"
                         ]
                 ]
@@ -508,7 +509,7 @@ class WebServer {
 
             try {
                 new CommonLoader().parseClass(source)
-            } catch(MultipleCompilationErrorsException ex) {
+            } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }
             }
@@ -587,6 +588,23 @@ class WebServer {
     void execution() {
         get("/execution", { Request req, Response res ->
             return JsonOutput.toJson(exec.toMap())
+        })
+
+        get("/execution/latest/download", { Request req, Response res ->
+            File latestLog = exec.latestLog()
+
+            if (!latestLog.exists())
+                return showError(res, "Latest log file is not present on filesystem")
+
+            if (latestLog.size() == 0)
+                return showError(res, "Latest log file is empty")
+
+            res.raw().setContentType("application/octet-stream")
+            res.raw().setHeader("Content-Disposition", "attachment; filename=${latestLog.parentFile.name}-log.txt")
+
+            res.raw().getOutputStream().write(latestLog.bytes)
+
+            return res.raw()
         })
 
         get("/execution/logs/:ìndex", { Request req, Response res ->
@@ -698,7 +716,7 @@ class WebServer {
 
     static String showResult(String message) {
         return JsonOutput.toJson([
-            result: message
+                result: message
         ])
     }
 }

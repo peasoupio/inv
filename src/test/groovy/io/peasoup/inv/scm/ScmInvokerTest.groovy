@@ -1,6 +1,7 @@
 package io.peasoup.inv.scm
 
 import io.peasoup.inv.TempHome
+import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,5 +74,19 @@ class ScmInvokerTest {
 
         def report = executor.execute()
         assert !report.any { it.isOk }
+    }
+
+    @Test
+    void debug_ok() {
+        def logs = Logger.capture(new LinkedList())
+
+        def scmFile =  new File(TempHome.testResources,  '/scm-debug.groovy')
+        def executor = new ScmExecutor()
+
+        executor.read(scmFile)
+
+        assert logs.any { it == "ok" }
+
+        Logger.capture(null)
     }
 }

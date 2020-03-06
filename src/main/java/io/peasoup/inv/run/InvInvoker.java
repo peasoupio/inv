@@ -1,5 +1,6 @@
 package io.peasoup.inv.run;
 
+import groovy.lang.Binding;
 import groovy.lang.Script;
 import io.peasoup.inv.security.CommonLoader;
 import org.apache.commons.lang.StringUtils;
@@ -65,10 +66,13 @@ public class InvInvoker {
 
         if (myNewScript == null) return;
 
-        myNewScript.getBinding().setProperty("inv", invHandler);
-        myNewScript.getBinding().setProperty("$0", scriptFile.getCanonicalPath());
-        myNewScript.getBinding().setProperty("pwd", checkSubordinateSlash(pwd));
-        myNewScript.getBinding().setProperty("scm", StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+        Binding binding = myNewScript.getBinding();
+
+        binding.setProperty("inv", invHandler);
+        binding.setProperty("$0", scriptFile.getCanonicalPath());
+        binding.setProperty("pwd", checkSubordinateSlash(pwd));
+        binding.setProperty("scm", StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+        binding.setProperty("debug", DebugLogger.Instance);
 
         try {
             myNewScript.run();

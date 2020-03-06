@@ -14,9 +14,8 @@ class InvInvokerTest {
         assert script
 
         def scriptFile = new File(script.path)
-
-        // Resolve with filename as classname
         def inv = new InvHandler(new InvExecutor())
+
         Stdout.capture ({ InvInvoker.invoke(inv, scriptFile) }, {
             assert it.contains("inv-invoker-script.groovy")
         })
@@ -38,6 +37,23 @@ class InvInvokerTest {
 
         assert scriptFolder.exists()
         assert new File(scriptFolder, "my-class.groovy").exists()
+    }
+
+    @Test
+    void debug_ok() {
+        def logs = Logger.capture(new LinkedList())
+
+        def script = InvInvokerTest.class.getResource("/inv-invoker-script-with-debug.groovy")
+        assert script
+
+        def scriptFile = new File(script.path)
+        def inv = new InvHandler(new InvExecutor())
+
+        InvInvoker.invoke(inv, scriptFile)
+
+        assert logs.any { it == "ok" }
+
+        Logger.capture(null)
     }
 
     @Test

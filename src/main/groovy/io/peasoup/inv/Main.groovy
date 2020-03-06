@@ -8,7 +8,6 @@ import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
-import org.tinylog.configuration.Configuration
 
 @CompileStatic
 class Main extends Script {
@@ -162,15 +161,14 @@ Parameters:
     }
 
     private static void setupRolling(boolean debug) throws IOException {
+        // Roll a new run folder
         RunsRoller.getLatest().roll()
 
-        String logFilepath = new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath()
-        Configuration.set("writer1", 'file')
-        Configuration.set("writer1.file", logFilepath)
-        Configuration.set("writer1.format", "{message}")
+        // Enable file logging
+        Logger.enableFileLogging(new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath())
 
         if (debug)
-            Configuration.set("level", "debug")
+            Logger.enableDebug()
     }
 
     static void main(String[] args) {

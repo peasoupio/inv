@@ -184,6 +184,7 @@ public class NetworkValuablePool {
      * @param poolErrors Pool errors collection
      * @return A new digestion for this specific INV
      */
+    @SuppressWarnings("squid:S1181")
     private Inv.Digestion eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
         Inv.Digestion currentDigest = null;
 

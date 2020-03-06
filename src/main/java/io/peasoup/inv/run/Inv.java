@@ -113,6 +113,7 @@ public class Inv {
      *
      * @return A new digestion instance
      */
+    @SuppressWarnings("squid:S135")
     public synchronized Digestion digest() {
         if (!pool.isDigesting()) {
             throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
@@ -134,10 +135,9 @@ public class Inv {
             // Remove all NV meant to be deleted
             this.remainingStatements.removeAll(toRemove);
 
-            // Stops processing if a  statement told to
-            if (!keepGoing) {
+            // Stops processing if a statement told so
+            if (!keepGoing)
                 break;
-            }
 
             // Look for remaining steps
             hasDumpedSomething = manageSteps();

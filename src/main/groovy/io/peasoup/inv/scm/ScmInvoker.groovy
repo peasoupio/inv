@@ -1,6 +1,7 @@
 package io.peasoup.inv.scm
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.run.DebugLogger
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.security.CommonLoader
 
@@ -25,6 +26,7 @@ class ScmInvoker {
             return
 
         myNewScript.binding.setProperty("scm", scmHandler)
+        myNewScript.binding.setProperty("debug", DebugLogger.Instance);
         myNewScript.run()
     }
 }

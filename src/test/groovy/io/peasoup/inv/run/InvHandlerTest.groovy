@@ -145,11 +145,11 @@ class InvHandlerTest {
         assert report.isOk()
 
         report.digested
-            .findAll { it.name.contains("my-webservice") }
-            .collect { it.totalStatements }
-            .any {
-                it.state == StatementStatus.ALREADY_BROADCAST
-            }
+                .findAll { it.name.contains("my-webservice") }
+                .collect { it.totalStatements }
+                .any {
+                    it.state == StatementStatus.ALREADY_BROADCAST
+                }
     }
 
     @Test
@@ -405,11 +405,6 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-
-        report.errors.each {
-            it.throwable.printStackTrace()
-        }
-
         assert report.isOk()
     }
 
@@ -431,17 +426,17 @@ class InvHandlerTest {
             }
         }
 
-        Stream.of("A", "B","C", "D", "E")
-            .parallel()
-            .each { provider ->
-                patternProvider(provider)
+        Stream.of("A", "B", "C", "D", "E")
+                .parallel()
+                .each { provider ->
+                    patternProvider(provider)
 
-                Stream.of("A", "B","C", "D", "E")
-                    .parallel()
-                    .each {consumer ->
-                        patternConsumer(provider, provider + consumer)
-                    }
-            }
+                    Stream.of("A", "B", "C", "D", "E")
+                            .parallel()
+                            .each { consumer ->
+                                patternConsumer(provider, provider + consumer)
+                            }
+                }
 
         def report = executor.execute()
         assert report.isOk()
@@ -683,8 +678,8 @@ class InvHandlerTest {
         inv {
             name "3"
 
-            tags (
-                my: 'tag'
+            tags(
+                    my: 'tag'
             )
 
             step {
@@ -705,7 +700,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -713,7 +708,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tags (my: 'tag') completed {
+            when all tags(my: 'tag') completed {
                 reached = true
             }
         }
@@ -731,7 +726,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
@@ -741,7 +736,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tags (my: 'tag') created {
+            when all tags(my: 'tag') created {
                 reached = true
             }
         }
@@ -764,7 +759,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
@@ -774,7 +769,7 @@ class InvHandlerTest {
         inv {
             name "3"
 
-            when all tags (my: 'tag') completed {
+            when all tags(my: 'tag') completed {
                 reached = true
             }
         }
@@ -792,7 +787,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -800,7 +795,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tags (my: 'other-tag') completed {
+            when all tags(my: 'other-tag') completed {
                 reached = true
             }
         }
@@ -818,7 +813,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -844,7 +839,7 @@ class InvHandlerTest {
         inv {
             name "123"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -870,7 +865,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -894,7 +889,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
         }
@@ -902,7 +897,7 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            when all tags (my: 'tag') completed {
+            when all tags(my: 'tag') completed {
                 step {
                     broadcast inv.Something
                 }
@@ -935,7 +930,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
@@ -945,13 +940,13 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
             require inv.Something
 
-            when all tags (my: 'tag') completed {
+            when all tags(my: 'tag') completed {
                 raised = true
             }
         }
@@ -969,7 +964,7 @@ class InvHandlerTest {
         inv {
             name "1"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
@@ -979,13 +974,13 @@ class InvHandlerTest {
         inv {
             name "2"
 
-            tags (
+            tags(
                     my: 'tag'
             )
 
             require inv.Else
 
-            when all tags (my: 'tag') completed {
+            when all tags(my: 'tag') completed {
                 raised = true
             }
         }
@@ -1010,7 +1005,7 @@ class InvHandlerTest {
 
             name "steps"
 
-            for(Closure body : steps) {
+            for (Closure body : steps) {
                 step(body)
             }
         }

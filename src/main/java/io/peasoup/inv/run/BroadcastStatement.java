@@ -59,53 +59,61 @@ public class BroadcastStatement implements Statement {
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
-        public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastValuable) {
-            if (pool == null || broadcastValuable == null)
+        public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastStatement) {
+            if (pool == null || broadcastStatement == null)
                 return;
 
             // Reset state
-            broadcastValuable.state = StatementStatus.NOT_PROCESSED;
+            broadcastStatement.state = StatementStatus.NOT_PROCESSED;
 
             if (pool.isHalting()) // Do nothing if halting
                 return;
 
-            Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastValuable.getName());
-            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastValuable.getName());
+            Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastStatement.getName());
+            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
 
-            if (channel.containsKey(broadcastValuable.getId()) || staging.containsKey(broadcastValuable.getId())) {
-                Logger.warn(broadcastValuable.getId() + " already broadcasted. Skipped");
+            if (channel.containsKey(broadcastStatement.getId()) || staging.containsKey(broadcastStatement.getId())) {
+                Logger.warn(broadcastStatement.getId() + " already broadcasted. Skipped");
 
-                broadcastValuable.state = StatementStatus.ALREADY_BROADCAST;
+                broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
                 return;
-
             }
 
-            broadcastValuable.state = StatementStatus.SUCCESSFUL;
+            broadcastStatement.state = StatementStatus.SUCCESSFUL;
 
-            Logger.info(broadcastValuable);
+            Logger.info(broadcastStatement);
 
-            Map responseObject = null;
-            Closure<Map> defaultClosure = null;
+            // Staging response
+            BroadcastResponse response = createResponse(broadcastStatement);
+            staging.put(broadcastStatement.getId(), response);
+        }
 
-            if (broadcastValuable.getReady() != null) {
-                Object rawReponnse = broadcastValuable.getReady().call();
+        private BroadcastResponse createResponse(BroadcastStatement broadcastStatement) {
 
-                if (rawReponnse instanceof Map) {
-                    responseObject = (Map) rawReponnse;
+            Object responseObject = null;
+            Closure<Object> defaultClosure = null;
 
-                    // Resolve default closure
-                    if (responseObject.get("$") instanceof Closure) {
-                        defaultClosure = (Closure<Map>) responseObject.get("$");
-                        responseObject.remove("$");
-                    }
+            if (broadcastStatement.getReady() != null) {
+                responseObject = broadcastStatement.getReady().call();
+
+                if (responseObject != null) {
+                    // Shorten hook
+                    Object defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);;
+
+                    // Normal hook
+                    if (defaultResponseHook == null)
+                        defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);;
+
+                    if (defaultResponseHook != null && defaultResponseHook instanceof Closure)
+                        defaultClosure = (Closure<Object>) defaultResponseHook;
                 }
             }
 
             // Staging response
-            staging.put(broadcastValuable.getId(), new BroadcastResponse(
-                    broadcastValuable.getInv().getName(),
+            return new BroadcastResponse(
+                    broadcastStatement.getInv().getName(),
                     responseObject,
-                    defaultClosure));
+                    defaultClosure);
         }
 
     }

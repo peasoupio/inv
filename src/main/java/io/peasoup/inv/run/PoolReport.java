@@ -110,11 +110,10 @@ public class PoolReport {
             }
         }
 
-        if (output.length() > 0) Logger.warn(output.toString());
+        if (output.length() > 0)
+            Logger.warn(output.toString());
 
-        if (poolErrors.isEmpty()) {
-            output.append(System.lineSeparator());
-        } else {
+        if (!poolErrors.isEmpty()) {
             Logger.warn("Caught exception(s): " + getErrors().size());
 
             for (PoolError ex : poolErrors) {

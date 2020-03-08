@@ -15,6 +15,40 @@ class ScmExecutorTest {
     }
 
     @Test
+    void hooks_undefined() {
+        ScmDescriptor desc = new ScmDescriptor()
+        desc.with {
+            name("my-name")
+            path("./target/test-classes/exitValue")
+        }
+
+        scmExecutor.add(desc)
+        def report = scmExecutor.execute()
+
+        assert report
+        assert report.size() == 1
+        assert report[0].isOk
+    }
+
+    @Test
+    void hooks_empty() {
+        ScmDescriptor desc = new ScmDescriptor()
+        desc.with {
+            name("my-name")
+            path("./target/test-classes/exitValue")
+            hooks {
+            }
+        }
+
+        scmExecutor.add(desc)
+        def report = scmExecutor.execute()
+
+        assert report
+        assert report.size() == 1
+        assert report[0].isOk
+    }
+
+    @Test
     void hook_exitValue() {
         ScmDescriptor desc = new ScmDescriptor()
         desc.with {
@@ -26,6 +60,10 @@ class ScmExecutorTest {
         }
 
         scmExecutor.add(desc)
-        scmExecutor.execute()
+        def report = scmExecutor.execute()
+
+        assert report
+        assert report.size() == 1
+        assert !report[0].isOk
     }
 }

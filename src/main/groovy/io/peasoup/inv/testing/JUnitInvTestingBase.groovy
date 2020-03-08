@@ -1,9 +1,9 @@
 package io.peasoup.inv.testing
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
-import io.peasoup.inv.InvInvoker
-import io.peasoup.inv.PoolReport
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
+import io.peasoup.inv.run.InvInvoker
+import io.peasoup.inv.run.PoolReport
 import org.junit.Before
 
 abstract class JUnitInvTestingBase {
@@ -29,7 +29,7 @@ abstract class JUnitInvTestingBase {
     }
 
     boolean getHasExceptions() {
-        report && !report.exceptions.isEmpty()
+        report && !report.errors.isEmpty()
     }
 
     void sequence(String... files) {

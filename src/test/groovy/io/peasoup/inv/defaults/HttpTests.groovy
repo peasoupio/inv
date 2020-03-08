@@ -1,17 +1,10 @@
 package io.peasoup.inv.defaults
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
-import io.peasoup.inv.Logger
-import org.junit.Before
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
 import org.junit.Test
 
 class HttpTests {
-
-    @Before
-    void setup() {
-        Logger.enableDebug()
-    }
 
     @Test
     void get() {

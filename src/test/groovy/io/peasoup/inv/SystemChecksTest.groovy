@@ -32,22 +32,6 @@ class SystemChecksTest {
 
     }
 
-    @Test
-    void check_cache() {
-
-        assert checks.checkCache(null)
-        assert checks.checkCache(new File("./pom.xml"))
-
-        def notWritable = new File("./not-writable/")
-        notWritable.deleteDir()
-        notWritable.mkdirs()
-        notWritable.setWritable(false)
-
-        assert checks.checkCache(new File(notWritable, "something/"))
-
-        notWritable.deleteDir()
-    }
-
     @Test()
     void call_not_ok() {
 

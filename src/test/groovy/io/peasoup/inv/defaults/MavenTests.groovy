@@ -1,8 +1,8 @@
 package io.peasoup.inv.defaults
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
+import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.Test
 
@@ -11,14 +11,13 @@ class MavenTests {
     @Before
     void setup() {
         Logger.capture(null)
-        Logger.enableDebug()
     }
 
     @Test
     void mavenSimpleLookup() {
 
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def app1 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app1").path).absolutePath
         def app2 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app2").path).absolutePath
@@ -50,15 +49,15 @@ class MavenTests {
                 defaults false
 
                 resolved {
-                    analyze(app2)
+                    response.analyze(app2)
                 }
             }
         }
 
         def report = executor.execute()
 
-        report.exceptions.each {
-            it.exception.printStackTrace()
+        report.errors.each {
+            it.throwable.printStackTrace()
         }
         assert report.isOk()
 

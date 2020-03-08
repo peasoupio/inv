@@ -1,9 +1,13 @@
 package io.peasoup.inv.scm
 
+import io.peasoup.inv.Home
+import io.peasoup.inv.TempHome
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class ScmDescriptorTest {
 
     @Test
@@ -19,6 +23,19 @@ class ScmDescriptorTest {
         assert scmDesc.parametersProperties
         assert scmDesc.parametersProperties["branch"]
         assert scmDesc.parametersProperties["branch"] == "master"
+    }
+
+    @Test
+    void path_using_invHome() {
+        def relativePath = "./my/path"
+        def absolutePath = new File(Home.getCurrent(), "/my/path").absolutePath
+        def descriptor = new ScmDescriptor()
+
+        descriptor.path(relativePath)
+        assert descriptor.path.absolutePath == new File(Home.getCurrent(), relativePath).absolutePath
+
+        descriptor.path(absolutePath)
+        assert descriptor.path.toString() == absolutePath
     }
 
     @Test

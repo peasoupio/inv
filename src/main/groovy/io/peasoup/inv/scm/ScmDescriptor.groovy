@@ -2,13 +2,13 @@ package io.peasoup.inv.scm
 
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Main
+import io.peasoup.inv.Home
 
 @CompileStatic
 class ScmDescriptor {
 
     static final Map<String, String> env =  System.getenv()
-    static final List<String> env2 =  System.getenv().collect { "${it.key}=${it.value}".toString() }
+    static final List<String> set =  System.getenv().collect { "${it.key}=${it.value}".toString() }
 
     static Integer DefaultTimeout = 30000
     static String DefaultEntry = "inv.groovy"
@@ -26,8 +26,24 @@ class ScmDescriptor {
     String name
     def name(String value) { this.name = value }
 
-    File path = Main.invHome
-    def path(String value) { this.path = new File(value) }
+    File path = Home.getCurrent()
+    def path(String value) {
+        if (!value)
+            return
+
+        File filePath = new File(value)
+        if (filePath.isAbsolute())
+            this.path = filePath
+        else
+            this.path = new File(Home.getCurrent(), value)
+
+        /*if (Main.currentHome != Main.DEFAULT_HOME)
+            this.path = new File(Main.currentHome, value)
+        else
+            this.path = rawFile
+
+         */
+    }
 
     String src
     void src(String value) { this.src = value }
@@ -38,7 +54,7 @@ class ScmDescriptor {
     Integer timeout = DefaultTimeout
     def timeout(Integer value) { this.timeout = value }
 
-    def hooks(Closure hooksBody) {
+    def hooks(@DelegatesTo(HookDescriptor) Closure hooksBody) {
         assert hooksBody, "Hook's body is required"
 
         hooksBody.resolveStrategy = Closure.DELEGATE_ONLY
@@ -46,12 +62,13 @@ class ScmDescriptor {
         hooksBody()
     }
 
-    def ask(Closure askBody) {
+    def ask(@DelegatesTo(AskDescriptor) Closure askBody) {
         assert askBody, "Ask's body is required"
 
         askBody.resolveStrategy = Closure.DELEGATE_ONLY
         askBody.delegate = ask
         askBody()
+
     }
 
     //@Override
@@ -60,10 +77,18 @@ class ScmDescriptor {
         if (parametersFile && parametersFile.exists() && parametersProperties == null)
             loadParametersProperties()
 
-        if (!parametersProperties[propertyName])
-            return '\${' + propertyName + '}'
+        // Check if a value is defined in the parameter file
+        def fromParamFile = parametersProperties[propertyName]
+        if (fromParamFile)
+            return fromParamFile
 
-        return parametersProperties[propertyName]
+        // If not, try to use the default value
+        def fromParamDefault = ask.parameters.find { it.name == propertyName }
+        if (fromParamDefault && fromParamDefault.defaultValue)
+            return fromParamDefault.defaultValue
+
+        // Otherwise, print the propertyName
+        return '\${' + propertyName + '}'
     }
 
     private void loadParametersProperties() {
@@ -98,7 +123,7 @@ class ScmDescriptor {
             if (options.defaultValue && options.defaultValue instanceof CharSequence)
                 parameter.defaultValue = options.defaultValue as String
 
-            if (options.required && options.required instanceof Boolean)
+            if (options.required != null && options.required instanceof Boolean)
                 parameter.required = options.required as Boolean
 
             if (options.values && options.values instanceof Collection<String>)

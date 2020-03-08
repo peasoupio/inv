@@ -1,7 +1,7 @@
 package io.peasoup.inv.scm
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Logger
+import io.peasoup.inv.run.Logger
 import org.apache.commons.lang.RandomStringUtils
 
 import java.util.concurrent.*
@@ -29,7 +29,7 @@ class ScmExecutor {
 
     List<SCMReport> execute() {
 
-        final ExecutorService pool = Executors.newFixedThreadPool(4)
+        ExecutorService pool = Executors.newFixedThreadPool(4)
         final List<Future<SCMReport>> futures = []
         final List<SCMReport> reports = []
 
@@ -47,14 +47,15 @@ class ScmExecutor {
                     // Make sure path is clean before init
                     repository.path.deleteDir()
 
-                    Logger.info("[SCM] ${name} [INIT] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] start")
                     report.isOk = executeCommands(repository, repository.hooks.init)
-                    Logger.info("[SCM] ${name} [INIT] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] done")
+
                 } else if (repository.hooks.update) {
 
-                    Logger.info("[SCM] ${name} [UPDATE] start")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] start")
                     report.isOk = executeCommands(repository, repository.hooks.update)
-                    Logger.info("[SCM] ${name} [UPDATE] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] done")
                 }
 
                 return report
@@ -62,20 +63,23 @@ class ScmExecutor {
             } as Callable<SCMReport>)
         }
 
-        futures.each {
-            reports.add(it.get())
+        try {
+            futures.each {
+                reports.add(it.get())
+            }
         }
-
-        pool.shutdown()
+        catch(Exception ex) {
+            Logger.error(ex)
+        }
+        finally {
+            pool.shutdownNow()
+            pool = null
+        }
 
         return reports
     }
 
     private boolean executeCommands(ScmDescriptor repository, String commands) {
-
-        // If parent undefined, can do nothing
-        if (!repository.path)
-            return false
 
         // Make sure cache is available with minimal accesses
         if (!repository.path.exists()) {
@@ -96,9 +100,9 @@ class ScmExecutor {
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
         def cmd = "bash ${shFile.canonicalPath}"
         def envs = repository.env.collect { "${it.key}=${it.value}"}
-        def process = cmd.execute(envs, repository.path)
+        def process = cmd.execute(envs, repository.path.canonicalFile)
 
-        Logger.debug cmd
+        Logger.debug "[SCM] ${cmd}"
 
         // Consome output and wait until done.
         process.consumeProcessOutput(System.out, System.err)
@@ -125,6 +129,6 @@ class ScmExecutor {
 
         String name
         ScmDescriptor repository
-        boolean isOk
+        boolean isOk = true
     }
 }

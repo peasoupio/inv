@@ -1,36 +1,66 @@
 package io.peasoup.inv
 
+import io.peasoup.inv.cli.ScmCommand
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Stdout
 import org.junit.After
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(TempHome.class)
 class MainTest {
+
+    @Before
+    void before() {
+        Main.embedded = true
+    }
 
     @After
     void after() {
         Logger.capture(null)
-        Logger.enableDebug()
+
+        Main.embedded = false
     }
 
     @Test
     void main() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def script = MainTest.class.getResource("/mainTestScript.groovy")
         assert script
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main("load", script.path)
+        Main.main("run", "-x", script.path)
 
+        assert Main.exitCode == 0
+        assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
+    void main_secure() {
+        // Enable capture
+        def logs = Logger.capture(new LinkedList())
+
+        def script = MainTest.class.getResource("/mainTestScript.groovy")
+        assert script
+
+        def canonicalPath = new File(script.path).canonicalPath
+
+        Main.main("run", "-x", "-s", script.path)
+
+        assert Main.exitCode == 0
         assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
     }
 
     @Test
     void main_no_args() {
+
         Stdout.capture ({ Main.main() }, {
+            assert Main.exitCode == -1
             assert it.contains("Usage")
         })
     }
@@ -38,22 +68,16 @@ class MainTest {
     @Test
     void main_with_expansion() {
         // Enable capture
-        def logs = Logger.capture([])
-
-        def getFile = { String file ->
-            def script = MainTest.class.getResource(file)
-            assert script
-
-            return new File(script.path).canonicalPath
-        }
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
-            getFile("/mainTestScript.groovy"),
-            getFile("/mainTestScript2.groovy")
+            new File(TempHome.testResources, "/mainTestScript.groovy").canonicalPath,
+            new File(TempHome.testResources, "/mainTestScript2.groovy").canonicalPath
         ]
 
-        Main.main("load", "-e", "pattern", "test-classes/mainTestScript.groovy", "test-classes/mainTestScript2.groovy")
+        Main.main("run", "-x", "-e", "pattern", "test-resources/mainTestScript.groovy", "test-resources/mainTestScript2.groovy")
 
+        assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
     }
@@ -61,15 +85,16 @@ class MainTest {
     @Test
     void main_with_pattern() {
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
-                new File("./", "src/test/resources/mainTestScript.groovy").canonicalPath,
-                new File("./", "src/test/resources/mainTestScript2.groovy").canonicalPath,
+                new File(TempHome.testResources, "/mainTestScript.groovy").canonicalPath,
+                new File(TempHome.testResources, "/mainTestScript2.groovy").canonicalPath
         ]
 
-        Main.main("load", "src/test/resources/mainTestScript*.*")
+        Main.main("run", "-x", "test-resources/mainTestScript*.*")
 
+        assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
         assert logs.contains("[undefined] [${files[1]}] [mainTestScript2]".toString())
 
@@ -79,15 +104,16 @@ class MainTest {
     void main_with_pattern_2() {
 
         // Enable capture
-        def logs = Logger.capture([])
+        def logs = Logger.capture(new LinkedList())
 
         def files = [
-            new File("./", "src/test/resources/pattern/inside/folder/mainTestScript.groovy").canonicalPath,
-            new File("./", "src/test/resources/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
+            new File(TempHome.testResources, "/pattern/inside/folder/mainTestScript.groovy").canonicalPath,
+            new File(TempHome.testResources, "/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("load", "src/test/resources/pattern/**/*.*")
+        Main.main("run", "-x", "test-resources/pattern/**/*.*")
 
+        assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [different-folder]".toString())
         assert logs.contains("[undefined] [${files[1]}] [different-inside]".toString())
 
@@ -95,26 +121,27 @@ class MainTest {
 
     @Test
     void main_graph() {
-        def logOutput = MainTest.class.getResource("/logOutput1.txt")
+        def logOutput = MainTest.class.getResource("/baseRun.txt")
 
         assert logOutput
 
         println "\nTest selecting 'plain': "
         Main.main("graph", "plain", logOutput.path)
 
+        assert Main.exitCode == 0
+
         println "\nTest selecting 'dot': "
         Main.main("graph", "dot", logOutput.path)
+
+        assert Main.exitCode == 0
     }
 
     @Test
     void main_launchScm() {
-        Logger.enableDebug()
-
-        def scmFile = MainTest.class.getResource("/scm.groovy")
-        assert scmFile
+        def scmFile = new File(TempHome.testResources, '/scm.groovy')
 
         def comparable = new ScmExecutor()
-        comparable.read(new File(scmFile.path))
+        comparable.read(scmFile)
 
         assert comparable.scms["my-repository"]
 
@@ -122,25 +149,71 @@ class MainTest {
         if (comparable.scms["my-repository"].path.exists())
             comparable.scms["my-repository"].path.deleteDir()
 
-        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", "-x", scmFile.path) }, {
+            assert Main.exitCode == 0
             assert it.contains("init")
         })
 
-        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.main("scm", "-x",  scmFile.path) }, {
+            assert Main.exitCode == 0
             assert it.contains("update")
         })
     }
 
     @Test
+    void main_launchScm_relative() {
+        def logs = Logger.capture(new LinkedList())
+
+        def scmFile = new File(TempHome.testResources, '/scm-relative.groovy')
+
+        def comparable = new ScmExecutor()
+        comparable.read(scmFile)
+
+        assert comparable.scms["my-repository-relative"]
+        def scriptFile = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
+        assert scriptFile.exists()
+
+        Main.main("scm", "-x", scmFile.path)
+
+        assert logs.contains("[my-repository-relative] [${scriptFile.canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
+    void main_launchScm_list() {
+        def logs = Logger.capture(new LinkedList())
+
+        def scm1 = new File(TempHome.testResources, '/scm.groovy')
+        def scm2 = new File(TempHome.testResources, '/scm-relative.groovy')
+
+        def comparable = new ScmExecutor()
+        comparable.read(scm1)
+        comparable.read(scm2)
+
+        def scmListFile = new File(TempHome.testResources, ScmCommand.LIST_FILE_SUFFIX)
+        scmListFile << scm1.absolutePath + System.lineSeparator()
+        scmListFile << scm2.absolutePath + System.lineSeparator()
+
+        Main.main("scm", "-x", scmListFile.path)
+
+        def scm1Entry = new File(comparable.scms["my-repository"].entry[0])
+        def scm2Entry = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
+
+        assert logs.contains("[my-repository] [${scm1Entry.canonicalPath}] [mainTestScript]".toString())
+        assert logs.contains("[my-repository-relative] [${scm2Entry.canonicalPath}] [mainTestScript]".toString())
+    }
+
+    @Test
     void main_delta() {
 
-        def logOutput = MainTest.class.getResource("/logOutput1.txt")
-        def logOutputAfter = MainTest.class.getResource("/logAfterOutput1.txt")
+        def logOutput = MainTest.class.getResource("/baseRun.txt")
+        def logOutputAfter = MainTest.class.getResource("/subsetRun.txt")
 
         assert logOutput
         assert logOutputAfter
 
         println "\nTest selecting 'delta': "
         Main.main("delta", logOutput.path, logOutputAfter.path)
+
+        assert Main.exitCode == 0
     }
 }

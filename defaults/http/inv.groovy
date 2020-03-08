@@ -79,7 +79,7 @@ inv {
 
 class SimpleHttpRequest {
 
-    final URLConnection request
+    final HttpURLConnection request
     final String url
 
     boolean doValidations = true
@@ -94,7 +94,7 @@ class SimpleHttpRequest {
         assert url
 
         this.url = url
-        this.request = new URL(url).openConnection()
+        this.request = (HttpURLConnection) new URL(url).openConnection()
     }
 
     void send() {

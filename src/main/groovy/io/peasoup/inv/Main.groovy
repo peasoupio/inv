@@ -1,11 +1,10 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.graph.DeltaGraph
-import io.peasoup.inv.graph.RunGraph
-import io.peasoup.inv.scm.ScmExecutor
-import io.peasoup.inv.scm.ScmExecutor.SCMReport
-import io.peasoup.inv.web.Routing
+import io.peasoup.inv.cli.*
+import io.peasoup.inv.run.Logger
+import io.peasoup.inv.run.RunsRoller
+import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
@@ -13,46 +12,75 @@ import org.docopt.DocoptExitException
 @CompileStatic
 class Main extends Script {
 
-
     String usage = """Inv.
 
 Usage:
-  inv load [-x] [-e <label>] <pattern>...
-  inv scm [-x] <scmFiles>...
+  inv run [-x] [-s] [-e <label>] <patterns>...
+  inv scm [-x] [-s] <scmFiles>...
+  inv composer [-x] [-s]
+  inv init [-x] [-s] <scmFile>
+  inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
-  inv web [-x]
   
 Options:
-  load         Load and execute INV files.
+  run          Load and execute INV files.
   scm          Load and execute SCM files.
+  composer     Start Composer dashboard
+  init         Start Composer dashboard from an SCM file.
+  promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
-  web          Start the web interface.
   -x --debug   Debug out. Excellent for troubleshooting.
+  -s --secure  Enable the secure mode for script files.
   -e --exclude Exclude files from loading.
   -h --help    Show this screen.
   
 Parameters:
   <label>      Label not to be included in the loaded file path
-  <pattern>    An Ant-compatible file pattern
+  <patterns>   An Ant-compatible file pattern
                (p.e *.groovy, ./**/*.groovy, ...)
                Also, it is expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-  <scmFiles>   The SCM file location
+  <scmFiles>   The SCM file(s) location.
+               You can use a file ending with 'scm-list.txt'
+               for it to list all your SCM file references.
+               Each line must equal to the absolute path
+               of your SCM file on the current filesystems.
+  <scmFile>    The SCM file location.
+  <runIndex>   The run index whose promotion will be granted.
+               Runs are located inside INV_HOME/.runs/ 
+               By default, it uses the latest successful run
+               location.
   <base>       Base file location
   <other>      Other file location
   plain        No specific output structure
-  dot          Graph Description Language (DOT) output structure 
+  dot          Graph Description Language (DOT) output structure
 """
 
-    static final File invHome = new File(System.getenv('INV_HOME') ?: "./")
+    /**
+     * Determines whether or not the main is embedded into another JVM process or has its own
+     */
+    static boolean embedded = false
+
+    /**
+     * Returns the latest run exit code
+     */
+    static int exitCode = 0
+
+    private Map<String, Object> arguments
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
 
-        Map<String, Object> arguments
+        // Set current home from environment variable INV_HOME
+        if (System.getenv('INV_HOME'))
+            Home.setCurrent(new File(System.getenv('INV_HOME')))
 
+        // Set current UTC timezone
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
+        // Parse docopt arguments
         try {
             arguments = new Docopt(usage)
                     .withExit(false)
@@ -62,168 +90,96 @@ Parameters:
             return -1
         }
 
-        if (arguments["--debug"])
-            Logger.enableDebug()
+        // Find a matching command
+        CliCommand command = findCommand()
+        if (!command) {
+            println usage
+            return -1
+        }
 
-        if (arguments["load"])
-            return executeScript(arguments["<pattern>"] as List<String>, arguments["--exclude"] as String ?: "")
+        // Make sure we setup the rolling mechanism property BEFORE any logging
+        if (command.rolling())
+            setupRolling(arguments["--debug"] as boolean)
+
+        // Do system checks
+        if (new SystemChecks().consistencyFails(this)) {
+            RunsRoller.latest.latestHaveFailed()
+            return -2
+        }
+
+        // Execute command
+        int result
+
+        try {
+            result = command.call()
+        } catch(Exception ex) {
+            Logger.error(ex)
+            result = -99
+        }
+
+        // If rolling, make sure to update success and fail symlinks
+        if (command.rolling()) {
+            if (result == 0)
+                RunsRoller.latest.latestHaveSucceed()
+            else
+                RunsRoller.latest.latestHaveFailed()
+        }
+
+        return result
+    }
+
+    CliCommand findCommand() {
+        if (arguments["--secure"])
+            CommonLoader.enableSecureMode()
+
+        if (arguments["run"])
+            return new RunCommand(
+                    patterns: arguments["<patterns>"] as List<String>,
+                    exclude: arguments["--exclude"] as String ?: "")
 
         if (arguments["scm"])
-            return launchFromSCM(arguments["<scmFiles>"] as List<String>)
+            return new ScmCommand(scmFiles: arguments["<scmFiles>"] as List<String>)
 
         if (arguments["delta"])
-            return delta(arguments["<base>"] as String, arguments["<other>"] as String)
+            return new DeltaCommand(
+                    base: arguments["<base>"] as String,
+                    other: arguments["<other>"] as String)
 
         if (arguments["graph"])
-            return graph(arguments)
+            return new GraphCommand(arguments: arguments)
 
-        if (arguments["web"])
-            return launchWeb()
+        if (arguments["composer"])
+            return new ComposerCommand()
 
-        println usage
+        if (arguments["init"])
+            return new InitCommand(scmFilePath: arguments["<scmFile>"] as String)
 
-        return 0
+        if (arguments["promote"])
+            return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
+
+        return null
     }
 
-    int graph(Map arguments) {
+    private static void setupRolling(boolean debug) throws IOException {
+        // Roll a new run folder
+        RunsRoller.getLatest().roll()
 
-        String base = arguments["<base>"] as String
-        def run = new RunGraph(new File(base).newReader())
+        // Enable file logging
+        Logger.enableFileLogging(new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath())
 
-        if (arguments["plain"])
-            println run.toPlainList()
-
-        if (arguments["dot"])
-            println run.toDotGraph()
-
-        return 0
+        if (debug)
+            Logger.enableDebug()
     }
-
-    int delta(String base, String other) {
-
-        def delta = new DeltaGraph(
-                new File(base).newReader(),
-                new File(other).newReader())
-
-        /*
-        if (args.hasHtml)
-            print(delta.html(arg1.name))
-        else
-        */
-
-        print(delta.echo())
-
-        return 0
-    }
-
-    int launchFromSCM(List<String> args) {
-
-        def invExecutor = new InvExecutor()
-        def scmExecutor = new ScmExecutor()
-
-        args.each {
-            scmExecutor.read(new File(it))
-        }
-
-        def invFiles = scmExecutor.execute()
-        invFiles.each { SCMReport report ->
-
-            // If something happened, do not include/try-to-include into the pool
-            if (!report.isOk)
-                return
-
-            def name = report.name
-            def path = report.repository.path
-
-            // Manage entry points for SCM
-            report.repository.entry.each {
-
-                def scriptFile = new File(it)
-
-                if (!scriptFile.exists()) {
-                    scriptFile = new File(path, it)
-                    path = scriptFile.parentFile
-                }
-
-                if (!scriptFile.exists()) {
-                    Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
-                    return
-                }
-
-                invExecutor.read(path.canonicalPath, scriptFile, name)
-            }
-        }
-
-        Logger.info("[SCM] done")
-
-        invExecutor.execute()
-
-        return 0
-    }
-
-    int launchWeb() {
-        return new Routing(workspace: invHome.absolutePath)
-                .map()
-    }
-
-    int executeScript(List<String> args, String exclude) {
-        def executor = new InvExecutor()
-
-        args.each {
-            def lookupPattern = it
-
-            def lookupFile = new File(lookupPattern)
-
-            if (!lookupFile.isDirectory() && lookupFile.exists())
-                executor.read(lookupFile)
-            else {
-
-                Logger.debug "pattern without parent: ${lookupPattern}"
-
-                // Convert Ant pattern to regex
-                def resolvedPattern = lookupPattern
-                        .replace("\\", "/")
-                        .replace("/", "\\/")
-                        .replace(".", "\\.")
-                        .replace("*", ".*")
-                        .replace("?", ".*")
-
-                Logger.debug "resolved pattern: ${resolvedPattern}"
-
-                List<File> invFiles = []
-                invHome.eachFileRecurse {
-
-                    // Won't check directory
-                    if (it.isDirectory())
-                        return
-
-                    // Exclude
-                    if (exclude && it.path.contains(exclude))
-                        return
-
-                    // Make sure path is using the *nix slash for folders
-                    def file = it.path.replace("\\", "/")
-
-                    if (file ==~ /.*${resolvedPattern}.*/)
-                        invFiles << it
-                    else
-                        Logger.debug "match failed '${file}'"
-                }
-
-                invFiles.each {
-                    executor.read(it)
-                }
-            }
-        }
-
-        executor.execute()
-
-        return 0
-    }
-
 
     static void main(String[] args) {
-        InvokerHelper.runScript(Main, args)
-    }
+        exitCode = InvokerHelper.runScript(Main, args) as int
 
+        if (embedded)
+            return
+
+        if (exitCode == 0)
+            return
+
+        System.exit(exitCode)
+    }
 }

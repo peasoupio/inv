@@ -1,109 +1,145 @@
 package io.peasoup.inv.randomizer
 
-import io.peasoup.inv.InvExecutor
-import io.peasoup.inv.InvHandler
+import groovy.transform.CompileStatic
+import io.peasoup.inv.run.InvDescriptor
+import io.peasoup.inv.run.InvExecutor
+import io.peasoup.inv.run.InvHandler
+import io.peasoup.inv.run.StatementDescriptor
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 
+@CompileStatic
 class RandomizeBatch1 {
 
     InvExecutor executor
-    InvHandler inv
+    InvHandler invHandler
 
     @Before
     void setup() {
         executor = new InvExecutor()
-        inv = new InvHandler(executor)
+        invHandler = new InvHandler(executor)
     }
 
     @Test
     void randomize_batch_1() {
 
+        // Rando
+        Random random = new Random()
+
         // main parameters
-        def totalInv = 100
-        def maxRequire = 10
+        //def totalInv = 2500000
+        def totalInv = 1250
+        def maxRequire = 12
+
         // state vars
-        Map invs = [:]
+        Map<String, InvBootstrap> invs = new HashMap<String, InvBootstrap>(totalInv)
 
         // Generate invs
-        1.upto(totalInv, {
+        for(def i=0;i<totalInv;i++) {
             def invName = RandomStringUtils.random(12, true, true)
 
             // Don't care about duplicates
-            if (invName in invs)
+            if (invs.containsKey(invName))
                 return
 
-            invs[invName] = [
-                name: invName,
-                requires: [],
-                cache: []
-            ]
-        })
+            invs.put(invName, new InvBootstrap(invName, maxRequire))
+        }
 
-        // Randomize requirements and broadcasts
-        def remainings = invs.values().collect()
+        Queue<InvBootstrap> remainingsInvs = new LinkedList<>(invs.values().collect())
+        List<InvBootstrap> totalInvs = new ArrayList<>(invs.values() as List<InvBootstrap>)
+
         def index = 0
-        while(!remainings.isEmpty()) {
+        while(!remainingsInvs.isEmpty()) {
 
-            def inv = remainings.pop()
+            InvBootstrap invBoostrap = remainingsInvs.poll()
 
             // create inv right now
-            this.inv.call {
-                def myInvInstance = delegate
+            this.invHandler.call {
 
-                name inv.name
+                InvDescriptor myself = delegate as InvDescriptor
+                myself.name(invBoostrap.name)
 
-
-                if (!inv.done) {
+                if (!invBoostrap.done) {
                     // Get number of requirements
-                    def numRequire = Math.abs(new Random().nextInt() % maxRequire) + 1
+                    Integer numRequire = Math.abs(random.nextInt() % maxRequire) + 1
 
-                    1.upto(numRequire, {
+                    for(def i=0;i<numRequire;i++) {
 
-                        def limit = 10
-                        def current = 0
+                        Integer maxAttempt = maxRequire / 2 as Integer
+                        Integer currentAttempt = 0
 
-                        while (current < limit) {
+                        while (currentAttempt < maxAttempt) {
 
-                            current++
+                            currentAttempt++
 
-                            if (remainings.isEmpty())
+                            if (remainingsInvs.isEmpty())
                                 break
 
-                            def currentRequireIndex = Math.abs(new Random().nextInt() % totalInv)
-                            def currentRequire = invs.values()[currentRequireIndex]
+                            Integer currentRequireIndex = Math.abs(random.nextInt() % totalInv)
+                            InvBootstrap currentRequire = totalInvs.get(currentRequireIndex)
 
-                            List stack = currentRequire.cache
 
-                            // Can't use that dependency branch
-                            if (inv.name in stack)
+                            // Can't refer to myself
+                            if (currentRequire.name == invBoostrap.name)
+                                continue
+
+                            boolean circular = false
+                            Queue<Set<String>> stack = new LinkedList<>()
+                            stack.add(currentRequire.requires)
+
+                            while(!stack.isEmpty()) {
+                                def currentStack = stack.poll()
+
+                                if (currentStack.contains(invBoostrap.name)) {
+                                    circular = true
+                                    break
+                                }
+
+                                for(String fromStack: currentStack)
+                                    stack.add(invs.get(fromStack).requires)
+                            }
+
+                            // Already depends on me
+                            if (circular)
                                 continue
 
                             // Otherwise link them
-                            inv.requires << currentRequire.name
-                            inv.cache += stack
-                            inv.cache << currentRequire.name
+                            invBoostrap.requires.add(currentRequire.name)
 
-                            //inv.cache = inv.cache.unique()
-
-                            myInvInstance.require(this.inv.Randomized(currentRequire.name))
+                            myself.require((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(currentRequire.name))
 
                             currentRequire.done = true
 
                             break
                         }
-                    })
+                    }
                 }
 
-                myInvInstance.broadcast(this.inv.Randomized(inv.name))
+                myself.broadcast((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(invBoostrap.name))
 
-                println "Completed inv #${index++} with ${inv.requires.size()} requires"
+                ++index
+
+                if (index % 100 == 0)
+                    println "Completed inv #${index} with ${invBoostrap.requires.size()} requires"
             }
-
-
         }
 
-        executor.execute()
+        def report = executor.execute()
+
+        assert report.isOk()
+        assert report.digested.size() == totalInv
+    }
+
+    static class InvBootstrap {
+        final String name
+
+        Set<String> requires
+        boolean done = false
+
+        InvBootstrap(String name, Integer capacity) {
+            this.name = name
+            this.requires = new HashSet<>(capacity)
+        }
     }
 }

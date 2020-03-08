@@ -1,11 +1,14 @@
 package io.peasoup.inv.scm
 
-
+import io.peasoup.inv.TempHome
+import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class ScmInvokerTest {
 
     ScmExecutor scmExecutor
@@ -20,7 +23,7 @@ class ScmInvokerTest {
     @Test
     void ok() {
 
-        def scmFile =  new File(getClass().getResource('/scm.groovy').toURI())
+        def scmFile =  new File(TempHome.testResources,  '/scm.groovy')
         def executor = new ScmExecutor()
         executor.read(scmFile)
 
@@ -31,7 +34,7 @@ class ScmInvokerTest {
         assert report
         assert report.repository.entry.size() == 1
         assert report.repository.entry[0].contains("mainTestScript.groovy")
-        assert report.repository.path.absolutePath.contains("scm")
+        assert report.repository.path.absolutePath.contains("test-resources")
     }
 
     @Test
@@ -60,5 +63,30 @@ class ScmInvokerTest {
         assert reports.find { it.name == "my-first-repository" }
         assert reports.find { it.name =="my-second-repository" }
         assert reports.find { it.name =="my-third-repository" }
+    }
+
+    @Test
+    void invalid() {
+
+        def scmFile =  new File(getClass().getResource('/scm-invalid.groovy').toURI())
+        def executor = new ScmExecutor()
+        executor.read(scmFile)
+
+        def report = executor.execute()
+        assert !report.any { it.isOk }
+    }
+
+    @Test
+    void debug_ok() {
+        def logs = Logger.capture(new LinkedList())
+
+        def scmFile =  new File(TempHome.testResources,  '/scm-debug.groovy')
+        def executor = new ScmExecutor()
+
+        executor.read(scmFile)
+
+        assert logs.any { it == "ok" }
+
+        Logger.capture(null)
     }
 }

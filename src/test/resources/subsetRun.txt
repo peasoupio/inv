@@ -1,0 +1,20 @@
+[INV] [scm3] [iis.groovy] [iis]
+[INV] [scm4] [kubernetes.groovy] [Kubernetes]
+[INV] [scm5] [serverA.groovy] [ServerA]
+[INV] [scm6] [serverB.groovy] [ServerB]
+
+[INV] ---- [DIGEST] #1 (state=RUNNING) ----
+[INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
+[INV] [ServerB] => [BROADCAST] [Server] [name:server-b]
+[INV] ---- [DIGEST] #2 (state=RUNNING) ----
+[INV] [IIS] => [REQUIRE] [Server] [name:server-a]
+[INV] [IIS] => [BROADCAST] [IIS] undefined
+[INV] [Kubernetes] => [REQUIRE] [Server] [name:server-a]
+[INV] [Kubernetes] => [BROADCAST] [Kubernetes] undefined
+Installing service kubectl on 10.22.99.999
+[INV] ---- [DIGEST] #3 (state=RUNNING) ----
+# Added manually
+[INV] [appC] => [REQUIRE] [IIS] undefined
+[INV] [appD] => [REQUIRE] [IIS] undefined
+[INV] [appC] => [BROADCAST] [App] [id=AppC]
+[INV] [appD] => [BROADCAST] [App] [id=AppD]

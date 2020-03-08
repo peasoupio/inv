@@ -14,12 +14,13 @@ class RunGraph {
 
     final private static String lf = System.properties['line.separator']
 
-    final Graph<GraphNavigator.Linkable, DefaultEdge> g
     final GraphNavigator navigator
-
     final List<FileStatement> files = []
 
+    private final Graph<GraphNavigator.Linkable, DefaultEdge> g
+
     RunGraph(BufferedReader logs) {
+        assert logs, 'Logs are required'
 
         g = new DefaultDirectedGraph<> (DefaultEdge.class)
         navigator = new GraphNavigator(g)
@@ -50,7 +51,7 @@ class RunGraph {
     }
 
     String toPlainList() {
-        return g.vertexSet().collect {
+        return navigator.links().collect {
             it.value
         }.join(lf)
     }

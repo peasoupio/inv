@@ -1,8 +1,14 @@
 package io.peasoup.inv.scm
 
-import io.peasoup.inv.Logger
+import groovy.transform.CompileStatic
+import io.peasoup.inv.run.DebugLogger
+import io.peasoup.inv.run.Logger
+import io.peasoup.inv.security.CommonLoader
 
+@CompileStatic
 class ScmInvoker {
+
+    private final static CommonLoader loader = new CommonLoader()
 
     private ScmInvoker() {}
 
@@ -15,11 +21,12 @@ class ScmInvoker {
             return
         }
 
-        Class<Script> groovyClass = new GroovyClassLoader().parseClass(scmFile)
-        Script myNewScript = (Script)groovyClass.newInstance()
+        Script myNewScript = loader.parseClass(scmFile)
+        if (!myNewScript)
+            return
 
         myNewScript.binding.setProperty("scm", scmHandler)
-
+        myNewScript.binding.setProperty("debug", DebugLogger.Instance);
         myNewScript.run()
     }
 }

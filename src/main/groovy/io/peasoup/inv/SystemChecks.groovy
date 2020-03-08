@@ -1,5 +1,9 @@
 package io.peasoup.inv
 
+import groovy.transform.CompileStatic
+import io.peasoup.inv.run.Logger
+
+@CompileStatic
 class SystemChecks {
 
     /**
@@ -10,8 +14,7 @@ class SystemChecks {
     boolean consistencyFails(Main main) {
         assert main, 'Main is required'
 
-        return checkInvHome(Main.invHome) &&
-               checkCache(InvInvoker.Cache)
+        return checkInvHome(Home.getCurrent())
     }
 
     boolean checkInvHome(File invHome) {
@@ -20,7 +23,7 @@ class SystemChecks {
             return true
         }
 
-        Logger.debug "INV_HOME: ${invHome.absolutePath}"
+        Logger.debug "[PARAMS] INV_HOME: ${invHome.absolutePath}"
 
         if (!invHome.exists()) {
             Logger.fail "INV_HOME does not exists"
@@ -34,27 +37,6 @@ class SystemChecks {
 
         if (!invHome.canRead()) {
             Logger.fail "current user is not able to read from INV_HOME"
-            return true
-        }
-
-        return false
-    }
-
-    boolean checkCache(File cache) {
-        if (cache == null) {
-            Logger.fail "Cache does not exists"
-            return true
-        }
-
-        Logger.debug "Cache: ${cache.absolutePath}"
-
-        if (cache.exists() && !cache.isDirectory()) {
-            Logger.fail "Cache is not a directory"
-            return true
-        }
-
-        if (!cache.canWrite()) {
-            Logger.fail "current user is not able to write in cache"
             return true
         }
 

@@ -29,13 +29,6 @@ public class BroadcastResponseDelegate {
         this.caller = caller;
         this.defaults = defaults;
 
-        /*
-        properties = new HashMap<>();
-        properties.put("resolvedBy", broadcastResponse.getResolvedBy());
-        if (broadcastResponse.getResponse() != null)
-            properties.putAll(broadcastResponse.getResponse());
-         */
-
         defaultResponse = checkDefault();
     }
 
@@ -60,12 +53,6 @@ public class BroadcastResponseDelegate {
     }
 
     public Object methodMissing(String methodName, Object args) {
-
-        /*
-        Object fromProperty = propertyMissing(methodName);
-        if (fromProperty != null)
-            return wrapReturnValue(fromProperty, args);
-         */
 
         // Check from default response
         Object fromDefault = BroadcastResponse.tryInvokeMethod(defaultResponse, methodName, args);

@@ -14,6 +14,7 @@ import org.codehaus.groovy.control.messages.Message;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 
 public class CommonLoader {
@@ -56,41 +57,41 @@ public class CommonLoader {
         this.securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration);
     }
 
-    public Script parseClass(File file) throws IOException, IllegalAccessException, InstantiationException {
+    public Script parseClass(File file) throws IOException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
-        if (!secureMode) return (Script) generalClassLoader.parseClass(file).newInstance();
+        if (!secureMode) return (Script) generalClassLoader.parseClass(file).getDeclaredConstructor().newInstance();
 
         try {
-            return (Script) securedClassLoader.parseClass(file).newInstance();
+            return (Script) securedClassLoader.parseClass(file).getDeclaredConstructor().newInstance();
         } catch (MultipleCompilationErrorsException ex) {
             if (hasFatalException(ex)) return null;
-            else return (Script) generalClassLoader.parseClass(file).newInstance();
+            else return (Script) generalClassLoader.parseClass(file).getDeclaredConstructor().newInstance();
         }
 
     }
 
-    public Script parseClass(String text) throws IllegalAccessException, InstantiationException {
+    public Script parseClass(String text) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         if (!secureMode)
-            return (Script)generalClassLoader.parseClass(text).newInstance();
+            return (Script)generalClassLoader.parseClass(text).getDeclaredConstructor().newInstance();
 
         try {
-            return (Script) securedClassLoader.parseClass(text).newInstance();
+            return (Script) securedClassLoader.parseClass(text).getDeclaredConstructor().newInstance();
         } catch (MultipleCompilationErrorsException ex) {
             if (hasFatalException(ex)) return null;
-            else return (Script) generalClassLoader.parseClass(text).newInstance();
+            else return (Script) generalClassLoader.parseClass(text).getDeclaredConstructor().newInstance();
         }
 
     }
 
-    public Script parseClass(String text, String fileName) throws IllegalAccessException, InstantiationException {
-        if (!secureMode) return (Script) generalClassLoader.parseClass(text, fileName).newInstance();
+    public Script parseClass(String text, String fileName) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        if (!secureMode) return (Script) generalClassLoader.parseClass(text, fileName).getDeclaredConstructor().newInstance();
 
         try {
-            return (Script) securedClassLoader.parseClass(text, fileName).newInstance();
+            return (Script) securedClassLoader.parseClass(text, fileName).getDeclaredConstructor().newInstance();
         } catch (MultipleCompilationErrorsException ex) {
             if (hasFatalException(ex)) return null;
-            else return (Script) generalClassLoader.parseClass(text, fileName).newInstance();
+            else return (Script) generalClassLoader.parseClass(text, fileName).getDeclaredConstructor().newInstance();
         }
 
     }

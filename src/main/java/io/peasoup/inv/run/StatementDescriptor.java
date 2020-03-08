@@ -19,10 +19,19 @@ public class StatementDescriptor {
         this.name = name;
     }
 
+    /**
+     * Default behaviour. No id is defined.
+     * @return the current StatementDescriptor
+     */
     public StatementDescriptor call() {
         return this;
     }
 
+    /**
+     * Defines a new java.lang.Object id.
+     * @param id the id
+     * @return the current StatementDescriptor
+     */
     public StatementDescriptor call(Object id) {
         if (id == null) {
             throw new IllegalArgumentException("Id, as an object, is required");
@@ -33,6 +42,11 @@ public class StatementDescriptor {
         return this;
     }
 
+    /**
+     * Defines a new java.util.Map id
+     * @param id the id
+     * @return the current StatementDescriptor
+     */
     public StatementDescriptor call(Map id) {
         if (id == null) {
             throw new IllegalArgumentException("Id, as a Map, is required");

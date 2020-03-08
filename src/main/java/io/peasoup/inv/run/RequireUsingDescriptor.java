@@ -12,8 +12,10 @@ public class RequireUsingDescriptor {
     private Boolean defaults;
 
     /**
-     * Defines the requirement id from a generic object
+     * Defines the requirement id from a generic object.
+     * <p>
      * NOTE : Null is authorized and is meant as an "undefined/global" id.
+     * <p>
      * In this case, the network valuable name must be relevant enough.
      *
      * @param id the object id
@@ -23,7 +25,7 @@ public class RequireUsingDescriptor {
     }
 
     /**
-     * Defines the requirement id from a Map object
+     * Defines the requirement id from a Map object.
      *
      * @param id the map id
      */
@@ -33,6 +35,7 @@ public class RequireUsingDescriptor {
 
     /**
      * Event raised when requirement is resolved during the running cycle.
+     * <p>
      * No return value is expected.
      *
      * @param resolvedBody the closure body receiving the resolved event
@@ -42,7 +45,8 @@ public class RequireUsingDescriptor {
     }
 
     /**
-     * Event raised when requirement is not resolved during the unbloating and halting cycles
+     * Event raised when requirement is not resolved during the unbloating and halting cycles.
+     * <p>
      * No return value is expected.
      *
      * @param unresolvedBody the closure body receiving the unresolved event

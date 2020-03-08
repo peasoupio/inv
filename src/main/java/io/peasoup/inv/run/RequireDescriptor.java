@@ -15,6 +15,14 @@ public class RequireDescriptor {
         this.requireStatement = requireStatement;
     }
 
+    /**
+     * Defines a broadcast statement using specific options and events.
+     * <p>
+     * It is a sub-option of the shorthanded broadcast statement.
+     *
+     * @param usingBody @default None, value required
+     * @return a new RequireDescriptor
+     */
     public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure usingBody) {
         if (usingBody == null) {
             throw new IllegalArgumentException("Using body is required");
@@ -41,6 +49,32 @@ public class RequireDescriptor {
         return this;
     }
 
+    /**
+     * Defines a requirement statement for which the broadcast "response" is automatically referenced by
+     * a property (below it is "$myResponse").
+     * <p>
+     * It is a sub-option of the require statement.
+     * <p>
+     * The property is available in the NEXT scope. This includes step().
+     * Will work:
+     * <pre>
+     *     require inv.Something into '$something'
+     *     broadcast inv.Else using {
+     *         ready {
+     *             $something...
+     *         }
+     *     }
+     * </pre>
+     * Will NOT work:
+     * <pre>
+     *     require inv.Something into '$something'
+     *     require inv.Else($something...)
+     * </pre>
+     *
+     * By convention, you should add "$" before the name.
+     * @param variable
+     * @return
+     */
     public RequireDescriptor into(String variable) {
         if (StringUtils.isEmpty(variable)) {
             throw new IllegalArgumentException("Variable is required");

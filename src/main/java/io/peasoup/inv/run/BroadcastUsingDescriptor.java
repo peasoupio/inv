@@ -9,8 +9,10 @@ public class BroadcastUsingDescriptor {
     private Closure ready;
 
     /**
-     * Defines the broadcast id from a generic object
+     * Defines the broadcast id from a generic object.
+     * <p>
      * NOTE : Null is authorized and is meant as an "undefined/global" id.
+     * <p>
      * In this case, the network valuable name must be relevant enough.
      *
      * @param id the object id
@@ -20,7 +22,7 @@ public class BroadcastUsingDescriptor {
     }
 
     /**
-     * Defines the broadcast id from a Map object
+     * Defines the broadcast id from a Map object.
      *
      * @param id the map id
      */
@@ -30,7 +32,9 @@ public class BroadcastUsingDescriptor {
 
     /**
      * Event raised when broadcast is ready during the running cycle.
+     * <p>
      * A return value is expected if something is meant to be shared to other requirements.
+     * <p>
      * Otherwise, "null" will be shared.
      *
      * @param readyBody the closure body receiving the ready event

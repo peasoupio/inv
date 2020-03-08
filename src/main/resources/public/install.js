@@ -31,8 +31,6 @@ Vue.component('install', {
         </div>
     </div>
 
-    <hr />
-
     <p class="title is-5">
         Output
         <span v-if="execution.lastExecution > 0">
@@ -44,6 +42,9 @@ Vue.component('install', {
         <p class="subtitle is-6" v-if="!execution.running">Last execution ended: {{getEndedAgo()}}, duration: {{getDuration()}}</p>
         <p class="subtitle is-6" v-else :key="runningTimestamp">Started: {{getStartedAgo()}}
     </p>
+
+    <hr />
+
     <div class="output" style="height: 75vh; overflow-y: scroll; scroll-behavior: smooth;">
         <div ref="logContainer" ></div>
         <div class="anchor"></div>

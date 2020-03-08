@@ -98,13 +98,13 @@ public class BroadcastStatement implements Statement {
 
                 if (responseObject != null) {
                     // Shorten hook
-                    Object defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);;
+                    Object defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);
 
                     // Normal hook
                     if (defaultResponseHook == null)
-                        defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);;
+                        defaultResponseHook = BroadcastResponse.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);
 
-                    if (defaultResponseHook != null && defaultResponseHook instanceof Closure)
+                    if (defaultResponseHook instanceof Closure)
                         defaultClosure = (Closure<Object>) defaultResponseHook;
                 }
             }

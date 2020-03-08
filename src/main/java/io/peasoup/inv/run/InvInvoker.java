@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -59,7 +60,7 @@ public class InvInvoker {
 
         try {
             myNewScript = loader.parseClass(ResourceGroovyMethods.getText(scriptFile), cache(scriptFile, preferredClassname));
-        } catch (IllegalAccessException|InstantiationException e) {
+        } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             Logger.error(e);
             return;
         }

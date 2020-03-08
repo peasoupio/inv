@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
     <title>INV - Composer</title>
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -89,11 +92,9 @@
 
         /*************** Main view **************/
 
-        #container {
-            padding: 2em;
-        }
-
         .mainContent {
+            margin: 1em;
+            padding: 2em;
             background-color: hsl(0, 0%, 99%);
         }
 
@@ -117,6 +118,10 @@
 
         a.panel-block.disabled:hover {
             cursor: default
+        }
+
+        .footer {
+            padding: 2em 1.5rem 2em;
         }
 
         /*************** Choose *****************/

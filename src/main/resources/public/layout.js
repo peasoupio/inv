@@ -56,64 +56,102 @@ Vue.component('first-time', {
 
 Vue.component('layout', {
     template: `
-<div class="mainContent"  style="padding: 1em">
+<div>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" @click="resetStep()">
+          <img src="logo.png" alt="Peasoup INV: Open source, environment as code solution" width="112" height="28">
+        </a>
 
-    <div class="pageloader" v-bind:class="{ 'is-active': shared.setup.booted == false }">
-        <span class="title">Booting... {{progression()}}</span>
-    </div>
+        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
 
-    <div class="columns">
-        <div class="column">
-            <p class="title is-1">Composer</p>
-            <p class="subtitle is-3">INV</p>
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+          <div class="navbar-item has-dropdown is-hoverable">
+              <a class="navbar-link">
+                Settings (coming soon!)
+              </a>
+
+              <div class="navbar-dropdown">
+                <a class="navbar-item">Global settings</a>
+                <a class="navbar-item">Add or remove SCM</a>
+                <hr class="navbar-divider">
+                <a class="navbar-item">Edit init file</a>
+                <a class="navbar-item">Pull changes</a>
+                <a class="navbar-item">Push changes</a>
+                <hr class="navbar-divider">
+                <a class="navbar-item has-text-danger">Reset everything</a>
+              </div>
+            </div>
+
+          <a class="navbar-item" href="https://github.com/peasoupio/inv/wiki" target="_blank">
+            Documentation
+          </a>
+
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link">
+              More
+            </a>
+
+            <div class="navbar-dropdown">
+              <a class="navbar-item" href="https://github.com/peasoupio/inv" target="_blank"><i class="fab fa-github"></i><span style="padding-left: 0.25em">@peasoupio/inv</span></a>
+              <hr class="navbar-divider">
+              <a class="navbar-item" href="https://github.com/peasoupio/inv/issues" target="_blank">Report an issue</a>
+            </div>
+          </div>
         </div>
-        <div class="column">
-            <p class="has-text-right">
-                <a href="https://github.com/peasoupio/inv" target="_blank">@peasoupio/inv <i class="fab fa-github"></i></a><br />
-                <a href="https://github.com/peasoupio/inv/issues" target="_blank">- Report an issue</a><br />
-                <a href="https://github.com/peasoupio/inv/wiki" target="_blank">- Documentation</a><br />
-            </p>
-        </div>
-    </div>
 
-    <hr />
 
-    <div class="columns header">
-        <div class="column is-2" style="display: inline-grid; align-items: center;">
-            <a @click="previousStep()" data-nav="previous" class="button" :disabled="currentStep.index - 1 == 0">Previous step</a>
+      </div>
+    </nav>
+
+
+    <div class="mainContent">
+
+        <div class="pageloader" v-bind:class="{ 'is-active': shared.setup.booted == false }">
+            <span class="title">Booting... {{progression()}}</span>
         </div>
-        <div class="column">
-            <div class="steps">
-                <div class="step-item" v-for="(step, index) in steps" v-bind:class="{ 'is-active': isSelected(step), 'is-completed': isCompleted(step) }">
-                    <div class="step-marker">{{index + 1}}</div>
-                    <div class="step-details" @mouseleave="step.showHelp = false">
-                        <span class="step-title">
-                            {{step.name}}
-                        </span>
-                        <a class="icon" @mouseover="step.showHelp = true" style="margin-right: 0.75em">
-                            <i class="fas fa-question-circle" aria-hidden="true"></i>
-                        </a>
-                        <div class="notification is-primary" v-show="step.showHelp" style="position: absolute; width: 100%">
-                            <p v-html="step.description"></p>
+
+        <div class="columns header">
+            <div class="column is-2" style="display: inline-grid; align-items: center;">
+                <a @click="previousStep()" data-nav="previous" class="button" :disabled="currentStep.index - 1 == 0">Previous step</a>
+            </div>
+            <div class="column">
+                <div class="steps">
+                    <div class="step-item" v-for="(step, index) in steps" v-bind:class="{ 'is-active': isSelected(step), 'is-completed': isCompleted(step) }">
+                        <div class="step-marker">{{index + 1}}</div>
+                        <div class="step-details" @mouseleave="step.showHelp = false">
+                            <span class="step-title">
+                                {{step.name}}
+                            </span>
+                            <a class="icon" @mouseover="step.showHelp = true" style="margin-right: 0.75em">
+                                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            </a>
+                            <div class="notification is-primary" v-show="step.showHelp" style="position: absolute; width: 100%">
+                                <p v-html="step.description"></p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="column is-2" style="display: inline-grid; align-items: center;">
+                <a @click="nextStep()" data-nav="next" class="button" :disabled="currentStep.index == steps.length">Next step</a>
+            </div>
         </div>
-        <div class="column is-2" style="display: inline-grid; align-items: center;">
-            <a @click="nextStep()" data-nav="next" class="button" :disabled="currentStep.index == steps.length">Next step</a>
+
+        <div v-if="ready()" style="min-height: 75vh;">
+            <p class="title is-2">{{currentStep.name}}:</p>
+            <p class="subtitle is-5">{{currentStep.description}}</p>
+            <component v-bind:is="currentStep.template" v-model="shared" />
         </div>
+
+        <first-time v-if="shared.setup.firstTime"></first-time>
     </div>
-
-    <hr />
-
-    <div v-if="ready()" style="min-height: 75vh;">
-        <p class="title is-2">{{currentStep.name}}:</p>
-        <p class="subtitle is-5">{{currentStep.description}}</p>
-        <component v-bind:is="currentStep.template" v-model="shared" />
-    </div>
-
-    <first-time v-if="shared.setup.firstTime"></first-time>
 
     <footer class="footer">
         <div class="content has-text-centered">
@@ -123,8 +161,6 @@ Vue.component('layout', {
             </p>
         </div>
     </footer>
-
-
 </div>
 `,
     data: function() {
@@ -207,6 +243,10 @@ Vue.component('layout', {
 
             vm.currentStep = step
         },
+        resetStep: function() {
+            var vm = this
+            vm.setCurrentStep(vm.steps[0])
+        },
         isSelected: function(step) {
             return this.currentStep == step
         },
@@ -243,7 +283,7 @@ Vue.component('layout', {
 
         // Init steps
         var hash = window.location.hash
-        vm.setCurrentStep(vm.steps[0])
+        vm.resetStep()
 
         vm.steps.forEach(function(step) {
             if (hash !== '#' + step.template)

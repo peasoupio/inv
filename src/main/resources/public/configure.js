@@ -240,7 +240,7 @@ Vue.component('configure-parameters', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.to,
-                    total: vm.value.selectedScms.total
+                    total: vm.value.selectedScms.count
                 }
             }
         }
@@ -588,7 +588,7 @@ Vue.component('configure-scms', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.step,
-                    total: vm.value.scms.total
+                    total: vm.value.scms.count
                 }
             }
         }

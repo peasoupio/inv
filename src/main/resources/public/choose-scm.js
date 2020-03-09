@@ -66,7 +66,7 @@ Vue.component('choose-scm', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.step,
-                    total: vm.value.scms.total
+                    total: vm.value.scms.count
                 }
             }
         }

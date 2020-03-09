@@ -88,7 +88,6 @@ class ScmFileCollection {
         Integer selectedCount = 0
         Integer stagedCount = 0
 
-
         elements.values().each {
 
             boolean selected = false
@@ -129,7 +128,8 @@ class ScmFileCollection {
 
         return [
             descriptors: filtered,
-            total: filtered.size(),
+            total: elements.size(),
+            count: filtered.size(),
             selected: selectedCount,
             staged: stagedCount
         ]

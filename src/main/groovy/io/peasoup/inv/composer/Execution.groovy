@@ -65,7 +65,8 @@ class Execution {
 
     @CompileDynamic
     void start(boolean debugMode, boolean secureMode, List<File> scms) {
-        assert scms, 'SCM collection is required'
+        if (scms == null)
+            throw new IllegalArgumentException('SCM collection is required')
 
         if (scms.isEmpty()) {
             Logger.warn "SCM collection is empty. Will NOT try to start execution"

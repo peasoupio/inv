@@ -45,7 +45,7 @@ scm {
         )
         webServer.map()
 
-        sleep(1000)
+        sleep(3000)
     }
 
     @AfterClass
@@ -187,7 +187,8 @@ scm {
         def json = new JsonSlurper().parseText(response)
 
         assert json
-        assert json.total == 1
+        assert json.total == 7
+        assert json.count == 1
         assert json.descriptors.size() == 1
         assert json.descriptors.any { it.name == "scm1"}
     }

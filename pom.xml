@@ -106,6 +106,15 @@
     <build>
         <plugins>
 
+            <!-- javadoc warnings -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                </configuration>
+            </plugin>
+
             <!-- core engine -->
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>

@@ -19,7 +19,7 @@ public class BroadcastStatement implements Statement {
 
     @Override
     public String toString() {
-        return "[" + getInv().getName() + "] => [BROADCAST] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+        return getInv() + " => [BROADCAST] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
     }
 
     public Object getId() {
@@ -85,7 +85,7 @@ public class BroadcastStatement implements Statement {
 
             // Staging response
             BroadcastResponse response = createResponse(broadcastStatement);
-            staging.put(broadcastStatement.getId(), response);
+            staging.putIfAbsent(broadcastStatement.getId(), response);
         }
 
         private BroadcastResponse createResponse(BroadcastStatement broadcastStatement) {

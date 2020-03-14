@@ -1,10 +1,7 @@
 package io.peasoup.inv.randomizer
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.run.InvDescriptor
-import io.peasoup.inv.run.InvExecutor
-import io.peasoup.inv.run.InvHandler
-import io.peasoup.inv.run.StatementDescriptor
+import io.peasoup.inv.run.*
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
@@ -23,6 +20,7 @@ class RandomizeBatch1 {
 
     @Test
     void randomize_batch_1() {
+        Logger.enableDebug()
 
         // Rando
         Random random = new Random()

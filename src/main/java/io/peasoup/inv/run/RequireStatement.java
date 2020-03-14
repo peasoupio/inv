@@ -25,7 +25,7 @@ public class RequireStatement implements Statement {
 
     @Override
     public String toString() {
-        return "[" + getInv().getName() + "] => [REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+        return getInv() + " => [REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
     }
 
     public Object getId() {

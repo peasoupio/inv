@@ -17,7 +17,6 @@ public class Inv {
     private final InvDescriptor delegate;
     private final InvDescriptor.Properties properties;
 
-
     private String name;
     private String path;
     private Map<String, String> tags;
@@ -119,7 +118,7 @@ public class Inv {
             throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
         }
 
-        Digestion digestion = new Digestion();
+        Digestion currentDigestion = new Digestion();
         boolean checkOnce = true;
         boolean hasDumpedSomething = false;
 
@@ -127,58 +126,49 @@ public class Inv {
         while (checkOnce || hasDumpedSomething) {
             // Reset flag
             checkOnce = false;
-            List<Statement> toRemove = new ArrayList();
 
             // Manage statements
-            boolean keepGoing = manageStatements(digestion, toRemove);
-
-            // Remove all NV meant to be deleted
-            this.remainingStatements.removeAll(toRemove);
+            Digestion latestDigestion = digestStatements();
+            currentDigestion.concat(latestDigestion);
 
             // Stops processing if a statement told so
-            if (!keepGoing)
+            if (latestDigestion.isInterrupted())
                 break;
 
             // Look for remaining steps
-            hasDumpedSomething = manageSteps();
+            hasDumpedSomething = digestSteps();
 
             // If steps dumped something, repeat loop
             if (hasDumpedSomething)
                 continue;
 
             // Check if any when criteria is met
-            hasDumpedSomething = manageWhens();
+            hasDumpedSomething = digestWhensEvent();
         }
 
-        digestionSummary.concat(digestion);
-        return digestion;
+        digestionSummary.concat(currentDigestion);
+        return currentDigestion;
     }
 
-    private boolean manageStatements(Digestion currentDigestion, List<Statement> done) {
-        // Use fori-loop for speed
-        for (Statement statement : this.remainingStatements) {
+    private Digestion digestStatements() {
+        Digestion currentDigestion = new Digestion();
+        Queue<Statement> statementsLeft = new LinkedList<>(this.remainingStatements);
+
+        while(!statementsLeft.isEmpty() && !currentDigestion.isInterrupted()) {
+            Statement statement = statementsLeft.poll();
 
             // (try to) manage statement
             statement.getMatch().manage(pool, statement);
 
             // Process results for digestion
-            currentDigestion.addResults(statement);
+            currentDigestion.checkStatementResult(pool, statement);
 
-            // Do not proceed if failed
-            if (statement.getState() == StatementStatus.FAILED) {
-                break;
-            }
-
-            // Indicate statement is done for this INV
-            done.add(statement);
-
-            // If the statement prevents unbloating, stops processing the remaining statements
-            if (pool.preventUnbloating(statement)) {
-                return false;
-            }
+            // Remove statement is completed
+            if (!currentDigestion.isInterrupted())
+                this.remainingStatements.remove(statement);
         }
 
-        return true;
+        return currentDigestion;
     }
 
     /**
@@ -190,7 +180,7 @@ public class Inv {
      *
      * @return True if something was dumped, otherwise false
      */
-    private boolean manageSteps() {
+    private boolean digestSteps() {
         boolean hasDumpedSomething = false;
 
         while (!steps.isEmpty() &&
@@ -207,7 +197,7 @@ public class Inv {
         return hasDumpedSomething;
     }
 
-    private boolean manageWhens() {
+    private boolean digestWhensEvent() {
 
         boolean hasDumpedSomething = false;
         List<WhenData> completedWhenData = new ArrayList<>();
@@ -241,6 +231,17 @@ public class Inv {
         whens.removeAll(completedWhenData);
 
         return hasDumpedSomething;
+    }
+
+    /**
+     * Gets whether if it is completed or not.
+     * Completed means: no more statements, steps or when's event remaining.
+     * @return true if completed, otherwise false
+     */
+    boolean isCompleted() {
+        return remainingStatements.isEmpty() &&
+               steps.isEmpty() &&
+               whens.isEmpty();
     }
 
     @Override
@@ -307,16 +308,41 @@ public class Inv {
         return pop;
     }
 
+    @Override
+    public String toString() {
+        return "[" + name + "]";
+    }
+
     public static class Digestion {
         private Integer requires = 0;
         private Integer broadcasts = 0;
         private Integer unbloats = 0;
 
-        public void addResults(Statement statement) {
+        private boolean interrupt = false;
+
+        public void checkStatementResult(NetworkValuablePool pool, Statement statement) {
+            if (pool == null) {
+                throw new IllegalArgumentException("Pool is required");
+            }
+
             if (statement == null) {
                 throw new IllegalArgumentException("Statement is required");
             }
 
+            // Indicates if statement is blocking others
+            if (statement.getState() == StatementStatus.FAILED)
+                interrupt = true;
+
+            // Gets metrics if unbloating
+            if (statement.getState() == StatementStatus.UNBLOADTING) {
+                unbloats++;
+
+                // If the statement prevents unbloating, stops processing the remaining statements
+                if (pool.preventUnbloating(statement))
+                    interrupt = true;
+            }
+
+            // Gets metrics if successful
             if (statement.getState().level >= StatementStatus.SUCCESSFUL.level) {
                 if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
                     requires++;
@@ -326,13 +352,12 @@ public class Inv {
                     broadcasts++;
                 }
             }
-
-            if (statement.getState() == StatementStatus.UNBLOADTING) {
-                unbloats++;
-            }
-
         }
 
+        /**
+         * Concat another digestion to this one
+         * @param digestion the other digestion
+         */
         public void concat(Digestion digestion) {
             if (digestion == null) {
                 return;
@@ -341,6 +366,9 @@ public class Inv {
             this.requires += digestion.getRequires();
             this.broadcasts += digestion.getBroadcasts();
             this.unbloats += digestion.getUnbloats();
+
+            if (digestion.interrupt)
+                this.interrupt = true;
         }
 
         public Integer getRequires() {
@@ -354,5 +382,9 @@ public class Inv {
         public Integer getUnbloats() {
             return unbloats;
         }
+
+        public boolean hasDoneSomething() { return requires > 0 || broadcasts > 0 || unbloats > 0; }
+
+        public boolean isInterrupted() { return interrupt; }
     }
 }

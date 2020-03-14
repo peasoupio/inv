@@ -11,16 +11,43 @@ Vue.component('install', {
             <a class="is-link breath-heavy" @click="goToEnd()">
                 Go to end
             </a>
-            <button class="button is-link" @click="toggleDebugMode()" :disabled="execution.running">
-                <span>Debug</span>
-                <span class="icon is-small" v-show="enableDebugMode"><i class="fas fa-check-square"></i></span>
-                <span class="icon is-small" v-if="!enableDebugMode"><i class="far fa-square"></i></span>
-            </button>
-            <button class="button is-link" @click="toggleSecureMode()" :disabled="execution.running">
-                <span>Secure</span>
-                <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
-                <span class="icon is-small" v-if="!enableSecureMode"><i class="far fa-square"></i></span>
-            </button>
+
+            <div class="dropdown is-hoverable">
+                <div class="dropdown-trigger">
+                    <button class="button is-link" aria-haspopup="true" aria-controls="dropdown-menu" :disabled="execution.running">
+                        <span>Options</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu" v-if="!execution.running">
+                    <div class="dropdown-content">
+                        <a class="dropdown-item is-link" @click="toggleDebugMode()">
+                            <span>Debug</span>
+                            <span class="icon is-small" v-show="enableDebugMode"><i class="fas fa-check-square"></i></span>
+                            <span class="icon is-small" v-if="!enableDebugMode"><i class="far fa-square"></i></span>
+                        </a>
+                    </div>
+                    <div class="dropdown-content">
+                        <a class="dropdown-item is-link" @click="toggleSystemMode()" :disabled="execution.running">
+                            <span>System</span>
+                            <span class="icon is-small" v-show="enableSystemMode"><i class="fas fa-check-square"></i></span>
+                            <span class="icon is-small" v-if="!enableSystemMode"><i class="far fa-square"></i></span>
+                        </a>
+                    </div>
+                    <div class="dropdown-content">
+                        <a class="dropdown-item is-link" @click="toggleSecureMode()" :disabled="execution.running">
+                            <span>Secure</span>
+                            <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
+                            <span class="icon is-small" v-if="!enableSecureMode"><i class="far fa-square"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+
             <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
                 Execute
             </button>
@@ -57,6 +84,7 @@ Vue.component('install', {
 
             enableSecureMode: true,
             enableDebugMode: false,
+            enableSystemMode: false,
 
             runningTimestamp: 0,
 
@@ -64,8 +92,8 @@ Vue.component('install', {
             loadingMessages: true,
             execution: {},
             bufferProcessMaxSize: 5120,
-            bufferProcessSize: 512,
-            bufferProcessCycleMs: 500,
+            bufferProcessSize: 1024,
+            bufferProcessCycleMs: 2000,
             buffer: []
         }
     },
@@ -82,7 +110,9 @@ Vue.component('install', {
             var vm = this
 
             if (logContainer.children.length > vm.bufferProcessMaxSize) {
-                logContainer.removeChild(logContainer.childNodes[0])
+                for(var i=0;i<12;i++) {
+                    logContainer.removeChild(logContainer.childNodes[0])
+                }
             }
 
             var pre = document.createElement("PRE")
@@ -114,6 +144,18 @@ Vue.component('install', {
 
             vm.enableDebugMode = !vm.enableDebugMode
             localStorage.enableDebugMode = vm.enableDebugMode
+
+            vm.enableSystemMode = false
+            localStorage.enableSystemMode = false
+        },
+        toggleSystemMode: function() {
+            var vm = this
+
+            vm.enableSystemMode = !vm.enableSystemMode
+            localStorage.enableSystemMode = vm.enableSystemMode
+
+            vm.enableDebugMode = false
+            localStorage.enableDebugMode = false
         },
         toggleSecureMode: function() {
             var vm = this
@@ -129,6 +171,7 @@ Vue.component('install', {
 
             var cfg = {
                 debugMode: vm.enableDebugMode,
+                systemMode: vm.enableSystemMode,
                 secureMode: vm.enableSecureMode
             }
 
@@ -241,8 +284,11 @@ Vue.component('install', {
         if (localStorage.enableDebugMode != undefined)
             vm.enableDebugMode = localStorage.enableDebugMode == "true" ? true : false
 
+        if (localStorage.enableSystemMode != undefined)
+            vm.enableSystemMode = localStorage.enableSystemMode == "true" ? true : false
+
         if (localStorage.enableSecureMode != undefined)
-                    vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
+            vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
 
         var logContainer = this.$refs.logContainer
         setInterval(function() {

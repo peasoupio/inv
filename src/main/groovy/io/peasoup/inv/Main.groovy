@@ -15,10 +15,10 @@ class Main extends Script {
     String usage = """Inv.
 
 Usage:
-  inv run [-x] [-s] [-e <label>] <patterns>...
-  inv scm [-x] [-s] <scmFiles>...
-  inv composer [-x] [-s]
-  inv init [-x] [-s] <scmFile>
+  inv run [-d | -x] [-s] [-e <label>] <patterns>...
+  inv scm [-d | -x] [-s] <scmFiles>...
+  inv composer [-d | -x] [-s]
+  inv init [-d | -x] [-s] <scmFile>
   inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
@@ -31,7 +31,8 @@ Options:
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
-  -x --debug   Debug out. Excellent for troubleshooting.
+  -d --debug   Debug out. Excellent for troubleshooting.
+  -x --system  Print system troubleshooting messages.
   -s --secure  Enable the secure mode for script files.
   -e --exclude Exclude files from loading.
   -h --help    Show this screen.
@@ -99,7 +100,7 @@ Parameters:
 
         // Make sure we setup the rolling mechanism property BEFORE any logging
         if (command.rolling())
-            setupRolling(arguments["--debug"] as boolean)
+            setupRolling(arguments["--debug"] as boolean, arguments["--system"] as boolean)
 
         // Do system checks
         if (new SystemChecks().consistencyFails(this)) {
@@ -160,7 +161,7 @@ Parameters:
         return null
     }
 
-    private static void setupRolling(boolean debug) throws IOException {
+    private static void setupRolling(boolean debug, boolean system) throws IOException {
         // Roll a new run folder
         RunsRoller.getLatest().roll()
 
@@ -169,6 +170,9 @@ Parameters:
 
         if (debug)
             Logger.enableDebug()
+
+        if (system)
+            Logger.enableSystem()
     }
 
     static void main(String[] args) {

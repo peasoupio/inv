@@ -18,22 +18,29 @@ public final class Logger {
     /**
      * Enable debug mode
      */
+    public static void enableSystem() {
+        Configuration.set("level", "trace");
+    }
+
+    /**
+     * Enable debug mode
+     */
     public static void enableDebug() {
         Configuration.set("level", "debug");
     }
 
-    public static void fail(Object arg) {
+    public static void system(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.error("[FAIL] " + message);
+        org.tinylog.Logger.trace("[SYSTEM] " + message);
     }
 
-    public static void warn(Object arg) {
+    public static void debug(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.warn("[WARN] " + message);
+        org.tinylog.Logger.debug("[DEBUG] " + message);
     }
 
     public static void info(Object arg) {
@@ -43,11 +50,18 @@ public final class Logger {
         org.tinylog.Logger.info("[INV] " + message);
     }
 
-    public static void debug(Object arg) {
+    public static void warn(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.debug("[DEBUG] " + message);
+        org.tinylog.Logger.warn("[WARN] " + message);
+    }
+
+    public static void fail(Object arg) {
+        String message = arg.toString();
+        send(message);
+
+        org.tinylog.Logger.error("[FAIL] " + message);
     }
 
     public static void error(Throwable throwable) {

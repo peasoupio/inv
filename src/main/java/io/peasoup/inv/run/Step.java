@@ -25,17 +25,17 @@ public class Step {
         this.body = body;
         this.index = index;
 
-        Logger.debug( toString() + " [INIT]");
+        Logger.system( toString() + " [INIT]");
     }
 
     boolean execute() {
         // Call next step
-        Logger.debug( toString() + " [BEFORE]");
+        Logger.system( toString() + " [BEFORE]");
 
         body.setResolveStrategy(Closure.DELEGATE_FIRST);
         body.call(index);
 
-        Logger.debug(toString() + " [END]");
+        Logger.system(toString() + " [END]");
 
         return inv.dumpDelegate();
     }

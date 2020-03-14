@@ -20,7 +20,7 @@ class RandomizeBatch1 {
 
     @Test
     void randomize_batch_1() {
-        Logger.enableDebug()
+        Logger.enableSystem()
 
         // Rando
         Random random = new Random()

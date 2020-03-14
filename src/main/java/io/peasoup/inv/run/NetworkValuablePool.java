@@ -191,7 +191,7 @@ public class NetworkValuablePool {
                     taskRemaining++;
                     invCompletionService.submit(() -> eatInv(eatenInv.getInv(), poolErrors) );
 
-                    Logger.debug(eatenInv.getInv() + " eaten back now");
+                    Logger.system(eatenInv.getInv() + " eaten back now");
                 }
 
                 // Stage broadcasts
@@ -248,10 +248,12 @@ public class NetworkValuablePool {
             Map<Object, BroadcastResponse> inChannel = availableStatements.get(statements.getKey());
             Iterator<Map.Entry<Object, BroadcastResponse>> outChannel = statements.getValue().entrySet().iterator();
 
-            Logger.debug("[POOL] available:" + availableStatements.get(statements.getKey()).size() + " " + ", staged:" + statements.getValue().size());
+            if (outChannel.hasNext()) {
+                Logger.system("[POOL] available:" + availableStatements.get(statements.getKey()).size() + " " + ", staged:" + statements.getValue().size());
+                hasStagedSomething = true;
+            }
 
             while(outChannel.hasNext()) {
-                hasStagedSomething = true;
 
                 Map.Entry<Object,BroadcastResponse> response = outChannel.next();
                 inChannel.putIfAbsent(response.getKey(), response.getValue());
@@ -278,7 +280,7 @@ public class NetworkValuablePool {
 
             invsDone.add(inv);
 
-            Logger.debug("[POOL] inv: " + inv.getName() + " COMPLETED");
+            Logger.system("[POOL] inv: " + inv.getName() + " COMPLETED");
         }
 
         remainingInvs.removeAll(invsDone);
@@ -434,7 +436,7 @@ public class NetworkValuablePool {
     public boolean shutdown() {
         if (invExecutor == null) return false;
 
-        Logger.debug("[POOL] closed: true");
+        Logger.system("[POOL] closed: true");
         invExecutor.shutdownNow();
         invExecutor = null;
 

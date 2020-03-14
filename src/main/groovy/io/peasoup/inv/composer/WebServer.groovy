@@ -604,12 +604,14 @@ class WebServer {
             toExecute += scms.staged
 
             def debugMode = false
+            def systemMode = false
             def secureMode = false
 
             def body = req.body()
             if (body) {
                 def options = new JsonSlurper().parseText(body) as Map
                 debugMode = options.debugMode
+                systemMode = options.systemMode
                 secureMode = options.secureMode
             }
 
@@ -620,6 +622,7 @@ class WebServer {
 
             exec.start(
                     debugMode,
+                    systemMode,
                     secureMode,
                     scmFiles)
             Thread.sleep(50)

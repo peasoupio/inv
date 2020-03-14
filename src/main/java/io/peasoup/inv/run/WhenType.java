@@ -149,7 +149,7 @@ public class WhenType {
                 boolean completed = !pool.getRemainingInvs().contains(matchInv) &&
                         pool.getTotalInvs().contains(matchInv);
 
-                stringBuilder.append("[" + matchInv.getName() + "] is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ");
+                stringBuilder.append(matchInv + " is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ");
 
                 if (!completed)
                     allCompleted = false;

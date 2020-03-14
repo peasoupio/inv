@@ -18,7 +18,7 @@ public class PoolStateTree {
     }
 
     public List<Inv> sortRemainingByRequireWeight() {
-        List<Inv> sortedInvs =  pool
+        List<Inv> sortedInvs = pool
                 .getRemainingInvs()
                 .stream()
                 .collect(Collectors.toList());
@@ -50,7 +50,7 @@ public class PoolStateTree {
                 .filter(statement -> statement.getMatch() == BroadcastStatement.BROADCAST)
                 .map(statement -> new RemainingBroadcast(
                         (BroadcastStatement) statement,
-                        getRequiredByCount((BroadcastStatement)statement)
+                        getRequiredByCount((BroadcastStatement) statement)
                 ))
                 .collect(Collectors.toList());
     }
@@ -62,13 +62,13 @@ public class PoolStateTree {
 
         return inv.getRemainingStatements()
                 .stream()
-                .filter(statement -> statement.getMatch() == RequireStatement.REQUIRE )
+                .filter(statement -> statement.getMatch() == RequireStatement.REQUIRE)
                 .map(statement -> {
                     boolean wouldHaveMatched = pool.getAvailableStatements().get(statement.getName()).get(statement.getId()) != null;
-                    boolean couldHaveMatched = couldHaveMatched((RequireStatement)statement);
+                    boolean couldHaveMatched = couldHaveMatched((RequireStatement) statement);
 
                     return new RemainingRequire(
-                            (RequireStatement)statement,
+                            (RequireStatement) statement,
                             couldHaveMatched,
                             wouldHaveMatched
                     );
@@ -83,7 +83,7 @@ public class PoolStateTree {
 
         List<RemainingRequire> sortedRequireStatements = getRemainingRequireStatements(inv);
 
-        sortedRequireStatements.sort ( (RemainingRequire a, RemainingRequire b) -> {
+        sortedRequireStatements.sort((RemainingRequire a, RemainingRequire b) -> {
             Integer weightA = -1;
             Integer weightB = -1;
 
@@ -115,8 +115,7 @@ public class PoolStateTree {
                         RequireStatement requireStatement = (RequireStatement) statement;
 
                         if (!remainingRequirements.containsKey(statement.getName()))
-                            remainingRequirements.put(statement.getName(), new HashMap<Object, List<RequireStatement>>() {
-                            });
+                            remainingRequirements.put(statement.getName(), new HashMap<>());
 
                         Map<Object, List<RequireStatement>> statementsForNames = remainingRequirements.get(statement.getName());
 
@@ -129,11 +128,10 @@ public class PoolStateTree {
 
                     // Get remaining broadcast statement(s)
                     if (statement.getMatch().equals(BroadcastStatement.BROADCAST)) {
-                        BroadcastStatement broadcastStatement = (BroadcastStatement)statement;
+                        BroadcastStatement broadcastStatement = (BroadcastStatement) statement;
 
                         if (!remainingBroadcasts.containsKey(statement.getName()))
-                            remainingBroadcasts.put(statement.getName(), new HashMap<Object, BroadcastStatement>() {
-                            });
+                            remainingBroadcasts.put(statement.getName(), new HashMap<>());
 
                         remainingBroadcasts.get(statement.getName()).put(statement.getId(), broadcastStatement);
                     }

@@ -78,11 +78,11 @@ public class PoolReport {
                     remaining.getWhens().isEmpty();
 
             if (noMoreStatement) {
-                output.append("- [" + remaining.getName() + "] has no statement and when criteria's left. Look below for exception(s).");
+                output.append("- " + remaining + " has no statement and when criteria's left. Look below for exception(s)." + System.lineSeparator());
                 continue;
             }
 
-            output.append("- [" + remaining.getName() + "] has " + remaining.getRemainingStatements().size() + " statement(s) and has " + remaining.getWhens().size() + " when criteria(s) left:" + System.lineSeparator());
+            output.append("- " + remaining + " has " + remaining.getRemainingStatements().size() + " statement(s) and has " + remaining.getWhens().size() + " when criteria(s) left:" + System.lineSeparator());
 
             // Print when's event
             printRemainingWhensEvent(output, pool, remaining);
@@ -188,23 +188,28 @@ public class PoolReport {
     }
 
     public static class PoolError {
-        private Inv inv;
-        private Throwable throwable;
+        private final Inv inv;
+        private final Throwable throwable;
+
+        PoolError(Inv inv, Throwable throwable) {
+            if (inv == null) {
+                throw new IllegalArgumentException("Inv is required");
+            }
+
+            if (throwable == null) {
+                throw new IllegalArgumentException("Throwable is required");
+            }
+
+            this.inv = inv;
+            this.throwable = throwable;
+        }
 
         public Inv getInv() {
             return inv;
         }
 
-        public void setInv(Inv inv) {
-            this.inv = inv;
-        }
-
         public Throwable getThrowable() {
             return throwable;
-        }
-
-        public void setThrowable(Throwable throwable) {
-            this.throwable = throwable;
         }
     }
 }

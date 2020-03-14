@@ -58,7 +58,15 @@ class InvTest {
     @Test
     void digestion_fail() {
         assertThrows(IllegalArgumentException.class, {
-            new Inv.Digestion().addResults(null)
+            new Inv.Digestion().checkStatementResult(null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new Inv.Digestion().checkStatementResult(new NetworkValuablePool(), null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new Inv.Digestion().checkStatementResult(null, new RequireStatement())
         })
     }
 

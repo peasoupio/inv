@@ -45,11 +45,7 @@ public class InvHandler {
         try {
             body.call();
         } catch (Exception ex) {
-            PoolReport.PoolError exception = new PoolReport.PoolError();
-            exception.setInv(inv);
-            exception.setThrowable(ex);
-
-            executor.getReport().getErrors().add(exception);
+            executor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
         }
 
         // Make sure, at any cost, delegate.name is not empty before dumping for the first time
@@ -63,7 +59,7 @@ public class InvHandler {
             String scm = (String) script.getBinding().getVariables().get("scm");
             final String file = (String) script.getBinding().getVariables().get("$0");
 
-            Logger.info("[" + scm + "] [" + file + "] [" + inv.getName() + "]");
+            Logger.info("[" + scm + "] [" + file + "] " + inv);
         }
 
     }

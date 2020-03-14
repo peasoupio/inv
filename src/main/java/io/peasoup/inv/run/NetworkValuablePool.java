@@ -13,13 +13,13 @@ public class NetworkValuablePool {
     private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    private final Set<Inv> remainingInvs = new HashSet<>();
-    private final Set<Inv> totalInvs = new HashSet<>();
+    private final Set<Inv> remainingInvs = ConcurrentHashMap.newKeySet();
+    private final Set<Inv> totalInvs = ConcurrentHashMap.newKeySet();
     protected volatile String runningState = RUNNING;
     private volatile boolean isDigesting = false;
 
     private ExecutorService invExecutor;
-    private CompletionService<Inv.Digestion> invCompletionService;
+    private CompletionService<EatenInv> invCompletionService;
 
     /**
      * Digest invs and theirs statements.
@@ -68,7 +68,6 @@ public class NetworkValuablePool {
         // All digestions
         Inv.Digestion digestion = new Inv.Digestion();
 
-
         // Get sorted INV
         List<Inv> sorted = sortRemainingInvs();
 
@@ -83,10 +82,10 @@ public class NetworkValuablePool {
             errorsCaught = eatSynchronized(sorted, digestion);
 
         // Batch all require resolve at once
-        boolean hasResolvedSomething = digestion.getRequires() != 0;
+        boolean hasResolvedSomething = digestion.getRequires() > 0;
 
         // Check for new broadcasts
-        boolean hasStagedSomething = stageBroadcasts();
+        boolean hasStagedSomething = digestion.getBroadcasts() > 0;
 
         // Check for new dumps
         List<Inv> invsCompleted = cleanCompletedInvs();
@@ -124,10 +123,10 @@ public class NetworkValuablePool {
     /**
      * Eat synchronously INV collection
      * @param invs INV collection to eat
-     * @param currentDigestion Current digestion
+     * @param cycleDigestion Cycle digestion
      * @return Pool errors
      */
-    private Queue<PoolReport.PoolError> eatSynchronized(List<Inv> invs, Inv.Digestion currentDigestion) {
+    private Queue<PoolReport.PoolError> eatSynchronized(List<Inv> invs, Inv.Digestion cycleDigestion) {
 
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
 
@@ -136,11 +135,16 @@ public class NetworkValuablePool {
             final Inv inv = invs.get(i);
 
             String stateBefore = runningState;
-            currentDigestion.concat(eatInv(inv, poolErrors));
+            Inv.Digestion invDigest = eatInv(inv, poolErrors).getDigestion();
+
+            cycleDigestion.concat(invDigest);
 
             // If changed, quit
             if (!stateBefore.equals(runningState)) break;
         }
+
+        // Check for broadcasts
+        stageBroadcasts();
 
         return poolErrors;
     }
@@ -148,10 +152,10 @@ public class NetworkValuablePool {
     /**
      * Eat "multithread-ly" INV collection
      * @param invs INV collection to eat
-     * @param currentDigestion Current digestion
+     * @param cycleDigestion Cycle digestion
      * @return Pool errors
      */
-    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion currentDigestion) {
+    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion cycleDigestion) {
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
 
         // Create executor and completion service
@@ -160,16 +164,43 @@ public class NetworkValuablePool {
             invCompletionService = new ExecutorCompletionService<>(invExecutor);
         }
 
-        // Use fori-loop for speed
+        // Initial queueing
         for (int i = 0; i < invs.size(); i++) {
             final Inv inv = invs.get(i);
             invCompletionService.submit(() -> eatInv(inv, poolErrors) );
         }
 
-        // Wait for invs to be digested in parallel.
-        for (int i = 0; i < invs.size(); i++) {
+        // Define a new  dynamic stack (for reallocation)
+        int taskRemaining = invs.size();
+
+        // Until stack if not empty, keep processing
+        while(taskRemaining > 0) {
+            taskRemaining--;
+
             try {
-                currentDigestion.concat(invCompletionService.take().get());
+                // Get next eaten INV
+                EatenInv eatenInv = invCompletionService.take().get();
+
+                // If error was caught, check next Inv
+                if (eatenInv.hasError())
+                    continue;
+
+                // If INV could be resumed, do it right now
+                if (eatenInv.couldResumeEatNow()) {
+                    // Submit INV again
+                    taskRemaining++;
+                    invCompletionService.submit(() -> eatInv(eatenInv.getInv(), poolErrors) );
+
+                    Logger.debug(eatenInv.getInv() + " eaten back now");
+                }
+
+                // Stage broadcasts
+                if (eatenInv.getDigestion().getBroadcasts() > 0)
+                    stageBroadcasts();
+
+                // Concat digestion metrics
+                cycleDigestion.concat(eatenInv.getDigestion());
+
             } catch (Exception e) {
                 Logger.error(e);
             }
@@ -185,38 +216,48 @@ public class NetworkValuablePool {
      * @return A new digestion for this specific INV
      */
     @SuppressWarnings("squid:S1181")
-    private Inv.Digestion eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
-        Inv.Digestion currentDigest = null;
+    private EatenInv eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
+        Inv.Digestion currentDigest = new Inv.Digestion();
+        boolean hasError = false;
 
         try {
-            currentDigest = inv.digest();
+            currentDigest.concat(inv.digest());
         } catch (Throwable t) {
-            PoolReport.PoolError exception = new PoolReport.PoolError();
-            exception.setInv(inv);
-            exception.setThrowable(t);
+            poolErrors.add(new PoolReport.PoolError(inv, t));
 
-            poolErrors.add(exception);
-
-            // issues:8
+            // Remove upon errors
             remainingInvs.remove(inv);
+
+            // Set error tracker to true
+            hasError = true;
+
+            Logger.fail(inv + " caught an error. Report will be displayed on pool termination.");
         }
 
-        return currentDigest;
+        return new EatenInv(inv, currentDigest, hasError);
     }
 
     /**
      * Batch and add staging broadcasts once to prevent double-broadcasts on the same digest.
      * @return true if a broadcast was digested, or false if none.
      */
-    private boolean stageBroadcasts() {
+    private synchronized boolean stageBroadcasts() {
         boolean hasStagedSomething = false;
 
         for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : stagingStatements.entrySet()) {
-            availableStatements.get(statements.getKey()).putAll(statements.getValue());
+            Map<Object, BroadcastResponse> inChannel = availableStatements.get(statements.getKey());
+            Iterator<Map.Entry<Object, BroadcastResponse>> outChannel = statements.getValue().entrySet().iterator();
 
-            if (!statements.getValue().isEmpty()) hasStagedSomething = true;
+            Logger.debug("[POOL] available:" + availableStatements.get(statements.getKey()).size() + " " + ", staged:" + statements.getValue().size());
 
-            statements.getValue().clear();
+            while(outChannel.hasNext()) {
+                hasStagedSomething = true;
+
+                Map.Entry<Object,BroadcastResponse> response = outChannel.next();
+                inChannel.putIfAbsent(response.getKey(), response.getValue());
+
+                outChannel.remove();
+            }
         }
 
         return hasStagedSomething;
@@ -231,9 +272,7 @@ public class NetworkValuablePool {
         for (Inv inv : remainingInvs) {
 
             // Has more steps, more whens or statements, it is not done yet
-            if (!inv.getRemainingStatements().isEmpty() ||
-                !inv.getSteps().isEmpty() ||
-                !inv.getWhens().isEmpty()) {
+            if (!inv.isCompleted()) {
                 continue;
             }
 
@@ -377,11 +416,9 @@ public class NetworkValuablePool {
             return false;
         }
 
-
         if (statement.getState() != StatementStatus.SUCCESSFUL) {
             return false;
         }
-
 
         if (!(statement instanceof BroadcastStatement)) return false;
 
@@ -457,5 +494,38 @@ public class NetworkValuablePool {
 
     public void setIsDigesting(boolean isDigesting) {
         this.isDigesting = isDigesting;
+    }
+
+    private class EatenInv {
+
+        private final Inv inv;
+        private final Inv.Digestion digestion;
+        private final boolean hasError;
+
+        private EatenInv(Inv inv, Inv.Digestion digestion, boolean hasError) {
+            this.inv = inv;
+            this.digestion = digestion;
+            this.hasError = hasError;
+        }
+
+        /**
+         * Determines if an INV could be eaten again right away in a same cycle
+         * @return true if eatable again, otherwise false
+         */
+        public boolean couldResumeEatNow() {
+            return !inv.isCompleted() && digestion.hasDoneSomething();
+        }
+
+        public Inv getInv() {
+            return inv;
+        }
+
+        public Inv.Digestion getDigestion() {
+            return digestion;
+        }
+
+        public boolean hasError() {
+            return hasError;
+        }
     }
 }

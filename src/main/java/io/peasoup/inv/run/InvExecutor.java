@@ -45,7 +45,7 @@ public class InvExecutor {
             for (Inv inv : pool.getRemainingInvs()) {
                 if (inv.getReady() == null) continue;
 
-                Logger.info("[" + inv.getName() + "] event ready raised");
+                Logger.info(inv + " event ready raised");
                 inv.getReady().call();
             }
 

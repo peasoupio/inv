@@ -64,7 +64,7 @@ class Execution {
     }
 
     @CompileDynamic
-    void start(boolean debugMode, boolean secureMode, List<File> scms) {
+    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<File> scms) {
         if (scms == null)
             throw new IllegalArgumentException('SCM collection is required')
 
@@ -93,7 +93,7 @@ class Execution {
 
         // Get args
         final File scmListFile = generateScmListFile(scms)
-        final List<String> args = resolveArgs(debugMode, secureMode, scmListFile)
+        final List<String> args = resolveArgs(debugMode, systemMode, secureMode, scmListFile)
 
         new Thread({
 
@@ -217,13 +217,16 @@ class Execution {
         ]
     }
 
-    private List<String> resolveArgs(boolean debugMode, boolean secureMode, File scmListFile) {
+    private List<String> resolveArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
 
         def myClassPath = System.getProperty("java.class.path")
         def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
         def appArgs = ["scm"]
 
         if (debugMode)
+            appArgs << "-d"
+
+        if (systemMode)
             appArgs << "-x"
 
         if (secureMode)

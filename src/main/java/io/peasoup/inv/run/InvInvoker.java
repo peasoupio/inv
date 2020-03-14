@@ -53,7 +53,7 @@ public class InvInvoker {
         }
 
 
-        Logger.debug("[INVOKER] file: " + scriptFile.getCanonicalPath());
+        Logger.system("[INVOKER] file: " + scriptFile.getCanonicalPath());
 
         String preferredClassname = (normalizeClassName(scriptFile) + "_" + checksum(scriptFile)).toLowerCase();
         Script myNewScript;
@@ -106,7 +106,7 @@ public class InvInvoker {
             }
             
             boolean writabledSet = cache.setWritable(true);
-            Logger.debug("[SECURITY] writable: " + writabledSet);
+            Logger.system("[SECURITY] writable: " + writabledSet);
 
             if (!cache.setReadable(true)) {
                 throw new IllegalArgumentException("Could not set readable");
@@ -123,7 +123,7 @@ public class InvInvoker {
         //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
         Files.copy(Paths.get(scriptFile.getAbsolutePath()), Paths.get(filename.getAbsolutePath()));
 
-        Logger.debug("[CACHE] file: " + filename.getAbsolutePath());
+        Logger.system("[CACHE] file: " + filename.getAbsolutePath());
 
         return filename.getAbsolutePath();
     }

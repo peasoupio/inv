@@ -155,7 +155,7 @@ public class WhenType {
                     allCompleted = false;
             }
 
-            Logger.debug(stringBuilder.toString());
+            Logger.system(stringBuilder.toString());
 
             return allCompleted;
         }

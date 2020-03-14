@@ -71,7 +71,7 @@ public class Inv {
 
             pool.checkAvailability(statement.getName());
 
-            Logger.debug("[STATEMENT] " + statement.toString() + " [INIT]");
+            Logger.system("[STATEMENT] " + statement.toString() + " [INIT]");
         }
 
         // Transfer Step(s) from delegate to INV

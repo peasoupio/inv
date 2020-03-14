@@ -23,7 +23,7 @@ class SystemChecks {
             return true
         }
 
-        Logger.debug "[PARAMS] INV_HOME: ${invHome.absolutePath}"
+        Logger.system "[PARAMS] INV_HOME: ${invHome.absolutePath}"
 
         if (!invHome.exists()) {
             Logger.fail "INV_HOME does not exists"

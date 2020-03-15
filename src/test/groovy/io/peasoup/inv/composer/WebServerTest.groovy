@@ -71,7 +71,7 @@ scm {
 
     @Test
     void run_owners() {
-        assert get("run/owners")
+        assert post("run/owners")
     }
 
     @Test

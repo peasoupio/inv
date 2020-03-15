@@ -175,11 +175,19 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
-        get("/run/owners", { Request req, Response res ->
+        post("/run/owners", { Request req, Response res ->
             if (!run)
                 return showError(res, "Run is not ready yet")
 
-            return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
+            String body = req.body()
+            Map filter = [:]
+
+            if (body)
+                filter = new JsonSlurper().parseText(body) as Map
+
+            def owners = run.owners.findAll { !filter.owner || it.key.contains(filter.owner) }
+
+            return JsonOutput.toJson(owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
                         owner     : owner,
                         selectedBy: ids.findAll { run.staged[it.value] && run.staged[it.value].selected }.size(),

@@ -2,6 +2,7 @@ package io.peasoup.inv.graph
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 import org.jgrapht.Graph
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
@@ -75,6 +76,7 @@ class RunGraph {
     }
 
     @CompileDynamic
+    @ToString
     static class RequireStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/
@@ -100,6 +102,7 @@ class RunGraph {
     }
 
     @CompileDynamic
+    @ToString
     static class BroadcastStatement implements GraphNavigator.Node {
 
         private static def RE = /^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/
@@ -125,6 +128,7 @@ class RunGraph {
     }
 
     @CompileDynamic
+    @ToString
     static class FileStatement {
 
         private static def RE = /^\[INV\] \[(\S*)\] \[(\S*)\] \[(\S*)\]\u0024/

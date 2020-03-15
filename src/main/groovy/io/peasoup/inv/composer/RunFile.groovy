@@ -31,7 +31,8 @@ class RunFile {
         ownerOfScm = (Map<String, List<String>>)runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv} ]}
         invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
 
-        nodes = runGraph.navigator.links().findAll { it.isId() }
+        // Get Id only and filter out unbloated ones
+        nodes = runGraph.navigator.links().findAll { it.isId() && runGraph.navigator.nodes.containsKey(it.value) }
 
         owners = (Map<String, List<GraphNavigator.Linkable>>) nodes.groupBy { runGraph.navigator.nodes[it.value].owner }
         names = (Map<String, List<GraphNavigator.Linkable>>) nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') }

@@ -5,12 +5,14 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.graph.RunGraph
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 @CompileStatic
 class RunFile {
 
     final private File runFile
     final private RunGraph runGraph
-
 
     final private Map<String, List<String>> ownerOfScm
     final private Map<String, RunGraph.FileStatement> invOfScm
@@ -20,6 +22,8 @@ class RunFile {
 
     final Map<String, List<GraphNavigator.Linkable>> owners
     final Map<String, List<GraphNavigator.Linkable>> names
+
+    final static Pattern ID_PATTERN = Pattern.compile('^\\[(.*)\\]\\s(.*)$')
 
     RunFile(File runFile) {
         assert runFile != null, 'Run file is required'
@@ -226,17 +230,20 @@ class RunFile {
 
         List<Reduced> reduced = links
                 .findAll { GraphNavigator.Linkable link -> !filter.id || link.value.contains(filter.id as CharSequence) }
+                .findAll { GraphNavigator.Linkable link -> !filter.owner || runGraph.navigator.nodes[link.value].owner.contains(filter.owner as CharSequence) }
                 .collect { GraphNavigator.Linkable link ->
+                    Matcher match = link.value =~ ID_PATTERN
+
+                    if (!match.matches())
+                        return null
+
                     new Reduced(
                             link: link,
                             node: runGraph.navigator.nodes[link.value],
-                            name: link.value.split(' ')[0].replace('[', '').replace(']', ''),
-                            subId: link.value.split(' ')[1].replace('[', '').replace(']', ''))
+                            name: match.group(1) as String ?: 'none',
+                            subId: match.group(2)  as String ?: 'none')
                 }
-                .findAll { it.node }
-
-        if (filter.owner)
-            reduced = reduced.findAll { it.node.owner.contains(filter.owner as CharSequence) }
+                .findAll { it && it.node }
 
         if (filter.name)
             reduced = reduced.findAll { it.name.contains(filter.name as CharSequence) }

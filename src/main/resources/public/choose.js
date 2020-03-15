@@ -46,7 +46,7 @@ Vue.component('choose-select-simple', {
 <div class="columns">
 
     <div class="column is-5">
-        <panel v-model="ownersSettings" v-show="owners.length > 0"/>
+        <panel v-model="ownersSettings" v-if="ownersSettings" />
     </div>
 
     <div class="column is-7" v-show="idPanels.length > 0">
@@ -59,20 +59,23 @@ Vue.component('choose-select-simple', {
     props: ['value'],
     data: function() {
         return {
-            notAvailable: false,
-            owners: [],
+            ownersSettings: {},
+            updateKey: 0,
             idPanels: []
         }
     },
-    computed: {
-        ownersSettings: {
-            get() {
-                var vm = this
+    methods: {
+        createOwnersSettings: function() {
+            var vm = this
 
-                var defaultIcon = 'fa-file-signature'
+            var defaultIcon = 'fa-file-signature'
+            var owners = []
+            var filters = {
+                owner: ''
+            }
 
-                var settings = {
-                    help: `
+            var settings = {
+                help: `
 <ul>
 <li>Each <i>INV</i> are under <i>owner</i>.</li>
 <li>An <i>owner</i> has many <i>statements</i> obtained from a previous execution.</li>
@@ -80,83 +83,75 @@ Vue.component('choose-select-simple', {
 <li>When selected, only <strong>broadcasts</strong> of the <i>owner</i> are shown to the right</li>
 </ul>
 `,
-                    clickable: true,
-                    title: "INV(s)",
-                    icon: defaultIcon,
-                    total: vm.owners.length,
-                    elements: vm.owners
-                }
-
-                settings.pick = function(element) {
-                    if (element == undefined)
-                        return
-
-                    if (element.sending)
-                        return
-
-                    element.icon = 'fa-spinner fa-pulse'
-                    element.sending = true
-
-                    axios.post(element.links.stage).then(response => {
-                        vm.fetchOwners()
-                    })
-                }
-
-                settings.click = function(element) {
-                    vm.addIdSettings(element)
-                }
-
-                settings.filter = function(word) {
-                    if (word == '') {
-                        settings.elements = vm.owners
-                        settings.total = vm.owners.length
-                    }
-
-                    var filtered = vm.owners.filter(function(owner) {
-                        return owner.label.indexOf(word) > -1
-                    })
-
-                    filtered.sort(compareValues('label'))
-
-                    settings.elements = filtered
-                    settings.total = filtered.length
-                }
-
-                return settings
+                clickable: true,
+                title: "INV(s)",
+                icon: defaultIcon,
+                total: owners.length,
+                updateKey: 0,
+                elements: []
             }
-        },
 
-    },
-    methods: {
+            var fetch = function() {
 
-        fetchOwners: function() {
-            var vm = this
-            vm.owners = []
+                axios.post(vm.value.api.links.run.owners, filters).then(response => {
+                    settings.elements = []
 
-            axios.get(vm.value.api.links.run.owners).then(response => {
-                response.data.forEach(function(owner) {
-                    var element = {
-                      active: false,
-                      label: owner.owner,
-                      clickable: true,
-                      pickable: true,
-                      links: owner.links,
-                      icon: ''
-                    }
+                    response.data.forEach(function(owner) {
+                        var element = {
+                          active: false,
+                          label: owner.owner,
+                          clickable: true,
+                          pickable: true,
+                          links: owner.links,
+                          icon: ''
+                        }
 
-                    if (owner.requiredBy > 0 || owner.selectedBy > 0) {
-                        element.active = true
-                        element.subLabel = owner.requiredBy + owner.selectedBy
-                    }
+                        if (owner.requiredBy > 0 || owner.selectedBy > 0) {
+                            element.active = true
+                            element.subLabel = owner.requiredBy + owner.selectedBy
+                        }
 
-                    vm.owners.push(element)
+                        settings.elements.push(element)
+                    })
+
+                    // Update settings total
+                    settings.total = settings.elements.length
+
+                    // Sort by label
+                    settings.elements.sort(compareValues('label'))
                 })
+                .catch(response => {
+                })
+            }
 
-                vm.owners.sort(compareValues('label'))
-            })
-            .catch(response => {
-                vm.notAvailable = true
-            })
+            settings.pick = function(element) {
+                if (element == undefined)
+                    return
+
+                if (element.sending)
+                    return
+
+                element.icon = 'fa-spinner fa-pulse'
+                element.sending = true
+
+                axios.post(element.links.stage).then(response => {
+                    fetch()
+                })
+            }
+
+            settings.click = function(element) {
+                vm.addIdSettings(element)
+            }
+
+            settings.filter = function(word) {
+                filters.owner = word
+                fetch()
+            }
+
+            // Initial fetch
+            fetch()
+
+            return settings
         },
         addIdSettings: function(ownerElement) {
             var vm = this
@@ -192,6 +187,7 @@ Vue.component('choose-select-simple', {
             }
 
             var fetch = function() {
+
                 axios.post(vm.value.api.links.run.search, filters).then(response => {
                     settings.elements = []
 
@@ -237,14 +233,12 @@ Vue.component('choose-select-simple', {
                     axios.post(element.inv.links.unstage, vm.filters).then(response => {
                         fetch()
 
-
                         ownerElement.subLabel--
 
                         if (ownerElement.subLabel == 0) {
                             ownerElement.active = false
                             ownerElement.subLabel = null
                         }
-
                     })
                 }
             }
@@ -263,8 +257,8 @@ Vue.component('choose-select-simple', {
             vm.idPanels.push(settings)
         }
     },
-    created: function() {
-        this.fetchOwners()
+    mounted: function() {
+        this.ownersSettings = this.createOwnersSettings()
     }
 
 })

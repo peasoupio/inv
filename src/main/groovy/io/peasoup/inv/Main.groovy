@@ -100,7 +100,15 @@ Parameters:
 
         // Make sure we setup the rolling mechanism property BEFORE any logging
         if (command.rolling())
-            setupRolling(arguments["--debug"] as boolean, arguments["--system"] as boolean)
+            setupRolling()
+
+        // Enable debug logs
+        if (arguments["--debug"] as boolean)
+            Logger.enableDebug()
+
+        // Enable system logs
+        if (arguments["--system"] as boolean)
+            Logger.enableSystem()
 
         // Do system checks
         if (new SystemChecks().consistencyFails(this)) {
@@ -161,18 +169,12 @@ Parameters:
         return null
     }
 
-    private static void setupRolling(boolean debug, boolean system) throws IOException {
+    private static void setupRolling() throws IOException {
         // Roll a new run folder
         RunsRoller.getLatest().roll()
 
         // Enable file logging
         Logger.enableFileLogging(new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath())
-
-        if (debug)
-            Logger.enableDebug()
-
-        if (system)
-            Logger.enableSystem()
     }
 
     static void main(String[] args) {

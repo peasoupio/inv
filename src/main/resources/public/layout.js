@@ -74,18 +74,18 @@ Vue.component('layout', {
         <div class="navbar-start">
           <div class="navbar-item has-dropdown is-hoverable">
               <a class="navbar-link">
-                Settings (coming soon!)
+                Settings
               </a>
 
               <div class="navbar-dropdown">
-                <a class="navbar-item">Global settings</a>
-                <a class="navbar-item">Add or remove SCM</a>
+                <a class="navbar-item" @click.stop="showGlobalSettings()">Edit global settings</a>
+                <a class="navbar-item" @click.stop="showConfigureSCMs()">Edit SCMs</a>
+                <a class="navbar-item" @click.stop="showConfigureInit()">Edit init file</a>
                 <hr class="navbar-divider">
-                <a class="navbar-item">Edit init file</a>
-                <a class="navbar-item">Pull changes</a>
-                <a class="navbar-item">Push changes</a>
+                <a class="navbar-item">Pull changes (coming soon!)</a>
+                <a class="navbar-item">Push changes (coming soon!)</a>
                 <hr class="navbar-divider">
-                <a class="navbar-item has-text-danger">Reset everything</a>
+                <a class="navbar-item has-text-danger">Reset everything (coming soon!)</a>
               </div>
             </div>
 
@@ -105,16 +105,17 @@ Vue.component('layout', {
             </div>
           </div>
         </div>
-
-
       </div>
     </nav>
-
 
     <div class="mainContent">
 
         <div class="pageloader" v-bind:class="{ 'is-active': shared.setup.booted == false }">
             <span class="title">Booting... {{progression()}}</span>
+        </div>
+
+        <div v-for="element in navbarElements()">
+            <component v-bind:is="element.template" v-model="element.model"  v-if="element.model.shared" />
         </div>
 
         <div class="columns header">
@@ -170,7 +171,20 @@ Vue.component('layout', {
                 todo: 0,
                 done: 0
             },
-
+            navbar: {
+                configureSettings: {
+                    model   : { visible: false },
+                    template: 'configure-settings'
+                },
+                configureSCMs: {
+                    model   : { visible: false },
+                    template: 'configure-scms'
+                },
+                configureInit: {
+                    model   : { visible: false },
+                    template: 'configure-init'
+                }
+            },
             steps: [
                 { name: 'Choose', template: 'choose', index: 1, showHelp: false, description: 'Choose your INVs'  },
                 { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and scms' },
@@ -189,6 +203,17 @@ Vue.component('layout', {
         }
     },
     methods: {
+        navbarElements: function() {
+            var vm = this
+            var list = []
+
+            Object.keys(vm.navbar).forEach(function(element) {
+                list.push(vm.navbar[element])
+            })
+
+            return list
+
+        },
         setup: function() {
             var vm = this
 
@@ -277,6 +302,16 @@ Vue.component('layout', {
 
             vm.setCurrentStep(previous[0])
         },
+
+        showGlobalSettings: function() {
+            this.navbar.configureSettings.model.visible = true
+        },
+        showConfigureSCMs: function() {
+            this.navbar.configureSCMs.model.visible = true
+        },
+        showConfigureInit: function() {
+            this.navbar.configureInit.model.visible = true
+        },
     },
     mounted: function() {
         var vm = this
@@ -296,15 +331,13 @@ Vue.component('layout', {
         axios.get('/api').then(response => {
             vm.shared.api = response.data
 
-            vm.setup()
-
-            /*
-            axios.get(vm.shared.api.links.scms.default).then(response => {
-                vm.shared.scms = response.data
-
-                vm.$forceUpdate()
+            // Setups menus
+            vm.navbarElements().forEach(function(element) {
+                element.model.shared = vm.shared
             })
-            */
+
+            // Proceed to setup
+            vm.setup()
         })
     }
 })

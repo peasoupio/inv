@@ -28,6 +28,10 @@
     <script src="choose-scm.js"></script>
     <script src="choose-summary.js"></script>
     <script src="configure.js"></script>
+    <script src="configure-init.js"></script>
+    <script src="configure-parameters.js"></script>
+    <script src="configure-scms.js"></script>
+    <script src="configure-settings.js"></script>
     <script src="install.js"></script>
     <script src="review.js"></script>
     <script src="promote.js"></script>
@@ -145,8 +149,8 @@
             width: 80%;
         }
 
-        .code-hidden {
-            visibility: hidden !important;
+        .configure-scms-modal {
+            width: 90%;
         }
 
         /************ Install *************/
@@ -186,18 +190,6 @@
     </div>
 
     <script>
-new Vue({
-    el: '#container',
-    data: {
-
-    },
-    methods: {
-    },
-    created: function() {
-    }
-})
-
-
 var TimeAgo = (function() {
   var self = {};
 
@@ -277,11 +269,10 @@ function websocketHost() {
     } else {
         new_uri = "ws:"
     }
-    new_uri += "//" + loc.host + loc.pathname
+    new_uri += "//" + loc.host
 
     return new_uri
 }
-
 
 Vue.directive('click-outside',{
   bind: function (el, binding, vnode) {
@@ -311,6 +302,17 @@ Vue.directive('click-outside',{
       el.removeAttribute('data-dragging');
   },
 });
+
+new Vue({
+    el: '#container',
+    data: {
+
+    },
+    methods: {
+    },
+    created: function() {
+    }
+})
     </script>
 
 </body>

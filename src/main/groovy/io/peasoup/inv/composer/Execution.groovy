@@ -17,13 +17,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @CompileStatic
 class Execution {
 
-    static volatile Integer MESSAGES_STATIC_CLUSTER_SIZE = 2048
-
     private final File scmFolder
     private final File externalParametersFolder
 
     private Process currentProcess
-    private List<List<String>> messages = []
 
     private long lastExecution = 0
     private long lastExecutionStartedOn = 0
@@ -42,8 +39,6 @@ class Execution {
         this.scmFolder = scmFolder
         this.externalParametersFolder = externalParametersFolder
 
-        resizeMessagesChunks()
-
         // Set initial last execution times
         if (latestLog().exists()) {
             lastExecution = latestLog().lastModified()
@@ -57,6 +52,23 @@ class Execution {
 
     File latestLog() {
         return new File(RunsRoller.latest.folder(), "log.txt")
+    }
+
+    File latestScmFiles() {
+        return new File(RunsRoller.runsFolder(), "scm-list.txt")
+    }
+
+    List<String> latestScmFilesList() {
+        def scmListFile = latestScmFiles()
+
+        if (!scmListFile.exists())
+            return []
+
+        return scmListFile
+                .readLines()
+                .collect {
+                    new File(it).name
+                }
     }
 
     boolean isRunning() {
@@ -86,7 +98,6 @@ class Execution {
 
         // Erase previous logs
         latestLog().delete()
-        messages.clear()
 
         // Prepare log writer
         BufferedWriter logWriter
@@ -157,12 +168,6 @@ class Execution {
             MessageStreamer.sessions.each { it.close() }
             MessageStreamer.sessions.clear()
 
-            // Cleaning scm list file
-            scmListFile.delete()
-
-            // Resize chunk
-            resizeMessagesChunks()
-
         } as Runnable).start()
     }
 
@@ -175,25 +180,6 @@ class Execution {
         }
     }
 
-    private void resizeMessagesChunks() {
-        if (!latestLog().exists())
-            return
-
-        messages.clear()
-
-        def currentBatch = []
-
-        latestLog().eachLine {
-            if (currentBatch.size() >= MESSAGES_STATIC_CLUSTER_SIZE) {
-                messages << currentBatch.collect()
-                currentBatch.clear()
-            }
-
-            currentBatch << it
-        }
-        messages << currentBatch.collect()
-    }
-
     protected synchronized void streamMessage(String message) {
         // Stream message
         MessageStreamer.sessions.each {
@@ -201,20 +187,38 @@ class Execution {
         }
     }
 
+    @CompileDynamic
     Map toMap() {
-        return [
-                lastExecution         : lastExecution,
-                lastExecutionStartedOn: lastExecutionStartedOn,
-                executions            : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
+        Map output = [
+                lastExecution: [
+                        logSize  : latestLog().length(),
+                        endedOn  : lastExecution,
+                        startedOn: lastExecutionStartedOn
+                ],
+                executions   : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                         .findAll { it.name.isInteger() }
                         .collect { it.lastModified() },
-                running               : isRunning(),
-                links                 : [
-                        steps: messages.collect { "/execution/logs/${messages.indexOf(it)}" },
+                running      : isRunning(),
+                links        : [
                         start: "/execution/start",
                         stop : "/execution/stop"
                 ]
         ]
+
+        if (isRunning()) {
+            output.links["stream"] = "/execution/log/stream"
+        }
+
+        // Add download if latest log exists
+        if (latestLog().exists()) {
+            output.links["download"] = "/execution/latest/download"
+        }
+
+        // Add latest scm files (if not running)
+        if (!isRunning() && latestScmFiles().exists())
+            output.lastExecution["scms"] = latestScmFilesList()
+
+        return output
     }
 
     private List<String> resolveArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
@@ -238,7 +242,7 @@ class Execution {
     }
 
     private File generateScmListFile(List<File> scms) {
-        def scmListFile = new File(RunsRoller.runsFolder(), "scm-list.txt")
+        def scmListFile = latestScmFiles()
         scmListFile.delete()
         scms.each {
             scmListFile << it.absolutePath + System.lineSeparator()

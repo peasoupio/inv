@@ -498,18 +498,6 @@ scm {
         assert jsonEnd
         assert jsonEnd.running == false
     }
-    @Test
-    void execution_logs() {
-        def messages = ['my-message']
-        webServer.exec.messages = [messages]
-
-        def response = get("/execution/logs/0")
-        assert response
-
-        def jsonMessages = new JsonSlurper().parseText(response)
-        assert jsonMessages instanceof List
-        assert jsonMessages[0] == messages[0]
-    }
 
     String get(String context) {
         return new URL("http://127.0.0.1:${port}/${context}".toString()).openConnection().inputStream.text

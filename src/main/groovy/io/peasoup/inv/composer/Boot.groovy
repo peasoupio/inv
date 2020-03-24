@@ -131,7 +131,7 @@ class Boot {
             println "Not present right now."
         }
 
-        println "Ready and listening on http://localhost:${webServer.configs.port}"
+        println "Ready and listening on http://localhost:${webServer.webServerConfigs.port}"
     }
 
     @WebSocket

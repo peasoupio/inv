@@ -1,131 +1,113 @@
 Vue.component('install', {
     template: `
 <div>
-    <div style="position: sticky; top: 6em; z-index: 10">
+    <div class="buttons is-right">
+        <button class="button breathe-heavy" @click="toggleFeature('autoRefresh')" v-bind:class="{ 'is-link': features.autoRefresh }">
+            <span>Auto-refresh (5 secs)</span>
+        </button>
 
-        <div class="buttons is-right">
-
-            <a class="is-link breath-heavy" @click="goToTop()">
-                Go to top
-            </a>
-            <a class="is-link breath-heavy" @click="goToEnd()">
-                Go to end
-            </a>
-
-            <div class="dropdown is-hoverable">
-                <div class="dropdown-trigger">
-                    <button class="button is-link" aria-haspopup="true" aria-controls="dropdown-menu" :disabled="execution.running">
-                        <span>Options</span>
-                        <span class="icon is-small">
-                            <i class="fas fa-angle-down" aria-hidden="true"></i>
-                        </span>
-                    </button>
+        <div class="dropdown is-hoverable">
+            <div class="dropdown-trigger">
+                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" :disabled="execution.running">
+                    <span>Options</span>
+                    <span class="icon is-small">
+                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                    </span>
+                </button>
+            </div>
+            <div class="dropdown-menu" id="dropdown-menu" role="menu" v-if="!execution.running">
+                <div class="dropdown-content">
+                    <a class="dropdown-item is-link" @click="toggleFeature('debugMode') + turnOffFeature('systemMode')">
+                        <span>Debug</span>
+                        <span class="icon is-small" v-show="features.debugMode"><i class="fas fa-check-square"></i></span>
+                        <span class="icon is-small" v-if="!features.debugMode"><i class="far fa-square"></i></span>
+                    </a>
                 </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu" v-if="!execution.running">
-                    <div class="dropdown-content">
-                        <a class="dropdown-item is-link" @click="toggleDebugMode()">
-                            <span>Debug</span>
-                            <span class="icon is-small" v-show="enableDebugMode"><i class="fas fa-check-square"></i></span>
-                            <span class="icon is-small" v-if="!enableDebugMode"><i class="far fa-square"></i></span>
-                        </a>
-                    </div>
-                    <div class="dropdown-content">
-                        <a class="dropdown-item is-link" @click="toggleSystemMode()" :disabled="execution.running">
-                            <span>System</span>
-                            <span class="icon is-small" v-show="enableSystemMode"><i class="fas fa-check-square"></i></span>
-                            <span class="icon is-small" v-if="!enableSystemMode"><i class="far fa-square"></i></span>
-                        </a>
-                    </div>
-                    <div class="dropdown-content">
-                        <a class="dropdown-item is-link" @click="toggleSecureMode()" :disabled="execution.running">
-                            <span>Secure</span>
-                            <span class="icon is-small" v-show="enableSecureMode"><i class="fas fa-check-square"></i></span>
-                            <span class="icon is-small" v-if="!enableSecureMode"><i class="far fa-square"></i></span>
-                        </a>
-                    </div>
+                <div class="dropdown-content">
+                    <a class="dropdown-item is-link" @click="toggleFeature('systemMode') + turnOffFeature('debugMode')" :disabled="execution.running">
+                        <span>System</span>
+                        <span class="icon is-small" v-show="features.systemMode"><i class="fas fa-check-square"></i></span>
+                        <span class="icon is-small" v-if="!features.systemMode"><i class="far fa-square"></i></span>
+                    </a>
+                </div>
+                <div class="dropdown-content">
+                    <a class="dropdown-item is-link" @click="toggleFeature('secureMode')" :disabled="execution.running">
+                        <span>Secure</span>
+                        <span class="icon is-small" v-show="features.secureMode"><i class="fas fa-check-square"></i></span>
+                        <span class="icon is-small" v-if="!features.secureMode"><i class="far fa-square"></i></span>
+                    </a>
                 </div>
             </div>
-
-
-
-            <button class="button is-info" :disabled="execution.running" @click="start()" v-bind:class=" { 'is-loading': execution.running }">
-                Execute
-            </button>
-
-            <button class="button is-danger" :disabled="!execution.running" @click="stop()">
-                Stop
-            </button>
         </div>
     </div>
 
-    <p class="title is-5">
-        Output
-        <span v-if="execution.lastExecution > 0">
-            <a @click="downloadLatestLog()">(raw log)</a>
-        </span>
-        <span class="icon is-small" v-if="loadingMessages">
-            <i class="fas fa-spinner fa-pulse"></i>
-        </span>
-        <p class="subtitle is-6" v-if="!execution.running">Last execution ended: {{getEndedAgo()}}, duration: {{getDuration()}}</p>
-        <p class="subtitle is-6" v-else :key="runningTimestamp">Started: {{getStartedAgo()}}
+    <p class="title is-5 has-text-centered" v-if="!execution.running">
+        Ready to execute ?
     </p>
 
-    <hr />
+    <p class="title is-5 has-text-centered" v-if="execution.running">
+        <span class="icon is-small">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                </span> Running
+        <span v-if="execution.links && execution.links.stream">(<a href="/logtrotter.html" target="_blank">Follow logs</a>)</span>
 
-    <div class="output" style="height: 75vh; overflow-y: scroll; scroll-behavior: smooth;">
-        <div ref="logContainer" ></div>
-        <div class="anchor"></div>
+    </p>
+
+    <div class="buttons is-centered">
+        <button class="button is-info" @click="start()" v-if="!execution.running">
+            Execute
+        </button>
+
+        <button class="button is-danger is-outlined" @click="stop()" v-if="execution.running">
+            Stop
+        </button>
     </div>
+
+    <p class="title is-6">
+        Latest execution
+        <span v-if="execution.links && execution.links.download">
+            (<a @click="downloadLatestLog()">download logs</a><span v-if="getFileSize()">, {{getFileSize()}}</span>)
+        </span>
+    </p>
+    <p v-if="!execution.running">Last execution ended: {{getEndedAgo()}}</p>
+    <p v-if="!execution.running">Last duration: {{getDuration()}}</p>
+    <p v-if="execution.running">Started: {{getStartedAgo()}}</p>
+
+    <!--
+    <hr />
+    <p class="title is-6">
+        Scm files loaded:
+    </p>
+    <div class="content" v-if="execution.lastExecution">
+        <ul v-if="execution.lastExecution.scms" style="column-count: 4; column-gap: 10px;">
+            <li v-for="scm in execution.lastExecution.scms"><span style="font-size: 1em">{{scm}}</span></li>
+        </ul>
+    </div>
+    -->
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
+            features: {
+                autoRefresh: false,
+                secureMode: false,
+                debugMode: false,
+                systemMode: false
+            },
 
-            enableSecureMode: true,
-            enableDebugMode: false,
-            enableSystemMode: false,
-
-            runningTimestamp: 0,
-
-            loaded: false,
-            loadingMessages: true,
             execution: {},
-            bufferProcessMaxSize: 5120,
-            bufferProcessSize: 1024,
-            bufferProcessCycleMs: 2000,
-            buffer: []
+            runningTimestamp: 0,
+            socket: undefined
         }
     },
     methods: {
-        clearLog: function(logContainer) {
-            // Reset elements
-            var child = logContainer.lastElementChild;
-            while (child) {
-                logContainer.removeChild(child);
-                child = logContainer.lastElementChild;
-            }
-        },
-        appendLog: function(logContainer, message) {
-            var vm = this
-
-            if (logContainer.children.length > vm.bufferProcessMaxSize) {
-                for(var i=0;i<12;i++) {
-                    logContainer.removeChild(logContainer.childNodes[0])
-                }
-            }
-
-            var pre = document.createElement("PRE")
-            pre.appendChild(document.createTextNode(message))
-
-            logContainer.appendChild(pre)
-        },
         downloadLatestLog: function() {
             var vm = this
-            var latestLog = vm.execution.lastExecution
+            var latestLog = vm.execution.lastExecution.startedOn
 
             axios({
-                url: vm.value.api.links.execution.downloadLatestLog,
+                url: vm.execution.links.download,
                 method: 'GET',
                 responseType: 'blob',
             }).then((response) => {
@@ -139,29 +121,23 @@ Vue.component('install', {
                 fileLink.click();
             })
         },
-        toggleDebugMode: function() {
+        toggleFeature: function(name) {
             var vm = this
 
-            vm.enableDebugMode = !vm.enableDebugMode
-            localStorage.enableDebugMode = vm.enableDebugMode
-
-            vm.enableSystemMode = false
-            localStorage.enableSystemMode = false
+            vm.features[name] = !vm.features[name]
+            localStorage[name] = vm.features[name]
         },
-        toggleSystemMode: function() {
+        turnOffFeature: function(name) {
             var vm = this
 
-            vm.enableSystemMode = !vm.enableSystemMode
-            localStorage.enableSystemMode = vm.enableSystemMode
-
-            vm.enableDebugMode = false
-            localStorage.enableDebugMode = false
+            vm.features[name] = false
+            localStorage[name] = false
         },
-        toggleSecureMode: function() {
+        turnOnFeature: function(name) {
             var vm = this
 
-            vm.enableSecureMode = !vm.enableSecureMode
-            localStorage.enableSecureMode = vm.enableSecureMode
+            vm.features[name] = true
+            localStorage[name] = true
         },
         start: function() {
             var vm = this
@@ -170,13 +146,12 @@ Vue.component('install', {
                 return
 
             var cfg = {
-                debugMode: vm.enableDebugMode,
-                systemMode: vm.enableSystemMode,
-                secureMode: vm.enableSecureMode
+                debugMode: vm.features.debugMode,
+                systemMode: vm.features.systemMode,
+                secureMode: vm.features.secureMode
             }
 
             axios.post(vm.execution.links.start, cfg).then(response => {
-                vm.execution.lastExecutionStartedOn = Date.now()
                 location.reload()
             })
         },
@@ -188,125 +163,89 @@ Vue.component('install', {
         refresh: function() {
             var vm = this
 
-            var logContainer = this.$refs.logContainer
-            vm.clearLog(logContainer)
-
             axios.get(vm.value.api.links.execution.default).then(async (response) => {
                 vm.execution = response.data
-                vm.loadingMessages = true
-
-                if (vm.execution.running) {
-                    vm.follow()
-                    return
-                }
-
-                var steps = vm.execution.links.steps.length
-
-                if (!steps) {
-                    vm.loadingMessages = false
-                    return
-                }
-
-                var fetchLog = async function(index) {
-                    return axios.get(vm.execution.links.steps[index]).then(response => {
-                        response.data.forEach(function(message) {
-                            vm.buffer.push(message)
-                        })
-
-                        if (i == steps - 1) {
-                            vm.loaded = true
-                            vm.loadingMessages = false
-                        }
-                    })
-                }
-
-                for (var i=0;i<steps;i++) {
-                    await fetchLog(i)
-                }
             })
         },
-        follow: function() {
+        autoRefresh: function() {
             var vm = this
 
-            var logContainer = this.$refs.logContainer
-            vm.clearLog(logContainer)
+            setInterval(function() {
+                if (!vm.features.autoRefresh)
+                    return
 
-            const socket = new WebSocket(websocketHost() + vm.value.api.links.execution.stream)
-            socket.addEventListener('message', function (event) {
-                //vm.appendLog(logContainer, event.data)
-                vm.buffer.push(event.data)
-            })
-            socket.addEventListener('open', function (event) {
-                vm.loadingMessages = true
-                vm.execution.running = true
-            })
-            socket.addEventListener('close', function (event) {
-                vm.loadingMessages = false
+                if (!vm.execution.running)
+                    return
 
-                axios.get(vm.value.api.links.execution.default).then(response => {
-                    vm.execution = response.data
-                    vm.execution.running = false
-                })
-            })
+                vm.refresh()
+            }, 5000)
         },
         getEndedAgo: function() {
-            return TimeAgo.inWords(this.execution.lastExecution)
+            var vm = this
+
+            if (!vm.execution.lastExecution)
+                return "never happened"
+
+            return TimeAgo.inWords(vm.execution.lastExecution.endedOn)
         },
         getDuration: function() {
-            if (!this.execution.lastExecution)
+            var vm = this
+
+            if (!vm.execution.lastExecution)
                 return "never happened"
 
-            if (!this.execution.lastExecutionStartedOn)
+            if (!vm.execution.lastExecution.endedOn)
                 return "never happened"
 
-            return new Date(this.execution.lastExecution - this.execution.lastExecutionStartedOn)
+            if (!vm.execution.lastExecution.startedOn)
+                return "never happened"
+
+            return new Date(vm.execution.lastExecution.endedOn - vm.execution.lastExecution.startedOn)
                 .toISOString()
                 .slice(11, -1)
         },
         getStartedAgo: function() {
-            if (!this.execution.running)
+            var vm = this
+
+            if (!vm.execution.running)
                 return
 
-            return TimeAgo.inWords(this.execution.lastExecutionStartedOn)
+            return TimeAgo.inWords(vm.execution.lastExecution.startedOn)
         },
-        goToTop: function() {
-            var logContainerParent = this.$refs.logContainer.parentElement
-            logContainerParent.scrollTo(0, 0)
+        getFileSize: function() {
+            var logSize = this.execution.lastExecution.logSize
+            if (!logSize)
+                return undefined
+
+            var thresh = 1024;
+            if(Math.abs(logSize) < thresh) {
+                return logSize + ' B'
+            }
+            var units = ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB']
+            var u = -1;
+            do {
+                logSize /= thresh;
+                ++u;
+            } while(Math.abs(logSize) >= thresh && u < units.length - 1);
+            return logSize.toFixed(1)+' '+units[u];
         },
-        goToEnd: function() {
-            var logContainerParent = this.$refs.logContainer.parentElement
-            logContainerParent.scrollTo(0, logContainerParent.scrollHeight)
-        }
     },
     mounted: function() {
         var vm = this
 
-        if (localStorage.enableDebugMode != undefined)
-            vm.enableDebugMode = localStorage.enableDebugMode == "true" ? true : false
+        if (localStorage.autoRefresh == "true")
+            vm.turnOnFeature('autoRefresh')
 
-        if (localStorage.enableSystemMode != undefined)
-            vm.enableSystemMode = localStorage.enableSystemMode == "true" ? true : false
+        if (localStorage.debugMode == "true")
+            vm.turnOnFeature('debugMode')
 
-        if (localStorage.enableSecureMode != undefined)
-            vm.enableSecureMode = localStorage.enableSecureMode == "true" ? true : false
+        if (localStorage.systemMode == "true")
+            vm.turnOnFeature('systemMode')
 
-        var logContainer = this.$refs.logContainer
-        setInterval(function() {
-            if (vm.execution.running)
-                vm.runningTimestamp++
-
-            if (vm.buffer.length == 0)
-                return
-
-            var maxPerCycle = vm.bufferProcessSize
-            while(maxPerCycle > 0 && vm.buffer.length > 0) {
-                maxPerCycle--
-
-                var message = vm.buffer.shift()
-                vm.appendLog(logContainer, message)
-            }
-        }, vm.bufferProcessCycleMs)
+        if (localStorage.secureMode == undefined || localStorage.secureMode == "true")
+            vm.turnOnFeature('secureMode')
 
         vm.refresh()
+        vm.autoRefresh()
     }
 })

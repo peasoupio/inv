@@ -18,7 +18,7 @@ import static spark.Spark.*
 @CompileStatic
 class WebServer {
 
-    Map configs = [:]
+    Map webServerConfigs = [:]
 
     final private String runLocation
     final private String scmsLocation
@@ -34,24 +34,22 @@ class WebServer {
     protected RunFile run
     protected Review review
 
-
-
     @CompileDynamic
     WebServer(Map args) {
 
-        configs = [
+        webServerConfigs = [
                 port: 8080
         ] + args
 
-        assert configs.workspace, "Args must include a 'workspace' (String) property."
-        assert configs.workspace instanceof CharSequence, "Args.workspace must be a String type"
+        assert webServerConfigs.workspace, "Args must include a 'workspace' (String) property."
+        assert webServerConfigs.workspace instanceof CharSequence, "Args.workspace must be a String type"
 
-        runLocation = configs.workspace as String
-        scmsLocation = configs.workspace + "/scms" as String
-        parametersLocation = configs.workspace + "/parameters" as String
+        runLocation = webServerConfigs.workspace as String
+        scmsLocation = webServerConfigs.workspace + "/scms" as String
+        parametersLocation = webServerConfigs.workspace + "/parameters" as String
 
         // Browser configs
-        port(configs.port)
+        port(webServerConfigs.port)
 
         // Static files
         def localWeb = System.getenv()["INV_LOCAL_WEB"]
@@ -113,6 +111,7 @@ class WebServer {
     }
 
     // System-wise
+    @CompileDynamic
     void system() {
         get("/stop", { Request req, Response res -> stop() })
 
@@ -120,6 +119,14 @@ class WebServer {
             return JsonOutput.toJson([
                     links: [
                             setup    : "/setup",
+                            settings : [
+                                    default: "/settings",
+                                    save: "/settings"
+                            ],
+                            initFile : [
+                                    default: "/initfile",
+                                    save: "/initfile"
+                            ],
                             run      : [
                                     default   : "/run",
                                     search    : "/run",
@@ -132,15 +139,15 @@ class WebServer {
                             scms     : [
                                     default        : "/scms",
                                     search         : "/scms",
+                                    add            : "/scms/add",
+                                    remove         : "/scms/remove",
                                     stageAll       : "/scms/stageAll",
                                     unstageAll     : "/scms/unstageAll",
                                     applyDefaultAll: "/scms/applyDefaultAll",
                                     resetAll       : "/scms/resetAll"
                             ],
                             execution: [
-                                    default          : "/execution",
-                                    stream           : "execution/log/stream",
-                                    downloadLatestLog: "/execution/latest/download"
+                                    default: "/execution"
                             ],
                             review   : [
                                     default: "/review",
@@ -152,12 +159,71 @@ class WebServer {
 
         get("/setup", { Request req, Response res ->
             return JsonOutput.toJson([
-                    booted: boot.isDone(),
+                    booted   : boot.isDone(),
                     firstTime: run == null,
-                    configs  : configs,
-                    links: [
-                        stream: "boot/stream"
+                    links    : [
+                            stream: "/boot/stream"
                     ]
+            ])
+        })
+
+        get("/settings", { Request req, Response res ->
+            return settings
+        })
+
+        post("/settings", { Request req, Response res ->
+            return settings
+
+            String body = req.body()
+            Map values = new JsonSlurper().parseText(body) as Map
+
+            settings.apply(values)
+
+            return showResult("Values parsed")
+        })
+
+        get("/initfile", { Request req, Response res ->
+            if (!webServerConfigs.initFile)
+                return ""
+
+            if (!(webServerConfigs.initFile instanceof String))
+                return showError(res, "InitFile is corrupted. Contact your administrator.")
+
+            return new File(webServerConfigs.initFile as String).text
+        })
+
+        post("/initfile", { Request req, Response res ->
+            String fileContent = req.body()
+
+            if (fileContent.isEmpty())
+                return showError(res, "Content is empty")
+
+            Integer errorCount = 0
+            List<String> exceptionMessages = []
+
+            try {
+                new CommonLoader().parseClass(fileContent)
+            } catch (MultipleCompilationErrorsException ex) {
+                errorCount = ex.errorCollector.errorCount
+                exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }
+            }
+
+            if (errorCount == 0) {
+                def initFilePath = webServerConfigs.initFile
+                File initFile
+
+                if (!(initFilePath instanceof String))
+                    initFile = new File(webServerConfigs.workspace as String, "init.groovy")
+                else
+                    initFile = new File(initFilePath as String)
+
+                initFile.delete()
+                initFile << fileContent
+            }
+
+            return JsonOutput.toJson([
+                    errorCount: errorCount,
+                    errors: exceptionMessages
             ])
         })
     }
@@ -467,6 +533,22 @@ class WebServer {
             return showResult("staged")
         })
 
+        get("/scms/add", { Request req, Response res ->
+
+            def name = req.queryParams("name")
+            if (!name)
+                return showError(res, "name is required")
+
+            // Make sure to get the latest information
+            if (!scms.reload(name))
+                return showError(res, "No SCM found for the specified name")
+
+            def element = scms.elements[name]
+            def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
+
+            return JsonOutput.toJson(output)
+        })
+
         post("/scms/unstage", { Request req, Response res ->
 
             def name = req.queryParams("name")
@@ -493,7 +575,6 @@ class WebServer {
             String source = req.body()
             Integer errorCount = 0
             List<String> exceptionMessages = []
-
 
             try {
                 new CommonLoader().parseClass(source)

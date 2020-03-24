@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <title>INV - Composer - Log trotter</title>
+
+    <style>
+
+        pre {
+            margin: 0
+        }
+
+        .output {
+            width: 100%;
+        }
+
+        .output * {
+            padding: 0;
+            white-space: pre-wrap;
+            color: hsl(0, 0%, 21%);
+            overflow-anchor: none;
+        }
+
+        .output .anchor {
+            overflow-anchor: auto;
+            height: 1px;
+        }
+    </style>
+</head>
+<body>
+<div class="output">
+    <div id="logContainer" ></div>
+    <div class="anchor"></div>
+</div>
+<script>
+function LogTrotter() {
+    var logContainer = document.getElementById("logContainer")
+
+    // Object definition
+    var self = this
+
+    self.bufferProcessMaxSize = 5120
+    self.bufferProcessSize = 128
+    self.bufferProcessCycleMs = 500
+    self.buffer = []
+
+    self.websocketHost = function() {
+        var loc = window.location, new_uri
+        if (loc.protocol === "https:") {
+            new_uri = "wss:"
+        } else {
+            new_uri = "ws:"
+        }
+        new_uri += "//" + loc.host
+
+        return new_uri
+    }
+
+    self.clearLog = function() {
+        // Reset elements
+        var child = logContainer.lastElementChild;
+        while (child) {
+            logContainer.removeChild(child);
+            child = logContainer.lastElementChild;
+        }
+    }
+
+    self.appendLog = function(frag, message) {
+        logContainer.innerHtml += message + '\n'
+
+        /*
+        if (logContainer.children.length > self.bufferProcessMaxSize) {
+            for(var i=0;i<12;i++) {
+                logContainer.removeChild(logContainer.childNodes[0])
+            }
+        }
+        */
+
+        var pre = document.createElement("PRE")
+        pre.appendChild(document.createTextNode(message))
+
+        frag.appendChild(pre)
+    }
+
+    self.follow = function() {
+        this.clearLog()
+
+        const socket = new WebSocket(self.websocketHost() + "/execution/log/stream")
+        socket.addEventListener('message', function (event) {
+            self.buffer.push(event.data)
+        })
+        socket.addEventListener('open', function (event) {
+
+        })
+        socket.addEventListener('close', function (event) {
+
+        })
+    }
+
+    self.start = function() {
+        self.follow()
+
+        setInterval(function() {
+            if (self.buffer.length == 0)
+                return
+
+            var maxPerCycle = self.bufferProcessSize
+            var frag = document.createDocumentFragment()
+
+            while(maxPerCycle > 0 && self.buffer.length > 0) {
+                maxPerCycle--
+
+                var message = self.buffer.shift()
+                self.appendLog(frag, message)
+            }
+
+            logContainer.appendChild(frag)
+
+        }, self.bufferProcessCycleMs)
+    }
+
+    return self
+}
+
+var logTrotter = new LogTrotter()
+logTrotter.start()
+</script>
+</body>
+</html>

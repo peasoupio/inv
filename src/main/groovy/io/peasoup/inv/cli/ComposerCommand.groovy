@@ -7,8 +7,16 @@ import io.peasoup.inv.composer.WebServer
 @CompileStatic
 class ComposerCommand implements CliCommand {
 
+    Map settings
+
     int call() {
-        return new WebServer(workspace: Home.getCurrent().absolutePath)
+        if (!settings)
+            settings = [:]
+
+        if (!settings.workspace)
+            settings.workspace = Home.getCurrent().absolutePath
+
+        return new WebServer(settings)
                 .map()
     }
 

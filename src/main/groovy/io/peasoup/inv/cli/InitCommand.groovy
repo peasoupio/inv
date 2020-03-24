@@ -21,7 +21,14 @@ class InitCommand implements CliCommand {
         // Change currentHome for current process (and others spawned by composer.Execution
         Home.setCurrent(report.repository.path)
 
-        new ComposerCommand().call()
+        def composerCommand = new ComposerCommand()
+
+        // Define initFile
+        composerCommand.settings = [
+            initFile: scmFilePath
+        ]
+
+        return composerCommand.call()
     }
 
     boolean rolling() {

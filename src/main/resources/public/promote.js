@@ -3,7 +3,7 @@ Vue.component('promote', {
 <div>
     <p class="title is-5 has-text-centered">Do you wish to promote your latest run?</p>
     <div class="buttons is-centered">
-        <button class="button is-danger" @click="promote()" :disabled="promoted" v-bind:class=" { 'is-loading': promoting }">
+        <button class="button is-danger is-outlined" @click="promote()" :disabled="promoted" v-bind:class=" { 'is-loading': promoting }">
             <span>Sure</span>
             <span class="icon is-small" v-show="promoted">
                 <i class="fas fa-check"></i>

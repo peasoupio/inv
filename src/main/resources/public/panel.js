@@ -1,6 +1,6 @@
 Vue.component('panel', {
     template: `
-<nav class="panel">
+<nav class="panel" v-if="value.elements">
     <p class="panel-heading">
         <a class="icon is-pulled-left" v-show="value.help" @click="showHelp = !showHelp" style="margin-right: 0.75em">
             <i class="fas fa-question-circle" aria-hidden="true"></i>

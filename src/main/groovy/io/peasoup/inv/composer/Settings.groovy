@@ -22,7 +22,7 @@ class Settings {
         this.settingsFile = settingsFile
 
         if (settingsFile.exists())
-            settings += new JsonSlurper().parse(settingsFile.newReader())
+            apply(new JsonSlurper().parse(settingsFile.newReader()) as Map)
     }
 
     Map filters() {
@@ -62,7 +62,16 @@ class Settings {
     }
 
     synchronized void save() {
-        settingsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(settings)))
+        settingsFile.write(toString())
+    }
+
+    void apply(Map values) {
+        settings += values
+    }
+
+    @Override
+    String toString() {
+        return JsonOutput.prettyPrint(JsonOutput.toJson(settings))
     }
 
 }

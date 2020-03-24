@@ -158,7 +158,9 @@ Vue.component('install', {
         stop: function() {
             var vm = this
 
-            axios.post(vm.execution.links.stop)
+            axios.post(vm.execution.links.stop).then(response => {
+               location.reload()
+            })
         },
         refresh: function() {
             var vm = this

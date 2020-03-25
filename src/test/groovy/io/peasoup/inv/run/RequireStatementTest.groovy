@@ -15,6 +15,36 @@ class RequireStatementTest {
     }
 
     @Test
+    void ok() {
+
+        inv {
+            name "provide"
+            broadcast inv.Element
+        }
+
+        inv {
+            name "consume"
+            require inv.Element
+        }
+
+        def report = executor.execute()
+
+        assert report.isOk()
+
+        def requireStatement = executor
+                .pool
+                .totalInvs
+                .find { it.name == "consume" }
+                .totalStatements
+                .first() as RequireStatement
+
+        assert requireStatement
+        assert requireStatement.state == StatementStatus.SUCCESSFUL
+        assert !requireStatement.unbloatable
+        assert requireStatement.toString().contains("[REQUIRE]")
+    }
+
+    @Test
     void ok_with_unbloating() {
 
         boolean unresolvedRaised = false
@@ -35,9 +65,17 @@ class RequireStatementTest {
             }
         }
 
-        executor.execute()
+        def report = executor.execute()
 
+        assert report.isOk()
         assert unresolvedRaised
+
+        def requireStatement = executor.pool.totalInvs.first().totalStatements.first() as RequireStatement
+
+        assert requireStatement
+        assert requireStatement.unbloatable
+        assert requireStatement.toString().contains("[UNBLOATABLE]")
+
     }
 
     @Test
@@ -57,8 +95,9 @@ class RequireStatementTest {
             }
         }
 
-        executor.execute()
+        def report = executor.execute()
 
+        assert !report.isOk()
         assert !unresolvedRaised
     }
 
@@ -81,7 +120,9 @@ class RequireStatementTest {
             }
         }
 
-        executor.execute()
+        def report = executor.execute()
+
+        assert report.isOk()
     }
 
     @Test

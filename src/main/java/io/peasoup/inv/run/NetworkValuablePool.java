@@ -14,6 +14,7 @@ public class NetworkValuablePool {
     private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
     private final Set<Inv> remainingInvs = ConcurrentHashMap.newKeySet();
+    private final Set<Inv> completedInvs = ConcurrentHashMap.newKeySet();
     private final Set<Inv> totalInvs = ConcurrentHashMap.newKeySet();
     protected volatile String runningState = RUNNING;
     private volatile boolean isDigesting = false;
@@ -284,6 +285,7 @@ public class NetworkValuablePool {
         }
 
         remainingInvs.removeAll(invsDone);
+        completedInvs.addAll(invsDone);
 
         return invsDone;
     }
@@ -484,6 +486,10 @@ public class NetworkValuablePool {
 
     public final Set<Inv> getRemainingInvs() {
         return remainingInvs;
+    }
+
+    public final Set<Inv> getCompletedInvs() {
+        return completedInvs;
     }
 
     public final Set<Inv> getTotalInvs() {

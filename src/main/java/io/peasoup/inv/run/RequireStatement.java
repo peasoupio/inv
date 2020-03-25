@@ -25,6 +25,9 @@ public class RequireStatement implements Statement {
 
     @Override
     public String toString() {
+        if (unbloatable)
+            return getInv() + " => [UNBLOATABLE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+
         return getInv() + " => [REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
     }
 

@@ -60,10 +60,10 @@ Vue.component('choose-select-simple', {
         <div class="modal-content" style="width: 80%">
             <div class="box" v-click-outside="closeWhoBroughtMe">
                 <h1 class="title is-3">Who brought: {{whoBroughtMe}}</h1>
-                <div v-if="!whoBroughtMeTree">
+                <div v-if="!whoBroughtMeTree || !whoBroughtMeTree.length">
                     <p class="has-text-centered">Nobody. Maybe it is selected without any requirement?</p>
                 </div>
-                <div class="columns is-multiline">
+                <div class="columns is-multiline is-centered">
                     <div class="column is-4 is-primary" v-for="branch in whoBroughtMeTree">
                         <div class="notification">
                             <p>Required: <strong>{{branch[0].value}}</strong></p>
@@ -74,7 +74,7 @@ Vue.component('choose-select-simple', {
                                     <span class="tag is-primary" v-else>{{leaf.value}}</span>
                                 </p>
                                 <p v-if="leaf.id">
-                                    <span class="tag" style="white-space: normal;">{{leaf.value}}</span>
+                                    <span class="tag" style="white-space: normal; display: flex; height: fit-content">{{leaf.value}}</span>
                                 </p>
                                 <p v-if="index < branch.length - 1">
                                     <span class="icon">

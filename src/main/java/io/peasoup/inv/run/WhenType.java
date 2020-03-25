@@ -81,7 +81,7 @@ public class WhenType {
 
             // Otherwise, make sure it's not remaining, thus not completed
             if (whenData.getEvent() == WhenEvent.Events.COMPLETED &&
-                !pool.getRemainingInvs().contains(other))
+                pool.getCompletedInvs().contains(other))
                 return 2;
 
             // By default, return false
@@ -146,7 +146,7 @@ public class WhenType {
             stringBuilder.append("[WHEN] inv: " + inv.getName() + ", criteria: " + whenData.toString() + ", results: ");
 
             for(Inv matchInv : matchInvs) {
-                boolean completed = !pool.getRemainingInvs().contains(matchInv) &&
+                boolean completed = pool.getCompletedInvs().contains(matchInv) &&
                         pool.getTotalInvs().contains(matchInv);
 
                 stringBuilder.append(matchInv + " is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ");

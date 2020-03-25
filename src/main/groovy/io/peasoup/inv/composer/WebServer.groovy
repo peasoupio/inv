@@ -135,6 +135,7 @@ class WebServer {
                                     selected  : "/run/selected",
                                     stageAll  : "/run/stageAll",
                                     unstageAll: "/run/unstageAll",
+                                    tree      : "/run/tree",
                             ],
                             scms     : [
                                     default        : "/scms",
@@ -260,7 +261,8 @@ class WebServer {
                         requiredBy: ids.findAll { run.staged[it.value] && run.staged[it.value].required }.size(),
                         links     : [
                                 stage  : "/run/stage?owner=${owner}",
-                                unstage: "/run/unstage?owner=${owner}"
+                                unstage: "/run/unstage?owner=${owner}",
+                                tree: "/run/tree?id=${owner}"
                         ]
                 ]
             })
@@ -344,6 +346,15 @@ class WebServer {
             settings.save()
 
             return showResult("Ok")
+        })
+
+        get("/run/tree", { Request req, Response res ->
+            if (!run)
+                return showError(res, "Run is not ready yet")
+
+            def id = req.queryParams("id")
+
+            return JsonOutput.toJson(run.getPathWithRequired(id))
         })
     }
 

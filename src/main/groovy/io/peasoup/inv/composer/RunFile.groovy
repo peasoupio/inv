@@ -42,6 +42,42 @@ class RunFile {
         names = (Map<String, List<GraphNavigator.Linkable>>) nodes.groupBy { it.value.split(' ')[0].replace('[', '').replace(']', '') }
     }
 
+    List<List<GraphNavigator.Linkable>> getPathWithRequired(String destination) {
+        assert destination, 'Source is required'
+
+        def output = []
+        def owner = new GraphNavigator.Owner(value: destination)
+
+        // Get owners of required staged
+        def stagedOwners = staged
+            .values()
+            .findAll { it.selected }
+            .collect {
+                def node = runGraph.navigator.nodes[it.link.value]
+
+                if (!node)
+                    return null
+
+                return node.owner
+            }
+            .findAll {
+                it && it != destination
+            }
+            .unique()
+
+        for(String source : stagedOwners) {
+            def path = runGraph.navigator.getPaths(new GraphNavigator.Owner(value: source), owner)
+
+            // If path empty, skip
+            if (!path)
+                continue
+
+            output.add(path)
+        }
+
+        return output
+    }
+
     synchronized void stage(String id) {
         assert id, 'Id is required'
 

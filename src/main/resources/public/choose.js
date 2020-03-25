@@ -54,14 +54,50 @@ Vue.component('choose-select-simple', {
             <panel v-model="idPanels[index]" />
         </div>
     </div>
+
+    <div class="modal is-active" v-show="whoBroughtMeTree">
+        <div class="modal-background"></div>
+        <div class="modal-content" style="width: 80%">
+            <div class="box" v-click-outside="closeWhoBroughtMe">
+                <h1 class="title is-3">Who brought: {{whoBroughtMe}}</h1>
+                <div v-if="!whoBroughtMeTree">
+                    <p class="has-text-centered">Nobody. Maybe it is selected without any requirement?</p>
+                </div>
+                <div class="columns is-multiline">
+                    <div class="column is-4 is-primary" v-for="branch in whoBroughtMeTree">
+                        <div class="notification">
+                            <p>Required: <strong>{{branch[0].value}}</strong></p>
+                            <hr />
+                            <div class="has-text-centered" v-for="(leaf, index) in branch">
+                                <p v-if="leaf.owner">
+                                    <span class="tag is-primary" v-if="leaf.value == whoBroughtMe"><strong>{{leaf.value}}</strong></span>
+                                    <span class="tag is-primary" v-else>{{leaf.value}}</span>
+                                </p>
+                                <p v-if="leaf.id">
+                                    <span class="tag" style="white-space: normal;">{{leaf.value}}</span>
+                                </p>
+                                <p v-if="index < branch.length - 1">
+                                    <span class="icon">
+                                      <i class="fas fa-angle-down"></i>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
-            ownersSettings: {},
             updateKey: 0,
-            idPanels: []
+            ownersSettings: {},
+            idPanels: [],
+            whoBroughtMe: null,
+            whoBroughtMeTree: null
         }
     },
     methods: {
@@ -96,22 +132,9 @@ Vue.component('choose-select-simple', {
                 axios.post(vm.value.api.links.run.owners, filters).then(response => {
                     settings.elements = []
 
+                    // Create elements from owner's data
                     response.data.forEach(function(owner) {
-                        var element = {
-                          active: false,
-                          label: owner.owner,
-                          clickable: true,
-                          pickable: true,
-                          links: owner.links,
-                          icon: ''
-                        }
-
-                        if (owner.requiredBy > 0 || owner.selectedBy > 0) {
-                            element.active = true
-                            element.subLabel = owner.requiredBy + owner.selectedBy
-                        }
-
-                        settings.elements.push(element)
+                        settings.elements.push(vm.createOwnerElement(owner, fetch))
                     })
 
                     // Update settings total
@@ -121,21 +144,6 @@ Vue.component('choose-select-simple', {
                     settings.elements.sort(compareValues('label'))
                 })
                 .catch(response => {
-                })
-            }
-
-            settings.pick = function(element) {
-                if (element == undefined)
-                    return
-
-                if (element.sending)
-                    return
-
-                element.icon = 'fa-spinner fa-pulse'
-                element.sending = true
-
-                axios.post(element.links.stage).then(response => {
-                    fetch()
                 })
             }
 
@@ -152,6 +160,68 @@ Vue.component('choose-select-simple', {
             fetch()
 
             return settings
+        },
+        createOwnerElement: function(owner, fetch) {
+            var vm = this
+
+            var element = {
+              active: false,
+              label: owner.owner,
+              clickable: true,
+              links: owner.links,
+              icon: '',
+              options: [{
+              // Add 'Pick' option
+                  label: 'Pick',
+                  click: function(element) {
+                     if (element.sending)
+                         return
+
+                     element.icon = 'fa-spinner fa-pulse'
+                     element.sending = true
+
+                     axios.post(element.links.stage).then(response => {
+                         fetch()
+                     })
+                  }
+              }]
+            }
+
+            // Check if active
+            if (owner.requiredBy > 0 || owner.selectedBy > 0) {
+                element.active = true
+                element.subLabel = owner.requiredBy + owner.selectedBy
+            }
+
+            // Add 'unpick'
+            if (owner.selectedBy > 0) {
+                element.options.push({
+                    label: 'Unpick?',
+                    click: function(element) {
+                        element.icon = 'fa-spinner fa-pulse'
+                         element.sending = true
+
+                         axios.post(element.links.unstage).then(response => {
+                             fetch()
+                         })
+                    }
+                })
+            }
+
+            // Add 'who brought me'
+            if (element.active) {
+                element.options.push({
+                    label: 'Who brought me?',
+                    click: function(element) {
+                        axios.get(element.links.tree).then(response => {
+                            vm.whoBroughtMe = element.label
+                            vm.whoBroughtMeTree = response.data
+                        })
+                    }
+                })
+            }
+
+            return element
         },
         addIdSettings: function(ownerElement) {
             var vm = this
@@ -255,6 +325,9 @@ Vue.component('choose-select-simple', {
 
             fetch()
             vm.idPanels.push(settings)
+        },
+        closeWhoBroughtMe: function() {
+            this.whoBroughtMeTree = null
         }
     },
     mounted: function() {

@@ -59,7 +59,24 @@ Vue.component('panel', {
 
             <span style="width: 100%" v-html="element.label"></span>
 
-            <a class="button" style="font-size: 0.80em" @click.stop="pick(element)" v-if="element.pickable">Pick</a>
+            <div class="dropdown is-hoverable is-right" v-if="element.options">
+                <div class="dropdown-trigger">
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                        <span>Options</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-angle-right" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                    <div class="dropdown-content" v-for="option in element.options">
+                        <a @click.stop="option.click(element)" class="dropdown-item"  style="font-size: 0.80em">
+                            {{option.label}}
+                        </a>
+                    </div>
+                </div>
+            </div>
         </a>
     </span>
 

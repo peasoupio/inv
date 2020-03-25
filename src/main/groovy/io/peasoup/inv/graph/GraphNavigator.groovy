@@ -2,6 +2,7 @@ package io.peasoup.inv.graph
 
 import groovy.transform.CompileStatic
 import org.jgrapht.Graph
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath
 import org.jgrapht.alg.util.NeighborCache
 import org.jgrapht.graph.DefaultEdge
 
@@ -183,6 +184,27 @@ class GraphNavigator {
         }
 
         return total
+    }
+
+    List<Linkable> getPaths(Linkable leaf, Linkable root) {
+        assert leaf
+        assert root
+
+        assert g.containsVertex(leaf)
+        assert g.containsVertex(root)
+
+        def directedPaths = new DijkstraShortestPath<Linkable, DefaultEdge>(g)
+
+        def sourcePath = directedPaths.getPaths(leaf)
+        def destPath = sourcePath.getPath(root)
+
+        if (!destPath)
+            return []
+
+        def output = destPath.vertexList
+        //output.removeAll { it.isId() }
+
+        return output
     }
 
     /**

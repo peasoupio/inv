@@ -30,7 +30,10 @@ class DeltaGraph {
 
             // Get properties
             Integer index = baseIndexes[link.value]
-            assert index, 'Index is required for link'
+
+            // Whether an error or unbloated, to not process
+            if (!index)
+                continue
 
             def linksNode = baseGraph.navigator.nodes[link.value]
             assert linksNode, "Link's node cannot be null"

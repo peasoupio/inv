@@ -8,7 +8,6 @@ class RunGraphTest {
     @Test
     void ok() {
         def logOutput1Txt =  new File(getClass().getResource('/baseRun.txt').toURI())
-
         def runGraph = new RunGraph(logOutput1Txt.newReader())
 
         // test nodes
@@ -34,6 +33,20 @@ class RunGraphTest {
 
         assert runGraph.toPlainList()
         assert runGraph.toDotGraph()
+    }
 
+    @Test
+    void getPaths() {
+        def logOutput1Txt =  new File(getClass().getResource('/baseRun.txt').toURI())
+        def runGraph = new RunGraph(logOutput1Txt.newReader())
+
+        def path = runGraph.navigator.getPaths(
+                new GraphNavigator.Owner(value: "appA"),
+                new GraphNavigator.Owner(value: "ServerA"))
+
+        assert path
+        assert path.size() == 5
+        assert path[0] == new GraphNavigator.Owner(value: "appA")
+        assert path[4] == new GraphNavigator.Owner(value: "ServerA")
     }
 }

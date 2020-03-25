@@ -104,34 +104,6 @@ Vue.component('configure-scms-details', {
             </div>
         </div>
     </div>
-
-    <!--
-    <div class="modal is-active" v-if="showWhoBroughtMe">
-        <div class="modal-background"></div>
-        <div class="modal-content">
-            <div class="box" v-click-outside="closeWhoBroughtMe">
-                <h1 class="subtitle is-1">Who brought me?</h1>
-                <table class="table is-fullwidth is-bordered">
-                    <thead>
-                    <tr class="field">
-                        <th>Owner</th>
-                        <th>Name</th>
-                        <th>ID</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="other in whoBroughtMe(showWhoBroughtMe)">
-                        <td>{{other.owner}}</td>
-                        <td>{{other.name}}</td>
-                        <td>{{other.id}}</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    -->
-
 </div>
 `,
     props: ['value'],
@@ -257,10 +229,7 @@ Vue.component('configure-scms-details', {
             vm.sending = false
             vm.saved = false
             vm.edited = false
-        },
-        /*closeWhoBroughtMe: function() {
-            this.showWhoBroughtMe = ''
-        }*/
+        }
     },
     mounted: function() {
         var vm = this

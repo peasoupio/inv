@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-    <link rel="stylesheet" href="bulma.css">
+    <link rel="stylesheet" href="vendor/bulma.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-pageloader@0.3.0/dist/css/bulma-pageloader.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 
@@ -92,6 +92,13 @@
 
         .pageloader::after {
             border-color: #000;
+        }
+
+        .dropdown.is-right .dropdown-menu {
+            left: 100%;
+            top: 0;
+            padding-top: 0;
+            padding-left: 4px;
         }
 
         /*************** Main view **************/

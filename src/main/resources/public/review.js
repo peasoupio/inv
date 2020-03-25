@@ -45,9 +45,18 @@ Vue.component('review', {
 
     <hr />
 
-    <div class="output">
-        <div id="linesContainer" ref="linesContainer"></div>
-        <div class="anchor"></div>
+    <div v-if="deltaLines.length > 0">
+        <p v-for="line in filter()">
+            <span class="tag" v-if="line.state == '='">equals</span>
+            <span class="tag is-info" v-if="line.state == '+'">added</span>
+            <span class="tag is-warning" v-if="line.state == '-'">missing</span>
+            <span class="tag is-danger" v-if="line.state == 'x'">removed</span>
+            {{line.link.value}}
+        </p>
+    </div>
+
+    <div style="padding: 1em">
+        <pagination v-model="paginationSettings" />
     </div>
 
 </div>
@@ -91,12 +100,54 @@ Vue.component('review', {
                 hideAdded: {value: false, label: "added" },
                 hideRemoved: {value: false, label: "removed" },
             },
+            paginationFilters: {
+                from: 0,
+                step: 50,
+                total: 0
+            },
 
             statsValues: { }
         }
     },
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.paginationFilters.from = from
+                    },
+                    threshold: 3,
+                    from: vm.paginationFilters.from,
+                    step: vm.paginationFilters.step,
+                    total: vm.paginationFilters.total
+                }
+            }
+        }
+    },
     methods: {
+        filter: function() {
+            var vm = this
+            var filtered = []
 
+            vm.deltaLines.forEach(function(line) {
+                if (vm.filters.hideEquals.value && line.state == '=') return
+                if (vm.filters.hideMissing.value && line.state == '-') return
+                if (vm.filters.hideAdded.value && line.state == '+') return
+                if (vm.filters.hideRemoved.value && line.state == 'x') return
+
+                filtered.push(line)
+            })
+
+            vm.paginationFilters.total = filtered.length
+
+            if (vm.paginationFilters.total < vm.paginationFilters.from)
+                vm.paginationFilters.from = 0
+
+            return filtered.slice(
+                    vm.paginationFilters.from,
+                    vm.paginationFilters.from + vm.paginationFilters.step)
+        },
         getBaseRunTimestamp: function() {
             var vm = this
             return TimeAgo.inWords(vm.review.baseExecution)
@@ -112,85 +163,11 @@ Vue.component('review', {
                 vm.review = response.data
                 vm.statsValues = vm.review.stats
                 vm.deltaLines = response.data.lines.sort((a, b) => a.index - b.index)
-
-                vm.drawLines()
+                vm.paginationFilters.total = vm.deltaLines.length
             })
-        },
-        drawLines: function() {
-            var vm = this
-            var filtered = []
-            var linesContainer = this.$refs.linesContainer
-
-            vm.loading = true
-            vm.clearLines(linesContainer)
-
-            vm.deltaLines.forEach(function(deltaLine) {
-                if (vm.filters.hideEquals.value && deltaLine.state == '=') return
-                if (vm.filters.hideMissing.value && deltaLine.state == '-') return
-                if (vm.filters.hideAdded.value && deltaLine.state == '+') return
-                if (vm.filters.hideRemoved.value && deltaLine.state == 'x') return
-
-                filtered.push(deltaLine)
-            })
-
-            var temp = 0
-            var interval = setInterval(function() {
-                temp = 0
-                while(temp < 128 && filtered.length > 0) {
-                    temp++
-
-                    var line = filtered.shift()
-                    var type = ""
-                    switch(line.state) {
-                        case "=": type = "equals"; break
-                        case "+": type = "added"; break
-                        case "-": type = "missing"; break
-                        case "x": type = "removed"; break
-                    }
-
-                    vm.appendLine(linesContainer, type, line.link.value)
-                }
-
-                if (filtered.length == 0) {
-                    clearInterval(interval)
-                    vm.loading = false
-                }
-            }, 125)
-
-            return filtered
-        },
-        clearLines: function(linesContainer) {
-            var child = linesContainer.lastElementChild;
-            while (child) {
-                linesContainer.removeChild(child);
-                child = linesContainer.lastElementChild;
-            }
-        },
-        appendLine: function(linesContainer, type, line) {
-            var paragraph = document.createElement("P")
-
-            var tag = document.createElement("SPAN")
-            tag.className = "tag"
-            switch(type) {
-                case "equals": tag.className += ""; break
-                case "added": tag.className += " is-info"; break
-                case "missing": tag.className += " is-warning"; break
-                case "removed": tag.className += " is-danger"; break
-            }
-            tag.appendChild(document.createTextNode(type))
-
-            var text = document.createElement("SPAN")
-            text.className = "link"
-            text.appendChild(document.createTextNode(line))
-
-            paragraph.appendChild(tag)
-            paragraph.appendChild(text)
-
-            linesContainer.appendChild(paragraph)
         },
         toggleFilter: function(filter) {
             filter.value = !filter.value
-            this.drawLines()
         }
     },
     mounted: function() {

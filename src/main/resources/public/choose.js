@@ -66,7 +66,7 @@ Vue.component('choose-select-simple', {
                 <div class="columns is-multiline is-centered">
                     <div class="column is-4 is-primary" v-for="branch in whoBroughtMeTree">
                         <div class="notification">
-                            <p>Required: <strong>{{branch[0].value}}</strong></p>
+                            <p class="title is-3">Required: <strong>{{branch[0].value}}</strong></p>
                             <hr />
                             <div class="has-text-centered" v-for="(leaf, index) in branch">
                                 <p v-if="leaf.owner">

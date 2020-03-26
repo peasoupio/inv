@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class NetworkValuablePool {
     private static final String HALTING = "HALTED";
@@ -20,7 +21,7 @@ public class NetworkValuablePool {
     private volatile boolean isDigesting = false;
 
     private ExecutorService invExecutor;
-    private CompletionService<EatenInv> invCompletionService;
+    private CompletionService invCompletionService;
 
     /**
      * Digest invs and theirs statements.
@@ -156,7 +157,7 @@ public class NetworkValuablePool {
      * @param cycleDigestion Cycle digestion
      * @return Pool errors
      */
-    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, Inv.Digestion cycleDigestion) {
+    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, final Inv.Digestion cycleDigestion) {
         final BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
 
         // Create executor and completion service
@@ -165,43 +166,49 @@ public class NetworkValuablePool {
             invCompletionService = new ExecutorCompletionService<>(invExecutor);
         }
 
-        // Initial queueing
-        for (int i = 0; i < invs.size(); i++) {
-            final Inv inv = invs.get(i);
-            invCompletionService.submit(() -> eatInv(inv, poolErrors) );
-        }
+        Queue<Inv> stack = new ConcurrentLinkedQueue<>(invs);
+        int threadCount = Math.min(4, invs.size());
 
-        // Define a new  dynamic stack (for reallocation)
-        int taskRemaining = invs.size();
+        final AtomicInteger stuck = new AtomicInteger(0);
+        for(int i=0;i<threadCount;i++) {
+            invCompletionService.submit(() -> {
 
-        // Until stack if not empty, keep processing
-        while(taskRemaining > 0) {
-            taskRemaining--;
+                // Proceed only if INVs are left to process and only if all INVs are stuck
+                while(!stack.isEmpty() && stuck.get() < stack.size()) {
+                    Inv toEat = stack.poll();
 
-            try {
-                // Get next eaten INV
-                EatenInv eatenInv = invCompletionService.take().get();
+                    EatenInv eatenInv = eatInv(toEat, poolErrors);
 
-                // If error was caught, check next Inv
-                if (eatenInv.hasError())
-                    continue;
+                    // If error was caught, check next Inv
+                    if (eatenInv.hasError())
+                        continue;
 
-                // If INV could be resumed, do it right now
-                if (eatenInv.couldResumeEatNow()) {
-                    // Submit INV again
-                    taskRemaining++;
-                    invCompletionService.submit(() -> eatInv(eatenInv.getInv(), poolErrors) );
+                    if (!eatenInv.getDigestion().hasDoneSomething())
+                        // If INV has done nothing, increment stuck threshold.
+                        stuck.incrementAndGet();
+                    else
+                        // Otherwise, reset to 0
+                        stuck.set(0);
 
-                    Logger.system(eatenInv.getInv() + " eaten back now");
+                    // Stage broadcasts
+                    if (eatenInv.getDigestion().getBroadcasts() > 0)
+                        stageBroadcasts();
+
+                    // Concat digestion metrics
+                    cycleDigestion.concat(eatenInv.getDigestion());
+
+                    // Put back INV at the end of the stack
+                    stack.add(toEat);
                 }
 
-                // Stage broadcasts
-                if (eatenInv.getDigestion().getBroadcasts() > 0)
-                    stageBroadcasts();
+                return null;
+            });
+        }
 
-                // Concat digestion metrics
-                cycleDigestion.concat(eatenInv.getDigestion());
-
+        // Wait for threads to close
+        for(int i=0;i<threadCount;i++) {
+            try {
+                invCompletionService.take().get();
             } catch (Exception e) {
                 Logger.error(e);
             }
@@ -514,14 +521,6 @@ public class NetworkValuablePool {
             this.inv = inv;
             this.digestion = digestion;
             this.hasError = hasError;
-        }
-
-        /**
-         * Determines if an INV could be eaten again right away in a same cycle
-         * @return true if eatable again, otherwise false
-         */
-        public boolean couldResumeEatNow() {
-            return !inv.isCompleted() && digestion.hasDoneSomething();
         }
 
         public Inv getInv() {

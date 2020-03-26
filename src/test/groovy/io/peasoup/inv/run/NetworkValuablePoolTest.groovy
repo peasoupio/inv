@@ -114,11 +114,6 @@ class NetworkValuablePoolTest {
     }
 
     @Test
-    void shutdown_without_executor() {
-        assert !pool.shutdown()
-    }
-
-    @Test
     void sort() {
         def invs = [
             new Inv(pool).with {

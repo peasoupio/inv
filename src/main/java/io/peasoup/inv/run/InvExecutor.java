@@ -65,10 +65,7 @@ public class InvExecutor {
 
         } catch (Exception ex) {
             Logger.error(ex);
-        } finally {
-            pool.shutdown();
         }
-
 
         Logger.info("---- [DIGEST] completed ----");
     }

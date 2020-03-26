@@ -334,7 +334,7 @@ public class Inv {
                 interrupt = true;
 
             // Gets metrics if unbloating
-            if (statement.getState() == StatementStatus.UNBLOADTING) {
+            if (statement.getState() == StatementStatus.SUCCESSFUL) {
                 unbloats++;
 
                 // If the statement prevents unbloating, stops processing the remaining statements

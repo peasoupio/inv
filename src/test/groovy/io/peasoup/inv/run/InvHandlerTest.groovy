@@ -349,7 +349,9 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
+
         assert report.isOk()
+        assert report.cycleCount == 8
     }
 
     @Test

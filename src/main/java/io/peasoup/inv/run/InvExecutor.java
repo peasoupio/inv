@@ -31,8 +31,6 @@ public class InvExecutor {
     private void executeAndReport() {
         // If something happened during read, skip execute
         if (!report.isOk()) return;
-
-
         report.reset();
 
         int count = 0;
@@ -68,6 +66,8 @@ public class InvExecutor {
         }
 
         Logger.info("---- [DIGEST] completed ----");
+
+        report.setCycleCount(count);
     }
 
     public final NetworkValuablePool getPool() {

@@ -10,6 +10,8 @@ public class PoolReport {
     private final Queue<PoolError> poolErrors = new LinkedList<>();
     private volatile boolean halted = false;
 
+    private int cycleCount = 0;
+
     public PoolReport() {
 
     }
@@ -185,6 +187,14 @@ public class PoolReport {
 
     public boolean isHalted() {
         return halted;
+    }
+
+    public int getCycleCount() {
+        return cycleCount;
+    }
+
+    public void setCycleCount(int cycleCount) {
+        this.cycleCount = cycleCount;
     }
 
     public static class PoolError {

@@ -151,7 +151,8 @@ public class NetworkValuablePool {
             cycleDigestion.concat(invDigest);
 
             // If changed, quit
-            if (!stateBefore.equals(runningState)) break;
+            if (invDigest.isInterrupted() && !stateBefore.equals(runningState))
+                break;
         }
 
         // Check for broadcasts
@@ -174,10 +175,6 @@ public class NetworkValuablePool {
 
         return poolErrors;
     }
-
-
-
-
 
     /**
      * Determine and remove completed invs from the remaining ones

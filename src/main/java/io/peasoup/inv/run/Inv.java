@@ -113,7 +113,7 @@ public class Inv {
      * @return A new digestion instance
      */
     @SuppressWarnings("squid:S135")
-    public synchronized Digestion digest() {
+    public Digestion digest() {
         if (!pool.isDigesting()) {
             throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
         }
@@ -358,7 +358,7 @@ public class Inv {
          * Concat another digestion to this one
          * @param digestion the other digestion
          */
-        public void concat(Digestion digestion) {
+        public synchronized void concat(Digestion digestion) {
             if (digestion == null) {
                 return;
             }
@@ -383,7 +383,7 @@ public class Inv {
             return unbloats;
         }
 
-        public boolean hasDoneSomething() { return requires > 0 || broadcasts > 0 || unbloats > 0; }
+        public boolean hasDoneSomething() { return broadcasts > 0 || unbloats > 0; }
 
         public boolean isInterrupted() { return interrupt; }
     }

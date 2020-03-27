@@ -164,6 +164,53 @@ class BroadcastResponseTest {
         assert report.isOk()
     }
 
+    @Test
+    void delegatedBroadcast_with_set_property_withClass() {
+        String myCtx = "/my-context"
+        String myNewCtx = "/my-new-context"
+
+        inv {
+            name "my-server-id"
+
+            step {
+                broadcast inv.EndpointMapper using {
+                    ready { return new MyResponseClass2(myCtx: myCtx) }
+                }
+            }
+        }
+
+        inv {
+            name "my-webservice"
+
+            require inv.EndpointMapper using {
+                resolved {
+                    def respCls2 = response as MyResponseClass2
+                    assert respCls2.myCtx == myCtx
+
+                    respCls2.myCtx = myNewCtx
+
+                    response.withContext(response.myCtx)
+                }
+            }
+        }
+
+        inv {
+            name "my-other-app"
+
+            require inv.Endpoint(context: myNewCtx)
+
+            require inv.EndpointMapper using {
+                resolved {
+                    def respCls2 = response as MyResponseClass2
+                    assert respCls2.myCtx == myNewCtx
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
+
     class MyResponseClass1 {
         Closure withContext(String ctx) {{
             broadcast inv.Endpoint(context: ctx)
@@ -172,13 +219,13 @@ class BroadcastResponseTest {
 
     class MyResponseClass2 {
         String myCtx
-
         Closure onDefault() {{
             return [defaultContext: myCtx]
         } as Closure}
 
-        Closure withContext(String ctx) {{
-            broadcast inv.Endpoint(context: ctx)
-        } as Closure}
+        Closure withContext(String ctx) {
+            return{
+                broadcast inv.Endpoint(context: ctx)
+            } as Closure}
     }
 }

@@ -19,8 +19,6 @@ public class NetworkValuablePoolExecutor {
     private final ExecutorService invExecutor;
     private final CompletionService invCompletionService;
 
-    private final AtomicInteger stuck = new AtomicInteger(0);
-    private final AtomicInteger released = new AtomicInteger(0);
     private final AtomicInteger working = new AtomicInteger(0);
 
     public NetworkValuablePoolExecutor(NetworkValuablePoolEater eater, List<Inv> invs, Inv.Digestion cycleDigestion, BlockingDeque<PoolReport.PoolError> poolErrors) {
@@ -63,8 +61,10 @@ public class NetworkValuablePoolExecutor {
     private Callable createWorker() {
         return () -> {
             // Proceed only if INVs are left to process and only if all INVs are stuck
-            while(!stack.isEmpty() && stuck.get() < stack.size()) {
+            while(!stack.isEmpty()) {
                 Inv toEat = stack.poll();
+                if (toEat == null)
+                    break;
 
                 NetworkValuablePoolEater.EatenInv eatenInv = eater.eatInv(toEat, poolErrors);
 
@@ -72,33 +72,14 @@ public class NetworkValuablePoolExecutor {
                 if (eatenInv.hasError())
                     continue;
 
-                if (!eatenInv.getDigestion().hasDoneSomething())
-                    // If INV has done nothing, increment stuck threshold.
-                    stuck.incrementAndGet();
-                else {
-                    // Otherwise, reset to 0
-                    stuck.set(0);
-
-                    // Wake other threads if needed
-                    if (released.get() > 0) {
-                        while (released.getAndDecrement() > 0) {
-                            schedule();
-                        }
-                    }
-                }
-
                 // Stage broadcasts
                 if (eatenInv.getDigestion().getBroadcasts() > 0)
                     eater.stageBroadcasts();
 
                 // Concat digestion metrics
                 cycleDigestion.concat(eatenInv.getDigestion());
-
-                // Put back INV at the end of the stack
-                stack.add(toEat);
             }
 
-            released.incrementAndGet();
             working.decrementAndGet();
 
             return this;

@@ -1,8 +1,11 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyInterceptable;
+import groovy.lang.MetaClass;
+import org.apache.commons.lang3.NotImplementedException;
 
-public class BroadcastResponseDelegate {
+public class BroadcastResponseDelegate implements GroovyInterceptable {
 
     private final BroadcastResponse broadcastResponse;
     private final Inv caller;
@@ -32,7 +35,32 @@ public class BroadcastResponseDelegate {
         defaultResponse = checkDefault();
     }
 
-    public Object propertyMissing(String propertyName) {
+    @Override
+    public String toString() {
+        return broadcastResponse.toString();
+    }
+
+    @Override
+    public Object invokeMethod(String methodName, Object args) {
+        // Check from default response
+        Object fromDefault = BroadcastResponseInvoker.tryInvokeMethod(defaultResponse, methodName, args);
+        if (fromDefault != null)
+            return wrapReturnValue(fromDefault, args);
+
+        // Check from default response
+        Object fromBroadcast = BroadcastResponseInvoker.tryInvokeMethod(broadcastResponse.getResponse(), methodName, args);
+        if (fromBroadcast != null)
+            return wrapReturnValue(fromBroadcast, args);
+
+        // For asserts or ifs...
+        if ("asBoolean".equals(methodName))
+            return true;
+
+        return null;
+    }
+
+    @Override
+    public Object getProperty(String propertyName) {
         if (propertyName.equals("response"))
             return this;
 
@@ -40,31 +68,36 @@ public class BroadcastResponseDelegate {
             return broadcastResponse.getResolvedBy();
 
         // Check from default response
-        Object fromDefault = BroadcastResponse.tryInvokeProperty(defaultResponse, propertyName);
+        Object fromDefault = BroadcastResponseInvoker.tryInvokeProperty(defaultResponse, propertyName);
         if (fromDefault != null)
             return fromDefault;
 
         // Check from general response
-        Object fromResponse = BroadcastResponse.tryInvokeProperty(broadcastResponse.getResponse(), propertyName);
+        Object fromResponse = BroadcastResponseInvoker.tryInvokeProperty(broadcastResponse.getResponse(), propertyName);
         if (fromResponse != null)
             return fromResponse;
 
         return null;
     }
 
-    public Object methodMissing(String methodName, Object args) {
-
+    @Override
+    public void setProperty(String propertyName, Object newValue) {
         // Check from default response
-        Object fromDefault = BroadcastResponse.tryInvokeMethod(defaultResponse, methodName, args);
-        if (fromDefault != null)
-            return wrapReturnValue(fromDefault, args);
+        if (BroadcastResponseInvoker.tryDefineProperty(defaultResponse, propertyName, newValue))
+            return;
 
-        // Check from default response
-        Object fromBroadcast = BroadcastResponse.tryInvokeMethod(broadcastResponse.getResponse(), methodName, args);
-        if (fromBroadcast != null)
-            return wrapReturnValue(fromBroadcast, args);
+        // Check from general response
+        BroadcastResponseInvoker.tryDefineProperty(broadcastResponse.getResponse(), propertyName, newValue);
+    }
 
-        return null;
+    @Override
+    public MetaClass getMetaClass() {
+        throw new NotImplementedException("getMetaClass");
+    }
+
+    @Override
+    public void setMetaClass(MetaClass metaClass) {
+        throw new NotImplementedException("setMetaClass");
     }
 
     private Object wrapReturnValue(Object returnValue, Object args) {
@@ -82,11 +115,6 @@ public class BroadcastResponseDelegate {
         copy.setResolveStrategy(Closure.DELEGATE_FIRST);
 
         return copy.invokeMethod("call", args);
-    }
-
-    @Override
-    public String toString() {
-        return broadcastResponse.toString();
     }
 
     private Object checkDefault() {

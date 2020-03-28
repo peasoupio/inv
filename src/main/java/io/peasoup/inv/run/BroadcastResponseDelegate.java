@@ -4,6 +4,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyInterceptable;
 import groovy.lang.MetaClass;
 import org.apache.commons.lang3.NotImplementedException;
+import org.codehaus.groovy.runtime.InvokerHelper;
 
 public class BroadcastResponseDelegate implements GroovyInterceptable {
 
@@ -92,7 +93,7 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
 
     @Override
     public MetaClass getMetaClass() {
-        throw new NotImplementedException("getMetaClass");
+        return InvokerHelper.getMetaClass(broadcastResponse.getResponse());
     }
 
     @Override

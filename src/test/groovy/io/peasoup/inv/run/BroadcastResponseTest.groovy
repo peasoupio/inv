@@ -211,6 +211,49 @@ class BroadcastResponseTest {
         assert report.isOk()
     }
 
+    @Test
+    void delegatedBroadcast_with_other_broadcast() {
+        String myCtx = "/my-context"
+        String myNewCtx = "/my-new-context"
+
+        inv {
+            name "my-server-id"
+
+            step {
+                broadcast inv.EndpointMapper using {
+                    ready { return new MyResponseClass2(myCtx: myCtx) }
+                }
+            }
+        }
+
+        inv {
+            name "my-proxy"
+
+            require inv.EndpointMapper into '$mapper'
+
+            broadcast inv.EndpointMapperProxy using {
+                ready {
+                    $mapper.defaultContext = myNewCtx
+
+                    return $mapper
+                }
+            }
+        }
+
+        inv {
+            name "my-other-app"
+
+            require inv.EndpointMapperProxy using {
+                resolved {
+                    assert response.defaultContext == myNewCtx
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+    }
+
     class MyResponseClass1 {
         Closure withContext(String ctx) {{
             broadcast inv.Endpoint(context: ctx)

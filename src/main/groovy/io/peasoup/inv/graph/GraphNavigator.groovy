@@ -211,6 +211,7 @@ class GraphNavigator {
      * A generic neutral node type
      */
     interface Node {
+        long getIndex()
         String getOwner()
         String getId()
     }

@@ -163,5 +163,6 @@ class GraphNavigatorTest {
     class TestNode implements GraphNavigator.Node {
         String owner
         String id
+        long index
     }
 }

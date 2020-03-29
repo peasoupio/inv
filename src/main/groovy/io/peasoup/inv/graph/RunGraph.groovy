@@ -12,10 +12,11 @@ import org.jgrapht.io.IntegerComponentNameProvider
 
 @CompileStatic
 class RunGraph {
-
     final private static String lf = System.properties['line.separator']
 
     final GraphNavigator navigator
+
+    final Map<String, VirtualInv> virtualInvs = [:]
     final List<FileStatement> files = []
 
     private final Graph<GraphNavigator.Linkable, DefaultEdge> g
@@ -26,6 +27,8 @@ class RunGraph {
         g = new DefaultDirectedGraph<> (DefaultEdge.class)
         navigator = new GraphNavigator(g)
 
+        long nodeCount = 0
+
         logs.eachLine { String line ->
 
             // Don't bother process useless lines
@@ -35,12 +38,36 @@ class RunGraph {
             def broadcast = BroadcastStatement.matches(line)
             if (broadcast) {
                 navigator.addBroadcastNode(broadcast)
+
+                broadcast.index = nodeCount++
+
+                String virtualInvName = broadcast.owner
+                VirtualInv virtualInv = virtualInvs[virtualInvName]
+                if (!virtualInv) {
+                    virtualInv = new VirtualInv(virtualInvName)
+                    virtualInvs.put(virtualInvName, virtualInv)
+                }
+
+                virtualInv.nodes << broadcast
+
                 return
             }
 
             def require = RequireStatement.matches(line)
             if (require) {
                 navigator.addRequireNode(require)
+
+                require.index = nodeCount++
+
+                String virtualInvName = require.owner
+                VirtualInv virtualInv = virtualInvs[virtualInvName]
+                if (!virtualInv) {
+                    virtualInv = new VirtualInv(virtualInvName)
+                    virtualInvs.put(virtualInvName, virtualInv)
+                }
+
+                virtualInv.nodes << require
+
                 return
             }
 
@@ -75,6 +102,16 @@ class RunGraph {
         return writer.toString()
     }
 
+    static class VirtualInv {
+
+        final String name
+        final List<GraphNavigator.Node> nodes = []
+
+        VirtualInv(String name) {
+            this.name = name
+        }
+    }
+
     @CompileDynamic
     @ToString
     static class RequireStatement implements GraphNavigator.Node {
@@ -97,6 +134,7 @@ class RunGraph {
         // Ctor
         String owner
         String id
+        long index
 
         private RequireStatement() { }
     }
@@ -123,6 +161,7 @@ class RunGraph {
         // Ctor
         String owner
         String id
+        long index
 
         private BroadcastStatement() {}
     }

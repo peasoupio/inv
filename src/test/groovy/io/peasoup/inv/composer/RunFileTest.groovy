@@ -15,7 +15,7 @@ class RunFileTest {
 
     @Before
     void setup() {
-        runFile = new RunFile(new File("./src/main/example/composer/run.txt"))
+        runFile = new RunFile(new File("./examples/composer/run.txt"))
     }
 
     @Test

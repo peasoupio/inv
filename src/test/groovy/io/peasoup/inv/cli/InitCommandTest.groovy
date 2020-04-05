@@ -12,7 +12,7 @@ class InitCommandTest {
     @Test
     void ok() {
 
-        def file = new File("./src/main/example/init/init.groovy")
+        def file = new File("./examples/init/init.groovy")
         assert file.exists()
 
         file.deleteDir()

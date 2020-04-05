@@ -9,187 +9,40 @@
 
     <title>INV - Composer</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-
     <link rel="stylesheet" href="vendor/bulma.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-pageloader@0.3.0/dist/css/bulma-pageloader.min.css">
-    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <link rel="stylesheet" href="vendor/bulma-pageloader.min.css">
+    <link rel="stylesheet" href="vendor/codemirror.css" />
+    <script src="vendor/vue.min.js"></script>
+    <script src="vendor/axios.min.js"></script>
+    <script src="vendor/codemirror.js"></script>
+    <script src="vendor/autorefresh.js"></script>
+    <script src="vendor/groovy.js"></script>
+    <script src="vendor/matchbrackets.js"></script>
+    <script defer src="vendor/fontawesome.all.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/display/autorefresh.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/groovy/groovy.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/addon/edit/matchbrackets.min.js"></script>
+    <script src="gist/click-outside.js"></script>
+    <script src="gist/websocket.js"></script>
+    <script src="gist/innersort.js"></script>
+    <script src="gist/timeago.js"></script>
 
-    <script src="layout.js"></script>
-    <script src="choose.js"></script>
-    <script src="choose-select-complex.js"></script>
-    <script src="choose-scm.js"></script>
-    <script src="choose-summary.js"></script>
-    <script src="configure.js"></script>
-    <script src="configure-init.js"></script>
-    <script src="configure-parameters.js"></script>
-    <script src="configure-scms.js"></script>
-    <script src="configure-settings.js"></script>
-    <script src="install.js"></script>
-    <script src="review.js"></script>
-    <script src="promote.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="imports/layout.js"></script>
+    <script src="imports/choose.js"></script>
+    <script src="imports/choose-select-complex.js"></script>
+    <script src="imports/choose-scm.js"></script>
+    <script src="imports/choose-summary.js"></script>
+    <script src="imports/configure.js"></script>
+    <script src="imports/configure-init.js"></script>
+    <script src="imports/configure-parameters.js"></script>
+    <script src="imports/configure-scms.js"></script>
+    <script src="imports/configure-settings.js"></script>
+    <script src="imports/install.js"></script>
+    <script src="imports/review.js"></script>
+    <script src="imports/promote.js"></script>
 
-    <script src="pagination.js"></script>
-    <script src="panel.js"></script>
-    <script src="tabTiles.js"></script>
-
-    <style>
-
-        /*************** General ****************/
-
-        ul {
-            margin-top: 0 !important;
-        }
-
-        th {
-            vertical-align: middle !important;
-        }
-
-        table {
-            table-layout:fixed;
-        }
-        table td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        pre {
-            padding: 0;
-            white-space: pre-wrap;
-        }
-
-        html {
-          scroll-behavior: smooth;
-        }
-
-        .truncate {
-            direction: rtl;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-
-        .breath {
-             margin-right: 0.5em;
-        }
-        .breath-heavy {
-             margin-right: 1em;
-        }
-
-        .pageloader {
-            background: #f9e49a;
-        }
-
-        .pageloader .title {
-            color: #000;
-        }
-
-        .pageloader::after {
-            border-color: #000;
-        }
-
-        .dropdown.is-right .dropdown-menu {
-            left: 100%;
-            top: 0;
-            padding-top: 0;
-            padding-left: 4px;
-        }
-
-        /*************** Main view **************/
-
-        .mainContent {
-            margin: 1em;
-            padding: 2em;
-            background-color: hsl(0, 0%, 99%);
-        }
-
-        .header {
-            position: sticky;
-            top: 0em;
-            z-index: 10;
-            background-color: hsl(0, 0%, 99%);
-            box-shadow: 4px 4px 20px 0px #ccc;
-        }
-
-        .tile:hover {
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .panel-help pre {
-            display: inline-flex;
-            padding: 0.25em;
-        }
-
-        a.panel-block.disabled:hover {
-            cursor: default
-        }
-
-        .footer {
-            padding: 2em 1.5rem 2em;
-        }
-
-        /*************** Choose *****************/
-
-        .checkbox_header {
-            text-align: center !important;
-        }
-
-        .whobroughtme_chosen {
-            background: lightgreen;
-        }
-
-        /************ Configuration *************/
-
-        .CodeMirror {
-          border: 1px solid #eee;
-
-        }
-
-        .code-edit-modal {
-            width: 80%;
-        }
-
-        .configure-scms-modal {
-            width: 90%;
-        }
-
-        /************ Install *************/
-        .output {
-            width: 100%;
-        }
-
-        .output * {
-            padding: 0;
-            white-space: pre-wrap;
-            color: hsl(0, 0%, 21%);
-            overflow-anchor: none;
-        }
-
-        .output .anchor {
-            overflow-anchor: auto;
-            height: 1px;
-        }
-
-
-        /************ Review *************/
-
-        #linesContainer .tag {
-            width: 75px;
-            margin-right: 1em;
-        }
-
-        #linesContainer .link {
-            font-family: monospace;
-        }
-
-    </style>
+    <script src="imports/pagination.js"></script>
+    <script src="imports/panel.js"></script>
+    <script src="imports/tabTiles.js"></script>
 </head>
 <body>
     <div id="container">
@@ -197,119 +50,6 @@
     </div>
 
     <script>
-var TimeAgo = (function() {
-  var self = {};
-
-  // Public Methods
-  self.locales = {
-    prefix: '',
-    sufix:  'ago',
-    never:   'never happened',
-    seconds: 'less than a minute',
-    minute:  'about a minute',
-    minutes: '%d minutes',
-    hour:    'about an hour',
-    hours:   'about %d hours',
-    day:     'a day',
-    days:    '%d days',
-    month:   'about a month',
-    months:  '%d months',
-    year:    'about a year',
-    years:   '%d years'
-  };
-
-  self.inWords = function(timeAgo) {
-
-    if (!timeAgo)
-        return this.locales['never']
-
-    var seconds = Math.floor((new Date() - parseInt(timeAgo)) / 1000),
-        separator = this.locales.separator || ' ',
-        words = this.locales.prefix + separator,
-        interval = 0,
-        intervals = {
-          year:   seconds / 31536000,
-          month:  seconds / 2592000,
-          day:    seconds / 86400,
-          hour:   seconds / 3600,
-          minute: seconds / 60
-        };
-
-    var distance = this.locales.seconds;
-
-    for (var key in intervals) {
-      interval = Math.floor(intervals[key]);
-
-      if (interval > 1) {
-        distance = this.locales[key + 's'];
-        break;
-      } else if (interval === 1) {
-        distance = this.locales[key];
-        break;
-      }
-    }
-
-    distance = distance.replace(/%d/i, interval);
-    words += distance + separator + this.locales.sufix;
-
-    return words.trim();
-  };
-
-  return self;
-}());
-
-function compareValues(key, order = 'asc') {
-  return function innerSort(a, b) {
-    if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) return 0;
-    const comparison = a[key].localeCompare(b[key]);
-
-    return (
-      (order === 'desc') ? (comparison * -1) : comparison
-    );
-  };
-}
-
-function websocketHost() {
-    var loc = window.location, new_uri
-    if (loc.protocol === "https:") {
-        new_uri = "wss:"
-    } else {
-        new_uri = "ws:"
-    }
-    new_uri += "//" + loc.host
-
-    return new_uri
-}
-
-Vue.directive('click-outside',{
-  bind: function (el, binding, vnode) {
-      el.eventSetDrag = function () {
-          el.setAttribute('data-dragging', 'yes');
-      }
-      el.eventClearDrag = function () {
-          el.removeAttribute('data-dragging');
-      }
-      el.eventOnClick = function (event) {
-          var dragging = el.getAttribute('data-dragging');
-          // Check that the click was outside the el and its children, and wasn't a drag
-          if (!(el == event.target || el.contains(event.target)) && !dragging) {
-              // call method provided in attribute value
-              vnode.context[binding.expression](event);
-          }
-      };
-      document.addEventListener('touchstart', el.eventClearDrag);
-      document.addEventListener('touchmove', el.eventSetDrag);
-      document.addEventListener('click', el.eventOnClick);
-      document.addEventListener('touchend', el.eventOnClick);
-  }, unbind: function (el) {
-      document.removeEventListener('touchstart', el.eventClearDrag);
-      document.removeEventListener('touchmove', el.eventSetDrag);
-      document.removeEventListener('click', el.eventOnClick);
-      document.removeEventListener('touchend', el.eventOnClick);
-      el.removeAttribute('data-dragging');
-  },
-});
-
 new Vue({
     el: '#container',
     data: {

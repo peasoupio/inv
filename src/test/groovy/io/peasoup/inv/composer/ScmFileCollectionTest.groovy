@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 @RunWith(TempHome.class)
 class ScmFileCollectionTest {
 
-    String base = "./src/main/example/composer/scms/"
+    String base = "./examples/composer/scms/"
     ScmFileCollection scmFileCollection
 
     @Before

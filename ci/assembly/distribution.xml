@@ -11,13 +11,13 @@
     </formats>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/src/main/executable</directory>
+            <directory>${project.basedir}/ci/executable</directory>
             <outputDirectory>/bin</outputDirectory>
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/example</directory>
-            <outputDirectory>/bin/example</outputDirectory>
+            <directory>${project.basedir}/examples</directory>
+            <outputDirectory>/bin/examples</outputDirectory>
         </fileSet>
     </fileSets>
     <files>

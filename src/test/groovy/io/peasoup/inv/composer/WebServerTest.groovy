@@ -15,7 +15,7 @@ import java.nio.charset.Charset
 @RunWith(TempHome.class)
 class WebServerTest {
 
-    static String base = "./src/main/example/composer/"
+    static String base = "./examples/composer/"
     static Integer port = 5555
     static WebServer webServer
 

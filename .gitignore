@@ -17,9 +17,10 @@ buildNumber.properties
 # Application specific
 /src/main/example/spring-boot/app1/
 /src/main/example/spring-boot/app2/
-/reports/
-**/.cache/
-**/.runs/
 /src/main/example/composer/executions/
+reports/
+.cache/
+.runs/
 *.scm-sh
-/.gitcache/
+.gitcache/
+node_modules/

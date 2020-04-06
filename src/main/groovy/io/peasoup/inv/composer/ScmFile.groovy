@@ -72,11 +72,14 @@ class ScmFile {
             def saved = false
 
             if (parametersFile && parametersFile.exists()) {
+                String parametersFileText = parametersFile.text
 
-                saved = true
-                lastModified = parametersFile.lastModified()
+                if (parametersFileText) {
+                    saved = true
+                    lastModified = parametersFile.lastModified()
 
-                externalProperties = new JsonSlurper().parseText(parametersFile.text) as Map
+                    externalProperties = new JsonSlurper().parseText(parametersFileText) as Map
+                }
             }
 
             def parameters = []
@@ -258,25 +261,29 @@ class ScmFile {
             ]
 
             if (parametersFile.exists()) {
-                Map existing  = new JsonSlurper().parseText(parametersFile.text) as Map
+                String parametersFileText = parametersFile.text
 
-                Closure merge
-                merge = { Map base, Map extend ->
-                    extend.each {
-                        if (base.containsKey(it.key) && it.value instanceof Map) {
-                            merge(base[it.key] as Map, it.value as Map)
-                            return
+                if (parametersFileText) {
+                    Map existing = new JsonSlurper().parseText(parametersFileText) as Map
+
+                    Closure merge
+                    merge = { Map base, Map extend ->
+                        extend.each {
+                            if (base.containsKey(it.key) && it.value instanceof Map) {
+                                merge(base[it.key] as Map, it.value as Map)
+                                return
+                            }
+
+                            base.put(it.key, it.value)
                         }
-
-                        base.put(it.key, it.value)
                     }
+
+                    merge(existing, output)
+
+                    output = existing
+
+                    parametersFile.delete()
                 }
-
-                merge(existing, output)
-
-                output = existing
-
-                parametersFile.delete()
             }
 
             parametersFile << JsonOutput.prettyPrint(JsonOutput.toJson(output))

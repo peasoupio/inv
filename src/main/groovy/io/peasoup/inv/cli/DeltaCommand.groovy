@@ -16,6 +16,7 @@ class DeltaCommand implements CliCommand {
         def delta = new DeltaGraph(
                 new File(base).newReader(),
                 new File(other).newReader())
+        delta.resolve()
 
         /*
         if (args.hasHtml)

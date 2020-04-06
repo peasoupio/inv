@@ -16,9 +16,9 @@ class ReviewTest {
         def base =  new File(getClass().getResource('/baseRun.txt').toURI())
         def other =  new File(getClass().getResource('/subsetRun.txt').toURI())
 
-        def review = new Review()
+        def review = new Review(base, other)
 
-        assert review.compare(base, other).lines
+        assert review.compare().lines
     }
 
     @Test
@@ -28,19 +28,19 @@ class ReviewTest {
         def testContent = "My run file"
         def runFile =  new File(RunsRoller.latest.folder(), 'run.txt')
         runFile.delete()
-
         runFile << testContent
 
-        new Review().promote()
-
         def baseRun = new File(Home.getCurrent(), 'run.txt')
+        baseRun.delete()
+        baseRun << "something"
 
-        assert baseRun.exists()
+        new Review(baseRun, runFile).promote()
+
         assert baseRun.text == testContent
     }
 
     @Test
-    void mergeWithBase() {
+    void merge() {
         RunsRoller.latest.roll() // make sure to roll once
 
         // Generate base
@@ -54,9 +54,9 @@ class ReviewTest {
         subsetFile << new File(getClass().getResource('/subsetRun.txt').toURI()).text
 
         def deltaGraph = new DeltaGraph(baseRun.newReader(), subsetFile.newReader())
-        deltaGraph.deltaLines
+        deltaGraph.resolve()
 
-        new Review().mergeWithBase(baseRun)
+        new Review(baseRun, subsetFile).merge()
         assert subsetFile.exists()
 
         def newBaseFileGraph = new RunGraph(subsetFile.newReader())

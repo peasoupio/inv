@@ -13,8 +13,10 @@ class DeltaGraphTest {
         def logAfterOutput1Txt =  new File(getClass().getResource('/subsetRun.txt').toURI())
 
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
+        deltaGraph.resolve()
 
-        println deltaGraph.echo()
+        assert deltaGraph.deltaLines
+        assert deltaGraph.echo()
     }
 
     @Test
@@ -23,8 +25,10 @@ class DeltaGraphTest {
         def logAfterOutput1Txt =  new File(getClass().getResource('/subsetRun.txt').toURI())
 
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
+        deltaGraph.resolve()
 
-        deltaGraph.html("my_previous_filename")
+        assert deltaGraph.deltaLines
+        assert deltaGraph.html("my_previous_filename")
 
         //TODO Randomly crash on Travis
         //assert new File(RunsRoller.latest.folder(), "./reports/my_previous_filename.html").exists()

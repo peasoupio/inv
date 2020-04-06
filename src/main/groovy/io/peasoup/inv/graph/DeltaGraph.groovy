@@ -13,6 +13,7 @@ class DeltaGraph {
     final RunGraph baseGraph
     final RunGraph otherGraph
     final List<DeltaLine> deltaLines = []
+    final List<String> removedScms = []
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
         assert base != null, 'Base (reader) is required'
@@ -20,24 +21,36 @@ class DeltaGraph {
 
         baseGraph = new RunGraph(base)
         otherGraph = new RunGraph(other)
+    }
+
+    void removeScms(List<String> scms) {
+        assert scms != null, "Scm is required"
+
+        removedScms.clear()
+        removedScms.addAll(scms)
+    }
+
+    void resolve() {
+        deltaLines.clear()
 
         for(GraphNavigator.Linkable link : baseGraph.navigator.links()) {
 
             def linksNode = baseGraph.navigator.nodes[link.value]
             assert linksNode, "Link's node cannot be null"
 
-            // Process state
-            if (otherGraph.navigator.contains(link)) {
-                deltaLines << new DeltaLine(state: '=', link: link, owner: linksNode)
-            } else {
+            def fileStatement = baseGraph.files.find { it.inv == linksNode.owner }
 
-                def fileStatement = baseGraph.files.find { it.inv == linksNode }
-
-                if (fileStatement && fileStatement.scm != InvInvoker.UNDEFINED_SCM)
-                    deltaLines << new DeltaLine(state: '-', link: link, owner: linksNode)
-                else
-                    deltaLines << new DeltaLine(state: 'x', link: link, owner: linksNode)
+            // Check if it has a valid SCM reference
+            if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM || removedScms.contains(fileStatement.scm)) {
+                deltaLines << new DeltaLine(state: 'x', link: link, owner: linksNode)
+                continue
             }
+
+            // If so, check if equal or missing
+            if (otherGraph.navigator.contains(link))
+                deltaLines << new DeltaLine(state: '=', link: link, owner: linksNode)
+            else
+                deltaLines << new DeltaLine(state: '-', link: link, owner: linksNode)
         }
 
         for(GraphNavigator.Linkable link : otherGraph.navigator.links()) {
@@ -45,8 +58,7 @@ class DeltaGraph {
             def linksNode = otherGraph.navigator.nodes[link.value]
             assert linksNode, "Link's node cannot be null"
 
-
-            // Process state
+            // Check if it has a valid SCM reference
             def fileStatement = otherGraph.files.find { it.inv == linksNode.owner }
             if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM) {
 
@@ -61,49 +73,12 @@ class DeltaGraph {
                 continue
             }
 
+            // If so and does not exist in base, add
             if (!baseGraph.navigator.contains(link)) {
                 deltaLines << new DeltaLine(state: '+', link: link, owner: linksNode)
             }
         }
     }
-
-    String echo() {
-        // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
-        return """${
-    // Shared nodes and edges
-    deltaLines
-        .sort { it.owner.index }
-        .collect { DeltaLine line ->
-            "${line.state} ${line.link.value}"
-        }
-        .join(lf)
-}"""
-
-    }
-
-
-    String html(String previousFilename) {
-
-        def templateEngine = new SimpleTemplateEngine()
-        def htmlReport = this.class.getResource("/delta-report.template.html")
-
-        def reportFolder = new File(RunsRoller.latest.folder(), "reports/")
-        reportFolder.mkdirs()
-
-        def htmlOutput = new File(reportFolder, "${previousFilename}.html")
-
-        if (htmlOutput.exists())
-            htmlOutput.delete()
-
-        htmlOutput << templateEngine.createTemplate(htmlReport.text).make([
-                now: new Date().toString(),
-                previousFile: previousFilename,
-                lines: echo().split(System.lineSeparator())
-        ])
-
-        return "Report generated at: ${htmlOutput.canonicalPath}"
-    }
-
 
     StringBuilder merge() {
         StringBuilder builder = new StringBuilder()
@@ -147,12 +122,48 @@ class DeltaGraph {
         return builder
     }
 
-    @ToString
-    static private class DeltaLine {
 
+    String echo() {
+        // Regex rule:^(?'state'\\W) (?!\\#.*\$)(?'require'.*) -> (?'broadcast'.*) \\((?'id'.*)\\)\$
+        return """${
+            // Shared nodes and edges
+            deltaLines
+                    .sort { it.owner.index }
+                    .collect { DeltaLine line ->
+                        "${line.state} ${line.link.value}"
+                    }
+                    .join(lf)
+        }"""
+
+    }
+
+
+    String html(String previousFilename) {
+
+        def templateEngine = new SimpleTemplateEngine()
+        def htmlReport = this.class.getResource("/delta-report.template.html")
+
+        def reportFolder = new File(RunsRoller.latest.folder(), "reports/")
+        reportFolder.mkdirs()
+
+        def htmlOutput = new File(reportFolder, "${previousFilename}.html")
+
+        if (htmlOutput.exists())
+            htmlOutput.delete()
+
+        htmlOutput << templateEngine.createTemplate(htmlReport.text).make([
+                now: new Date().toString(),
+                previousFile: previousFilename,
+                lines: echo().split(System.lineSeparator())
+        ])
+
+        return "Report generated at: ${htmlOutput.canonicalPath}"
+    }
+
+    @ToString
+    static class DeltaLine {
         String state
         GraphNavigator.Linkable link
         GraphNavigator.Node owner
-
     }
 }

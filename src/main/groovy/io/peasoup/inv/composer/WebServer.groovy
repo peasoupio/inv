@@ -32,7 +32,6 @@ class WebServer {
     final protected Execution exec
 
     protected RunFile run
-    protected Review review
 
     @CompileDynamic
     WebServer(Map args) {
@@ -74,7 +73,6 @@ class WebServer {
         settings = new Settings(new File(runLocation, "settings.json"))
         scms = new ScmFileCollection(scmsLocationFolder)
         exec = new Execution(scmsLocationFolder, new File(parametersLocation))
-        review = new Review()
 
         boot = new Boot(this)
         pagination = new Pagination(settings)
@@ -761,12 +759,21 @@ class WebServer {
                 }
             }
 
-            return JsonOutput.toJson(review.compare(base, exec.latestRun()))
+            def review = new Review(base, exec.latestRun(), scms)
+            return JsonOutput.toJson(review.compare())
         })
 
         post("/review/promote", { Request req, Response res ->
+            if (!baseFile().exists())
+                return showError(res, "Promote is not ready yet")
+
+            if (! exec.latestRun().exists())
+                return showError(res, "Promote is not ready yet")
+
+            def review = new Review(baseFile(), exec.latestRun(), scms)
+
             if (baseFile().exists())
-                review.mergeWithBase(baseFile())
+                review.merge()
 
             if (!review.promote())
                 return showError(res, "failed to promote")

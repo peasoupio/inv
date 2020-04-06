@@ -32,7 +32,7 @@ class RunFile {
         this.runFile = runFile
         runGraph = new RunGraph(runFile.newReader())
 
-        ownerOfScm = (Map<String, List<String>>)runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv} ]}
+        ownerOfScm = (Map<String, List<String>>) runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv }] }
         invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
 
         // Get Id only and filter out unbloated ones
@@ -50,22 +50,22 @@ class RunFile {
 
         // Get owners of required staged
         def stagedOwners = staged
-            .values()
-            .findAll { it.selected }
-            .collect {
-                def node = runGraph.navigator.nodes[it.link.value]
+                .values()
+                .findAll { it.selected }
+                .collect {
+                    def node = runGraph.navigator.nodes[it.link.value]
 
-                if (!node)
-                    return null
+                    if (!node)
+                        return null
 
-                return node.owner
-            }
-            .findAll {
-                it && it != destination
-            }
-            .unique()
+                    return node.owner
+                }
+                .findAll {
+                    it && it != destination
+                }
+                .unique()
 
-        for(String source : stagedOwners) {
+        for (String source : stagedOwners) {
             def path = runGraph.navigator.getPaths(new GraphNavigator.Owner(value: source), owner)
 
             // If path empty, skip
@@ -139,9 +139,9 @@ class RunFile {
                 .findAll { it.value.selected }
 
         Map<String, Integer> output = [
-            all: staged.size() == nodes.size(),
-            checked: checkRequiresByAll.size(),
-            added: 0
+                all    : staged.size() == nodes.size(),
+                checked: checkRequiresByAll.size(),
+                added  : 0
         ] as Map<String, Integer>
 
         // (Re)init with selected only
@@ -165,7 +165,7 @@ class RunFile {
                 new StagedId(new GraphNavigator.Id(value: it.value))
             }
 
-        while(!toCheck.isEmpty()) {
+        while (!toCheck.isEmpty()) {
             def chosen = toCheck.pop()
             GraphNavigator.Linkable chosenLink = chosen.link
 
@@ -174,7 +174,7 @@ class RunFile {
 
                 boolean matched = false
 
-                for(GraphNavigator.Linkable owner : links) {
+                for (GraphNavigator.Linkable owner : links) {
                     def node = runGraph.navigator.nodes[owner.value]
                     if (!staged.containsKey(node.id))
                         continue
@@ -204,7 +204,7 @@ class RunFile {
                 continue
             }
 
-            for(GraphNavigator.Linkable link : links.keySet()) {
+            for (GraphNavigator.Linkable link : links.keySet()) {
 
                 if (!link.isId())
                     continue
@@ -277,7 +277,7 @@ class RunFile {
                             link: link,
                             node: runGraph.navigator.nodes[link.value],
                             name: match.group(1) as String ?: 'none',
-                            subId: match.group(2)  as String ?: 'none')
+                            subId: match.group(2) as String ?: 'none')
                 }
                 .findAll { it && it.node }
 
@@ -341,18 +341,18 @@ class RunFile {
                 String subId = node.id.split(' ')[1].replace('[', '').replace(']', '')
 
                 nodes.add([
-                    name: name,
-                    id: subId,
-                    owner: node.owner,
-                    iteration: iteration,
-                    required: staged[node.id] && staged[node.id].required,
-                    selected: staged[node.id] && staged[node.id].selected,
+                        name     : name,
+                        id       : subId,
+                        owner    : node.owner,
+                        iteration: iteration,
+                        required : staged[node.id] && staged[node.id].required,
+                        selected : staged[node.id] && staged[node.id].selected,
                 ])
             }
         }
 
         return [
-            nodes: nodes
+                nodes: nodes
         ]
 
     }
@@ -376,5 +376,4 @@ class RunFile {
         String name
         String subId
     }
-
 }

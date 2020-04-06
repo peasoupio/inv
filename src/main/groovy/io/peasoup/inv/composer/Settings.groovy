@@ -6,13 +6,13 @@ import groovy.json.JsonSlurper
 class Settings {
 
     private volatile Map settings = [
-        filters: [
-            defaultStep: 20
-        ],
-        staged: [
-            ids: [],
-            scms: []
-        ]
+            filters: [
+                    defaultStep: 20
+            ],
+            staged : [
+                    ids : [],
+                    scms: []
+            ]
     ]
     final private File settingsFile
 
@@ -73,5 +73,4 @@ class Settings {
     String toString() {
         return JsonOutput.prettyPrint(JsonOutput.toJson(settings))
     }
-
 }

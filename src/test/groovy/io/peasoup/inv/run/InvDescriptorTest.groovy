@@ -186,4 +186,9 @@ class InvDescriptorTest {
             myself.tags([:])
         })
     }
+
+    @Test
+    void myself_ok() {
+        assert myself.myself == myself // funny isn't it ?
+    }
 }

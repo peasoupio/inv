@@ -58,7 +58,7 @@ class DeltaGraph {
                 else
                     deltaLines << new DeltaLine(state: 'x', link: link, owner: linksNode)
 
-                return
+                continue
             }
 
             if (!baseGraph.navigator.contains(link)) {

@@ -47,7 +47,7 @@ class ScmFile {
         }
 
         /**
-            Get filename without extension
+         Get filename without extension
          */
         String simpleName() {
             return scriptFile.name.split('\\.')[0]
@@ -90,7 +90,7 @@ class ScmFile {
                 String savedValue
 
                 if (externalProperties) {
-                    savedValue = externalProperties[descriptor.name][parameter.name]
+                    savedValue = externalProperties[descriptor.name]?[parameter.name]
                 }
 
                 if (savedValue) {
@@ -98,15 +98,15 @@ class ScmFile {
                 }
 
                 parameters << [
-                        name: parameter.name,
-                        usage: parameter.usage,
-                        value: savedValue,
+                        name        : parameter.name,
+                        usage       : parameter.usage,
+                        value       : savedValue,
                         defaultValue: parameter.defaultValue,
-                        values: [],
-                        required: parameter.required,
-                        links: [
+                        values      : [],
+                        required    : parameter.required,
+                        links       : [
                                 values: "/scms/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
-                                save: "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
+                                save  : "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
                         ]
                 ]
             }
@@ -115,19 +115,19 @@ class ScmFile {
                 externalProperties = null
 
             return [
-                    name      : descriptor.name,
-                    script: [
-                        source    : simpleName(),
-                        text      : scriptFile.text,
-                        lastEdit  : scriptFile.lastModified()
+                    name        : descriptor.name,
+                    script      : [
+                            source  : simpleName(),
+                            text    : scriptFile.text,
+                            lastEdit: scriptFile.lastModified()
                     ],
-                    parameters: parameters,
+                    parameters  : parameters,
                     lastModified: lastModified,
-                    saved: saved,
-                    completed: completedParameters == parameters.size(),
-                    staged: false,
-                    selected: false,
-                    descriptor: [
+                    saved       : saved,
+                    completed   : completedParameters == parameters.size(),
+                    staged      : false,
+                    selected    : false,
+                    descriptor  : [
                             name         : descriptor.name,
                             entry        : descriptor.entry,
                             hooks        : descriptor.hooks,
@@ -135,7 +135,7 @@ class ScmFile {
                             src          : descriptor.src,
                             timeout      : descriptor.timeout
                     ],
-                    links     : [
+                    links       : [
                             default   : "/scms/view?name=${descriptor.name}",
                             stage     : "/scms/stage?name=${descriptor.name}",
                             unstage   : "/scms/unstage?name=${descriptor.name}",
@@ -207,11 +207,11 @@ class ScmFile {
                 }
 
                 output.put(
-                    parameter.name as String,
-                    values
-                        .findAll()
-                        .collect { it.trim() }
-                        .unique())
+                        parameter.name as String,
+                        values
+                                .findAll()
+                                .collect { it.trim() }
+                                .unique())
             }
 
             return output

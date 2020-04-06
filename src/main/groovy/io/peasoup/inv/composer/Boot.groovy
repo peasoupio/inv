@@ -36,7 +36,7 @@ class Boot {
 
         // Notifier
         new Thread({
-            while(!isDone) {
+            while (!isDone) {
                 notifyListeners()
 
                 sleep(250)
@@ -66,7 +66,7 @@ class Boot {
     protected synchronized void notifyListeners() {
         // Build message
         String message = JsonOutput.toJson([
-                isDone: isDone,
+                isDone    : isDone,
                 thingsToDo: thingsToDo.get(),
                 thingsDone: thingsDone.get()
         ])

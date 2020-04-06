@@ -43,6 +43,7 @@ class ScmFileCollection {
     /*
         Reload file to make sure latest changes are available
      */
+
     boolean reload(String name) {
         assert name, 'Name is required'
 
@@ -78,8 +79,8 @@ class ScmFileCollection {
             return elements.values().collect { it.scriptFile }
 
         return names
-            .findAll { elements.containsKey(it) }
-            .collect { elements[it].scriptFile }
+                .findAll { elements.containsKey(it) }
+                .collect { elements[it].scriptFile }
     }
 
     Map toMap(RunFile runFile = null, Map filter = [:], String parametersLocation = null) {
@@ -127,12 +128,11 @@ class ScmFileCollection {
         }
 
         return [
-            descriptors: filtered,
-            total: elements.size(),
-            count: filtered.size(),
-            selected: selectedCount,
-            staged: stagedCount
+                descriptors: filtered,
+                total      : elements.size(),
+                count      : filtered.size(),
+                selected   : selectedCount,
+                staged     : stagedCount
         ]
     }
-
 }

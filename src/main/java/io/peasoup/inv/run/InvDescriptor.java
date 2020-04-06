@@ -10,8 +10,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class InvDescriptor {
 
-    private static final String DEFAULT_ID = "undefined";
-    private static final InvNames inv = InvNames.Instance;
+    /**
+     * Sets the default ID for statements.
+     */
+    public static final String DEFAULT_ID = "undefined";
 
     private final Properties properties;
 
@@ -259,12 +261,26 @@ public class InvDescriptor {
      * @return a new StatementDescriptor
      */
     public final InvNames getInv() {
-        return inv;
+        return InvNames.Instance;
     }
 
-    public WhenScope getAll() {return WhenScope.ALL; }
+    /**
+     * Gets the All scope for a when criteria
+     * @return The reference for All scope
+     */
+    public WhenScope getAll() { return WhenScope.ALL; }
 
-    public WhenScope getAny() {return WhenScope.ANY; }
+    /**
+     * Gets the Any scope for a when criteria
+     * @return The reference for Any scope
+     */
+    public WhenScope getAny() { return WhenScope.ANY; }
+
+    /**
+     * Equivalent of "this" keyword.
+     * @return The InvDescriptor instance.
+     */
+    public InvDescriptor getMyself() { return this; }
 
     /**
      * Keep and hides descriptor current properties

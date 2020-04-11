@@ -2,7 +2,7 @@ Vue.component('pagination', {
     template: `
 <nav class="pagination is-centered" role="navigation" aria-label="pagination" v-if="value">
     <button class="button pagination-previous" title="This is the first page" :disabled="value.from <= 0" @click="seePrevious()">Previous</button>
-    <button class="button pagination-next" :disabled="value.from + value.step > value.total" @click="seeNext()">Next page</button>
+    <button class="button pagination-next" :disabled="value.from + value.step >= value.total" @click="seeNext()">Next page</button>
 
     <ul class="pagination-list">
         <li v-if="isStartOutOfSight()"><a class="pagination-link" @click="seeAt(0)">1</a></li>
@@ -87,6 +87,8 @@ Vue.component('pagination', {
 
             vm.currentIndex = index
             vm.value.from = index * vm.value.step
+
+            console.log(vm.value.from)
 
             vm.value.refresh(vm.value.from)
         },

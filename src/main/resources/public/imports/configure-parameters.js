@@ -1,3 +1,5 @@
+
+
 Vue.component('configure-parameters', {
     template: `
 <div>
@@ -47,58 +49,9 @@ Vue.component('configure-parameters', {
         </div>
 
         <hr />
-
-        <div v-if="value.selectedScms.total == 0" class="container">
-            <p class="has-text-centered">Nothing to show</p>
-        </div>
-        <div class="columns is-multiline" v-else>
-            <div class="column is-one-quarter" v-for="scm in value.selectedScms.descriptors" >
-                <div class="card">
-                    <div class="card-content">
-                        <p class="title is-5">
-                            <span v-bind:class="{ 'has-text-danger': scm.errors.length > 0 }">{{scm.name}}</span>
-                            <span class="icon is-medium" v-if="scm.loading">
-                                <i class="fas fa-spinner fa-pulse"></i>
-                            </span>
-                            <p>
-                                <span @mouseover="scm.showErrors=true" @mouseleave="scm.showErrors=false" class="tag is-danger" v-show="scm.errors.length > 0">{{scm.errors.length}} error(s) caught</span>
-                                <span class="tag is-warning" v-show="scm.requiredNotCompletedCount > 0">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
-                            </p>
-                        </p>
-                        <div class="notification is-primary content" v-show="scm.showErrors" style="position: absolute; z-index: 10">
-                            <ul>
-                                <li v-for="error in scm.errors">{{error.message}}, {{whenError(error)}}.</li>
-                            </ul>
-                        </div>
-                        <p class="subtitle is-6" style="color: lightgrey">
-                            <span  v-if="scm.saved">Last edit: {{whenLastSaved(scm)}}</span>
-                            <span v-else>never saved</span>
-                        </p>
-                        <div class="content">
-                            <ul>
-                                <li>Has <span class="has-text-weight-bold">{{scm.parameters.length}}</span> parameter(s)</li>
-                                <li>Has <span class="has-text-weight-bold">{{scm.requiredCount}}</span> required parameter(s)</li>
-                                <li>
-                                    <span v-if="scm.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
-                                    <span v-else>Has <span class="has-text-weight-bold has-text-warning">not answered</span> all of its parameters</span>
-                                 </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <footer class="card-footer">
-                        <p class="card-footer-item is-paddingless">
-                            <button class="button is-fullwidth is-link" @click.stop="editParameters(scm)" :disabled="scm.parameters.length == 0">Configure</button>
-                        </p>
-                        <p class="card-footer-item is-paddingless">
-                            <button class="button is-fullwidth" @click="resetParameters(scm)" :disabled="scm.parameters.length == 0">Reset</button>
-                        </p>
-                    </footer>
-                </div>
-            </div>
-        </div>
-
-        <pagination v-model="paginationSettings" style="margin-top: 2em" />
+        <configure-parameters-carousel v-model="selectedSettings" :key="updateIndex" />
+        <hr />
+        <configure-parameters-carousel v-model="requiredSettings" :key="updateIndex" />
 
         <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
             <div class="modal-background"></div>
@@ -159,29 +112,53 @@ Vue.component('configure-parameters', {
     props: ['value'],
     data: function() {
         return {
-            activeTab: 'find',
-            currentScmParameter: null,
             filters: {
-                staged: true,
-                selected: true,
-                to: 20,
-                from: 0,
                 hideOnComplete: true
-            }
+            },
+            updateIndex: 0,
+            currentScmParameter: null
         }
     },
     computed: {
-        paginationSettings: {
+        selectedSettings: {
             get() {
                 var vm = this
                 return {
-                    refresh: function(from) {
-                        vm.filters.from = from
-                        vm.fetchScms()
+                    api: vm.value.api,
+                    edit: function(scm) {
+                        vm.currentScmParameter = scm
                     },
-                    from: vm.filters.from,
-                    step: vm.filters.to,
-                    total: vm.value.selectedScms.count
+                    reset: function(scm) {
+                        vm.resetParameters(scm)
+                    },
+                    title: 'Added from the choosing options',
+                    filters: {
+                        selected: true,
+                        required: false,
+                        hideOnComplete: vm.filters.hideOnComplete
+                    }
+
+                }
+            }
+        },
+        requiredSettings: {
+            get() {
+                var vm = this
+                return {
+                    api: vm.value.api,
+                    edit: function(scm) {
+                        vm.currentScmParameter = scm
+                        vm.$forceUpdate()
+                    },
+                    reset: function(scm) {
+                        vm.resetParameters(scm)
+                    },
+                    title: 'Added manually',
+                    filters: {
+                        selected: false,
+                        required: true,
+                        hideOnComplete: vm.filters.hideOnComplete
+                    }
                 }
             }
         }
@@ -189,6 +166,8 @@ Vue.component('configure-parameters', {
     methods: {
         areSCMsAvailable: function() {
             var vm = this
+
+            return true
 
             if (vm.value.selectedScms.selected == undefined)
                 return false
@@ -198,106 +177,25 @@ Vue.component('configure-parameters', {
 
             return (vm.value.selectedScms.selected + vm.value.selectedScms.staged) > 0
         },
-        fetchScms: function() {
-            var vm = this
-
-            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
-                vm.value.selectedScms = response.data
-                vm.value.selectedScms.descriptors.sort(compareValues('name'))
-
-                // Calculate parameters metrics
-                vm.value.selectedScms.descriptors.forEach(function(scm) {
-                    // dependency metrics
-                    scm.requiredCount = 0
-                    scm.requiredNotCompletedCount = 0
-                    scm.completedCount = 0
-
-                    // errors stack
-                    scm.errors = []
-                    vm.$set(scm, 'showErrors', false)
-
-                    scm.parameters.forEach(function(parameter) {
-                        if (parameter.required) {
-                            scm.requiredCount++
-
-                            if (parameter.value == undefined)
-                                scm.requiredNotCompletedCount++
-                        }
-
-                        if (parameter.value != undefined)
-                            scm.completedCount++
-                    })
-                })
-            })
-        },
         toggleHideOnComplete: function() {
             var vm = this
 
             vm.filters.hideOnComplete = !vm.filters.hideOnComplete
-            vm.fetchScms()
+
+            vm.updateIndex++
         },
         applyDefaultToAll: function() {
             var vm = this
 
             axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
-                vm.fetchScms()
+                vm.updateIndex++
            })
         },
         resetAll: function() {
             var vm = this
 
             axios.post(vm.value.api.links.scms.resetAll).then(response => {
-                vm.fetchScms()
-            })
-        },
-        whenLastSaved: function(scmParameters) {
-            var vm = this
-
-            return TimeAgo.inWords(scmParameters.lastModified)
-        },
-        whenError: function(error) {
-            var vm = this
-
-            return TimeAgo.inWords(error.when)
-        },
-        editParameters: function(scmParameters) {
-
-            var vm = this
-
-            if (scmParameters.parameters.length == 0)
-                return
-
-            vm.currentScmParameter = scmParameters
-
-            if (scmParameters.loaded)
-                return
-
-            scmParameters.loading = true
-
-            axios.get(scmParameters.links.parameters).then(response => {
-
-                scmParameters.parameters.forEach(function(parameter) {
-                    parameter.values = response.data[parameter.name]
-
-                    if (!parameter.value)
-                        parameter.value = ""
-                })
-
-                scmParameters.changed = false
-                scmParameters.loaded = true
-                scmParameters.loading = false
-
-                vm.$forceUpdate()
-            })
-            .catch(error  => {
-
-                scmParameters.changed = false
-                scmParameters.loaded = false
-                scmParameters.loading = false
-
-                scmParameters.errors.push(error.response.data)
-
-                vm.$forceUpdate()
+                vm.updateIndex++
             })
         },
         areValuesUnavailable: function(scmParameters) {
@@ -327,6 +225,10 @@ Vue.component('configure-parameters', {
                 vm.saveParameter(parameter)
             })
         },
+        setDefault: function(parameter) {
+            parameter.value = parameter.defaultValue
+            parameter.changed = true
+        },
         resetParameters: function(scm) {
             var vm = this
 
@@ -341,10 +243,6 @@ Vue.component('configure-parameters', {
 
                 vm.saveParameter(parameter)
             })
-        },
-        setDefault: function(parameter) {
-            parameter.value = parameter.defaultValue
-            parameter.changed = true
         },
         saveParameter: function(parameter) {
             var vm = this
@@ -362,7 +260,7 @@ Vue.component('configure-parameters', {
                 parameter.saved = true
                 parameter.changed = false
 
-                vm.$forceUpdate()
+                vm.updateIndex++
             })
         },
         close: function() {
@@ -375,8 +273,225 @@ Vue.component('configure-parameters', {
                 vm.currentScmParameter.completed = response.data.completed
                 vm.currentScmParameter = null
 
-                vm.fetchScms()
+                vm.updateIndex++
             })
+        }
+    }
+})
+
+
+Vue.component('configure-parameters-carousel', {
+    template: `
+<div>
+    <p class="title is-3">
+        {{value.title}} ({{scms.count}}/{{scms.total}})
+    </p>
+
+    <div class="field">
+        <p class="control is-expanded has-icons-right">
+            <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="fetchScms()">
+            <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+        </p>
+    </div>
+
+    <div v-if="scms.count == 0" class="container">
+        <p class="has-text-centered">Nothing to show</p>
+    </div>
+    <div class="columns is-multiline" v-else>
+        <div class="column is-one-quarter" v-for="scm in scms.descriptors" >
+            <div class="card">
+                <div class="card-content">
+                    <p class="title is-5">
+                        <span v-bind:class="{ 'has-text-danger': scm.errors.length > 0, 'has-text-success': scm.completed }">
+                            {{scm.name}}
+                        </span>
+
+                        <span class="icon is-medium" v-if="scm.loading">
+                            <i class="fas fa-spinner fa-pulse"></i>
+                        </span>
+                    </p>
+                    <p class="subtitle is-6" style="color: lightgrey">
+                        <span  v-if="scm.saved">Last edit: {{whenLastSaved(scm)}}</span>
+                        <span v-else>never saved</span>
+                    </p>
+
+                    <p class="has-text-centered">
+                        <span class="tag is-danger"
+                            style="cursor: pointer"
+                            @mouseover="scm.showErrors=true"
+                            @mouseleave="scm.showErrors=false"
+                            v-show="scm.errors.length > 0">{{scm.errors.length}} error(s) caught</span>
+
+                        <span class="tag"
+                            style="cursor: pointer"
+                            @mouseover="scm.showDetails=true"
+                            @mouseleave="scm.showDetails=false"
+                            v-bind:class="{ 'is-warning': scm.requiredNotCompletedCount > 0 }">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
+                    </p>
+                </div>
+
+                <footer class="card-footer">
+                    <p class="card-footer-item is-paddingless">
+                        <button class="button is-fullwidth" @click="resetParameters(scm)" :disabled="scm.parameters.length == 0">Reset</button>
+                    </p>
+                    <p class="card-footer-item is-paddingless">
+                        <button class="button is-fullwidth is-link" @click.stop="editParameters(scm)" :disabled="scm.parameters.length == 0">Configure</button>
+                    </p>
+                </footer>
+
+                <div class="notification is-primary content" v-if="scm.showDetails" style="position: absolute; z-index: 10">
+                    <ul>
+                        <li>Has <span class="has-text-weight-bold">{{scm.parameters.length}}</span> parameter(s)</li>
+                        <li>Has <span class="has-text-weight-bold">{{scm.requiredCount}}</span> required parameter(s)</li>
+                        <li>Has answered <span class="has-text-weight-bold">{{scm.completedCount}}</span> parameter(s)</li>
+                        <li>
+                            <span v-if="scm.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
+                            <span v-else>Has <span class="has-text-weight-bold has-text-warning">not answered</span> all of its parameters</span>
+                         </li>
+                    </ul>
+                </div>
+
+                <div class="notification is-danger content" v-show="scm.showErrors" style="position: absolute; z-index: 10">
+                    <ul>
+                        <li v-for="error in scm.errors">{{error.message}}, {{whenError(error)}}.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <pagination v-model="paginationSettings" style="margin-top: 2em" />
+</div>
+`,
+    props: ['value'],
+    data: function() {
+        var vm = this
+
+        return {
+            loading: false,
+            scms: [],
+            total: 0,
+            filters: {
+                name: '',
+                staged: vm.value.filters.required,
+                selected: vm.value.filters.selected,
+                to: 4,
+                from: 0,
+                hideOnComplete: vm.value.filters.hideOnComplete
+            }
+        }
+    },
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.fetchScms()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.to,
+                    total: vm.scms.count
+                }
+            }
+        }
+    },
+    methods: {
+        fetchScms: function() {
+            var vm = this
+
+            vm.loading = true
+
+            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
+                vm.scms = response.data
+                vm.scms.descriptors.sort(compareValues('name'))
+
+                // Calculate parameters metrics
+                vm.scms.descriptors.forEach(function(scm) {
+                    // dependency metrics
+                    scm.requiredCount = 0
+                    scm.requiredNotCompletedCount = 0
+                    scm.completedCount = 0
+
+                    // errors stack
+                    scm.errors = []
+                    vm.$set(scm, 'showErrors', false)
+                    vm.$set(scm, 'loading', false)
+                    vm.$set(scm, 'showDetails', false)
+
+                    scm.parameters.forEach(function(parameter) {
+                        var hasValue = parameter.value != null &&
+                                       parameter.value != undefined &&
+                                       parameter.value != ''
+
+                        if (parameter.required) {
+                            scm.requiredCount++
+
+                            if (!hasValue)
+                                scm.requiredNotCompletedCount++
+                        }
+
+                        if (hasValue)
+                            scm.completedCount++
+                    })
+                })
+
+                vm.loading = false
+            })
+        },
+        whenLastSaved: function(scmParameters) {
+            var vm = this
+
+            return TimeAgo.inWords(scmParameters.lastModified)
+        },
+        whenError: function(error) {
+            var vm = this
+
+            return TimeAgo.inWords(error.when)
+        },
+        editParameters: function(scmParameters) {
+
+            var vm = this
+
+            if (scmParameters.parameters.length == 0)
+                return
+
+            if (scmParameters.loaded) {
+                vm.value.edit(scmParameters)
+                return
+            }
+
+            scmParameters.loading = true
+
+            axios.get(scmParameters.links.parameters).then(response => {
+
+                scmParameters.parameters.forEach(function(parameter) {
+                    parameter.values = response.data[parameter.name]
+
+                    if (!parameter.value)
+                        parameter.value = ""
+                })
+
+                scmParameters.changed = false
+                scmParameters.loaded = true
+                scmParameters.loading = false
+
+                vm.value.edit(scmParameters)
+            })
+            .catch(error  => {
+
+                scmParameters.changed = false
+                scmParameters.loaded = false
+                scmParameters.loading = false
+
+                scmParameters.errors.push(error.response.data)
+                vm.$forceUpdate()
+            })
+        },
+        resetParameters: function(scmParameters) {
+            var vm = this
+            vm.value.reset(scmParameters)
         }
     },
     created: function() {

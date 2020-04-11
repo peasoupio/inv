@@ -250,9 +250,10 @@ class WebServer {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            def owners = run.owners.findAll { !filter.owner || it.key.contains(filter.owner) }
+            // TODO Rework pagination/propagation
+            //def owners = run.owners.findAll { !filter.owner || it.key.contains(filter.owner) }
 
-            return JsonOutput.toJson(owners.collect { String owner, List<GraphNavigator.Id> ids ->
+            return JsonOutput.toJson(run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
                         owner     : owner,
                         selectedBy: ids.findAll { run.staged[it.value] && run.staged[it.value].selected }.size(),

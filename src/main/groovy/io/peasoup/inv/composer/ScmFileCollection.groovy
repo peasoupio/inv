@@ -89,24 +89,28 @@ class ScmFileCollection {
         Integer selectedCount = 0
         Integer stagedCount = 0
 
+        String filterName = filter.name as String
+
         elements.values().each {
+            if (filterName && !it.descriptor.name.contains(filterName))
+                return
 
-            boolean selected = false
-            boolean staged = staged.contains(it.descriptor.name)
-
-            if (runFile)
-                selected = runFile.isSelected(it.descriptor.name)
-
-            boolean filteredOutSelected = filter.selected && !selected
-            boolean filteredOutStaged = filter.staged && !staged
-
-            if (selected)
-                selectedCount++
-
-            if (staged)
+            boolean isStaged = staged.contains(it.descriptor.name)
+            if (isStaged)
                 stagedCount++
 
-            if (filteredOutSelected && filteredOutStaged)
+            boolean isSelected = false
+
+            if (runFile) {
+                isSelected = runFile.isSelected(it.descriptor.name)
+                if (isSelected)
+                    selectedCount++
+            }
+
+            if (filter.selected && !isSelected)
+                return
+
+            if (filter.staged && !isStaged)
                 return
 
             File parameterLocation
@@ -121,8 +125,8 @@ class ScmFileCollection {
             if (filteredOutHideOnComplete)
                 return
 
-            scm.selected = selected
-            scm.staged = staged
+            scm.selected = isSelected
+            scm.staged = isStaged
 
             filtered.add(scm)
         }

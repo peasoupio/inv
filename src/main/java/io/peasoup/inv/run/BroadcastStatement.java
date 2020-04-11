@@ -70,14 +70,12 @@ public class BroadcastStatement implements Statement {
                 return;
 
             Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastStatement.getName());
-            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
-
-            if (channel.containsKey(broadcastStatement.getId()) || staging.containsKey(broadcastStatement.getId())) {
-                Logger.warn(broadcastStatement.getId() + " already broadcasted. Skipped");
-
-                broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
+            if (alreadyBroadcast(channel, broadcastStatement))
                 return;
-            }
+
+            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
+            if (alreadyBroadcast(staging, broadcastStatement))
+                return;
 
             broadcastStatement.state = StatementStatus.SUCCESSFUL;
 
@@ -116,5 +114,16 @@ public class BroadcastStatement implements Statement {
                     defaultClosure);
         }
 
+        private boolean alreadyBroadcast(Map<Object, BroadcastResponse> statements, BroadcastStatement broadcastStatement) {
+            if (!statements.containsKey(broadcastStatement.getId()))
+                return false;
+
+            String resolvedBy = statements.get(broadcastStatement.getId()).getResolvedBy();
+            Logger.warn(broadcastStatement.toString() + " already broadcasted by [" + resolvedBy + "]. Will be skipped.");
+
+            broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
+
+            return true;
+        }
     }
 }

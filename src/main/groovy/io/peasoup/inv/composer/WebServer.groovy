@@ -13,6 +13,8 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
 
+import java.nio.file.Files
+
 import static spark.Spark.*
 
 @CompileStatic
@@ -143,7 +145,8 @@ class WebServer {
                                     stageAll       : "/scms/stageAll",
                                     unstageAll     : "/scms/unstageAll",
                                     applyDefaultAll: "/scms/applyDefaultAll",
-                                    resetAll       : "/scms/resetAll"
+                                    resetAll       : "/scms/resetAll",
+                                    metadata       : "/scms/metadata",
                             ],
                             execution: [
                                     default: "/execution"
@@ -453,6 +456,13 @@ class WebServer {
             return JsonOutput.toJson(output)
         })
 
+        get("/scms/metadata", { Request req, Response res ->
+            Map output = scms.toMap(run)
+            output.descriptors = null
+
+            return JsonOutput.toJson(output)
+        })
+
         post("/scms/stageAll", { Request req, Response res ->
             settings.unstageAllSCMs()
 
@@ -757,6 +767,8 @@ class WebServer {
                     base.delete()
                     base << "Generated automatically by Composer" + System.lineSeparator()
                     base << "This file is used to allow review on a first run since no promoted run.txt exists" + System.lineSeparator()
+
+                    Files.copy(base.toPath(), baseFile().toPath())
                 }
             }
 
@@ -768,7 +780,7 @@ class WebServer {
             if (!baseFile().exists())
                 return showError(res, "Promote is not ready yet")
 
-            if (! exec.latestRun().exists())
+            if (!exec.latestRun().exists())
                 return showError(res, "Promote is not ready yet")
 
             def review = new Review(baseFile(), exec.latestRun(), scms)

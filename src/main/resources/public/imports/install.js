@@ -3,7 +3,7 @@ Vue.component('install', {
 <div>
     <div class="buttons is-right">
         <button class="button breathe-heavy" @click="toggleFeature('autoRefresh')" v-bind:class="{ 'is-link': features.autoRefresh }">
-            <span>Auto-refresh (5 secs)</span>
+            <span>Auto-refresh (15 secs)</span>
         </button>
 
         <div class="dropdown is-hoverable">
@@ -41,11 +41,11 @@ Vue.component('install', {
         </div>
     </div>
 
-    <p class="title is-5 has-text-centered" v-if="!execution.running">
+    <p class="title is-4 has-text-centered" v-if="!execution.running">
         Ready to execute ?
     </p>
 
-    <p class="title is-5 has-text-centered" v-if="execution.running">
+    <p class="title is-4 has-text-centered" v-if="execution.running">
         <span class="icon is-small">
                     <i class="fas fa-spinner fa-pulse"></i>
                 </span> Running
@@ -63,27 +63,23 @@ Vue.component('install', {
         </button>
     </div>
 
-    <p class="title is-6">
-        Latest execution
-        <span v-if="execution.links && execution.links.download">
-            (<a @click="downloadLatestLog()">download logs</a><span v-if="getFileSize()">, {{getFileSize()}}</span>)
-        </span>
-    </p>
-    <p v-if="!execution.running">Last execution ended: {{getEndedAgo()}}</p>
-    <p v-if="!execution.running">Last duration: {{getDuration()}}</p>
-    <p v-if="execution.running">Started: {{getStartedAgo()}}</p>
-
-    <!--
     <hr />
-    <p class="title is-6">
-        Scm files loaded:
-    </p>
-    <div class="content" v-if="execution.lastExecution">
-        <ul v-if="execution.lastExecution.scms" style="column-count: 4; column-gap: 10px;">
-            <li v-for="scm in execution.lastExecution.scms"><span style="font-size: 1em">{{scm}}</span></li>
-        </ul>
+
+    <p class="title is-5">Latest execution report</p>
+
+    <div class="content">
+        <p class="title is-6">
+            <span v-if="!execution.running">Lasted: {{getDuration()}}</span>
+            <span v-if="execution.running">Started: {{getStartedAgo()}}</span>
+            <span v-if="execution.links && execution.links.download">
+                (<a @click="downloadLatestLog()">download logs</a><span v-if="getFileSize()">, {{getFileSize()}}</span>)
+            </span>
+        </p>
     </div>
-    -->
+
+    <div v-if="updateIndex > 0">
+        <review v-model="value" :key="updateIndex" />
+    </div>
 </div>
 `,
     props: ['value'],
@@ -98,7 +94,11 @@ Vue.component('install', {
 
             execution: {},
             runningTimestamp: 0,
-            socket: undefined
+            socket: undefined,
+            filters: {
+                scm: ''
+            },
+            updateIndex: 0
         }
     },
     methods: {
@@ -167,6 +167,7 @@ Vue.component('install', {
 
             axios.get(vm.value.api.links.execution.default).then(async (response) => {
                 vm.execution = response.data
+                vm.updateIndex++
             })
         },
         autoRefresh: function() {
@@ -180,7 +181,7 @@ Vue.component('install', {
                     return
 
                 vm.refresh()
-            }, 5000)
+            }, 15000)
         },
         getEndedAgo: function() {
             var vm = this
@@ -231,6 +232,21 @@ Vue.component('install', {
             } while(Math.abs(logSize) >= thresh && u < units.length - 1);
             return logSize.toFixed(1)+' '+units[u];
         },
+        getLastExecutedScm: function() {
+            var vm = this
+
+            if (!vm.execution || !vm.execution.lastExecution)
+                return []
+
+            var filtered = vm.execution.lastExecution.scms.filter(function(scm) {
+                if (scm.indexOf(vm.filters.scm) < 0) return
+
+                return true
+            })
+            filtered.sort()
+
+            return filtered
+        }
     },
     mounted: function() {
         var vm = this

@@ -5,6 +5,7 @@ Vue.component('configure-scms', {
         <div class="modal-background"></div>
         <div class="modal-content configure-scms-modal">
             <div class="box" v-click-outside="close">
+                <p class="title is-6">Edit SCM(s):</p>
                 <configure-scms-details v-model="value.shared" />
             </div>
         </div>
@@ -29,8 +30,7 @@ Vue.component('configure-scms', {
 Vue.component('configure-scms-details', {
     template: `
 <div>
-    <div v-if="value.scms.total" >
-
+    <div v-if="scms.descriptors">
         <div class="field is-grouped is-grouped-right" v-if="false">
             <div class="field">
                 <button @click="openAdd()" class="button breath is-link">
@@ -71,7 +71,8 @@ Vue.component('configure-scms-details', {
             </tbody>
         </table>
 
-        <pagination v-model="paginationSettings" />
+        <p class="has-text-centered" v-if="scms.count == 0">Nothing to show</p>
+        <pagination v-model="paginationSettings" v-if="scms.count > 0" />
     </div>
 
     <div class="modal" v-bind:class=" { 'is-active': editScript } ">
@@ -110,10 +111,9 @@ Vue.component('configure-scms-details', {
     data: function() {
         return {
             // Table
-            count: this.value.scms.length,
+            scms: {},
             //showWhoBroughtMe: null,
             filters: {
-                selected: true,
                 from: 0,
                 to: 5,
                 name: '',
@@ -143,7 +143,7 @@ Vue.component('configure-scms-details', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.to,
-                    total: vm.value.scms.count
+                    total: vm.scms.count
                 }
             }
         }
@@ -154,7 +154,7 @@ Vue.component('configure-scms-details', {
 
             var filtered = []
 
-            vm.value.scms.descriptors.forEach(function(scm) {
+            vm.scms.descriptors.forEach(function(scm) {
                 filtered.push(scm)
             })
 
@@ -167,7 +167,7 @@ Vue.component('configure-scms-details', {
                 vm.filters.from = 0
 
             axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
-                vm.value.scms = response.data
+                vm.scms = response.data
             })
         },
         whenLastEdit: function(scm) {

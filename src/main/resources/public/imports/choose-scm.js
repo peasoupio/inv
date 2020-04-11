@@ -2,19 +2,19 @@ Vue.component('choose-scm', {
     template: `
 <div>
 
-    <div v-if="value.scms.total == undefined || value.scms.total == 0">
+    <div v-if="scms.total == undefined || scms.total == 0">
         No SCMS available yet...
     </div>
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
                 <button @click="stageAll()"class="button breath">
-                    Stage all ({{value.scms.total - value.scms.staged}})
+                    Stage all ({{scms.total - scms.staged}})
                 </button>
             </div>
             <div class="field">
                 <button @click="unstageAll()"class="button">
-                    Unstage all ({{value.scms.staged}})
+                    Unstage all ({{scms.staged}})
                 </button>
             </div>
         </div>
@@ -46,6 +46,7 @@ Vue.component('choose-scm', {
     props: ['value'],
     data: function() {
         return {
+            scms: {},
             filters: {
                 from: 0,
                 step: 20,
@@ -66,7 +67,7 @@ Vue.component('choose-scm', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.step,
-                    total: vm.value.scms.count
+                    total: vm.scms.count
                 }
             }
         }
@@ -77,7 +78,7 @@ Vue.component('choose-scm', {
 
             var filtered = []
 
-            vm.value.scms.descriptors.forEach(function(scm) {
+            vm.scms.descriptors.forEach(function(scm) {
                 filtered.push(scm)
             })
 
@@ -90,7 +91,7 @@ Vue.component('choose-scm', {
                 vm.filters.from = 0
 
             axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
-                vm.value.scms = response.data
+                vm.scms = response.data
             })
         },
         stage: function(scm) {
@@ -98,7 +99,7 @@ Vue.component('choose-scm', {
 
             axios.post(scm.links.stage).then(response => {
                 scm.staged = true
-                vm.value.scms.staged++
+                vm.scms.staged++
             })
         },
         unstage: function(scm) {
@@ -106,7 +107,7 @@ Vue.component('choose-scm', {
 
             axios.post(scm.links.unstage).then(response => {
                 scm.staged = false
-                vm.value.scms.staged--
+                vm.scms.staged--
             })
         },
         stageAll: function() {

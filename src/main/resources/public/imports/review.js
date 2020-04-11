@@ -1,70 +1,84 @@
 Vue.component('review', {
     template: `
 <div>
-    <div class="columns">
-        <div class="column is-3">
-            <p class="title is-6">Information</p>
-            <p>Base execution: {{getBaseRunTimestamp()}}</p>
-            <p>Latest execution: {{getLatestTimestamp()}}</p>
-        </div>
-        <div class="column is-3">
-            <p class="title is-6">
-                Stats
-            </p>
-            <div v-for="stat in stats">
-                <p>{{stat.name}}: {{statsValues[stat.value]}}
-                    <a class="icon active" style="margin-right: 0.75em" @mouseover="stat.showHelp = true" @mouseleave="stat.showHelp = false">
-                        <i class="fas fa-question-circle" aria-hidden="true"></i>
-                    </a>
+
+    <div v-if="ready">
+        <div class="columns" >
+            <div class="column is-3">
+                <p class="title is-6">Information</p>
+                <p>Base execution: {{getBaseRunTimestamp()}}</p>
+                <p>Latest execution: {{getLatestTimestamp()}}</p>
+            </div>
+            <div class="column is-3">
+                <p class="title is-6">
+                    Stats
                 </p>
-                <div class="notification is-primary" v-show="stat.showHelp" style="position: absolute">
-                    <div class="content panel-help" v-html="stat.help"></div>
+                <div v-for="stat in stats">
+                    <p>{{stat.name}}: {{statsValues[stat.value]}}
+                        <a class="icon active" style="margin-right: 0.75em" @mouseover="stat.showHelp = true" @mouseleave="stat.showHelp = false">
+                            <i class="fas fa-question-circle" aria-hidden="true"></i>
+                        </a>
+                    </p>
+                    <div class="notification is-primary" v-show="stat.showHelp" style="position: absolute; z-index: 10">
+                        <div class="content panel-help" v-html="stat.help"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="field is-grouped is-grouped-right">
+                    <div class="field">
+                        <button
+                            v-for="(obj, name) in filters"
+                            @click="toggleFilter(obj)"
+                            v-bind:class="{ 'is-link': obj.value}" class="button breath">
+                            Hide {{obj.label}}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="column">
-            <div class="field is-grouped is-grouped-right">
-                <div class="field">
-                    <button
-                        v-for="(obj, name) in filters"
-                        @click="toggleFilter(obj)"
-                        v-bind:class="{ 'is-link': obj.value}" class="button breath">
-                        Hide {{obj.label}}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <p class="title is-4">
-        Broadcast(s)
-        <span v-show="loading">
-            <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
-        </span>
-    </p>
-
-    <hr />
-
-    <div v-if="deltaLines.length > 0">
-        <p v-for="line in filter()">
-            <span class="tag" v-if="line.state == '='">equals</span>
-            <span class="tag is-info" v-if="line.state == '+'">added</span>
-            <span class="tag is-warning" v-if="line.state == '-'">missing</span>
-            <span class="tag is-danger" v-if="line.state == 'x'">removed</span>
-            {{line.link.value}}
+        <p class="title is-5">
+            Broadcast(s)
+            <span v-show="loading">
+                <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
+            </span>
         </p>
-    </div>
 
-    <div style="padding: 1em">
-        <pagination v-model="paginationSettings" />
-    </div>
+        <div class="field">
+            <p class="control is-expanded has-icons-right">
+                <input class="input" type="text" v-model="labelFilter" placeholder="Name and/or ID">
+                <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+            </p>
+        </div>
 
+        <hr />
+
+        <div v-if="deltaLines.length > 0">
+            <p v-for="line in filter()">
+                <span style="min-width: 2em; display: inline-block">{{line.owner.index + 1}}.</span>
+                <span class="tag" v-if="line.state == '='">equals</span>
+                <span class="tag is-info" v-if="line.state == '+'">added</span>
+                <span class="tag is-warning" v-if="line.state == '-'">missing</span>
+                <span class="tag is-danger" v-if="line.state == 'x'">removed</span>
+                {{line.link.value}}
+            </p>
+
+            <p v-if="paginationFilters.total == 0" class="has-text-centered">Nothing to show</p>
+
+            <div style="padding: 1em">
+                <pagination v-model="paginationSettings" />
+            </div>
+        </div>
+    </div>
+    <p class="has-text-centered" v-else>The review is not ready yet. Make sure you installed something before.</p>
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
             loading: false,
+            ready: false,
             review: {},
             deltaLines: [],
             showStatHeaderHelp: false,
@@ -94,6 +108,7 @@ Vue.component('review', {
 </ul>
 `},
             ],
+            labelFilter: '',
             filters: {
                 hideEquals: {value: false, label: "equals" },
                 hideMissing: {value: false, label: "missing" },
@@ -136,6 +151,9 @@ Vue.component('review', {
                 if (vm.filters.hideAdded.value && line.state == '+') return
                 if (vm.filters.hideRemoved.value && line.state == 'x') return
 
+                if (line.link.value.indexOf(vm.labelFilter) < 0) return
+
+
                 filtered.push(line)
             })
 
@@ -159,18 +177,30 @@ Vue.component('review', {
         getDelta: function() {
             var vm = this
 
+            vm.loading = true
+
             axios.get(vm.value.api.links.review.default).then(response => {
                 vm.review = response.data
                 vm.statsValues = vm.review.stats
                 vm.deltaLines = response.data.lines.sort((a, b) => a.index - b.index)
                 vm.paginationFilters.total = vm.deltaLines.length
+
+                vm.loading = false
+                vm.ready = true
             })
         },
         toggleFilter: function(filter) {
             filter.value = !filter.value
+            localStorage.reviewFilters = JSON.stringify(this.filters)
         }
     },
     mounted: function() {
-        this.getDelta()
+        var vm = this
+
+        if (localStorage.reviewFilters) {
+            vm.filters = JSON.parse(localStorage.reviewFilters)
+        }
+
+        vm.getDelta()
     }
 })

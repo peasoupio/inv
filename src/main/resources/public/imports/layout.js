@@ -194,11 +194,7 @@ Vue.component('layout', {
             ],
             shared: {
                 api: {},
-                setup: {},
-                scms: {},
-                selectedScms: [],
-                invs: {},
-                requiredInvs: {}
+                setup: {}
             }
         }
     },

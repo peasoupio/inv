@@ -3,7 +3,7 @@
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="!areSCMsAvailable()">
+    <div v-if="!areSCMsAvailable">
         <div class="content">
             <p class="has-text-warning has-text-centered title is-4">Nothing is staged for now.</p>
             <p>Have you considered the following?</p>
@@ -112,6 +112,7 @@ Vue.component('configure-parameters', {
     props: ['value'],
     data: function() {
         return {
+            areSCMsAvailable: false,
             filters: {
                 hideOnComplete: true
             },
@@ -164,19 +165,6 @@ Vue.component('configure-parameters', {
         }
     },
     methods: {
-        areSCMsAvailable: function() {
-            var vm = this
-
-            return true
-
-            if (vm.value.selectedScms.selected == undefined)
-                return false
-
-            if (vm.value.selectedScms.staged == undefined)
-                return false
-
-            return (vm.value.selectedScms.selected + vm.value.selectedScms.staged) > 0
-        },
         toggleHideOnComplete: function() {
             var vm = this
 
@@ -276,6 +264,14 @@ Vue.component('configure-parameters', {
                 vm.updateIndex++
             })
         }
+    },
+    mounted: function() {
+        var vm = this
+
+        // Check if any scm is selected or staged
+        axios.get(vm.value.api.links.scms.metadata).then(response => {
+            vm.areSCMsAvailable = (response.data.selected + response.data.staged) > 0
+        })
     }
 })
 

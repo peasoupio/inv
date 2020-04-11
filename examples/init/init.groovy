@@ -9,8 +9,8 @@ scm {
     hooks {
         init """
 # Remove '#' to use example composer workspace 
-# git clone -b release/0.5-beta ${src} ./gitExtract
-# mv ./gitExtract/src/main/example/composer/* ./
+# git clone -b master ${src} ./gitExtract
+# mv ./gitExtract/examples/composer/scms/* ./scms
 # rm -rf ./gitExtract
 """
     }

@@ -6,10 +6,10 @@ Vue.component('choose-broadcast', {
         <div class="field is-grouped is-grouped-right">
             <div class="field">
                 <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button breath">
-                    Show only selected ({{value.invs.selected}}/{{value.invs.count}})
+                    Show only selected ({{invs.selected}}/{{invs.count}})
                 </button>
                 <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button breath">
-                    Show all required ({{value.invs.requiredByAssociation}}/{{value.invs.count}})
+                    Show all required ({{invs.requiredByAssociation}}/{{invs.count}})
                 </button>
             </div>
             <div class="field">
@@ -25,7 +25,7 @@ Vue.component('choose-broadcast', {
                     <div class="dropdown-menu" id="dropdown-menu" role="menu">
                         <div class="dropdown-content">
                             <a @click="setStageAll(true)" class="dropdown-item">
-                                Select all ({{value.invs.total}})
+                                Select all ({{invs.total}})
                             </a>
                         </div>
                         <div class="dropdown-content">
@@ -37,7 +37,7 @@ Vue.component('choose-broadcast', {
                 </div>
             </div>
         </div>
-        <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="value.invs.nodes">
+        <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="invs.nodes">
             <thead>
             <tr class="field">
                 <th style="width: 6%">Selected</th>
@@ -124,6 +124,7 @@ Vue.component('choose-broadcast', {
     props: ['value'],
     data: function() {
         return {
+            invs: {},
             notAvailable: false,
             owners: [],
             names: [],
@@ -151,7 +152,7 @@ Vue.component('choose-broadcast', {
                     },
                     from: vm.filters.from,
                     step: vm.filters.step,
-                    total: vm.value.invs.count
+                    total: vm.invs.count
                 }
             }
         }
@@ -162,7 +163,7 @@ Vue.component('choose-broadcast', {
 
             var filtered = []
 
-            vm.value.invs.nodes.forEach(function(node) {
+            vm.invs.nodes.forEach(function(node) {
                 filtered.push(node)
             })
 
@@ -176,7 +177,7 @@ Vue.component('choose-broadcast', {
                 vm.filters.from = 0
 
             axios.post(vm.value.api.links.run.search, vm.filters).then(response => {
-                vm.value.invs = response.data
+                vm.invs = response.data
                 vm.value.requiredInvs = {}
             })
         },
@@ -188,7 +189,7 @@ Vue.component('choose-broadcast', {
         filterOwners: function() {
             var vm = this
 
-            if (vm.value.invs.owners.length == 0)
+            if (vm.invs.owners.length == 0)
                 return []
 
             if (vm.filters.owner == '')
@@ -196,7 +197,7 @@ Vue.component('choose-broadcast', {
 
             var filtered = []
 
-           vm.value.invs.owners.forEach(function(owner) {
+           vm.invs.owners.forEach(function(owner) {
                 if (vm.filters.owner && owner.indexOf(vm.filters.owner) < 0) return
 
                 filtered.push(owner)
@@ -217,7 +218,7 @@ Vue.component('choose-broadcast', {
         filterNames: function() {
             var vm = this
 
-            if (vm.value.invs.names.length == 0)
+            if (vm.invs.names.length == 0)
                 return []
 
             if (vm.filters.name == '')
@@ -225,7 +226,7 @@ Vue.component('choose-broadcast', {
 
             var filtered = []
 
-            vm.value.invs.names.forEach(function(name) {
+            vm.invs.names.forEach(function(name) {
                 if (vm.filters.name && name.indexOf(vm.filters.name) < 0) return
 
                 filtered.push(name)
@@ -246,7 +247,7 @@ Vue.component('choose-broadcast', {
         setStageAll: function(stage) {
             var vm = this
 
-            vm.value.invs.nodes.forEach(function(inv) {
+            vm.invs.nodes.forEach(function(inv) {
                 if (inv.required)
                     return
 
@@ -292,7 +293,7 @@ Vue.component('choose-broadcast', {
         var vm = this
 
         axios.get(vm.value.api.links.run.default).then(response => {
-            vm.value.invs = response.data
+            vm.invs = response.data
         })
         .catch(response => {
             vm.notAvailable = true

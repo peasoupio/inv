@@ -93,8 +93,11 @@ Vue.component('panel', {
 
     <div class="panel-block" v-if="value.options != undefined">
         <button v-for="option in value.options"
-                class="button is-link is-outlined is-fullwidth" @click="option.click()">
-                {{option.label}}
+                class="button is-link is-outlined is-fullwidth" @click="clickOption(option)">
+                <span>{{option.label}}</span>
+
+                <span class="icon is-small" v-show="option.toggle"><i class="fas fa-check-square"></i></span>
+                <span class="icon is-small" v-if="option.toggle == false"><i class="far fa-square"></i></span>
         </button>
     </div>
 </nav>
@@ -205,6 +208,20 @@ Vue.component('panel', {
 
             vm.filters.from = 0
             vm.value.filter(vm.filters.input)
+
+            vm.$forceUpdate()
+        },
+
+        clickOption: function(option) {
+            if (!option.click)
+                return
+
+            var vm = this
+
+            option.click()
+
+            if (option.toggle != undefined)
+                option.toggle = !option.toggle
 
             vm.$forceUpdate()
         }

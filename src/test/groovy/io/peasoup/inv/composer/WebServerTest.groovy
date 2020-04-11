@@ -196,7 +196,7 @@ scm {
     @Test
     void scms_selected() {
 
-        def responseBeforeStage = postJson ("scms", [selected: true, staged: true])
+        def responseBeforeStage = postJson ("scms", [selected: true, staged: false])
         assert responseBeforeStage
 
         def jsonBeforeStage = new JsonSlurper().parseText(responseBeforeStage)
@@ -206,13 +206,13 @@ scm {
 
         post("run/stage?id=[Kubernetes]%20undefined")
 
-        def responseAfterStage = postJson ("scms", [selected: true, staged: true])
+        def responseAfterStage = postJson ("scms", [selected: true, staged: false])
         assert responseAfterStage
 
         def jsonAfterStage = new JsonSlurper().parseText(responseAfterStage)
 
         assert jsonAfterStage
-        assert jsonAfterStage.descriptors.size() > 0
+        assert jsonAfterStage.descriptors.size() == 2
 
         post("run/unstage?id=[Kubernetes]%20undefined")
     }

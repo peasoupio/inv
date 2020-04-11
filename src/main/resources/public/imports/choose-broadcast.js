@@ -1,4 +1,4 @@
-Vue.component('choose-select-complex', {
+Vue.component('choose-broadcast', {
     template: `
 <div>
     <choose-not-available v-if="notAvailable"></choose-not-available>

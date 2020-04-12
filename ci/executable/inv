@@ -1,3 +1,13 @@
 #!/bin/sh
+
+# Get parent directory of this script
 BASEDIR=$(dirname $(dirname "$0"))
-java -jar $BASEDIR/../lib/${project.artifactId}-${project.version}.jar $@
+
+# Get lib directory
+LIBDIR=$BASEDIR/../lib
+
+# Get INV jar
+INVJAR=${project.artifactId}-${project.version}.jar
+
+# Call INV jar with parameters
+java -jar $LIBDIR/$INVJAR $@

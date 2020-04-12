@@ -15,10 +15,9 @@ class Main extends Script {
     String usage = """Inv.
 
 Usage:
-  inv run [-d | -x] [-s] [-e <label>] <patterns>...
-  inv scm [-d | -x] [-s] <scmFiles>...
+  inv (run|scm|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
   inv composer [-d | -x] [-s]
-  inv init [-d | -x] [-s] <scmFile>
+  inv init [-d | -x] [-s] <initFile>
   inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
@@ -26,6 +25,7 @@ Usage:
 Options:
   run          Load and execute INV files.
   scm          Load and execute SCM files.
+  syntax       Test the syntax of an INV or SCM file.
   composer     Start Composer dashboard
   init         Start Composer dashboard from an SCM file.
   promote      Promote a run.txt as the new base.
@@ -38,17 +38,22 @@ Options:
   -h --help    Show this screen.
   
 Parameters:
-  <label>      Label not to be included in the loaded file path
-  <patterns>   An Ant-compatible file pattern
+  
+  <include>    Indicates the files to include.
+               It is Ant-compatible 
                (p.e *.groovy, ./**/*.groovy, ...)
-               Also, it is expandable using a space-separator
+               It is also expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-  <scmFiles>   The SCM file(s) location.
-               You can use a file ending with 'scm-list.txt'
-               for it to list all your SCM file references.
-               Each line must equal to the absolute path
-               of your SCM file on the current filesystems.
-  <scmFile>    The SCM file location. The file can be local
+               For scm: 
+                   You can use a file ending with 'scm-list.txt'
+                   for it to list all your SCM file references.
+                   Each line must equal to the absolute path
+                   of your SCM file on the current filesystems.
+  <exclude>    Indicates the files to exclude.
+               Exclusion is predominant over inclusion
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+  <initFile>   The SCM file location. The file can be local
                or remote, using an URL.
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
@@ -111,6 +116,10 @@ Parameters:
         if (arguments["--system"] as boolean)
             Logger.enableSystem()
 
+        // Enable secure mode
+        if (arguments["--secure"])
+            CommonLoader.enableSecureMode()
+
         // Do system checks
         if (new SystemChecks().consistencyFails(this)) {
             RunsRoller.latest.latestHaveFailed()
@@ -139,16 +148,20 @@ Parameters:
     }
 
     CliCommand findCommand() {
-        if (arguments["--secure"])
-            CommonLoader.enableSecureMode()
-
         if (arguments["run"])
             return new RunCommand(
-                    patterns: arguments["<patterns>"] as List<String>,
+                    patterns: arguments["<include>"] as List<String>,
                     exclude: arguments["--exclude"] as String ?: "")
 
         if (arguments["scm"])
-            return new ScmCommand(scmFiles: arguments["<scmFiles>"] as List<String>)
+            return new ScmCommand(
+                    patterns: arguments["<include>"] as List<String>,
+                    exclude: arguments["--exclude"] as String ?: "")
+
+        if (arguments["syntax"])
+            return new SyntaxCommand(
+                    patterns: arguments["<include>"] as List<String>,
+                    exclude: arguments["--exclude"] as String ?: "")
 
         if (arguments["delta"])
             return new DeltaCommand(
@@ -162,7 +175,7 @@ Parameters:
             return new ComposerCommand()
 
         if (arguments["init"])
-            return new InitCommand(initFileLocation: arguments["<scmFile>"] as String)
+            return new InitCommand(initFileLocation: arguments["<initFile>"] as String)
 
         if (arguments["promote"])
             return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)

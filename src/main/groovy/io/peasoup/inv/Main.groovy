@@ -48,7 +48,8 @@ Parameters:
                for it to list all your SCM file references.
                Each line must equal to the absolute path
                of your SCM file on the current filesystems.
-  <scmFile>    The SCM file location.
+  <scmFile>    The SCM file location. The file can be local
+               or remote, using an URL.
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run

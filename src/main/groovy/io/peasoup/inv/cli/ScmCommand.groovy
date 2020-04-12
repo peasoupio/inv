@@ -1,6 +1,8 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
+import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
@@ -13,19 +15,20 @@ import java.nio.file.Files
 class ScmCommand implements CliCommand {
 
     public static final String LIST_FILE_SUFFIX = 'scm-list.txt'
-    List<String> scmFiles
+
+    List<String> patterns
+    String exclude
 
     int call() {
-        assert scmFiles != null, 'A valid value is required for args'
-
-        if (scmFiles.isEmpty())
+        assert patterns != null, 'A valid value is required for patterns'
+        if (patterns.isEmpty())
             return -1
 
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
-        if (scmFiles.size() == 1 && scmFiles[0].endsWith(LIST_FILE_SUFFIX)) {
-            def scmListPath = scmFiles[0]
+        if (patterns.size() == 1 && patterns[0].endsWith(LIST_FILE_SUFFIX)) {
+            def scmListPath = patterns[0]
             def scmListFile = new File(scmListPath)
 
             if (!scmListFile.exists())
@@ -34,7 +37,6 @@ class ScmCommand implements CliCommand {
             Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
 
             def lines = scmListFile.readLines()
-
             def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), lines.size(), false)
             progress.start {
 
@@ -45,11 +47,12 @@ class ScmCommand implements CliCommand {
                 }
             }
         } else {
+            def scmFiles = Pattern.get(patterns, exclude, Home.getCurrent())
             def progress = new Progressbar("Reading SCM from args".toString(), scmFiles.size(), false)
             progress.start {
 
                 scmFiles.each {
-                    scmExecutor.read(new File(it))
+                    scmExecutor.read(it)
 
                     progress.step()
                 }
@@ -88,7 +91,6 @@ class ScmCommand implements CliCommand {
                 ]
             }
         } as List<Map>
-
 
         invsFiles
             .findAll()

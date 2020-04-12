@@ -4,7 +4,7 @@ scm {
 
   path ".gitcache/githubHomepage/iis"
   src "https://github.com/peasoupio/inv.git"
-  entry 'src/main/example/githubHomepage/iis.groovy'
+  entry 'examples/githubHomepage/iis.groovy'
   timeout 30000
 
   ask {
@@ -29,7 +29,7 @@ scm {
 
   path ".gitcache/githubHomepage/kubernetes"
   src "https://github.com/peasoupio/inv.git"
-  entry 'src/main/example/githubHomepage/kubernetes.groovy'
+  entry 'examples/githubHomepage/kubernetes.groovy'
   timeout 30000
 
   ask {

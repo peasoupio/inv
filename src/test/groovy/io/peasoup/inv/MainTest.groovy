@@ -203,6 +203,22 @@ class MainTest {
     }
 
     @Test
+    void main_syntax_ok() {
+
+        def validSyntaxFile = MainTest.class.getResource("/syntax-valid.groovy")
+        def invalidSyntaxFile = MainTest.class.getResource("/syntax-invalid.groovy")
+
+        assert validSyntaxFile
+        assert invalidSyntaxFile
+
+        Main.main("syntax", validSyntaxFile.path)
+        assert Main.exitCode == 0
+
+        Main.main("syntax", invalidSyntaxFile.path)
+        assert Main.exitCode == -2
+    }
+
+    @Test
     void main_delta() {
 
         def logOutput = MainTest.class.getResource("/baseRun.txt")
@@ -211,7 +227,6 @@ class MainTest {
         assert logOutput
         assert logOutputAfter
 
-        println "\nTest selecting 'delta': "
         Main.main("delta", logOutput.path, logOutputAfter.path)
 
         assert Main.exitCode == 0

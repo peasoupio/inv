@@ -4,7 +4,7 @@ scm {
 
   path ".gitcache/githubHomepage/appA"
   src "https://github.com/peasoupio/inv.git"
-  entry 'src/main/example/githubHomepage/appA.groovy'
+  entry 'examples/githubHomepage/appA.groovy'
   timeout 46000
 
   ask {
@@ -46,7 +46,7 @@ scm {
 
   path ".gitcache/githubHomepage/appB"
   src "https://github.com/peasoupio/inv.git"
-  entry 'src/main/example/githubHomepage/appB.groovy'
+  entry 'examples/githubHomepage/appB.groovy'
   timeout 30000
 
   ask {

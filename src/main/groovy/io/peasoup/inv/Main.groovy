@@ -161,7 +161,7 @@ Parameters:
             return new ComposerCommand()
 
         if (arguments["init"])
-            return new InitCommand(scmFilePath: arguments["<scmFile>"] as String)
+            return new InitCommand(initFileLocation: arguments["<scmFile>"] as String)
 
         if (arguments["promote"])
             return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)

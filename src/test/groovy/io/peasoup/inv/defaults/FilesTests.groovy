@@ -10,7 +10,7 @@ class FilesTests {
     @Test
     void glob() {
 
-        def files = FilesTests.class.getResource("/defaults/files").path
+        def files = new File(FilesTests.class.getResource("/defaults/files").path)
 
         def executor = new InvExecutor()
         executor.read(new File("./defaults/files/inv.groovy"))

@@ -8,12 +8,12 @@ import io.peasoup.inv.scm.ScmExecutor
 @CompileStatic
 class InitCommand implements CliCommand {
 
-    String scmFilePath
+    String initFileLocation
 
     int call() {
-        assert scmFilePath, 'Scm file path is required'
+        assert initFileLocation, 'Scm file path is required'
 
-        ScmExecutor.SCMReport report = processSCM(new File(scmFilePath))
+        ScmExecutor.SCMReport report = processSCM(new File(initFileLocation))
         if (!report) {
             return -1
         }
@@ -25,7 +25,7 @@ class InitCommand implements CliCommand {
 
         // Define initFile
         composerCommand.settings = [
-            initFile: scmFilePath
+            initFile: initFileLocation
         ]
 
         return composerCommand.call()

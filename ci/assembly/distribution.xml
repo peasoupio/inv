@@ -31,6 +31,9 @@
             <outputDirectory>lib</outputDirectory>
             <excludes>
                 <exclude>${project.groupId}:${project.artifactId}:jar:*</exclude>
+                <exclude>org.codehaus.groovy:groovy-groovydoc:jar:*</exclude>
+                <exclude>org.codehaus.groovy:groovy-docgenerator:jar:*</exclude>
+                <exclude>*:javaparser-core:jar:*</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>

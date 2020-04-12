@@ -299,7 +299,7 @@ class RunFile {
                     String value = it.link.value as String
                     String owner = it.node.owner as String
 
-                    def scm = invOfScm[owner]
+                    String scm = invOfScm[owner]
 
                     return [
                             required: staged[value] && staged[value].required,

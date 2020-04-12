@@ -17,7 +17,16 @@ class InitCommandTest {
 
         file.deleteDir()
 
-        def report = new InitCommand().processSCM(file)
+        def report = new InitCommand(initFileLocation: file.absolutePath).processSCM()
+
+        assert report
+        assert report.name.toLowerCase() == "main"
+        assert report.isOk
+    }
+
+    @Test
+    void ok_url() {
+        def report = new InitCommand(initFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processSCM()
 
         assert report
         assert report.name.toLowerCase() == "main"

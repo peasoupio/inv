@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
+import org.apache.commons.validator.routines.UrlValidator
 
 @CompileStatic
 class InitCommand implements CliCommand {
@@ -13,7 +14,7 @@ class InitCommand implements CliCommand {
     int call() {
         assert initFileLocation, 'Scm file path is required'
 
-        ScmExecutor.SCMReport report = processSCM(new File(initFileLocation))
+        ScmExecutor.SCMReport report = processSCM()
         if (!report) {
             return -1
         }
@@ -35,7 +36,22 @@ class InitCommand implements CliCommand {
         return false
     }
 
-    protected ScmExecutor.SCMReport processSCM(File scmFile) {
+    protected ScmExecutor.SCMReport processSCM() {
+        String actualFileLocation = initFileLocation
+        File scmFile
+
+        // Check if init file location is an URL
+        if (UrlValidator.instance.isValid(initFileLocation)) {
+            String initFileContent = new URL(initFileLocation).openConnection().inputStream.text
+
+            File tmpFile = new File(System.getenv().TEMP ?: '/tmp', '/inv/init.groovy')
+            tmpFile.delete()
+            tmpFile << initFileContent
+
+            scmFile = tmpFile
+        } else
+            scmFile = new File(actualFileLocation)
+
         assert scmFile.exists(), 'Scm file path must exist on filesystem'
 
         def scmExecutor = new ScmExecutor()

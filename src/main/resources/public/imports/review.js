@@ -2,7 +2,8 @@ Vue.component('review', {
     template: `
 <div>
 
-    <div v-if="ready">
+    <p class="has-text-centered" v-if="!ready">The review is not ready yet. Make sure you installed something before.</p>
+    <div>
         <div class="columns" >
             <div class="column is-3">
                 <p class="title is-6">Information</p>
@@ -54,33 +55,30 @@ Vue.component('review', {
 
         <hr />
 
-        <div v-if="deltaLines.length > 0">
-            <p v-for="line in filter()">
-                <span style="min-width: 2em; display: inline-block">{{line.owner.index + 1}}.</span>
-                <span class="tag" v-if="line.state == '='">equals</span>
-                <span class="tag is-info" v-if="line.state == '+'">added</span>
-                <span class="tag is-warning" v-if="line.state == '-'">missing</span>
-                <span class="tag is-danger" v-if="line.state == 'x'">removed</span>
-                {{line.link.value}}
-            </p>
+        <p v-for="line in filter()">
+            <span style="min-width: 2em; display: inline-block">{{line.owner.index + 1}}.</span>
+            <span class="tag" v-if="line.state == '='">equals</span>
+            <span class="tag is-info" v-if="line.state == '+'">added</span>
+            <span class="tag is-warning" v-if="line.state == '-'">missing</span>
+            <span class="tag is-danger" v-if="line.state == 'x'">removed</span>
+            {{line.link.value}}
+        </p>
 
-            <p v-if="paginationFilters.total == 0" class="has-text-centered">Nothing to show</p>
+        <p v-if="paginationFilters.total == 0" class="has-text-centered">Nothing to show</p>
 
-            <div style="padding: 1em">
-                <pagination v-model="paginationSettings" />
-            </div>
+        <div style="padding: 1em">
+            <pagination v-model="paginationSettings" />
         </div>
     </div>
-    <p class="has-text-centered" v-else>The review is not ready yet. Make sure you installed something before.</p>
 </div>
 `,
-    props: ['value'],
+    props: ['value', 'update'],
     data: function() {
         return {
             loading: false,
             ready: false,
             review: {},
-            deltaLines: [],
+            deltaLines: {},
             showStatHeaderHelp: false,
             stats: [
                 { name: 'Equals', value: 'equals', showHelp: false, help: `
@@ -145,7 +143,7 @@ Vue.component('review', {
             var vm = this
             var filtered = []
 
-            vm.deltaLines.forEach(function(line) {
+            Object.values(vm.deltaLines).forEach(function(line) {
                 if (vm.filters.hideEquals.value && line.state == '=') return
                 if (vm.filters.hideMissing.value && line.state == '-') return
                 if (vm.filters.hideAdded.value && line.state == '+') return
@@ -162,9 +160,11 @@ Vue.component('review', {
             if (vm.paginationFilters.total < vm.paginationFilters.from)
                 vm.paginationFilters.from = 0
 
-            return filtered.slice(
-                    vm.paginationFilters.from,
-                    vm.paginationFilters.from + vm.paginationFilters.step)
+            return filtered
+                    .sort((a, b) => a.owner.index - b.owner.index)
+                    .slice(
+                        vm.paginationFilters.from,
+                        vm.paginationFilters.from + vm.paginationFilters.step)
         },
         getBaseRunTimestamp: function() {
             var vm = this
@@ -182,11 +182,24 @@ Vue.component('review', {
             axios.get(vm.value.api.links.review.default).then(response => {
                 vm.review = response.data
                 vm.statsValues = vm.review.stats
-                vm.deltaLines = response.data.lines.sort((a, b) => a.index - b.index)
-                vm.paginationFilters.total = vm.deltaLines.length
+
+                response.data.lines.forEach(function(line) {
+                    if (vm.deltaLines[line.link.value] == undefined)
+                        vm.$set(vm.deltaLines, line.link.value, line)
+                    else {
+                        var existing = vm.deltaLines[line.link.value]
+                        existing.state = line.state
+                        existing.owner.index = line.owner.index
+                    }
+                })
+
+                vm.paginationFilters.total = response.data.lines.length
 
                 vm.loading = false
                 vm.ready = true
+            })
+            .catch(function() {
+                vm.loading = false
             })
         },
         toggleFilter: function(filter) {
@@ -202,5 +215,11 @@ Vue.component('review', {
         }
 
         vm.getDelta()
+    },
+    watch: {
+        update: function(newVal, oldVal) {
+            var vm = this
+            vm.getDelta()
+        }
     }
 })

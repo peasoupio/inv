@@ -3,7 +3,7 @@ Vue.component('install', {
 <div>
     <div class="buttons is-right">
         <button class="button breathe-heavy" @click="toggleFeature('autoRefresh')" v-bind:class="{ 'is-link': features.autoRefresh }">
-            <span>Auto-refresh (15 secs)</span>
+            <span>Auto-refresh (5 secs)</span>
         </button>
 
         <div class="dropdown is-hoverable">
@@ -47,10 +47,9 @@ Vue.component('install', {
 
     <p class="title is-4 has-text-centered" v-if="execution.running">
         <span class="icon is-small">
-                    <i class="fas fa-spinner fa-pulse"></i>
-                </span> Running
+            <i class="fas fa-spinner fa-pulse"></i>
+        </span> Running
         <span v-if="execution.links && execution.links.stream">(<a href="/logtrotter.html" target="_blank">Follow logs</a>)</span>
-
     </p>
 
     <div class="buttons is-centered">
@@ -77,14 +76,13 @@ Vue.component('install', {
         </p>
     </div>
 
-    <div v-if="updateIndex > 0">
-        <review v-model="value" :key="updateIndex" />
-    </div>
+    <review v-model="value" :update="updateIndex" />
 </div>
 `,
     props: ['value'],
     data: function() {
         return {
+
             features: {
                 autoRefresh: false,
                 secureMode: false,
@@ -167,7 +165,6 @@ Vue.component('install', {
 
             axios.get(vm.value.api.links.execution.default).then(async (response) => {
                 vm.execution = response.data
-                vm.updateIndex++
             })
         },
         autoRefresh: function() {
@@ -181,7 +178,9 @@ Vue.component('install', {
                     return
 
                 vm.refresh()
-            }, 15000)
+                vm.updateIndex++
+
+            }, 5000)
         },
         getEndedAgo: function() {
             var vm = this

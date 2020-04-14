@@ -3,7 +3,7 @@ Vue.component('install', {
 <div>
     <div class="buttons is-right">
         <button class="button breathe-heavy" @click="toggleFeature('autoRefresh')" v-bind:class="{ 'is-link': features.autoRefresh }">
-            <span>Auto-refresh (5 secs)</span>
+            <span>Auto-refresh (20 secs)</span>
         </button>
 
         <div class="dropdown is-hoverable">
@@ -180,7 +180,7 @@ Vue.component('install', {
                 vm.refresh()
                 vm.updateIndex++
 
-            }, 5000)
+            }, 20000)
         },
         getEndedAgo: function() {
             var vm = this

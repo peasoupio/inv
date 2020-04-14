@@ -33,12 +33,15 @@ class DeltaGraph {
     void resolve() {
         deltaLines.clear()
 
+        def cacheBaseFiles = baseGraph.files.collectEntries { [(it.inv): it] } as Map<String, RunGraph.FileStatement>
+        def cacheOtherFiles = otherGraph.files.collectEntries { [(it.inv): it] } as Map<String, RunGraph.FileStatement>
+
         for(GraphNavigator.Linkable link : baseGraph.navigator.links()) {
 
             def linksNode = baseGraph.navigator.nodes[link.value]
             assert linksNode, "Link's node cannot be null"
 
-            def fileStatement = baseGraph.files.find { it.inv == linksNode.owner }
+            def fileStatement = cacheBaseFiles[linksNode.owner]
 
             // Check if it has a valid SCM reference
             if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM || removedScms.contains(fileStatement.scm)) {
@@ -59,7 +62,7 @@ class DeltaGraph {
             assert linksNode, "Link's node cannot be null"
 
             // Check if it has a valid SCM reference
-            def fileStatement = otherGraph.files.find { it.inv == linksNode.owner }
+            def fileStatement = cacheOtherFiles[linksNode.owner]
             if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM) {
 
                 // Check if a deltaLine was added from base when a correspondence was found in other.
@@ -167,3 +170,4 @@ class DeltaGraph {
         GraphNavigator.Node owner
     }
 }
+

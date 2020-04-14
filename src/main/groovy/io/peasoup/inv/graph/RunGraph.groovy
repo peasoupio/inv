@@ -1,6 +1,6 @@
 package io.peasoup.inv.graph
 
-import groovy.transform.CompileDynamic
+
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import org.jgrapht.Graph
@@ -9,6 +9,8 @@ import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.io.ComponentNameProvider
 import org.jgrapht.io.DOTExporter
 import org.jgrapht.io.IntegerComponentNameProvider
+
+import java.util.regex.Pattern
 
 @CompileStatic
 class RunGraph {
@@ -29,11 +31,12 @@ class RunGraph {
 
         long nodeCount = 0
 
-        logs.eachLine { String line ->
+        String line
+        while((line = logs.readLine()) != null) {
 
             // Don't bother process useless lines
             if (!line.startsWith("[INV]"))
-                return
+                continue
 
             def broadcast = BroadcastStatement.matches(line)
             if (broadcast) {
@@ -50,7 +53,7 @@ class RunGraph {
 
                 virtualInv.nodes << broadcast
 
-                return
+                continue
             }
 
             def require = RequireStatement.matches(line)
@@ -68,7 +71,7 @@ class RunGraph {
 
                 virtualInv.nodes << require
 
-                return
+                continue
             }
 
             def file = FileStatement.matches(line)
@@ -112,22 +115,20 @@ class RunGraph {
         }
     }
 
-    @CompileDynamic
     @ToString
     static class RequireStatement implements GraphNavigator.Node {
 
-        private static def RE = /^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/
+        private static Pattern RE = Pattern.compile(/^\[INV\] \[(\S*)\] => \[REQUIRE\] (.*)\u0024/)
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static RequireStatement matches(String line) {
-            def require = line =~ RE
-
+            def require = RE.matcher(line)
             if (!require.matches())
                 return null
 
             return new RequireStatement(
-                owner: require[0][1],
-                id: require[0][2],
+                owner: require.group(1),
+                id: require.group(2),
             )
         }
 
@@ -139,22 +140,20 @@ class RunGraph {
         private RequireStatement() { }
     }
 
-    @CompileDynamic
     @ToString
     static class BroadcastStatement implements GraphNavigator.Node {
 
-        private static def RE = /^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/
+        private static Pattern RE = Pattern.compile(/^\[INV\] \[(\S*)\] => \[BROADCAST\] (.*)\u0024/)
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static BroadcastStatement matches(String line) {
-            def broadcast = line =~ RE
-
+            def broadcast = RE.matcher(line)
             if (!broadcast.matches())
                 return null
 
             return new BroadcastStatement(
-                owner: broadcast[0][1],
-                id: broadcast[0][2],
+                owner: broadcast.group(1),
+                id: broadcast.group(2)
             )
         }
 
@@ -166,23 +165,21 @@ class RunGraph {
         private BroadcastStatement() {}
     }
 
-    @CompileDynamic
     @ToString
     static class FileStatement {
 
-        private static def RE = /^\[INV\] \[(\S*)\] \[(\S*)\] \[(\S*)\]\u0024/
+        private static Pattern RE = Pattern.compile(/^\[INV\] \[(\S*)\] \[(\S*)\] \[(\S*)\]\u0024/)
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static FileStatement matches(String line) {
-            def file = line =~ RE
-
+            def file = RE.matcher(line)
             if (!file.matches())
                 return null
 
             return new FileStatement(
-                scm: file[0][1],
-                file: file[0][2],
-                inv: file[0][3]
+                scm: file.group(1),
+                file: file.group(2),
+                inv: file.group(3)
             )
         }
 

@@ -82,7 +82,7 @@ Vue.component('layout', {
                 <a class="navbar-item" @click.stop="showConfigureSCMs()">Edit SCMs</a>
                 <a class="navbar-item" @click.stop="showConfigureInit()">Edit init file</a>
                 <hr class="navbar-divider">
-                <a class="navbar-item">Pull changes (coming soon!)</a>
+                <a class="navbar-item" @click.stop="pullInit()">Pull changes</a>
                 <a class="navbar-item">Push changes (coming soon!)</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item has-text-danger">Reset everything (coming soon!)</a>
@@ -310,6 +310,15 @@ Vue.component('layout', {
         showConfigureInit: function() {
             this.navbar.configureInit.model.visible = true
         },
+        pullInit: function() {
+            var vm = this
+            axios.post(vm.shared.api.links.initFile.pull).then(response => {
+                vm.$bus.$emit('toast', `success:Pulled <strong>init file changes</strong> successfully!`)
+            })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>pull init file changes</strong>!`)
+            })
+        }
     },
     mounted: function() {
         var vm = this

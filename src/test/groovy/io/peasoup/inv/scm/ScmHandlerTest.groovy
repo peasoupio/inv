@@ -33,7 +33,7 @@ class ScmHandlerTest {
 
         assert executor.scms["my-repository"].hooks
         assert executor.scms["my-repository"].hooks.init.contains("mkdir my-repository")
-        assert executor.scms["my-repository"].hooks.update.contains("echo 'update'")
+        assert executor.scms["my-repository"].hooks.pull.contains("echo 'update'")
     }
 
     @Test

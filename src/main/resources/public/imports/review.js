@@ -198,7 +198,7 @@ Vue.component('review', {
                 vm.loading = false
                 vm.ready = true
             })
-            .catch(function() {
+            .catch(err => {
                 vm.loading = false
             })
         },

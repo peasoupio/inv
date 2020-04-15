@@ -104,7 +104,8 @@ Vue.component('choose-inv', {
 
                     filter()
                 })
-                .catch(response => {
+                .catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>fetch broadcast owners</strong>!`)
                 })
             }
 

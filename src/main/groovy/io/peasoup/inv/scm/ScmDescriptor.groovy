@@ -3,6 +3,7 @@ package io.peasoup.inv.scm
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
+import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class ScmDescriptor {
@@ -99,10 +100,30 @@ class ScmDescriptor {
     class HookDescriptor {
 
         String init
-        def init(String value) { this.init = value }
+        /**
+         * Indicates how the init (or initialization) phase should behave.
+         * It is similar to 'git clone', 'svn checkout', 'tf get', etc.
+         * @param value the Shell Script (Sh) commands
+         */
+        void init(String value) { this.init = value }
 
-        String update
-        def update(String value) { this.update = value }
+        String pull
+        /**
+         * Indicates how pull should behave
+         * @param value the Shell Script (Sh) commands
+         */
+        void pull(String value) {this.pull = value }
+
+        /**
+         * DEPRECATED. See 'pull' instead
+         * @param value
+         * @return
+         */
+        @Deprecated
+        def update(String value) {
+            Logger.warn("scm.update() is deprecated. Use scm.pull() instead.")
+            pull(value)
+        }
     }
 
     class AskDescriptor {

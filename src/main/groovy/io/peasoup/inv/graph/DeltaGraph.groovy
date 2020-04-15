@@ -2,7 +2,6 @@ package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
-import groovy.transform.ToString
 import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 
@@ -163,11 +162,15 @@ class DeltaGraph {
         return "Report generated at: ${htmlOutput.canonicalPath}"
     }
 
-    @ToString
     static class DeltaLine {
         String state
         GraphNavigator.Linkable link
         GraphNavigator.Node owner
+
+        @Override
+        String toString() {
+            "[${state}] ${link.value}"
+        }
     }
 }
 

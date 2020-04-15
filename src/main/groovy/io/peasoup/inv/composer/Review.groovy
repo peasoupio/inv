@@ -66,15 +66,13 @@ class Review {
         Files.copy(latestRun.toPath(), latestBackup.toPath())
         assert latestBackup.exists(), 'Latest run backup file must be present on filesystem'
 
-        def generatedRun = new File(RunsRoller.latest.folder(), "run.txt")
-        generatedRun.delete()
-
-        DeltaGraph deltaGraph = new DeltaGraph(baseRun.newReader(), latestBackup.newReader())
+        DeltaGraph deltaGraph = new DeltaGraph(baseRun.newReader(), latestRun.newReader())
         deltaGraph.removeScms(removeScms)
         deltaGraph.resolve()
 
-        generatedRun << "This file was generated with Composer.${System.lineSeparator()}"
-        generatedRun.append(deltaGraph.merge())
+        latestRun.delete()
+        latestRun << "This file was generated with Composer.${System.lineSeparator()}"
+        latestRun.append(deltaGraph.merge())
     }
 
     Map compare() {

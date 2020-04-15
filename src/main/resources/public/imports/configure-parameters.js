@@ -178,7 +178,7 @@ Vue.component('configure-parameters', {
             axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
                 vm.updateIndex++
 
-                vm.$bus.$emit('toast', `success:Applied <strong>all defaults parameters</strong> successfully!`)
+                vm.$bus.$emit('toast', `warn:Applied <strong>all defaults parameters</strong> successfully!`)
            })
         },
         resetAll: function() {
@@ -483,7 +483,7 @@ Vue.component('configure-parameters-carousel', {
 
                 vm.value.edit(scmParameters)
             })
-            .catch(error  => {
+            .catch(err => {
 
                 scmParameters.changed = false
                 scmParameters.loaded = false
@@ -491,6 +491,8 @@ Vue.component('configure-parameters-carousel', {
 
                 scmParameters.errors.push(error.response.data)
                 vm.$forceUpdate()
+
+                vm.$bus.$emit('toast', `error:Failed to <strong>edit parameters</strong>!`)
             })
         },
         resetParameters: function(scmParameters) {

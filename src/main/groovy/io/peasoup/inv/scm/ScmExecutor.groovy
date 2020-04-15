@@ -51,11 +51,11 @@ class ScmExecutor {
                     report.isOk = executeCommands(repository, repository.hooks.init)
                     Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] done")
 
-                } else if (repository.hooks.update) {
+                } else if (repository.hooks.pull) {
 
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] start")
-                    report.isOk = executeCommands(repository, repository.hooks.update)
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [UPDATE] done")
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [PULL] start")
+                    report.isOk = executeCommands(repository, repository.hooks.pull)
+                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [PULL] done")
                 }
 
                 return report

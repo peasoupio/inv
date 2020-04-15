@@ -36,7 +36,7 @@ class InitCommand implements CliCommand {
         return false
     }
 
-    protected ScmExecutor.SCMReport processSCM() {
+    ScmExecutor.SCMReport processSCM() {
         String actualFileLocation = initFileLocation
         File scmFile
 

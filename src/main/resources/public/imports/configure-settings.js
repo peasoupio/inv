@@ -97,6 +97,9 @@ Vue.component('configure-settings', {
 
                 vm.$bus.$emit('toast', `success:Saved <strong>settings.xml</strong> successfully!`)
             })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed <strong>to save settings.xml</strong>!`)
+            })
         },
         close: function() {
             var vm = this

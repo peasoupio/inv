@@ -295,7 +295,7 @@ Vue.component('choose-broadcast', {
         axios.get(vm.value.api.links.run.default).then(response => {
             vm.invs = response.data
         })
-        .catch(response => {
+        .catch(err => {
             vm.notAvailable = true
         })
     }

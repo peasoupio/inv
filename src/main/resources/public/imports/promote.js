@@ -32,8 +32,13 @@ Vue.component('promote', {
                 vm.promoted = true
                 vm.promoting = false
 
-                window.location.href = '#choose'
-                window.location.reload(true)
+                // Wait 1s to reload
+                setTimeout(function() {
+                    vm.$bus.$emit('toast', `<strong>Promoted</strong> successfully! Will refresh shortly.`)
+
+                    window.location.href = '#choose'
+                    window.location.reload(true)
+                }, 1000)
             }).catch(reponse => {
                 vm.promoted = false
                 vm.promoting = false

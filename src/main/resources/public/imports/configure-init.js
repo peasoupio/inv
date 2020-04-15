@@ -109,6 +109,9 @@ Vue.component('configure-init', {
                     vm.$bus.$emit('toast', `success:Saved <strong>init file</strong> successfully!`)
                 }
             })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>save init file</strong>!`)
+            })
         },
         close: function() {
             var vm = this

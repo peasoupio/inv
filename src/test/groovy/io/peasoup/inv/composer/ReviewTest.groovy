@@ -44,23 +44,22 @@ class ReviewTest {
         RunsRoller.latest.roll() // make sure to roll once
 
         // Generate base
-        def baseRun = new File(Home.getCurrent(), 'run.txt')
+        def baseRun = new File(Home.getCurrent(), 'base-merge.txt')
         baseRun.delete()
         baseRun << new File(getClass().getResource('/baseRun.txt').toURI()).text
 
         // Generate subset
-        def subsetFile =  new File(RunsRoller.latest.folder(), 'run.txt')
+        def subsetFile =  new File(RunsRoller.latest.folder(), 'run-merge.txt')
         subsetFile.delete()
         subsetFile << new File(getClass().getResource('/subsetRun.txt').toURI()).text
 
         def deltaGraph = new DeltaGraph(baseRun.newReader(), subsetFile.newReader())
         deltaGraph.resolve()
+        def removed = deltaGraph.deltaLines.findAll { it.state == 'x' }
 
         new Review(baseRun, subsetFile).merge()
         assert subsetFile.exists()
-
         def newBaseFileGraph = new RunGraph(subsetFile.newReader())
-        def removed = deltaGraph.deltaLines.findAll { it.state == 'x' }
 
         assert removed.size() > 0
         removed.each {

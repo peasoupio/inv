@@ -260,6 +260,13 @@ Vue.component('configure-scms-details', {
                     vm.searchScm()
                 }
             })
+            .catch(err => {
+                if (vm.mode == 'edit')
+                    vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.editScript.descriptor.name}</strong>!`)
+
+                if (vm.mode == 'new')
+                    vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.newName}</strong>!`)
+            })
         },
         closeEdit: function() {
             var vm = this
@@ -283,6 +290,9 @@ Vue.component('configure-scms-details', {
             axios.post(scm.links.remove).then(response => {
                 vm.$bus.$emit('toast', `warn:Removed <strong>${scm.descriptor.name}</strong> successfully!`)
                 vm.searchScm()
+            })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed <strong>to remove ${scm.descriptor.name}</strong>!`)
             })
         }
     },

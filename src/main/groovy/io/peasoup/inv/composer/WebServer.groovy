@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import io.peasoup.inv.cli.InitCommand
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmDescriptor
@@ -125,7 +126,8 @@ class WebServer {
                             ],
                             initFile : [
                                     default: "/initfile",
-                                    save: "/initfile"
+                                    save: "/initfile",
+                                    pull: "/initfile/pull"
                             ],
                             run      : [
                                     default   : "/run",
@@ -183,7 +185,7 @@ class WebServer {
 
         get("/initfile", { Request req, Response res ->
             if (!webServerConfigs.initFile)
-                return ""
+                return showError("Missing init file")
 
             if (!(webServerConfigs.initFile instanceof String))
                 return showError(res, "InitFile is corrupted. Contact your administrator.")
@@ -224,6 +226,23 @@ class WebServer {
                     errorCount: errorCount,
                     errors: exceptionMessages
             ])
+        })
+
+        post("/initfile/pull", { Request req, Response res ->
+            if (!webServerConfigs.initFile)
+                return showError("Missing init file")
+
+            if (!(webServerConfigs.initFile instanceof String))
+                return showError(res, "InitFile is corrupted. Contact your administrator.")
+
+            // Reuse InitCommand to pull init file
+            InitCommand initCommand = new InitCommand(initFileLocation: webServerConfigs.initFile as String)
+            def report = initCommand.processSCM()
+
+            if (!report)
+                showResult("Could not pull init")
+
+            return showResult("Pulled init successfully")
         })
     }
 
@@ -485,7 +504,7 @@ class WebServer {
 
         post("/scms/applyDefaultAll", { Request req, Response res ->
             scms.elements.values().each { ScmFile.SourceFileElement element ->
-                if (run == null || !run.isSelected(element.descriptor.name))
+                if (run != null && !run.isSelected(element.descriptor.name))
                     return
 
                 def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
@@ -501,8 +520,7 @@ class WebServer {
         post("/scms/resetAll", { Request req, Response res ->
 
             scms.elements.values().each { ScmFile.SourceFileElement element ->
-
-                if (!run.isSelected(element.descriptor.name))
+                if (run != null && !run.isSelected(element.descriptor.name))
                     return
 
                 def parametersFile = new File(parametersLocation, element.simpleName() + ".json")

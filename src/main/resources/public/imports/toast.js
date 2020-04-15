@@ -28,8 +28,11 @@ Vue.component('toast', {
                 clearInterval(vm.latestToast)
 
             // Get which styleClass to use
-            if (message.startsWith('warn:')) {
-                vm.styleClass = 'is-warning'
+            if (message.startsWith('error:')) {
+                vm.styleClass = 'is-danger'
+                vm.message = message.substring(6)
+            } else if (message.startsWith('warn:')) {
+                vm.styleClass = 'is-primary'
                 vm.message = message.substring(5)
             } else if (message.startsWith('success:')) {
                 vm.styleClass = 'is-success'

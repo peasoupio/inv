@@ -39,10 +39,12 @@ Vue.component('promote', {
                     window.location.href = '#choose'
                     window.location.reload(true)
                 }, 1000)
-            }).catch(reponse => {
+            }).catch(err => {
                 vm.promoted = false
                 vm.promoting = false
                 vm.error = true
+
+                vm.$bus.$emit('toast', `error:Failed to <strong>promote</strong>!`)
             })
         }
     },

@@ -79,6 +79,8 @@ class RunGraph {
                 files << file
             }
         }
+
+        logs.close()
     }
 
     String toPlainList() {

@@ -140,8 +140,7 @@ class WebServer {
                             scms     : [
                                     default        : "/scms",
                                     search         : "/scms",
-                                    add            : "/scms/add",
-                                    remove         : "/scms/remove",
+                                    add            : "/scms/source",
                                     stageAll       : "/scms/stageAll",
                                     unstageAll     : "/scms/unstageAll",
                                     applyDefaultAll: "/scms/applyDefaultAll",
@@ -174,8 +173,6 @@ class WebServer {
         })
 
         post("/settings", { Request req, Response res ->
-            return settings
-
             String body = req.body()
             Map values = new JsonSlurper().parseText(body) as Map
 
@@ -488,8 +485,7 @@ class WebServer {
 
         post("/scms/applyDefaultAll", { Request req, Response res ->
             scms.elements.values().each { ScmFile.SourceFileElement element ->
-
-                if (!run.isSelected(element.descriptor.name))
+                if (run == null || !run.isSelected(element.descriptor.name))
                     return
 
                 def parametersFile = new File(parametersLocation, element.simpleName() + ".json")
@@ -553,22 +549,6 @@ class WebServer {
             return showResult("staged")
         })
 
-        get("/scms/add", { Request req, Response res ->
-
-            def name = req.queryParams("name")
-            if (!name)
-                return showError(res, "name is required")
-
-            // Make sure to get the latest information
-            if (!scms.reload(name))
-                return showError(res, "No SCM found for the specified name")
-
-            def element = scms.elements[name]
-            def output = element.toMap([:], new File(parametersLocation, element.simpleName() + ".json"))
-
-            return JsonOutput.toJson(output)
-        })
-
         post("/scms/unstage", { Request req, Response res ->
 
             def name = req.queryParams("name")
@@ -588,10 +568,6 @@ class WebServer {
             if (!name)
                 return showError(res, "name is required")
 
-            def element = scms.elements[name]
-            if (!element)
-                return showError(res, "No descriptor found for the specified name")
-
             String source = req.body()
             Integer errorCount = 0
             List<String> exceptionMessages = []
@@ -604,16 +580,43 @@ class WebServer {
             }
 
             if (errorCount == 0) {
-                element.scriptFile.delete()
-                element.scriptFile << req.body()
+                def element = scms.elements[name]
 
-                scms.load(element.scriptFile)
+                try {
+                    // If existing, replace
+                    if (element) {
+                        element.scriptFile.delete()
+                        element.scriptFile << req.body()
+
+                        scms.load(element.scriptFile)
+                    } else {
+                        // Otherwise create new one
+                        def newFile = new File(scms.scmFolder, name + ".groovy")
+                        newFile << req.body()
+
+                        scms.load(newFile)
+                    }
+                } catch(Exception ex) {
+                    errorCount = 1
+                    exceptionMessages = [ex.getMessage()]
+                }
             }
 
             return JsonOutput.toJson([
                     errorCount: errorCount,
                     errors: exceptionMessages
             ])
+        })
+
+        post("/scms/remove", { Request req, Response res ->
+
+            def name = req.queryParams("name")
+            if (!name)
+                return showError(res, "name is required")
+
+            scms.remove(name)
+
+            return showResult("Deleted")
         })
 
         get("/scms/parametersValues", { Request req, Response res ->

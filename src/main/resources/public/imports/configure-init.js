@@ -1,8 +1,8 @@
 Vue.component('configure-init', {
     template: `
-<div class="modal" v-bind:class="{ 'is-active': isVisible() }">
+<div class="modal is-active code" v-bind:class=" { 'hidden': !isVisible() } ">
     <div class="modal-background"></div>
-    <div class="modal-content" style="width: 50%">
+    <div class="modal-content">
         <div class="box" v-click-outside="close">
             <div class="columns">
                 <div class="column">
@@ -105,6 +105,8 @@ Vue.component('configure-init', {
 
                 if (vm.errorCount == 0) {
                     vm.saved = true
+
+                    vm.$bus.$emit('toast', `success:Saved <strong>init file</strong> successfully!`)
                 }
             })
         },

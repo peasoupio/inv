@@ -31,9 +31,9 @@ Vue.component('configure-scms-details', {
     template: `
 <div>
     <div v-if="scms.descriptors">
-        <div class="field is-grouped is-grouped-right" v-if="false">
+        <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="openAdd()" class="button breath is-link">
+                <button @click.stop="openAdd()" class="button breath is-link">
                     Add new SCM file
                 </button>
             </div>
@@ -61,7 +61,7 @@ Vue.component('configure-scms-details', {
                           <i class="fas fa-edit"></i>
                         </span>
                     </button>
-                    <button class="button is-danger is-outlined breathe" @click.stop="removeSCM(scm)" v-if="false">
+                    <button class="button is-danger is-outlined breathe" @click.stop="removeSCM(scm)">
                         <span class="icon is-small">
                           <i class="fas fa-trash"></i>
                         </span>
@@ -75,18 +75,24 @@ Vue.component('configure-scms-details', {
         <pagination v-model="paginationSettings" v-if="scms.count > 0" />
     </div>
 
-    <div class="modal" v-bind:class=" { 'is-active': editScript } ">
+    <div class="modal is-active code" v-bind:class=" { 'hidden': !editScript } ">
         <div class="modal-background"></div>
-        <div class="modal-content code-edit-modal">
+        <div class="modal-content">
             <div class="box" v-click-outside="closeEdit">
                 <div class="columns" v-if="editScript">
                     <div class="column">
                         <h1 class="title is-3">Edit SCM</h1>
-                        <h4 class="subtitle is-6">source: {{editScript.descriptor.src}}</h4>
+                        <h4 class="subtitle is-6" v-if="mode == 'edit'">source: {{editScript.descriptor.src}}</h4>
+                        <div class="field" v-if="mode == 'new'">
+                            <p class="control is-expanded has-icons-right">
+                                <input class="input" type="text" v-model="newName" placeholder="Name of the new SCM file (.groovy will be added automatically)">
+                                <span class="icon is-small is-right"><i class="fas fa-plus"></i></span>
+                            </p>
+                        </div>
                     </div>
                     <div class="column is-one-fifth">
                         <div class="buttons has-addons is-right">
-                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }" :disabled="!edited">
+                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }" :disabled="!canSave()">
                                 <span class="icon is-small" v-if="saved">
                                     <i class="fas fa-check"></i>
                                 </span>
@@ -121,10 +127,16 @@ Vue.component('configure-scms-details', {
                 entry: ''
             },
 
+            // Determine the mode (edit, new)
+            mode: 'edit',
+
+            // Add new SCM
+            newName: '',
+
             // Code editing
             codeMirror: null,
             opened: false,
-            editScript: '',
+            editScript: null,
             edited: false,
             sending: false,
             saved: false,
@@ -173,6 +185,23 @@ Vue.component('configure-scms-details', {
         whenLastEdit: function(scm) {
             return TimeAgo.inWords(scm.script.lastEdit)
         },
+        openAdd: function() {
+            var vm = this
+
+            vm.codeMirror.setValue('')
+            vm.codeMirror.refresh()
+
+            vm.editScript = {
+                links: {
+                    get save() {
+                        return vm.value.api.links.scms.add + "?name=" + vm.newName
+                    }
+                }
+            }
+
+            vm.edited = false
+            vm.mode = 'new'
+        },
         openEdit: function(scm) {
             var vm = this
 
@@ -185,7 +214,19 @@ Vue.component('configure-scms-details', {
                 vm.editScript = latestScm
 
                 vm.edited = false
+                vm.mode = 'edit'
             })
+        },
+        canSave: function() {
+            var vm = this
+
+            if (!vm.edited)
+                return false
+
+            if (vm.mode == 'new' && vm.newName.length < 3)
+                return false
+
+            return true
         },
         saveSource: function() {
             var vm = this
@@ -209,12 +250,18 @@ Vue.component('configure-scms-details', {
 
                 if (vm.errorCount == 0) {
                     vm.saved = true
+
+                    if (vm.mode == 'edit')
+                        vm.$bus.$emit('toast', `success:Saved <strong>${vm.editScript.descriptor.name}</strong> successfully!`)
+
+                    if (vm.mode == 'new')
+                        vm.$bus.$emit('toast', `success:Saved <strong>${vm.newName}</strong> successfully!`)
+
                     vm.searchScm()
                 }
             })
         },
         closeEdit: function() {
-
             var vm = this
 
             if (vm.edited && !vm.saved) {
@@ -229,6 +276,14 @@ Vue.component('configure-scms-details', {
             vm.sending = false
             vm.saved = false
             vm.edited = false
+        },
+        removeSCM: function(scm) {
+            var vm = this
+
+            axios.post(scm.links.remove).then(response => {
+                vm.$bus.$emit('toast', `warn:Removed <strong>${scm.descriptor.name}</strong> successfully!`)
+                vm.searchScm()
+            })
         }
     },
     mounted: function() {

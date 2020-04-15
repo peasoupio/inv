@@ -177,6 +177,8 @@ Vue.component('configure-parameters', {
 
             axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
                 vm.updateIndex++
+
+                vm.$bus.$emit('toast', `success:Applied <strong>all defaults parameters</strong> successfully!`)
            })
         },
         resetAll: function() {
@@ -184,6 +186,8 @@ Vue.component('configure-parameters', {
 
             axios.post(vm.value.api.links.scms.resetAll).then(response => {
                 vm.updateIndex++
+
+                vm.$bus.$emit('toast', `warn:Reset <strong>all parameters</strong> successfully!`)
             })
         },
         areValuesUnavailable: function(scmParameters) {
@@ -212,6 +216,8 @@ Vue.component('configure-parameters', {
 
                 vm.saveParameter(parameter)
             })
+
+            vm.$bus.$emit('toast', `success:Saved <strong>parameters</strong> successfully!`)
         },
         setDefault: function(parameter) {
             parameter.value = parameter.defaultValue
@@ -231,6 +237,8 @@ Vue.component('configure-parameters', {
 
                 vm.saveParameter(parameter)
             })
+
+            vm.$bus.$emit('toast', `warn:Reset <strong>parameters</strong> successfully!`)
         },
         saveParameter: function(parameter) {
             var vm = this

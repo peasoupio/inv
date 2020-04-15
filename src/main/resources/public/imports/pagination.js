@@ -96,7 +96,7 @@ Vue.component('pagination', {
             return (this.currentIndex - this.threshold) > 1
         },
         isEndOutOfSight: function() {
-            return (this.currentIndex + this.threshold * 2) < this.remainings
+            return (this.currentIndex + this.threshold) < this.remainings
         }
     }
 })

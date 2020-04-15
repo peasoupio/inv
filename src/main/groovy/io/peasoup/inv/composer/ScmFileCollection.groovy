@@ -26,7 +26,7 @@ class ScmFileCollection {
         // Check for duplicates
         scms.removeAll {
             if (it.sourceFile != file)
-                return
+                return false
 
             it.elements.keySet().each {
                 elements.remove(it)
@@ -56,6 +56,31 @@ class ScmFileCollection {
         def latestElement = scms.elements[name]
         if (!latestElement)
             return false
+
+        return true
+    }
+
+    boolean remove(String name) {
+        assert name, 'Name is required'
+
+        def existingElement = elements[name]
+        if (!existingElement)
+            return false
+
+        // Delete the actual file
+        existingElement.scriptFile.delete()
+
+        // Remove its elements
+        scms.removeAll {
+            if (it.sourceFile != existingElement.scriptFile)
+                return false
+
+            it.elements.keySet().each {
+                elements.remove(it)
+            }
+
+            return true
+        }
 
         return true
     }
@@ -91,45 +116,48 @@ class ScmFileCollection {
 
         String filterName = filter.name as String
 
-        elements.values().each {
-            if (filterName && !it.descriptor.name.contains(filterName))
-                return
+        elements
+            .values()
+            .sort { it.descriptor.name }
+            .each {
+                if (filterName && !it.descriptor.name.contains(filterName))
+                    return
 
-            boolean isStaged = staged.contains(it.descriptor.name)
-            if (isStaged)
-                stagedCount++
+                boolean isStaged = staged.contains(it.descriptor.name)
+                if (isStaged)
+                    stagedCount++
 
-            boolean isSelected = false
+                boolean isSelected = false
 
-            if (runFile) {
-                isSelected = runFile.isSelected(it.descriptor.name)
-                if (isSelected)
-                    selectedCount++
+                if (runFile) {
+                    isSelected = runFile.isSelected(it.descriptor.name)
+                    if (isSelected)
+                        selectedCount++
+                }
+
+                if (filter.selected && !isSelected)
+                    return
+
+                if (filter.staged && !isStaged)
+                    return
+
+                File parameterLocation
+                if (parametersLocation)
+                    parameterLocation = new File(parametersLocation, it.simpleName() + ".json")
+
+                def scm = it.toMap(filter, parameterLocation)
+                if (!scm)
+                    return
+
+                boolean filteredOutHideOnComplete = filter.hideOnComplete && scm.completed
+                if (filteredOutHideOnComplete)
+                    return
+
+                scm.selected = isSelected
+                scm.staged = isStaged
+
+                filtered.add(scm)
             }
-
-            if (filter.selected && !isSelected)
-                return
-
-            if (filter.staged && !isStaged)
-                return
-
-            File parameterLocation
-            if (parametersLocation)
-                parameterLocation = new File(parametersLocation, it.simpleName() + ".json")
-
-            def scm = it.toMap(filter, parameterLocation)
-            if (!scm)
-                return
-
-            boolean filteredOutHideOnComplete = filter.hideOnComplete && scm.completed
-            if (filteredOutHideOnComplete)
-                return
-
-            scm.selected = isSelected
-            scm.staged = isStaged
-
-            filtered.add(scm)
-        }
 
         return [
                 descriptors: filtered,

@@ -140,6 +140,7 @@ class ScmFile {
                             stage     : "/scms/stage?name=${descriptor.name}",
                             unstage   : "/scms/unstage?name=${descriptor.name}",
                             save      : "/scms/source?name=${descriptor.name}",
+                            remove    : "/scms/remove?name=${descriptor.name}",
                             parameters: "/scms/parametersValues?name=${descriptor.name}"
                     ]
             ]

@@ -85,6 +85,27 @@ a.panel-block.disabled:hover {
     cursor: default
 }
 
+.toast {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    z-index: 50;
+    animation: fadeout 4s;
+}
+
+@keyframes fadeout {
+    75% {
+        opacity:1;
+    }
+    100% {
+        opacity:0;
+    }
+}
+
+.toast p {
+    padding: 0 10%;
+}
+
 .footer {
     padding: 2em 1.5rem 2em;
 }
@@ -99,12 +120,15 @@ a.panel-block.disabled:hover {
 }
 
 /************ Configuration *************/
-.CodeMirror {
-  border: 1px solid #eee;
-
+.code.hidden {
+    visibility: hidden;
 }
 
-.code-edit-modal {
+.CodeMirror {
+  border: 1px solid #eee;
+}
+
+.code .modal-content {
     width: 80%;
 }
 

@@ -1,12 +1,12 @@
 Vue.component('configure-settings', {
     template: `
-<div class="modal" v-bind:class="{ 'is-active': isVisible() }">
+<div class="modal is-active code" v-bind:class=" { 'hidden': !isVisible() } ">
     <div class="modal-background"></div>
-    <div class="modal-content" style="width: 50%">
+    <div class="modal-content">
         <div class="box" v-click-outside="close">
             <div class="columns">
                 <div class="column">
-                    <h1 class="title is-3">Configure init file</h1>
+                    <h1 class="title is-3">Configure settings.xml file</h1>
                 </div>
                 <div class="column is-one-fifth">
                     <div class="buttons has-addons is-right">
@@ -94,6 +94,8 @@ Vue.component('configure-settings', {
                 vm.sending = false
                 vm.edited = false
                 vm.saved = true
+
+                vm.$bus.$emit('toast', `success:Saved <strong>settings.xml</strong> successfully!`)
             })
         },
         close: function() {

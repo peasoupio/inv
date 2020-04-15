@@ -62,6 +62,8 @@ Vue.component('install', {
         </button>
     </div>
 
+    <p class="subtitle is-5 has-text-centered" v-if="execution.running">(00:{{remainingRefresh.toString().padStart(2, "0")}} seconds until refresh)</p>
+
     <hr />
 
     <p class="title is-5">Latest execution report</p>
@@ -96,6 +98,8 @@ Vue.component('install', {
             filters: {
                 scm: ''
             },
+            refreshRate: 20, // seconds
+            remainingRefresh: 0,
             updateIndex: 0
         }
     },
@@ -150,26 +154,55 @@ Vue.component('install', {
             }
 
             axios.post(vm.execution.links.start, cfg).then(response => {
-                location.reload()
+                vm.$bus.$emit('toast', `Started <strong>installation</strong> successfully! Will refresh shortly.`)
+
+                // Wait 1s to reload
+                setTimeout(function() {
+                    location.reload()
+                }, 1000)
             })
         },
         stop: function() {
             var vm = this
 
             axios.post(vm.execution.links.stop).then(response => {
-               location.reload()
+               vm.$bus.$emit('toast', `warn:Stopped <strong>installation</strong> successfully!`)
+
+               // Wait 1s to reload
+               setTimeout(function() {
+                   location.reload()
+               }, 1000)
+
             })
         },
         refresh: function() {
             var vm = this
 
             axios.get(vm.value.api.links.execution.default).then(async (response) => {
+
+                // Check if was running
+                var wasRunning = false
+                if (vm.execution && vm.execution.running)
+                    wasRunning = true
+
                 vm.execution = response.data
+
+                // Check if still running
+                var stillRunning = false
+                if (vm.execution && vm.execution.running)
+                    stillRunning = true
+
+                // If was running and now complete, show toast
+                if (wasRunning & !stillRunning)
+                    vm.$bus.$emit('toast', `success:Installation <strong>was completed</strong> successfully!`)
+                else if (stillRunning) // If still running, says it refreshed
+                    vm.$bus.$emit('toast', `Refreshing <strong>completed</strong>!`)
             })
         },
         autoRefresh: function() {
             var vm = this
 
+            vm.remainingRefresh = vm.refreshRate
             setInterval(function() {
                 if (!vm.features.autoRefresh)
                     return
@@ -177,10 +210,15 @@ Vue.component('install', {
                 if (!vm.execution.running)
                     return
 
+                if (vm.remainingRefresh > 0) {
+                    vm.remainingRefresh--
+                    return
+                }
+
                 vm.refresh()
                 vm.updateIndex++
 
-            }, 20000)
+            }, 1000)
         },
         getEndedAgo: function() {
             var vm = this

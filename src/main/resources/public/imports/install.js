@@ -217,7 +217,7 @@ Vue.component('install', {
 
                 vm.refresh()
                 vm.updateIndex++
-
+                vm.remainingRefresh = vm.refreshRate
             }, 1000)
         },
         getEndedAgo: function() {

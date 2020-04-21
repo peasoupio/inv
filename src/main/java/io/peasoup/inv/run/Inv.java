@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Inv {
 
-    private final NetworkValuablePool pool;
+    private final Context context;
 
     private final Digestion digestionSummary;
     private final InvDescriptor delegate;
@@ -31,12 +31,12 @@ public class Inv {
     private final Queue<Statement> totalStatements;
     private int stepCount;
 
-    public Inv(NetworkValuablePool pool) {
-        if (pool == null) {
-            throw new IllegalArgumentException("Pool is required");
+    private Inv(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context is required");
         }
 
-        this.pool = pool;
+        this.context = context;
 
         this.digestionSummary  = new Digestion();
         this.properties = new InvDescriptor.Properties();
@@ -58,7 +58,7 @@ public class Inv {
         if (pop == null) pop = properties.isPop();
         if (tags == null) tags = delegate.getTags();
 
-        Boolean dumpedSomething = pool.include(this);
+        Boolean dumpedSomething = context.pool.include(this);
 
         // Transfer Statement(s) from delegate to INV
         for (Statement statement : properties.getStatements()) {
@@ -69,7 +69,7 @@ public class Inv {
             this.totalStatements.add(statement);
             this.remainingStatements.add(statement);
 
-            pool.checkAvailability(statement.getName());
+            context.pool.checkAvailability(statement.getName());
 
             Logger.system("[STATEMENT] " + statement.toString() + " [INIT]");
         }
@@ -114,7 +114,7 @@ public class Inv {
      */
     @SuppressWarnings("squid:S135")
     public Digestion digest() {
-        if (!pool.isDigesting()) {
+        if (!context.pool.isDigesting()) {
             throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
         }
 
@@ -158,10 +158,10 @@ public class Inv {
             Statement statement = statementsLeft.poll();
 
             // (try to) manage statement
-            statement.getMatch().manage(pool, statement);
+            statement.getMatch().manage(context.pool, statement);
 
             // Process results for digestion
-            currentDigestion.checkStatementResult(pool, statement);
+            currentDigestion.checkStatementResult(context.pool, statement);
 
             // Remove statement is completed
             if (!currentDigestion.isInterrupted())
@@ -186,7 +186,7 @@ public class Inv {
         while (!steps.isEmpty() &&
                 !hasDumpedSomething &&
                 this.remainingStatements.isEmpty() &&
-                !pool.isHalting()) {
+                !context.pool.isHalting()) {
 
             // Call next step
             Step step = steps.poll();
@@ -213,7 +213,7 @@ public class Inv {
                 continue;
 
             // Process When data
-            boolean processedPositively = whenData.getProcessor().qualify(pool, this) > 0;
+            boolean processedPositively = whenData.getProcessor().qualify(context.pool, this) > 0;
 
             // If processed, raise callback and check for dumps
             if (processedPositively) {
@@ -258,6 +258,10 @@ public class Inv {
         Inv invO = DefaultGroovyMethods.asType(o, Inv.class);
 
         return name.equals(invO.getName());
+    }
+
+    protected Context getContext() {
+        return context;
     }
 
     public String getName() {
@@ -311,6 +315,90 @@ public class Inv {
     @Override
     public String toString() {
         return "[" + name + "]";
+    }
+
+    public static class Context {
+
+        private final NetworkValuablePool pool;
+        private String defaultName;
+        private String defaultPath;
+        private String scm;
+        private String scriptFilename;
+
+        public Context(NetworkValuablePool pool) {
+            if (pool == null) {
+                throw new IllegalArgumentException("Pool is required");
+            }
+
+            this.pool = pool;
+        }
+
+        public Context setDefaultName(String name) {
+            if (StringUtils.isEmpty(name))
+                return this;
+
+            this.defaultName = name;
+
+            return this;
+        }
+
+        public Context setDefaultPath(String path) {
+            if (StringUtils.isEmpty(path))
+                return this;
+
+            this.defaultPath = path;
+
+            return this;
+        }
+
+        public Context setSCM(String scm) {
+            if (StringUtils.isEmpty(scm))
+                return this;
+
+            this.scm = scm;
+
+            return this;
+        }
+
+        public Context setScriptFilename(String scriptFilename) {
+            if (StringUtils.isEmpty(scriptFilename))
+                return this;
+
+            this.scriptFilename = scriptFilename;
+
+            return this;
+        }
+
+        public Inv build() {
+
+            Inv inv = new Inv(this);
+
+            // Set name from delegate - needs digestion to apply.
+            if (StringUtils.isNotEmpty(defaultName))
+                inv.delegate.name(defaultName);
+
+            // Set path from delegate - needs digestion to apply.
+            if (StringUtils.isNotEmpty(defaultPath))
+                inv.delegate.path(defaultPath);
+
+            return inv;
+        }
+
+        public String getDefaultName() {
+            return defaultName;
+        }
+
+        public String getDefaultPath() {
+            return defaultPath;
+        }
+
+        public String getScm() {
+            return scm;
+        }
+
+        public String getScriptFilename() {
+            return scriptFilename;
+        }
     }
 
     public static class Digestion {

@@ -9,6 +9,7 @@ public class BroadcastStatement implements Statement {
     public static final Manageable BROADCAST = new Broadcast();
     private Object id;
     private String name;
+    private String markdown;
     private Closure<Map> ready;
     private Inv inv;
     private StatementStatus state = StatementStatus.NOT_PROCESSED;
@@ -36,6 +37,14 @@ public class BroadcastStatement implements Statement {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getMarkdown() {
+        return markdown;
+    }
+
+    public void setMarkdown(String markdown) {
+        this.markdown = markdown;
     }
 
     public Closure<Map> getReady() {

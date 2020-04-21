@@ -8,6 +8,6 @@ scm {
 
   hooks {
     init 'echo \'init\''
-    update 'echo \'update\''
+    pull 'echo \'update\''
   }
 }

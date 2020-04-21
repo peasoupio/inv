@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+import io.peasoup.inv.Home
 import org.junit.Before
 import org.junit.Test
 
@@ -1017,8 +1018,6 @@ class InvHandlerTest {
 
     @Test
     void multiple_steps_require_and_broadcasts() {
-
-
         inv {
             name "step1"
 
@@ -1070,5 +1069,38 @@ class InvHandlerTest {
 
         def report = executor.execute()
         assert report.isOk()
+    }
+
+    @Test
+    void ok_doc() {
+
+        inv {
+            name "doc"
+            markdown '''
+This is a sample description for this INV.
+'''
+
+            broadcast inv.Something using {
+                markdown '''
+This is a sample description for this broadcast statement
+'''
+            }
+
+            require inv.Something using {
+                markdown '''
+This is a sample description for **this** require statement
+'''
+            }
+
+            broadcast inv.Else using {
+                markdown '''
+This is a sample description for **this** broadcast statement
+'''
+            }
+        }
+
+        def report = executor.execute()
+        assert report.isOk()
+        assert new File(Home.getCurrent(), "report.md").exists()
     }
 }

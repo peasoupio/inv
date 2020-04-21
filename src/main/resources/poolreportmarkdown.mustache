@@ -1,0 +1,26 @@
+## {{name}}
+This is a sample description for this INV.
+
+### SCM
+{{#scm}}
+Using an SCM ? **Yes**  
+SCM name: {{scm}}  
+{{/scm}}
+{{^scm}}
+Using an SCM ? **No**  
+{{/scm}}
+
+### Require(s) {{requires_len}} statement(s):
+{{#requires}}
+#### {{label}}
+{{markdown}}  
+**Resolved by**: {{resolvedBy}}  
+**Sequence index**: {{index}}  
+{{/requires}}
+
+### Broadcast(s) {{broadcasts_len}} statement(s):
+{{#broadcasts}}
+#### {{label}}
+{{markdown}}  
+**Sequence index**: {{index}}  
+{{/broadcasts}}

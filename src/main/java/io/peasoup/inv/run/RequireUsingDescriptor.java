@@ -1,11 +1,13 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
 
 public class RequireUsingDescriptor {
     private Object id;
+    private String markdown;
     private Closure resolved;
     private Closure unresolved;
     private Boolean unbloatable;
@@ -31,6 +33,18 @@ public class RequireUsingDescriptor {
      */
     public void id(Map id) {
         this.id = id;
+    }
+
+    /**
+     * Defines the markdown documentation for this require statement
+     * @param markdown the markdown string
+     */
+    public void markdown(String markdown) {
+        if (StringUtils.isEmpty(markdown)) {
+            throw new IllegalArgumentException("Markdown is required");
+        }
+
+        this.markdown = markdown;
     }
 
     /**
@@ -75,6 +89,10 @@ public class RequireUsingDescriptor {
 
     public Object getId() {
         return id;
+    }
+
+    public String getMarkdown() {
+        return markdown;
     }
 
     public Closure getResolved() {

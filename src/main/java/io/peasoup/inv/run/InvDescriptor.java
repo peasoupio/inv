@@ -57,6 +57,18 @@ public class InvDescriptor {
     }
 
     /**
+     * Defines the markdown documentation for this INV
+     * @param markdown the markdown string
+     */
+    public void markdown(String markdown) {
+        if (StringUtils.isEmpty(markdown)) {
+            throw new IllegalArgumentException("Markdown is required");
+        }
+
+        this.properties.markdown = markdown;
+    }
+
+    /**
      * Determines if this INV should be in the first position when digestion occurs.
      * <p>
      * By default, it is false.
@@ -289,6 +301,7 @@ public class InvDescriptor {
 
         private String name;
         private String path;
+        private String markdown;
         private Map<String, String> tags;
         private boolean tail;
         private boolean pop;

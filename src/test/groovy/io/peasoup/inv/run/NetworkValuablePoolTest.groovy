@@ -115,8 +115,9 @@ class NetworkValuablePoolTest {
 
     @Test
     void sort() {
+        def ctx = new Inv.Context(pool)
         def invs = [
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "3"
 
                 tail = false
@@ -127,7 +128,7 @@ class NetworkValuablePoolTest {
                 return delegate
             },
 
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "2"
 
                 tail = false
@@ -137,7 +138,7 @@ class NetworkValuablePoolTest {
 
                 return delegate
             },
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "0"
 
                 tail = false
@@ -148,7 +149,7 @@ class NetworkValuablePoolTest {
                 return delegate
             },
 
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "4"
 
                 tail = true
@@ -158,7 +159,7 @@ class NetworkValuablePoolTest {
 
                 return delegate
             },
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "5"
 
                 tail = true
@@ -168,7 +169,7 @@ class NetworkValuablePoolTest {
 
                 return delegate
             },
-            new Inv(pool).with {
+            ctx.build().with {
                 name = "1"
 
                 tail = false

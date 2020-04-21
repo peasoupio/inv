@@ -23,7 +23,8 @@ public class InvExecutor {
     public PoolReport execute() {
         executeAndReport();
 
-        report.printPoolTrace(pool);
+        new PoolReportTrace(pool, report).printPoolTrace();
+        new PoolReportMarkdown(pool, report).printPoolMarkdown();
 
         return report;
     }

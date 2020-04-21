@@ -40,9 +40,15 @@ interface Statement {
 
     /**
      * Gets the manageable match mechanism.
-     * @return The manageable obejct reference.
+     * @return The manageable object reference.
      */
     Manageable getMatch();
+
+    /**
+     * Gets the label text. Per example : [BROADCAST] [Something] [with:'an-id']
+     * @return String reference to this label.
+     */
+    String getLabel();
 
     /**
      * An interface that indicates who a statement should be manage within a running pool.

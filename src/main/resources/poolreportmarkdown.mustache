@@ -10,17 +10,11 @@ SCM name: {{scm}}
 Using an SCM ? **No**  
 {{/scm}}
 
-### Require(s) {{requires_len}} statement(s):
-{{#requires}}
-#### {{label}}
+### {{statements_len}} statement(s):
+{{#statements}}
+#### {{index}}. {{label}}
 {{markdown}}  
+{{#resolvedBy}}
 **Resolved by**: {{resolvedBy}}  
-**Sequence index**: {{index}}  
-{{/requires}}
-
-### Broadcast(s) {{broadcasts_len}} statement(s):
-{{#broadcasts}}
-#### {{label}}
-{{markdown}}  
-**Sequence index**: {{index}}  
-{{/broadcasts}}
+{{/resolvedBy}}
+{{/statements}}

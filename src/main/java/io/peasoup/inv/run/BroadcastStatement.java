@@ -19,8 +19,13 @@ public class BroadcastStatement implements Statement {
     }
 
     @Override
+    public String getLabel() {
+        return "[BROADCAST] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+    }
+
+    @Override
     public String toString() {
-        return getInv() + " => [BROADCAST] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+        return getInv() + " => " + getLabel();
     }
 
     public Object getId() {

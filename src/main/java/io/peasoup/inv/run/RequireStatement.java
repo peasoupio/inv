@@ -25,11 +25,16 @@ public class RequireStatement implements Statement {
     }
 
     @Override
-    public String toString() {
+    public String getLabel() {
         if (unbloatable)
-            return getInv() + " => [UNBLOATABLE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+            return "[UNBLOATABLE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
 
-        return getInv() + " => [REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+        return "[REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
+    }
+
+    @Override
+    public String toString() {
+        return getInv() + " => " + getLabel();
     }
 
     public Object getId() {

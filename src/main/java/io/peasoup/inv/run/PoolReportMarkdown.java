@@ -69,41 +69,33 @@ public class PoolReportMarkdown {
         scopes.put("name", inv.getName());
         scopes.put("scm", inv.getContext().getScm());
 
-        List<Map> requireStatements = new ArrayList<>();
-        List<Map> broadcastStatements = new ArrayList<>();
+        List<Map> statements = new ArrayList<>();
 
         int index = 0;
 
         for (Statement statement : inv.getTotalStatements()) {
             Map<String, Object> statementScope = new HashMap<>();
 
-            statementScope.put("label", statement.toString());
+            statementScope.put("label", statement.getLabel());
             statementScope.put("index", ++index);
             statementScope.put("markdown", statement.getMarkdown());
-
-            // Check if its a broadcast statement.
-            if (statement instanceof BroadcastStatement)
-                broadcastStatements.add(statementScope);
 
             // Check if its a require statement.
             if (statement instanceof RequireStatement) {
                 Map<Object, BroadcastResponse> responses = pool.getAvailableStatements().get(statement.getName());
 
                 // Check if it has a broadcast response
-                if (responses == null || !responses.containsKey(statement.getId()))
-                    continue;;
-
-                BroadcastResponse response = responses.get(statement.getId());
-                statementScope.put("resolvedBy", response.getResolvedBy());
-
-                requireStatements.add(statementScope);
+                if (responses != null && responses.containsKey(statement.getId())) {
+                    BroadcastResponse response = responses.get(statement.getId());
+                    statementScope.put("resolvedBy", response.getResolvedBy());
+                }
             }
+
+            statements.add(statementScope);
         }
 
-        scopes.put("requires", requireStatements);
-        scopes.put("broadcasts", broadcastStatements);
-        scopes.put("requires_len", requireStatements.size());
-        scopes.put("broadcasts_len", broadcastStatements.size());
+        scopes.put("statements", statements);
+        scopes.put("statements_len", statements.size());
 
         return scopes;
     }

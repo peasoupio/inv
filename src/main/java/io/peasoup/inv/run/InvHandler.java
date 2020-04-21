@@ -29,16 +29,25 @@ public class InvHandler {
             throw new IllegalArgumentException("Body is required");
         }
 
-        final Inv inv = new Inv(executor.getPool());
+        Inv.Context context = new Inv.Context(executor.getPool());
+
+        // Set default name
+        if (StringUtils.isNotEmpty(defaultName)) context.setDefaultName(defaultName);
 
         // Is loading from script ?
         Script script = (body.getOwner() instanceof Script) ? (Script) body.getOwner() : null;
+        if (script != null) {
+            // Set default path
+            context.setDefaultPath((String) script.getBinding().getVariables().get("pwd"));
 
-        // Set default path
-        if (script != null) inv.getDelegate().path((String) script.getBinding().getVariables().get("pwd"));
-        // Set default name
-        if (StringUtils.isNotEmpty(defaultName)) inv.getDelegate().name(defaultName);
+            // Set SCM
+            context.setSCM((String) script.getBinding().getVariables().get("scm"));
 
+            // Set Script filename
+            context.setScriptFilename((String) script.getBinding().getVariables().get("$0"));
+        }
+
+        final Inv inv = context.build();
         body.setResolveStrategy(Closure.DELEGATE_FIRST);
         body.setDelegate(inv.getDelegate());
 
@@ -55,13 +64,10 @@ public class InvHandler {
         // Attempt to dump delegate to insert it into pool
         inv.dumpDelegate();
 
+        // Print SCM reference
         if (script != null) {
-            String scm = (String) script.getBinding().getVariables().get("scm");
-            final String file = (String) script.getBinding().getVariables().get("$0");
-
-            Logger.info("[" + scm + "] [" + file + "] " + inv);
+            Logger.info("[" + context.getScm() + "] [" + context.getScriptFilename() + "] " + inv);
         }
-
     }
 
     public static class INVOptionRequiredException extends Exception {

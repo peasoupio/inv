@@ -43,6 +43,7 @@ public class RequireDescriptor {
         if (requireUsingDescriptor.getUnbloatable() != null)
             requireStatement.setUnbloatable(requireUsingDescriptor.getUnbloatable());
 
+        requireStatement.setMarkdown(requireUsingDescriptor.getMarkdown());
         requireStatement.setResolved(requireUsingDescriptor.getResolved());
         requireStatement.setUnresolved(requireUsingDescriptor.getUnresolved());
 

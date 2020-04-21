@@ -15,7 +15,9 @@ class InvExecutorTest {
     @Test
     void raising_exception_ready() {
 
-        def inv = new Inv(invExecutor.pool)
+        def ctx = new Inv.Context(invExecutor.pool)
+        def inv = ctx.build()
+
         inv.name = "my-index"
         inv.ready = { throw new Exception("raising_exception_ready") }
         inv.dumpDelegate()

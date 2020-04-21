@@ -11,6 +11,7 @@ public class RequireStatement implements Statement {
     public static final Manageable REQUIRE = new Require();
     private Object id;
     private String name;
+    private String markdown;
     private Boolean unbloatable = false;
     private Boolean defaults = true;
     private Inv inv;
@@ -45,6 +46,14 @@ public class RequireStatement implements Statement {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getMarkdown() {
+        return markdown;
+    }
+
+    public void setMarkdown(String markdown) {
+        this.markdown = markdown;
     }
 
     public Boolean getUnbloatable() {

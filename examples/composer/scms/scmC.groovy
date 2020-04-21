@@ -13,7 +13,7 @@ scm {
 git clone ${src} .
     """
 
-    update """
+    pull """
 git pull
     """
   }
@@ -34,7 +34,7 @@ scm {
 git clone ${src} .
     """
 
-    update """
+    pull """
 git pull
     """
   }

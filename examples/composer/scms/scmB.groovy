@@ -17,7 +17,7 @@ scm {
 git clone -b ${branch} ${src} .
     """
 
-    update """
+    pull """
 git pull
     """
   }
@@ -42,7 +42,7 @@ scm {
 git clone -b ${branch} ${src} .
     """
 
-    update """
+    pull """
 git pull
     """
   }

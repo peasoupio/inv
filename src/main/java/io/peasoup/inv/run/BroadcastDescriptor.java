@@ -28,6 +28,8 @@ public class BroadcastDescriptor {
         if (broadcastUsingDescriptor.getId() != null)
             broadcastStatement.setId(broadcastUsingDescriptor.getId());
 
+
+        broadcastStatement.setMarkdown(broadcastUsingDescriptor.getMarkdown());
         broadcastStatement.setReady(broadcastUsingDescriptor.getReady());
 
         return this;

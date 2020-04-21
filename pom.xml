@@ -62,7 +62,7 @@
             <version>2.4.0</version>
         </dependency>
 
-        <!-- Other stuff -->
+        <!-- Frameworks -->
 
         <dependency>
             <groupId>commons-lang</groupId>
@@ -95,16 +95,32 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.6</version>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
             <version>2.3.2</version>
         </dependency>
+
+        <!-- Utils -->
 
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>3.3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.6</version>
+        </dependency>
+
+        <!-- Loggers -->
 
         <dependency>
             <groupId>org.tinylog</groupId>
@@ -116,12 +132,6 @@
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-api</artifactId>
             <version>2.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>1.6</version>
         </dependency>
 
         <dependency>

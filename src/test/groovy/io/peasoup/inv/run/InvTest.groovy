@@ -9,12 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 class InvTest {
 
     NetworkValuablePool pool
+    Inv.Context ctx
     Inv inv
 
     @Before
     void setup() {
         pool = new NetworkValuablePool()
-        inv = new Inv(pool)
+        ctx = new Inv.Context(pool)
+        inv = ctx.build()
     }
 
     @Test
@@ -75,15 +77,15 @@ class InvTest {
     void equals() {
 
         assert inv.name == null
-        assert !inv.equals(new Inv(pool))
+        assert !inv.equals(ctx.build())
 
         inv.name = "my-inv"
 
         assert !inv.equals(null)
         assert !inv.equals("inv")
-        assert !inv.equals(new Inv(pool))
+        assert !inv.equals(ctx.build())
 
-        def other = new Inv(pool)
+        def other = ctx.build()
         other.name = "my-inv"
 
         assert inv.equals(other)

@@ -1,6 +1,6 @@
 {
   "name": "composer",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Composer allow you to interactively work with your INV ecosystem.",
   "main": "index.html",
   "dependencies": {

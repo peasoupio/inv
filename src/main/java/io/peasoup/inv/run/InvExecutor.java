@@ -10,6 +10,8 @@ public class InvExecutor {
     public InvExecutor() {
         pool = new NetworkValuablePool();
         report = new PoolReport();
+
+        Logger.info("---- [DIGEST] opened ----");
     }
 
     public void read(File scriptFile) throws IOException {
@@ -21,7 +23,12 @@ public class InvExecutor {
     }
 
     public PoolReport execute() {
+        Logger.info("---- [DIGEST] started ----");
+
+        // Do the actual digestion
         executeAndReport();
+
+        Logger.info("---- [DIGEST] completed ----");
 
         new PoolReportTrace(pool, report).printPoolTrace();
         new PoolReportMarkdown(pool, report).printPoolMarkdown();
@@ -36,8 +43,6 @@ public class InvExecutor {
 
         int count = 0;
 
-        Logger.info("---- [DIGEST] started ----");
-
         try {
 
             // Raising ready event for all invs before the first digest
@@ -47,7 +52,6 @@ public class InvExecutor {
                 Logger.info(inv + " event ready raised");
                 inv.getReady().call();
             }
-
 
             // Run for eternity
             while (!report.isHalted()) {
@@ -65,8 +69,6 @@ public class InvExecutor {
         } catch (Exception ex) {
             Logger.error(ex);
         }
-
-        Logger.info("---- [DIGEST] completed ----");
 
         report.setCycleCount(count);
     }

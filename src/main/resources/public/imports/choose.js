@@ -25,9 +25,10 @@ Vue.component('choose', {
 
                 return {
                     tabs: [
-                        { label: 'INV', description: 'Select INVs by their name', template: 'choose-inv', disabled: vm.value.setup.firstTime },
-                        { label: 'Broadcast', description: 'Select INVs by their specific broadcast(s)', template: 'choose-broadcast', disabled: vm.value.setup.firstTime },
-                        { label: 'SCM', description: 'Select INVs by their specific SCM', template: 'choose-scm'}
+                        { label: 'Tags', description: 'Select INVs by its tags', template: 'choose-tags', disabled: vm.value.setup.firstTime },
+                        { label: 'INV', description: 'Select INVs by its name', template: 'choose-inv', disabled: vm.value.setup.firstTime },
+                        { label: 'Broadcast', description: 'Select INVs by its specific broadcasts', template: 'choose-broadcast', disabled: vm.value.setup.firstTime },
+                        { label: 'SCM', description: 'Select INVs by its specific SCM', template: 'choose-scm'}
                     ],
                     tabSet: function(tab) {
                         vm.currentTab = tab

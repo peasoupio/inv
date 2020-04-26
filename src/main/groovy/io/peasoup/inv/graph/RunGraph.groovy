@@ -20,6 +20,7 @@ class RunGraph {
 
     final Map<String, VirtualInv> virtualInvs = [:]
     final List<FileStatement> files = []
+    final Map<String, Map<String, List<VirtualInv>>> tags = [:]
 
     private final Graph<GraphNavigator.Linkable, DefaultEdge> g
 
@@ -38,45 +39,46 @@ class RunGraph {
             if (!line.startsWith("[INV]"))
                 continue
 
-            def broadcast = BroadcastStatement.matches(line)
-            if (broadcast) {
-                navigator.addBroadcastNode(broadcast)
+            def broadcastStatement = BroadcastStatement.matches(line)
+            if (broadcastStatement) {
+                broadcastStatement.index = nodeCount++
 
-                broadcast.index = nodeCount++
+                VirtualInv virtualInv = resolveVirtualInv(broadcastStatement.owner)
+                virtualInv.nodes.add(broadcastStatement)
 
-                String virtualInvName = broadcast.owner
-                VirtualInv virtualInv = virtualInvs[virtualInvName]
-                if (!virtualInv) {
-                    virtualInv = new VirtualInv(virtualInvName)
-                    virtualInvs.put(virtualInvName, virtualInv)
-                }
-
-                virtualInv.nodes << broadcast
+                navigator.addBroadcastNode(broadcastStatement)
 
                 continue
             }
 
-            def require = RequireStatement.matches(line)
-            if (require) {
-                navigator.addRequireNode(require)
+            def requireStatement = RequireStatement.matches(line)
+            if (requireStatement) {
+                requireStatement.index = nodeCount++
 
-                require.index = nodeCount++
+                VirtualInv virtualInv = resolveVirtualInv(requireStatement.owner)
+                virtualInv.nodes.add(requireStatement)
 
-                String virtualInvName = require.owner
-                VirtualInv virtualInv = virtualInvs[virtualInvName]
-                if (!virtualInv) {
-                    virtualInv = new VirtualInv(virtualInvName)
-                    virtualInvs.put(virtualInvName, virtualInv)
-                }
-
-                virtualInv.nodes << require
+                navigator.addRequireNode(requireStatement)
 
                 continue
             }
 
-            def file = FileStatement.matches(line)
-            if (file) {
-                files << file
+            def fileStatement = FileStatement.matches(line)
+            if (fileStatement) {
+                files << fileStatement
+                continue
+            }
+
+            def tagsStatement = TagsStatement.matches(line)
+            if (tagsStatement) {
+                VirtualInv virtualInv = resolveVirtualInv(tagsStatement.owner)
+                virtualInv.tags = tagsStatement.tags
+
+                for(Map.Entry<String, String> tag : tagsStatement.tags) {
+                    tags.putIfAbsent(tag.key, [:])
+                    tags.get(tag.key).putIfAbsent(tag.value, [])
+                    tags.get(tag.key).get(tag.value).add(virtualInv)
+                }
             }
         }
 
@@ -107,10 +109,21 @@ class RunGraph {
         return writer.toString()
     }
 
+    private VirtualInv resolveVirtualInv(String virtualInvName) {
+        VirtualInv virtualInv = virtualInvs[virtualInvName]
+        if (!virtualInv) {
+            virtualInv = new VirtualInv(virtualInvName)
+            virtualInvs.put(virtualInvName, virtualInv)
+        }
+
+        return virtualInv
+    }
+
     static class VirtualInv {
 
         final String name
         final List<GraphNavigator.Node> nodes = []
+        Map<String, String> tags = [:]
 
         VirtualInv(String name) {
             this.name = name
@@ -124,13 +137,13 @@ class RunGraph {
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static RequireStatement matches(String line) {
-            def require = RE.matcher(line)
-            if (!require.matches())
+            def requireMatcher = RE.matcher(line)
+            if (!requireMatcher.matches())
                 return null
 
             return new RequireStatement(
-                owner: require.group(1),
-                id: require.group(2),
+                owner: requireMatcher.group(1),
+                id: requireMatcher.group(2),
             )
         }
 
@@ -149,13 +162,13 @@ class RunGraph {
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static BroadcastStatement matches(String line) {
-            def broadcast = RE.matcher(line)
-            if (!broadcast.matches())
+            def broadcastMatcher = RE.matcher(line)
+            if (!broadcastMatcher.matches())
                 return null
 
             return new BroadcastStatement(
-                owner: broadcast.group(1),
-                id: broadcast.group(2)
+                owner: broadcastMatcher.group(1),
+                id: broadcastMatcher.group(2)
             )
         }
 
@@ -174,14 +187,14 @@ class RunGraph {
 
         @SuppressWarnings("GroovyAssignabilityCheck")
         static FileStatement matches(String line) {
-            def file = RE.matcher(line)
-            if (!file.matches())
+            def fileMatcher = RE.matcher(line)
+            if (!fileMatcher.matches())
                 return null
 
             return new FileStatement(
-                scm: file.group(1),
-                file: file.group(2),
-                inv: file.group(3)
+                scm: fileMatcher.group(1),
+                file: fileMatcher.group(2),
+                inv: fileMatcher.group(3)
             )
         }
 
@@ -191,6 +204,44 @@ class RunGraph {
         String inv
 
         private FileStatement() {}
+    }
+
+    @ToString
+    static class TagsStatement {
+
+        private static Pattern RE = Pattern.compile(/^\[INV\] \[(\S*)\] => \[TAGS\] (.*)\u0024/)
+
+        @SuppressWarnings("GroovyAssignabilityCheck")
+        static TagsStatement matches(String line) {
+            def tagsMatcher = RE.matcher(line)
+            if (!tagsMatcher.matches())
+                return null
+
+            String[] rawTags = tagsMatcher.group(2)
+                    .replaceAll('[\\[\\]]', '')
+                    .split(',')
+
+            Map<String, String> tags = [:]
+            for(String rawTag : rawTags) {
+                // Do not process ags without : character
+                if (rawTag.lastIndexOf(':') < 0)
+                    continue
+
+                String[] keypair = rawTag.split(':')
+                tags.put(keypair[0], keypair[1])
+            }
+
+            return new TagsStatement(
+                    owner: tagsMatcher.group(1),
+                    tags: tags
+            )
+        }
+
+        // Ctor
+        String owner
+        Map<String, String> tags
+
+        private TagsStatement() {}
     }
 
 }

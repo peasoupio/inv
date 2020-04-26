@@ -36,9 +36,16 @@ class InvTest {
         assert pool.totalInvs.isEmpty()
         assert !inv.name
 
-        inv.dumpDelegate()
+        assertThrows(IllegalStateException.class) {
+            inv.dumpDelegate()
+        }
 
         assert pool.totalInvs.isEmpty()
+    }
+
+    @Test
+    void dumpDelegate_without_path() {
+        assert inv.delegate.path == Inv.Context.WORKING_DIR
     }
 
     @Test

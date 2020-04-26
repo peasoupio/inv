@@ -43,7 +43,7 @@ scm {
             port: port,
             workspace: base
         )
-        webServer.map()
+        webServer.routes()
 
         sleep(3000)
     }
@@ -61,7 +61,7 @@ scm {
 
     @Test
     void api() {
-        assert get("api")
+        assert get("v1")
     }
 
     @Test
@@ -500,7 +500,7 @@ scm {
     }
 
     String get(String context) {
-        return new URL("http://127.0.0.1:${port}/${context}".toString()).openConnection().inputStream.text
+        return new URL("http://127.0.0.1:${port}/api/${context}".toString()).openConnection().inputStream.text
     }
 
     String postJson(String context, Map object) {
@@ -508,7 +508,7 @@ scm {
     }
 
     String post(String context, byte[] data = new byte[]{}) {
-        def connection = new URL("http://0.0.0.0:${port}/${context}".toString()).openConnection() as HttpURLConnection
+        def connection = new URL("http://0.0.0.0:${port}/api/${context}".toString()).openConnection() as HttpURLConnection
 
         return connection.with {
             setDoOutput(true)

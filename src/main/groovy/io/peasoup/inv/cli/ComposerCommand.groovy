@@ -17,7 +17,7 @@ class ComposerCommand implements CliCommand {
             settings.workspace = Home.getCurrent().absolutePath
 
         return new WebServer(settings)
-                .map()
+                .routes()
     }
 
     boolean rolling() {

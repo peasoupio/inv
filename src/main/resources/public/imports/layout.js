@@ -335,7 +335,7 @@ Vue.component('layout', {
         })
 
         // Get API
-        axios.get('/api').then(response => {
+        axios.get('/api/v1').then(response => {
             vm.shared.api = response.data
 
             // Setups menus

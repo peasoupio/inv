@@ -105,8 +105,8 @@ class ScmFile {
                         values      : [],
                         required    : parameter.required,
                         links       : [
-                                values: "/scms/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
-                                save  : "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
+                                values: WebServer.API_CONTEXT_ROOT + "/scms/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
+                                save  : WebServer.API_CONTEXT_ROOT + "/scms/parameters?name=${descriptor.name}&parameter=${parameter.name}"
                         ]
                 ]
             }
@@ -136,12 +136,12 @@ class ScmFile {
                             timeout      : descriptor.timeout
                     ],
                     links       : [
-                            default   : "/scms/view?name=${descriptor.name}",
-                            stage     : "/scms/stage?name=${descriptor.name}",
-                            unstage   : "/scms/unstage?name=${descriptor.name}",
-                            save      : "/scms/source?name=${descriptor.name}",
-                            remove    : "/scms/remove?name=${descriptor.name}",
-                            parameters: "/scms/parametersValues?name=${descriptor.name}"
+                            default   : WebServer.API_CONTEXT_ROOT + "/scms/view?name=${descriptor.name}",
+                            stage     : WebServer.API_CONTEXT_ROOT + "/scms/stage?name=${descriptor.name}",
+                            unstage   : WebServer.API_CONTEXT_ROOT + "/scms/unstage?name=${descriptor.name}",
+                            save      : WebServer.API_CONTEXT_ROOT + "/scms/source?name=${descriptor.name}",
+                            remove    : WebServer.API_CONTEXT_ROOT + "/scms/remove?name=${descriptor.name}",
+                            parameters: WebServer.API_CONTEXT_ROOT + "/scms/parametersValues?name=${descriptor.name}"
                     ]
             ]
         }

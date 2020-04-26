@@ -200,18 +200,18 @@ class Execution {
                         .collect { it.lastModified() },
                 running      : isRunning(),
                 links        : [
-                        start: "/execution/start",
-                        stop : "/execution/stop"
+                        start: WebServer.API_CONTEXT_ROOT + "/execution/start",
+                        stop : WebServer.API_CONTEXT_ROOT + "/execution/stop"
                 ]
         ]
 
         if (isRunning()) {
-            output.links["stream"] = "/execution/log/stream"
+            output.links["stream"] = WebServer.API_CONTEXT_ROOT + "/execution/log/stream"
         }
 
         // Add download if latest log exists
         if (latestLog().exists()) {
-            output.links["download"] = "/execution/latest/download"
+            output.links["download"] = WebServer.API_CONTEXT_ROOT + "/execution/latest/download"
         }
 
         // Add latest scm files (if not running)

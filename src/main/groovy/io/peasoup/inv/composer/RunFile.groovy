@@ -124,6 +124,15 @@ class RunFile {
         propagate()
     }
 
+    synchronized void unstageWithoutPropagate(String id) {
+        assert id, 'Id is required'
+
+        if (!staged.containsKey(id))
+            return
+
+        staged.remove(id)
+    }
+
     synchronized void unstageAll() {
         staged.clear()
     }
@@ -309,17 +318,17 @@ class RunFile {
                             id      : it.subId,
                             scm     : scm,
                             links   : [
-                                    viewScm   : "/scms/view?name=${scm}",
-                                    requiredBy: "/run/requiredBy?id=${value}",
-                                    stage     : "/run/stage?id=${value}",
-                                    unstage   : "/run/unstage?id=${value}"
+                                    viewScm   : WebServer.API_CONTEXT_ROOT + "/scms/view?name=${scm}",
+                                    requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${value}",
+                                    stage     : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${value}",
+                                    unstage   : WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${value}"
                             ]
                     ]
                 }
         ]
     }
 
-    Map requireByToMap(String id) {
+    Map requiredByMap(String id) {
 
         def nodes = []
         def linkableToCheck = staged.find { it.value.link.value == id }
@@ -354,7 +363,57 @@ class RunFile {
         return [
                 nodes: nodes
         ]
+    }
 
+    Map tagsMap() {
+        List<Map> tags = []
+        Map output = [
+                tags: tags
+        ]
+
+        for(Map.Entry<String, Map<String, List<RunGraph.VirtualInv>>> tag : runGraph.tags) {
+            List<Map> subTags = []
+            Map tagOutput = [
+                label: tag.key,
+                subTags: subTags,
+                links: [
+                        stageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/stage?tag=${tag.key}",
+                        unstageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/unstage?tag=${tag.key}"
+                ]
+            ]
+
+            for(Map.Entry<String, List<RunGraph.VirtualInv>> subTag : tag.value) {
+                List<Map> invs = []
+                Map subTagOutput = [
+                        label: subTag.key,
+                        invs: invs,
+                        links: [
+                                stageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/stage?tag=${tag.key}&subtag=${subTag.key}",
+                                unstageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/unstage?tag=${tag.key}&subtag=${subTag.key}"
+                        ]
+                ]
+
+                for(RunGraph.VirtualInv inv : subTag.value) {
+                    def ids = owners.get(inv.name)
+
+                    invs.add([
+                            label: inv.name,
+                            selected: !ids ? 0 : ids.findAll { staged[it.value] && staged[it.value].selected }.size(),
+                            required: !ids ? 0 : ids.findAll { staged[it.value] && staged[it.value].required }.size(),
+                            links: [
+                                    stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?owner=${inv.name}",
+                                    unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?owner=${inv.name}"
+                            ]
+                    ])
+                }
+
+                subTags.add(subTagOutput)
+            }
+
+            tags.add(tagOutput)
+        }
+
+        return output
     }
 
     private static class StagedId {

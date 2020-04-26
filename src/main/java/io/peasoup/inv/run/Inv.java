@@ -53,10 +53,22 @@ public class Inv {
         if (StringUtils.isEmpty(name)) name = delegate.getName();
         if (StringUtils.isEmpty(path)) path = delegate.getPath();
 
+        if (StringUtils.isEmpty(name))
+            throw new IllegalStateException("Name is required");
+
+        if (StringUtils.isEmpty(path))
+            throw new IllegalStateException("Path is required");
+
         if (ready == null) ready = properties.getReady();
         if (tail == null) tail = properties.isTail();
         if (pop == null) pop = properties.isPop();
-        if (tags == null) tags = delegate.getTags();
+        if (tags == null) {
+            tags = delegate.getTags();
+
+            // Print tags (if exist)
+            if (tags != null && !tags.isEmpty())
+                Logger.info("[" + name + "]" + " => [TAGS] " + DefaultGroovyMethods.toString(tags));
+        }
 
         Boolean dumpedSomething = context.pool.include(this);
 
@@ -318,10 +330,11 @@ public class Inv {
     }
 
     public static class Context {
+        public static final String WORKING_DIR = System.getProperty("user.dir");
 
         private final NetworkValuablePool pool;
         private String defaultName;
-        private String defaultPath;
+        private String defaultPath = WORKING_DIR;
         private String scm;
         private String scriptFilename;
 

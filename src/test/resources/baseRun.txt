@@ -6,6 +6,11 @@
 [INV] [scm6] [serverB.groovy] [ServerB]
 [INV] [undefined] [removed.groovy] [removed]
 
+[INV] [appA] => [TAGS] [my:tag]
+[INV] [appB] => [TAGS] [my:tag]
+[INV] [IIS] => [TAGS] [other:tag]
+[INV] [Kubernetes] => [TAGS] [other:tag]
+
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
 [INV] [ServerB] => [BROADCAST] [Server] [name:server-b]

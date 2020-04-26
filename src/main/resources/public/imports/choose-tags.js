@@ -115,6 +115,7 @@ Vue.component('choose-tags', {
                                 requiredCount++
                         })
 
+                        subTag.invs.sort(compareValues('label'))
                         subTags.push({
                             label: subTag.label,
                             parent: tag,

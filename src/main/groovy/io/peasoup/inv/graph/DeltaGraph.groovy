@@ -98,10 +98,22 @@ class DeltaGraph {
                 .findAll { it.link.isOwner() }
                 .collect { files[it.owner.owner] }
 
+
+
         // Write files
         approuvedFiles.each { RunGraph.FileStatement fileStatement ->
             builder.append "[INV] [${fileStatement.scm}] [${fileStatement.file}] [${fileStatement.inv}]${System.lineSeparator()}"
         }
+
+        // Write tags
+        approuvedLines
+                .findAll { it.link.isOwner() }
+                .each {
+                    def inv = otherGraph.virtualInvs.get(it.owner.owner) ?: baseGraph.virtualInvs.get(it.owner.owner)
+                    if (!inv || !inv.tags)
+                        return
+                    builder.append "[INV] [${it.owner.owner}] => [TAGS] ${inv.tags}${System.lineSeparator()}"
+                }
 
         // Write broadcast lines
         def nodes = approuvedLines

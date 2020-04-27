@@ -1082,7 +1082,8 @@ This is a sample description for this INV.
 
             broadcast inv.Something using {
                 markdown '''
-This is a sample description for this broadcast statement
+This is a sample description for this  
+broadcast statement
 '''
             }
 

@@ -44,7 +44,7 @@ public class RequireUsingDescriptor {
             throw new IllegalArgumentException("Markdown is required");
         }
 
-        this.markdown = markdown;
+        this.markdown = markdown.trim();
     }
 
     /**

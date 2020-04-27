@@ -65,7 +65,7 @@ public class InvDescriptor {
             throw new IllegalArgumentException("Markdown is required");
         }
 
-        this.properties.markdown = markdown;
+        this.properties.markdown = markdown.trim();
     }
 
     /**

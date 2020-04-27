@@ -9,10 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PoolReportMarkdown {
 
@@ -57,7 +54,10 @@ public class PoolReportMarkdown {
     private List<Map<String, Object>> getAllScopes() {
         List<Map<String, Object>> scopes = new ArrayList();
 
-        for(Inv inv : pool.getTotalInvs()) {
+        ArrayList<Inv> sorted = new ArrayList<>(pool.getTotalInvs());
+        sorted.sort(Comparator.comparing(Inv::getName));
+
+        for(Inv inv : sorted) {
             scopes.add(getScopesFor(inv));
         }
 

@@ -1,19 +1,14 @@
 ## {{name}}
 This is a sample description for this INV.
 
-### SCM
 {{#scm}}
-Using an SCM ? **Yes**  
-SCM name: {{scm}}  
-{{/scm}}
-{{^scm}}
-Using an SCM ? **No**  
+### SCM: {{scm}}  
 {{/scm}}
 
-### {{statements_len}} statement(s):
+### Statement(s): {{statements_len}}
 {{#statements}}
 #### {{index}}. {{label}}
-{{markdown}}  
+{{{markdown}}}  
 {{#resolvedBy}}
 **Resolved by**: {{resolvedBy}}  
 {{/resolvedBy}}

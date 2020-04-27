@@ -19,6 +19,7 @@ public class Inv {
 
     private String name;
     private String path;
+    private String markdown;
     private Map<String, String> tags;
     private Boolean tail;
     private Boolean pop;
@@ -59,6 +60,7 @@ public class Inv {
         if (StringUtils.isEmpty(path))
             throw new IllegalStateException("Path is required");
 
+        if (markdown == null) markdown = properties.getMarkdown();
         if (ready == null) ready = properties.getReady();
         if (tail == null) tail = properties.isTail();
         if (pop == null) pop = properties.isPop();
@@ -278,6 +280,10 @@ public class Inv {
 
     public String getName() {
         return name;
+    }
+
+    public String getMarkdown() {
+        return markdown;
     }
 
     public String getPath() {

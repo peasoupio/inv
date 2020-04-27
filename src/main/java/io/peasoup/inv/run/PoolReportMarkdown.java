@@ -67,6 +67,7 @@ public class PoolReportMarkdown {
     private Map<String, Object> getScopesFor(Inv inv) {
         Map scopes = new HashMap<>();
         scopes.put("name", inv.getName());
+        scopes.put("markdown", inv.getMarkdown());
         scopes.put("scm", inv.getContext().getScm());
 
         List<Map> statements = new ArrayList<>();

@@ -318,6 +318,8 @@ public class InvDescriptor {
             whens.clear();
         }
 
+        public String getMarkdown() { return markdown; }
+
         protected boolean isTail() {
             return tail;
         }

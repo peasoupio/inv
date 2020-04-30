@@ -1,7 +1,7 @@
 # Dockerfile
 
 # Alpine Linux with OpenJDK JRE
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jdk-alpine
 
 # Copy tar.gz to image
 ADD ${project.artifactId}-${project.version}.tar.gz /inv

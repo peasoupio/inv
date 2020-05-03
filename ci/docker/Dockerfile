@@ -1,6 +1,6 @@
 # Dockerfile
 
-# Alpine Linux with OpenJDK JRE
+# Alpine Linux with OpenJDK JDK
 FROM openjdk:8-jdk-alpine
 
 # Copy tar.gz to image

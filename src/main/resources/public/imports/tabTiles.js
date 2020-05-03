@@ -9,8 +9,8 @@ Vue.component('tab-tiles', {
             <div class="content">
                 <p class="title">
                     {{tab.label}}
-                    <span v-show="activeTab==tab"><i class="fas fa-check-square"></i></span>
-                    <span v-show="activeTab!=tab"><i class="far fa-square"></i></span>
+                    <span v-show="activeTab.template==tab.template"><i class="fas fa-check-square"></i></span>
+                    <span v-show="activeTab.template!=tab.template"><i class="far fa-square"></i></span>
                 </p>
                 <p class="subtitle">{{tab.description}}</p>
             </div>
@@ -74,10 +74,14 @@ Vue.component('tab-tiles', {
         }
     },
     mounted: function() {
-        var tabs = this.availableTabs()
+        var vm = this
+        var tabs = vm.availableTabs()
         if (tabs.length == 0)
             return
 
-        this.setTab(tabs[0])
+        if (!vm.value.defaultTab)
+            vm.setTab(tabs[0])
+        else
+            vm.setTab(vm.value.defaultTab)
     }
 })

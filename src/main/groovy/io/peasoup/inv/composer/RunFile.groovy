@@ -11,7 +11,7 @@ import java.util.regex.Pattern
 @CompileStatic
 class RunFile {
 
-    final private File runFile
+    final File runFile
     final private RunGraph runGraph
 
     final private Map<String, List<String>> ownerOfScm

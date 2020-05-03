@@ -2,6 +2,7 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.composer.RunFile
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.graph.RunGraph
@@ -21,7 +22,28 @@ class RunAPI {
 
     void routes() {
         // General
+        get("/run/file", { Request req, Response res ->
+            if (!webServer.run)
+                return webServer.showError(res, "Run is not ready yet")
 
+            return webServer.run.runFile.text
+        })
+
+        post("/run/file", { Request req, Response res ->
+            String source = req.body()
+
+            if (!source)
+                return webServer.showError(res, "Content is empty")
+
+            // Replace run.txt
+            webServer.run.runFile.delete()
+            webServer.run.runFile << source
+            webServer.run = new RunFile(webServer.run.runFile)
+
+            return webServer.showResult("Runfile updated")
+        })
+
+        // General
         get("/run", { Request req, Response res ->
             if (!webServer.run)
                 return webServer.showError(res, "Run is not ready yet")

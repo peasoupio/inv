@@ -15,14 +15,14 @@ Vue.component('choose-tags', {
                         <a>{{tag.label}}</a>
                         <ul>
                             <li v-for="subtag in tag.subTags">
-                                <a @click="previewTag = subtag" v-bind:class="{ 'is-active' : previewTag == subtag }">
+                                <a @click="selectTag(subtag)" v-bind:class="{ 'is-active' : previewTag == subtag }">
                                     {{subtag.label}}
                                     <span class="tag is-info is-pulled-right" v-if="subtag.selectedCount > 0" style="margin-left: 1em">{{subtag.selectedCount}} selected</span>
                                     <span class="tag is-primary is-pulled-right" v-if="subtag.requiredCount > 0">{{subtag.requiredCount}} required</span>
                                 </a>
                                 <ul v-if="previewTag == subtag">
                                     <li v-for="inv in subtag.invs">
-                                        <a @click="previewInv = inv" v-bind:class="{ 'is-active' : previewInv == inv }">
+                                        <a @click="selectInv(inv)" v-bind:class="{ 'is-active' : previewInv == inv }">
                                             {{inv.label}}
                                             <span class="tag is-info is-pulled-right" v-if="inv.selected > 0" style="margin-left: 1em">selected</span>
                                             <span class="tag is-primary is-pulled-right" v-if="inv.required > 0">required</span>
@@ -140,6 +140,22 @@ Vue.component('choose-tags', {
 
                 vm.tags.sort(compareValues('label'))
             })
+        },
+        selectTag: function(tag) {
+            var vm = this
+
+            if (vm.previewTag == tag)
+                vm.previewTag = null
+            else
+                vm.previewTag = tag
+        },
+        selectInv: function(inv) {
+            var vm = this
+
+            if (vm.previewInv == inv)
+                vm.previewInv = null
+            else
+                vm.previewInv = inv
         },
         stage: function(tag) {
             var vm = this

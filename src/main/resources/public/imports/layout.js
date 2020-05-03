@@ -78,6 +78,8 @@ Vue.component('layout', {
               </a>
 
               <div class="navbar-dropdown">
+                <a class="navbar-item" @click.stop="showConfigureRun()">Edit run.txt file</a>
+                <hr class="navbar-divider">
                 <a class="navbar-item" @click.stop="showGlobalSettings()">Edit global settings</a>
                 <a class="navbar-item" @click.stop="showConfigureSCMs()">Edit SCMs</a>
                 <a class="navbar-item" @click.stop="showConfigureInit()">Edit init file</a>
@@ -174,6 +176,10 @@ Vue.component('layout', {
                 done: 0
             },
             navbar: {
+                configureRun: {
+                    model   : { visible: false },
+                    template: 'configure-run'
+                },
                 configureSettings: {
                     model   : { visible: false },
                     template: 'configure-settings'
@@ -301,6 +307,9 @@ Vue.component('layout', {
             vm.setCurrentStep(previous[0])
         },
 
+        showConfigureRun: function() {
+            this.navbar.configureRun.model.visible = true
+        },
         showGlobalSettings: function() {
             this.navbar.configureSettings.model.visible = true
         },

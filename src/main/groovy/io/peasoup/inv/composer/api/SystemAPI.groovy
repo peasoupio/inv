@@ -44,7 +44,8 @@ class SystemAPI {
                                     stageAll  : webServer.API_CONTEXT_ROOT + "/run/stageAll",
                                     unstageAll: webServer.API_CONTEXT_ROOT + "/run/unstageAll",
                                     tree      : webServer.API_CONTEXT_ROOT + "/run/tree",
-                                    tags      : webServer.API_CONTEXT_ROOT + "/run/tags"
+                                    tags      : webServer.API_CONTEXT_ROOT + "/run/tags",
+                                    runFile   : webServer.API_CONTEXT_ROOT + "/run/file"
                             ],
                             scms     : [
                                     default        : webServer.API_CONTEXT_ROOT + "/scms",

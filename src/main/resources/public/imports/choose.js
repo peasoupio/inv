@@ -15,6 +15,7 @@ Vue.component('choose', {
     props: ['value'],
     data: function() {
         return {
+            defaultTab: {},
             currentTab: {}
         }
     },
@@ -33,10 +34,25 @@ Vue.component('choose', {
                     tabSet: function(tab) {
                         vm.currentTab = tab
                         vm.$forceUpdate()
-                    }
+
+                        localStorage.chooseCurrentTab = tab.template
+                    },
+                    defaultTab: vm.defaultTab
                 }
             }
         }
+    },
+    created: function() {
+        if (!localStorage.chooseCurrentTab)
+            return
+
+        var vm = this
+        vm.tabTilesSettings.tabs.forEach(tab => {
+            if (tab.template != localStorage.chooseCurrentTab)
+                return
+
+            vm.defaultTab = tab
+        })
     }
 })
 

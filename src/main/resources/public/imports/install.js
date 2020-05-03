@@ -3,7 +3,8 @@ Vue.component('install', {
 <div>
     <div class="buttons is-right">
         <button class="button breathe-heavy" @click="toggleFeature('autoRefresh')" v-bind:class="{ 'is-link': features.autoRefresh }">
-            <span>Auto-refresh (20 secs)</span>
+            <span v-if="!features.autoRefresh">Enable auto-refresh (20 secs)</span>
+            <span v-if="features.autoRefresh">Disable auto-refresh (20 secs)</span>
         </button>
 
         <div class="dropdown is-hoverable">
@@ -45,12 +46,17 @@ Vue.component('install', {
         Ready to execute ?
     </p>
 
-    <p class="title is-4 has-text-centered" v-if="execution.running">
-        <span class="icon is-small">
+    <p class="title is-3 has-text-centered" v-if="execution.running">
+        <span class="icon is-small" style="margin-right: 0.1em">
             <i class="fas fa-spinner fa-pulse"></i>
-        </span> Running
+        </span>
+        <span>
+            Executing
+        </span>
         <span v-if="execution.links && execution.links.stream">(<a href="/logtrotter.html" target="_blank">Follow logs</a>)</span>
     </p>
+
+
 
     <div class="buttons is-centered">
         <button class="button is-info" @click="start()" v-if="!execution.running">
@@ -62,7 +68,6 @@ Vue.component('install', {
         </button>
     </div>
 
-    <p class="subtitle is-5 has-text-centered" v-if="execution.running">(00:{{remainingRefresh.toString().padStart(2, "0")}} seconds until refresh)</p>
 
     <hr />
 
@@ -86,7 +91,7 @@ Vue.component('install', {
         return {
 
             features: {
-                autoRefresh: false,
+                autoRefresh: true,
                 secureMode: false,
                 debugMode: false,
                 systemMode: false
@@ -165,6 +170,9 @@ Vue.component('install', {
         stop: function() {
             var vm = this
 
+            if (!confirm("Do you really want to stop the current install execution?"))
+                return
+
             axios.post(vm.execution.links.stop).then(response => {
                vm.$bus.$emit('toast', `warn:Stopped <strong>installation</strong> successfully!`)
 
@@ -172,7 +180,6 @@ Vue.component('install', {
                setTimeout(function() {
                    location.reload()
                }, 1000)
-
             })
         },
         refresh: function() {

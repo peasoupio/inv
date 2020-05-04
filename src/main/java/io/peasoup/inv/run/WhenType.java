@@ -105,6 +105,7 @@ public class WhenType {
             this.whenData = whenData;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public int qualify(NetworkValuablePool pool, Inv inv) {
             // Do not process until ALL statements are managed
@@ -143,13 +144,13 @@ public class WhenType {
             boolean allCompleted = true;
 
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("[WHEN] inv: " + inv.getName() + ", criteria: " + whenData.toString() + ", results: ");
+            stringBuilder.append("[WHEN] inv: ").append(inv.getName()).append(", criteria: ").append(whenData).append(", results: ");
 
             for(Inv matchInv : matchInvs) {
                 boolean completed = pool.getCompletedInvs().contains(matchInv) &&
                         pool.getTotalInvs().contains(matchInv);
 
-                stringBuilder.append(matchInv + " is " + (completed? "COMPLETED": "NOT COMPLETED") + "; ");
+                stringBuilder.append(matchInv).append(" is ").append(completed ? "COMPLETED" : "NOT COMPLETED").append("; ");
 
                 if (!completed)
                     allCompleted = false;

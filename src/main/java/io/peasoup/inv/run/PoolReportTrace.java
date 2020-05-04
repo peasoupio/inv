@@ -44,18 +44,18 @@ public class PoolReportTrace {
         StringBuilder output = new StringBuilder();
         PoolStateTree tree = new PoolStateTree(pool);
 
-        output.append("Incompleted INV(s): " + System.lineSeparator());
+        output.append("Incompleted INV(s): ").append(System.lineSeparator());
 
         for (Inv remaining : tree.sortRemainingByRequireWeight()) {
             boolean noMoreStatement = remaining.getRemainingStatements().isEmpty() &&
                     remaining.getWhens().isEmpty();
 
             if (noMoreStatement) {
-                output.append("- " + remaining + " has no statement and when criteria's left. Look below for exception(s)." + System.lineSeparator());
+                output.append("- ").append(remaining).append(" has no statement and when criteria's left. Look below for exception(s).").append(System.lineSeparator());
                 continue;
             }
 
-            output.append("- " + remaining + " has " + remaining.getRemainingStatements().size() + " statement(s) and has " + remaining.getWhens().size() + " when criteria(s) left:" + System.lineSeparator());
+            output.append("- ").append(remaining).append(" has ").append(remaining.getRemainingStatements().size()).append(" statement(s) and has ").append(remaining.getWhens().size()).append(" when criteria(s) left:").append(System.lineSeparator());
 
             // Print when's event
             printRemainingWhensEvent(output, pool, remaining);
@@ -74,11 +74,11 @@ public class PoolReportTrace {
         if (remaining.getWhens().isEmpty())
             return;
 
-        output.append("\t" + remaining.getWhens().size() + " when's criteria(s):" + System.lineSeparator());
+        output.append("\t").append(remaining.getWhens().size()).append(" when's criteria(s):").append(System.lineSeparator());
 
         for(WhenData remainingWhen : remaining.getWhens()) {
             String stateMessage = whenStateToMessage(remainingWhen.getProcessor().qualify(pool, remaining));
-            output.append("\t\t[" + stateMessage + "] "  + remainingWhen.toString() + System.lineSeparator());
+            output.append("\t\t[").append(stateMessage).append("] ").append(remainingWhen).append(System.lineSeparator());
         }
     }
 
@@ -88,18 +88,18 @@ public class PoolReportTrace {
         if (requirements.isEmpty())
             return;
 
-        output.append("\t" + requirements.size() + " requirement(s):" + System.lineSeparator());
+        output.append("\t").append(requirements.size()).append(" requirement(s):").append(System.lineSeparator());
 
         for (PoolStateTree.RemainingRequire remainingRequire : requirements) {
 
             if (remainingRequire.isWouldMatch())
-                output.append("\t\t[WOULD MATCH] " + remainingRequire.getStatement().toString() + System.lineSeparator());
+                output.append("\t\t[WOULD MATCH] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
             else if (remainingRequire.isCouldMatch())
-                output.append("\t\t[COULD MATCH] " + remainingRequire.getStatement().toString() + System.lineSeparator());
+                output.append("\t\t[COULD MATCH] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
             else if (Boolean.TRUE.equals(remainingRequire.getStatement().getUnbloatable()))
-                output.append("\t\t[UNBLOATABLE] " + remainingRequire.getStatement().toString() + System.lineSeparator());
+                output.append("\t\t[UNBLOATABLE] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
             else
-                output.append("\t\t[NOT MATCHED] " + remainingRequire.getStatement().toString() + System.lineSeparator());
+                output.append("\t\t[NOT MATCHED] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
         }
     }
 
@@ -108,9 +108,9 @@ public class PoolReportTrace {
         if (broadcasts.isEmpty())
             return;
 
-        output.append("\t" + broadcasts.size() + " broadcast(s):" + System.lineSeparator());
+        output.append("\t").append(broadcasts.size()).append(" broadcast(s):").append(System.lineSeparator());
         for (PoolStateTree.RemainingBroadcast remainingBroadcast : broadcasts) {
-            output.append("\t\t[REQUIRED BY " + remainingBroadcast.getRequireBy() + "] " + remainingBroadcast.getStatement().toString() + System.lineSeparator());
+            output.append("\t\t[REQUIRED BY ").append(remainingBroadcast.getRequireBy()).append("] ").append(remainingBroadcast.getStatement()).append(System.lineSeparator());
         }
     }
 

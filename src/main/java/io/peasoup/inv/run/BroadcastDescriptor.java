@@ -14,7 +14,7 @@ public class BroadcastDescriptor {
         this.broadcastStatement = broadcastStatement;
     }
 
-    public BroadcastDescriptor using(@DelegatesTo(BroadcastUsingDescriptor.class) Closure usingBody) {
+    public BroadcastDescriptor using(@DelegatesTo(BroadcastUsingDescriptor.class) Closure<Object> usingBody) {
         if (usingBody == null) {
             throw new IllegalArgumentException("Using body is required");
         }

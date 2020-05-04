@@ -5,12 +5,13 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Map;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class BroadcastStatement implements Statement {
-    public static final Manageable BROADCAST = new Broadcast();
+    public static final Broadcast BROADCAST = new Broadcast();
     private Object id;
     private String name;
     private String markdown;
-    private Closure<Map> ready;
+    private Closure<Object> ready;
     private Inv inv;
     private StatementStatus state = StatementStatus.NOT_PROCESSED;
 
@@ -52,11 +53,11 @@ public class BroadcastStatement implements Statement {
         this.markdown = markdown;
     }
 
-    public Closure<Map> getReady() {
+    public Closure<Object> getReady() {
         return ready;
     }
 
-    public void setReady(Closure<Map> ready) {
+    public void setReady(Closure<Object> ready) {
         this.ready = ready;
     }
 
@@ -100,6 +101,7 @@ public class BroadcastStatement implements Statement {
             staging.putIfAbsent(broadcastStatement.getId(), response);
         }
 
+        @SuppressWarnings("unchecked")
         private BroadcastResponse createResponse(BroadcastStatement broadcastStatement) {
 
             Object responseObject = null;

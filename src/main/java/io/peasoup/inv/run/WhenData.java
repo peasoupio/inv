@@ -10,7 +10,7 @@ public class WhenData {
     private WhenType.TypeProcessor processor;
 
     private Object value;
-    private Closure callback;
+    private Closure<Object> callback;
 
     public WhenData(WhenScope scope) {
         if (scope == null) {
@@ -52,6 +52,7 @@ public class WhenData {
         return scope.value + " " + processor.toString() + " " + DefaultGroovyMethods.toString(value) + " " + event.value;
     }
 
+    @SuppressWarnings("unused")
     public WhenScope getScope() {
         return scope;
     }
@@ -82,7 +83,7 @@ public class WhenData {
 
 
 
-    public void setCallback(Closure callback) {
+    public void setCallback(Closure<Object> callback) {
         this.callback = callback;
     }
 

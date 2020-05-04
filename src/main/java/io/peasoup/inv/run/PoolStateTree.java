@@ -3,6 +3,7 @@ package io.peasoup.inv.run;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("EqualsBetweenInconvertibleTypes")
 public class PoolStateTree {
     public PoolStateTree(NetworkValuablePool pool) {
         if (pool == null) {
@@ -18,20 +19,17 @@ public class PoolStateTree {
     }
 
     public List<Inv> sortRemainingByRequireWeight() {
-        List<Inv> sortedInvs = pool
-                .getRemainingInvs()
-                .stream()
-                .collect(Collectors.toList());
+        List<Inv> sortedInvs = new ArrayList<>(pool.getRemainingInvs());
 
         sortedInvs.sort((Inv a, Inv b) -> {
             Integer weightA = (int) a.getRemainingStatements()
                     .stream()
-                    .filter(statement -> statement.getMatch() == RequireStatement.REQUIRE)
+                    .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()))
                     .count();
 
             Integer weightB = (int) b.getRemainingStatements()
                     .stream()
-                    .filter(statement -> statement.getMatch() == RequireStatement.REQUIRE)
+                    .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()))
                     .count();
 
             return weightA - weightB;
@@ -47,13 +45,14 @@ public class PoolStateTree {
 
         return inv.getRemainingStatements()
                 .stream()
-                .filter(statement -> statement.getMatch() == BroadcastStatement.BROADCAST)
+                .filter(statement -> BroadcastStatement.BROADCAST.equals(statement.getMatch()))
                 .map(statement -> new RemainingBroadcast(
                         (BroadcastStatement) statement,
                         getRequiredByCount((BroadcastStatement) statement)
                 ))
                 .collect(Collectors.toList());
     }
+
 
     public List<RemainingRequire> getRemainingRequireStatements(Inv inv) {
         if (inv == null) {
@@ -62,7 +61,7 @@ public class PoolStateTree {
 
         return inv.getRemainingStatements()
                 .stream()
-                .filter(statement -> statement.getMatch() == RequireStatement.REQUIRE)
+                .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()) )
                 .map(statement -> {
                     boolean wouldHaveMatched = pool.getAvailableStatements().get(statement.getName()).get(statement.getId()) != null;
                     boolean couldHaveMatched = couldHaveMatched((RequireStatement) statement);
@@ -84,8 +83,8 @@ public class PoolStateTree {
         List<RemainingRequire> sortedRequireStatements = getRemainingRequireStatements(inv);
 
         sortedRequireStatements.sort((RemainingRequire a, RemainingRequire b) -> {
-            Integer weightA = -1;
-            Integer weightB = -1;
+            int weightA = -1;
+            int weightB = -1;
 
             if (a.isCouldMatch())
                 weightA = 1;
@@ -120,7 +119,7 @@ public class PoolStateTree {
                         Map<Object, List<RequireStatement>> statementsForNames = remainingRequirements.get(statement.getName());
 
                         if (!statementsForNames.containsKey(statement.getId()))
-                            statementsForNames.put(statement.getId(), new ArrayList());
+                            statementsForNames.put(statement.getId(), new ArrayList<>());
 
                         statementsForNames.get(statement.getId()).add(requireStatement);
                     }
@@ -171,9 +170,9 @@ public class PoolStateTree {
 
     public static class RemainingRequire {
 
-        private RequireStatement statement;
-        private boolean couldMatch;
-        private boolean wouldMatch;
+        private final RequireStatement statement;
+        private final boolean couldMatch;
+        private final boolean wouldMatch;
 
         public RemainingRequire(RequireStatement statement, boolean couldMatch, boolean wouldMatch) {
             this.statement = statement;
@@ -196,8 +195,8 @@ public class PoolStateTree {
 
     public static class RemainingBroadcast {
 
-        private BroadcastStatement statement;
-        private Integer requireBy = 0;
+        private final BroadcastStatement statement;
+        private final Integer requireBy;
 
         RemainingBroadcast(BroadcastStatement statement, Integer requireBy) {
             this.statement = statement;

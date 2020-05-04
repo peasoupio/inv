@@ -14,7 +14,7 @@ public class WhenEvent {
         this.data = data;
     }
 
-    void created(Closure body) {
+    void created(Closure<Object> body) {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }
@@ -23,7 +23,7 @@ public class WhenEvent {
         data.setCallback(body);
     }
 
-    void completed(Closure body) {
+    void completed(Closure<Object> body) {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }

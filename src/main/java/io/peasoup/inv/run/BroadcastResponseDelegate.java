@@ -74,11 +74,7 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
             return fromDefault;
 
         // Check from general response
-        Object fromResponse = BroadcastResponseInvoker.tryInvokeProperty(broadcastResponse.getResponse(), propertyName);
-        if (fromResponse != null)
-            return fromResponse;
-
-        return null;
+        return BroadcastResponseInvoker.tryInvokeProperty(broadcastResponse.getResponse(), propertyName);
     }
 
     @Override
@@ -103,13 +99,13 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
 
     private Object wrapReturnValue(Object returnValue, Object args) {
         if (returnValue instanceof Closure)
-            return wrapClosure((Closure) returnValue, args);
+            return wrapClosure((Closure<Object>) returnValue, args);
 
         return returnValue;
     }
 
-    private Object wrapClosure(Closure source, Object args) {
-        Closure copy = source.dehydrate().rehydrate(
+    private Object wrapClosure(Closure<Object> source, Object args) {
+        Closure<Object> copy = source.dehydrate().rehydrate(
                 caller.getDelegate(),
                 source.getOwner(),
                 source.getThisObject());
@@ -123,8 +119,8 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
         if (!defaults || broadcastResponse.getDefaultClosure() == null)
             return null;
 
-        Closure defaultClosure = broadcastResponse.getDefaultClosure();
-        Closure copy = defaultClosure.dehydrate().rehydrate(
+        Closure<Object> defaultClosure = broadcastResponse.getDefaultClosure();
+        Closure<Object> copy = defaultClosure.dehydrate().rehydrate(
                 caller.getDelegate(),
                 defaultClosure.getOwner(),
                 defaultClosure.getThisObject());

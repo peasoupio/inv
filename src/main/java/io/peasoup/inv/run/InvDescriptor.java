@@ -179,7 +179,7 @@ public class InvDescriptor {
      * <p>
      * @param readyBody @optional @default None, value required
      */
-    public void ready(Closure readyBody) {
+    public void ready(Closure<Object> readyBody) {
         if (readyBody == null) {
             throw new IllegalArgumentException("Ready body is required");
         }
@@ -196,7 +196,7 @@ public class InvDescriptor {
      *
      * @param stepBody @optional @default None, value required
      */
-    public void step(Closure stepBody) {
+    public void step(Closure<Object> stepBody) {
         if (stepBody == null) {
             throw new IllegalArgumentException("Step body is required");
         }
@@ -255,7 +255,7 @@ public class InvDescriptor {
         return this.properties.path;
     }
 
-    public Map getTags() {
+    public Map<String, String> getTags() {
         return this.properties.tags;
     }
 
@@ -306,9 +306,9 @@ public class InvDescriptor {
         private boolean tail;
         private boolean pop;
 
-        private Closure ready;
+        private Closure<Object> ready;
         private final Queue<Statement> statements = new LinkedBlockingQueue<>();
-        private final Queue<Closure> steps = new LinkedBlockingQueue<>();
+        private final Queue<Closure<Object>> steps = new LinkedBlockingQueue<>();
         private final Queue<WhenData> whens = new LinkedBlockingQueue<>();
 
         protected void reset() {
@@ -328,7 +328,7 @@ public class InvDescriptor {
             return pop;
         }
 
-        protected Closure getReady() {
+        protected Closure<Object> getReady() {
             return ready;
         }
 
@@ -336,7 +336,7 @@ public class InvDescriptor {
             return statements;
         }
 
-        protected final Collection<Closure> getSteps() {
+        protected final Collection<Closure<Object>> getSteps() {
             return steps;
         }
 

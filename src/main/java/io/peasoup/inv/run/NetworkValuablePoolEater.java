@@ -42,18 +42,14 @@ public class NetworkValuablePoolEater {
 
     /**
      * Batch and add staging broadcasts once to prevent double-broadcasts on the same digest.
-     * @return true if a broadcast was digested, or false if none.
      */
-    public synchronized boolean stageBroadcasts() {
-        boolean hasStagedSomething = false;
-
+    public synchronized void stageBroadcasts() {
         for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : pool.getStagingStatements().entrySet()) {
             Map<Object, BroadcastResponse> inChannel = pool.getAvailableStatements().get(statements.getKey());
             Iterator<Map.Entry<Object, BroadcastResponse>> outChannel = statements.getValue().entrySet().iterator();
 
             if (outChannel.hasNext()) {
                 Logger.system("[POOL] available:" + pool.getAvailableStatements().get(statements.getKey()).size() + " " + ", staged:" + statements.getValue().size());
-                hasStagedSomething = true;
             }
 
             while(outChannel.hasNext()) {
@@ -64,8 +60,6 @@ public class NetworkValuablePoolEater {
                 outChannel.remove();
             }
         }
-
-        return hasStagedSomething;
     }
 
     /**

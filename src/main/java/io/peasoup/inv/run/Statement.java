@@ -28,7 +28,6 @@ interface Statement {
 
     /**
      * Sets the INV who owns this statement
-     * @param value
      */
     void setInv(Inv value);
 
@@ -42,7 +41,7 @@ interface Statement {
      * Gets the manageable match mechanism.
      * @return The manageable object reference.
      */
-    Manageable getMatch();
+    Manageable<Statement> getMatch();
 
     /**
      * Gets the label text. Per example : [BROADCAST] [Something] [with:'an-id']
@@ -55,6 +54,6 @@ interface Statement {
      * @param <N> The statement (sub-)type to manage.
      */
     interface Manageable<N extends Statement> {
-        void manage(NetworkValuablePool pool, N networkValuable);
+        void manage(NetworkValuablePool pool, N statement);
     }
 }

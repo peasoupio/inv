@@ -8,7 +8,7 @@ import java.util.Map;
 public class BroadcastUsingDescriptor {
     private Object id;
     private String markdown;
-    private Closure ready;
+    private Closure<Object> ready;
 
     /**
      * Defines the broadcast id from a generic object.
@@ -28,7 +28,7 @@ public class BroadcastUsingDescriptor {
      *
      * @param id the map id
      */
-    public void id(Map id) {
+    public void id(Map<String, Object> id) {
         this.id = id;
     }
 
@@ -53,7 +53,7 @@ public class BroadcastUsingDescriptor {
      *
      * @param readyBody the closure body receiving the ready event
      */
-    public void ready(Closure readyBody) {
+    public void ready(Closure<Object> readyBody) {
         this.ready = readyBody;
     }
 
@@ -65,7 +65,7 @@ public class BroadcastUsingDescriptor {
         return markdown;
     }
 
-    public Closure getReady() {
+    public Closure<Object> getReady() {
         return ready;
     }
 

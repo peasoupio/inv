@@ -8,8 +8,8 @@ import java.util.Map;
 public class RequireUsingDescriptor {
     private Object id;
     private String markdown;
-    private Closure resolved;
-    private Closure unresolved;
+    private Closure<Object> resolved;
+    private Closure<Object> unresolved;
     private Boolean unbloatable;
     private Boolean defaults;
 
@@ -31,7 +31,7 @@ public class RequireUsingDescriptor {
      *
      * @param id the map id
      */
-    public void id(Map id) {
+    public void id(Map<String, Object> id) {
         this.id = id;
     }
 
@@ -54,7 +54,7 @@ public class RequireUsingDescriptor {
      *
      * @param resolvedBody the closure body receiving the resolved event
      */
-    public void resolved(Closure resolvedBody) {
+    public void resolved(Closure<Object> resolvedBody) {
         this.resolved = resolvedBody;
     }
 
@@ -65,7 +65,7 @@ public class RequireUsingDescriptor {
      *
      * @param unresolvedBody the closure body receiving the unresolved event
      */
-    public void unresolved(Closure unresolvedBody) {
+    public void unresolved(Closure<Object> unresolvedBody) {
         this.unresolved = unresolvedBody;
     }
 
@@ -95,11 +95,11 @@ public class RequireUsingDescriptor {
         return markdown;
     }
 
-    public Closure getResolved() {
+    public Closure<Object> getResolved() {
         return resolved;
     }
 
-    public Closure getUnresolved() {
+    public Closure<Object> getUnresolved() {
         return unresolved;
     }
 

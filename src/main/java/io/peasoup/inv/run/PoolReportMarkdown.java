@@ -52,7 +52,7 @@ public class PoolReportMarkdown {
     }
 
     private List<Map<String, Object>> getAllScopes() {
-        List<Map<String, Object>> scopes = new ArrayList();
+        List<Map<String, Object>> scopes = new ArrayList<>();
 
         ArrayList<Inv> sorted = new ArrayList<>(pool.getTotalInvs());
         sorted.sort(Comparator.comparing(Inv::getName));
@@ -65,12 +65,12 @@ public class PoolReportMarkdown {
     }
 
     private Map<String, Object> getScopesFor(Inv inv) {
-        Map scopes = new HashMap<>();
+        Map<String, Object> scopes = new HashMap<>();
         scopes.put("name", inv.getName());
         scopes.put("markdown", inv.getMarkdown());
         scopes.put("scm", inv.getContext().getScm());
 
-        List<Map> statements = new ArrayList<>();
+        List<Map<String, Object>> statements = new ArrayList<>();
 
         int index = 0;
 

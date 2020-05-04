@@ -140,11 +140,8 @@ public class NetworkValuablePool {
     private Queue<PoolReport.PoolError> eatSynchronized(List<Inv> invs, Inv.Digestion cycleDigestion) {
 
         BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
-
-        // Use fori-loop for speed
-        for (int i = 0; i < invs.size(); i++) {
-            final Inv inv = invs.get(i);
-
+        
+        for (final Inv inv : invs) {
             String stateBefore = runningState;
             Inv.Digestion invDigest = eater.eatInv(inv, poolErrors).getDigestion();
 

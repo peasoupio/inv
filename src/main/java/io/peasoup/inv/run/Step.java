@@ -5,10 +5,10 @@ import groovy.lang.Closure;
 public class Step {
 
     private final Inv inv;
-    private final Closure body;
+    private final Closure<Object> body;
     private final Integer index;
 
-    public Step(Inv inv, Closure body, int index) {
+    public Step(Inv inv, Closure<Object> body, int index) {
         if (inv == null) {
             throw new IllegalArgumentException("Inv is required");
         }

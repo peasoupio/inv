@@ -11,9 +11,9 @@ public class BroadcastResponse {
 
     private final String resolvedBy;
     private final Object response;
-    private final Closure defaultClosure;
+    private final Closure<Object> defaultClosure;
 
-    BroadcastResponse(String resolvedBy, Object response, Closure defaultClosure) {
+    BroadcastResponse(String resolvedBy, Object response, Closure<Object> defaultClosure) {
         if (StringUtils.isEmpty(resolvedBy)) {
             throw new IllegalArgumentException("ResolvedBy is required");
         }
@@ -31,7 +31,7 @@ public class BroadcastResponse {
         return response;
     }
 
-    public Closure getDefaultClosure() {
+    public Closure<Object> getDefaultClosure() {
         return defaultClosure;
     }
 

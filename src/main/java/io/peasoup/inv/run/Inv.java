@@ -24,7 +24,7 @@ public class Inv {
     private Boolean tail;
     private Boolean pop;
 
-    private Closure ready;
+    private Closure<Object> ready;
     private final Queue<Statement> remainingStatements;
     private final Queue<Step> steps;
     private final Queue<WhenData> whens;
@@ -70,7 +70,7 @@ public class Inv {
         }
 
         // Transfer Step(s) from delegate to INV
-        for(Closure body : properties.getSteps()) {
+        for(Closure<Object> body : properties.getSteps()) {
             steps.add(new Step(this, body, stepCount++));
             dumpedSomething = true;
         }
@@ -177,6 +177,8 @@ public class Inv {
 
         while(!statementsLeft.isEmpty() && !currentDigestion.isInterrupted()) {
             Statement statement = statementsLeft.poll();
+            if (statement == null)
+                break;
 
             // (try to) manage statement
             statement.getMatch().manage(context.pool, statement);
@@ -211,6 +213,9 @@ public class Inv {
 
             // Call next step
             Step step = steps.poll();
+            if (step == null)
+                break;
+
             // If the step dumped something, remainingStatements won't be empty and exit loop
             hasDumpedSomething = step.execute();
         }
@@ -301,7 +306,7 @@ public class Inv {
         return tags;
     }
 
-    public Closure getReady() {
+    public Closure<Object> getReady() {
         return ready;
     }
 
@@ -359,40 +364,32 @@ public class Inv {
             this.pool = pool;
         }
 
-        public Context setDefaultName(String name) {
+        public void setDefaultName(String name) {
             if (StringUtils.isEmpty(name))
-                return this;
+                return;
 
             this.defaultName = name;
-
-            return this;
         }
 
-        public Context setDefaultPath(String path) {
+        public void setDefaultPath(String path) {
             if (StringUtils.isEmpty(path))
-                return this;
+                return;
 
             this.defaultPath = path;
-
-            return this;
         }
 
-        public Context setSCM(String scm) {
+        public void setSCM(String scm) {
             if (StringUtils.isEmpty(scm))
-                return this;
+                return;
 
             this.scm = scm;
-
-            return this;
         }
 
-        public Context setScriptFilename(String scriptFilename) {
+        public void setScriptFilename(String scriptFilename) {
             if (StringUtils.isEmpty(scriptFilename))
-                return this;
+                return;
 
             this.scriptFilename = scriptFilename;
-
-            return this;
         }
 
         public Inv build() {
@@ -410,10 +407,12 @@ public class Inv {
             return inv;
         }
 
+        @SuppressWarnings("unused")
         public String getDefaultName() {
             return defaultName;
         }
 
+        @SuppressWarnings("unused")
         public String getDefaultPath() {
             return defaultPath;
         }
@@ -434,6 +433,7 @@ public class Inv {
 
         private boolean interrupt = false;
 
+        @SuppressWarnings("EqualsBetweenInconvertibleTypes")
         public void checkStatementResult(NetworkValuablePool pool, Statement statement) {
             if (pool == null) {
                 throw new IllegalArgumentException("Pool is required");
@@ -458,11 +458,11 @@ public class Inv {
 
             // Gets metrics if successful
             if (statement.getState().level >= StatementStatus.SUCCESSFUL.level) {
-                if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
+                if (RequireStatement.REQUIRE.equals(statement.getMatch())) {
                     requires++;
                 }
 
-                if (statement.getMatch().equals(BroadcastStatement.BROADCAST)) {
+                if (BroadcastStatement.BROADCAST.equals(statement.getMatch())) {
                     broadcasts++;
                 }
             }
@@ -496,8 +496,6 @@ public class Inv {
         public Integer getUnbloats() {
             return unbloats;
         }
-
-        public boolean hasDoneSomething() { return broadcasts > 0 || unbloats > 0; }
 
         public boolean isInterrupted() { return interrupt; }
     }

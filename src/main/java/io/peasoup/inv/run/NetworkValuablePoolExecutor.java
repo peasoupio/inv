@@ -17,7 +17,7 @@ public class NetworkValuablePoolExecutor {
 
     private final int threadCount;
     private final ExecutorService invExecutor;
-    private final CompletionService invCompletionService;
+    private final CompletionService<Object> invCompletionService;
 
     private final AtomicInteger working = new AtomicInteger(0);
 
@@ -58,7 +58,7 @@ public class NetworkValuablePoolExecutor {
         invCompletionService.submit(createWorker());
     }
 
-    private Callable createWorker() {
+    private Callable<Object> createWorker() {
         return () -> {
             // Proceed only if INVs are left to process and only if all INVs are stuck
             while(!stack.isEmpty()) {

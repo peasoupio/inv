@@ -7,8 +7,9 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class RequireStatement implements Statement {
-    public static final Manageable REQUIRE = new Require();
+    public static final Require REQUIRE = new Require();
     private Object id;
     private String name;
     private String markdown;
@@ -16,8 +17,8 @@ public class RequireStatement implements Statement {
     private Boolean defaults = true;
     private Inv inv;
     private String into;
-    private Closure resolved;
-    private Closure unresolved;
+    private Closure<Object> resolved;
+    private Closure<Object> unresolved;
     private StatementStatus state = StatementStatus.NOT_PROCESSED;
 
     public Manageable getMatch() {
@@ -93,19 +94,19 @@ public class RequireStatement implements Statement {
         this.into = into;
     }
 
-    public Closure getResolved() {
+    public Closure<Object> getResolved() {
         return resolved;
     }
 
-    public void setResolved(Closure resolved) {
+    public void setResolved(Closure<Object> resolved) {
         this.resolved = resolved;
     }
 
-    public Closure getUnresolved() {
+    public Closure<Object> getUnresolved() {
         return unresolved;
     }
 
-    public void setUnresolved(Closure unresolved) {
+    public void setUnresolved(Closure<Object> unresolved) {
         this.unresolved = unresolved;
     }
 

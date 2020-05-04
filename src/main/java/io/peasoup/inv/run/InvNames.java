@@ -1,5 +1,6 @@
 package io.peasoup.inv.run;
 
+@SuppressWarnings("unused")
 public class InvNames {
     private InvNames() {
 

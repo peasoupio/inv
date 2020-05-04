@@ -446,7 +446,6 @@ scm {
 
         assert jsonEnd.running == false
 
-
         def responseReview = get("review")
         assert responseReview
 

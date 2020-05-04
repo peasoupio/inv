@@ -11,6 +11,7 @@ public class BroadcastResponseInvoker {
 
     }
 
+    @SuppressWarnings("unchecked")
     protected static Object tryInvokeMethod(Object self, String methodName, Object args) {
         if (self == null)
             return null;
@@ -21,7 +22,7 @@ public class BroadcastResponseInvoker {
         Object matchedValue = null;
 
         if (self instanceof Map) {
-            Map selfMap = (Map)self;
+            Map<String,Object> selfMap = (Map<String,Object>)self;
 
             if (!selfMap.containsKey(methodName))
                 return null;
@@ -34,6 +35,7 @@ public class BroadcastResponseInvoker {
         return matchedValue;
     }
 
+    @SuppressWarnings("unchecked")
     protected static Object tryInvokeProperty(Object self, String propertyName) {
         if (self == null)
             return null;
@@ -44,7 +46,7 @@ public class BroadcastResponseInvoker {
         Object matchedValue = null;
 
         if (self instanceof Map) {
-            Map selfMap = (Map)self;
+            Map<String,Object> selfMap = (Map<String,Object>)self;
 
             if (!selfMap.containsKey(propertyName))
                 return null;
@@ -57,6 +59,7 @@ public class BroadcastResponseInvoker {
         return matchedValue;
     }
 
+    @SuppressWarnings("unchecked")
     protected static boolean tryDefineProperty(Object self, String propertyName, Object newValue) {
         if (self == null)
             return false;
@@ -65,7 +68,7 @@ public class BroadcastResponseInvoker {
             return false;
 
         if (self instanceof Map) {
-            Map selfMap = (Map)self;
+            Map<String,Object> selfMap = (Map<String,Object>)self;
 
             if (!selfMap.containsKey(propertyName))
                 return false;

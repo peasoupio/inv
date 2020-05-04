@@ -21,9 +21,9 @@ public class RequireDescriptor {
      * It is a sub-option of the shorthanded broadcast statement.
      *
      * @param usingBody @default None, value required
-     * @return a new RequireDescriptor
+     * @return Current require descriptor
      */
-    public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure usingBody) {
+    public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure<Object> usingBody) {
         if (usingBody == null) {
             throw new IllegalArgumentException("Using body is required");
         }
@@ -73,8 +73,8 @@ public class RequireDescriptor {
      * </pre>
      *
      * By convention, you should add "$" before the name.
-     * @param variable
-     * @return
+     * @param variable The name of the variable
+     * @return Current require descriptor
      */
     public RequireDescriptor into(String variable) {
         if (StringUtils.isEmpty(variable)) {

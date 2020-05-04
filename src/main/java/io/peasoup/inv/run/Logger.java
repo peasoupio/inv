@@ -8,8 +8,8 @@ import org.tinylog.configuration.Configuration;
 import java.util.Queue;
 
 public final class Logger {
-    private static Queue captureQueue = null;
-    private static Closure captureClosure = null;
+    private static Queue<Object> captureQueue = null;
+    private static Closure<Object> captureClosure = null;
 
     private Logger() {
 
@@ -84,15 +84,16 @@ public final class Logger {
         Configuration.set("writer1.format", "{message}");
     }
 
+    @SuppressWarnings("unchecked")
     public static Object capture(Object value) {
 
         // Reset both so only one works at the time
         captureClosure = null;
         captureQueue = null;
 
-        if (value instanceof Queue) captureQueue = ((Queue) (value));
+        if (value instanceof Queue) captureQueue = (Queue<Object>) value;
 
-        if (value instanceof Closure) captureClosure = ((Closure) (value));
+        if (value instanceof Closure) captureClosure = (Closure<Object>) value;
 
         return value;
     }

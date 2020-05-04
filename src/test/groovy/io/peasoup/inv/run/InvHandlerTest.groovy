@@ -1075,6 +1075,7 @@ class InvHandlerTest {
 
     @Test
     void ok_doc() {
+        RunsRoller.latest.roll()
 
         inv {
             name "doc"

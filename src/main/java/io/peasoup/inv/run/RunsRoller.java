@@ -10,17 +10,22 @@ import java.nio.file.Files;
 import java.util.Arrays;
 
 public class RunsRoller {
+    private static final RunsRoller latest = new RunsRoller();
+
     public static File runsFolder() {
         return new File(Home.getCurrent(), ".runs/");
     }
 
-    public File folder() {
-        String latestIndex = latestIndex().toString();
-        File folder = new File(runsFolder(), latestIndex);
-        if (!folder.exists())
-            Logger.system("Created run folder " + latestIndex + ": " + folder.mkdirs());
+    public static RunsRoller getLatest() {
+        // Make sure .runs/ exists
+        if (runsFolder().mkdirs())
+            Logger.system("Created runs (./runs) folder");
 
-        return folder;
+        return latest;
+    }
+
+    public File folder() {
+        return new File(runsFolder(), latestIndex().toString());
     }
 
     public File failFolder() {
@@ -56,11 +61,10 @@ public class RunsRoller {
         Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void roll() throws IOException {
-        runsFolder().mkdirs();
-
-        Integer nextIndex = hasRuns()? latestIndex() + 1 : 1;
-        File nextFolder = new File(runsFolder(), nextIndex.toString());
+        int nextIndex = hasRuns()? latestIndex() + 1 : 1;
+        File nextFolder = new File(runsFolder(), Integer.toString(nextIndex));
 
         // Clean symlink for previous roll
         if (latestSymlink().exists())
@@ -77,7 +81,7 @@ public class RunsRoller {
     private Integer latestIndex() {
         File[] files = runsFolder().listFiles();
 
-        if (files.length == 0)
+        if (files == null || files.length == 0)
             return 1;
 
         return (int)Arrays.stream(files)
@@ -94,12 +98,5 @@ public class RunsRoller {
         return files.length > 0;
     }
 
-    public static RunsRoller getLatest() {
-        // Make sure .runs/ exists
-        runsFolder().mkdirs();
 
-        return latest;
-    }
-
-    private static final RunsRoller latest = new RunsRoller();
 }

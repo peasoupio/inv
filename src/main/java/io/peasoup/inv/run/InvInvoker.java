@@ -98,7 +98,7 @@ public class InvInvoker {
 
         // Make sure cache is available with minimal accesses
         if (!cache.exists()) {
-            cache.mkdirs();
+            Logger.system("Created cache folder: " + cache.mkdirs());
 
             // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
             if (!cache.setExecutable(true)) {
@@ -114,7 +114,7 @@ public class InvInvoker {
         }
 
         final File filename = new File(cache, classname + ".groovy");
-        filename.mkdirs();
+        Logger.system("Created filename folder: " + filename.mkdirs());
 
         // Make sure we got latest
         Files.delete(Paths.get(filename.getAbsolutePath()));
@@ -145,7 +145,7 @@ public class InvInvoker {
         try {
             try (
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(baos);
+                ObjectOutputStream oos = new ObjectOutputStream(baos)
             ) {
                 oos.writeObject(path.getAbsolutePath());
                 MessageDigest md = MessageDigest.getInstance("MD5");

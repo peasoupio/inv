@@ -4,8 +4,8 @@ import java.util.List;
 
 public class PoolReportTrace {
 
-    final private NetworkValuablePool pool;
-    final private PoolReport report;
+    private final NetworkValuablePool pool;
+    private final PoolReport report;
 
     public PoolReportTrace(NetworkValuablePool pool, PoolReport report) {
         if (pool == null) {

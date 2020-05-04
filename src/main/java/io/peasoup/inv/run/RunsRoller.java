@@ -15,7 +15,12 @@ public class RunsRoller {
     }
 
     public File folder() {
-        return new File(runsFolder(), latestIndex().toString());
+        String latestIndex = latestIndex().toString();
+        File folder = new File(runsFolder(), latestIndex);
+        if (!folder.exists())
+            Logger.system("Created run folder " + latestIndex + ": " + folder.mkdirs());
+
+        return folder;
     }
 
     public File failFolder() {
@@ -60,7 +65,6 @@ public class RunsRoller {
         // Clean symlink for previous roll
         if (latestSymlink().exists())
             Files.delete(latestSymlink().toPath());
-
 
         // Make sure it's clean
         FileUtils.deleteDirectory(nextFolder);

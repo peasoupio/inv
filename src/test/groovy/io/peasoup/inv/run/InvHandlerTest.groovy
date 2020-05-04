@@ -1,13 +1,15 @@
 package io.peasoup.inv.run
 
-import io.peasoup.inv.Home
+import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import java.util.stream.Stream
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@RunWith(TempHome.class)
 class InvHandlerTest {
 
     InvExecutor executor
@@ -1102,6 +1104,6 @@ This is a sample description for **this** broadcast statement
 
         def report = executor.execute()
         assert report.isOk()
-        assert new File(Home.getCurrent(), "report.md").exists()
+        assert new File(RunsRoller.latest.folder(), "report.md").exists()
     }
 }

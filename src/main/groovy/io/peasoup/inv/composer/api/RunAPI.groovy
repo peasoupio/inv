@@ -73,9 +73,9 @@ class RunAPI {
                         selectedBy: ids.findAll { webServer.run.staged[it.value] && webServer.run.staged[it.value].selected }.size(),
                         requiredBy: ids.findAll { webServer.run.staged[it.value] && webServer.run.staged[it.value].required }.size(),
                         links     : [
-                                stage  : "/run/stage?owner=${owner}",
-                                unstage: "/run/unstage?owner=${owner}",
-                                tree: "/run/tree?id=${owner}"
+                                stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?owner=${owner}",
+                                unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?owner=${owner}",
+                                tree: WebServer.API_CONTEXT_ROOT + "/run/tree?id=${owner}"
                         ]
                 ]
             })
@@ -89,8 +89,8 @@ class RunAPI {
                 [
                         name : it,
                         links: [
-                                stage  : "/run/stage?name=${it}",
-                                unstage: "/run/unstage?name=${it}"
+                                stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?name=${it}",
+                                unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?name=${it}"
                         ]
                 ]
             })

@@ -31,7 +31,7 @@ public class InvExecutor {
         Logger.info("---- [DIGEST] completed ----");
 
         new PoolReportTrace(pool, report).printPoolTrace();
-        new PoolReportMarkdown(pool, report).printPoolMarkdown();
+        new PoolReportMarkdown(pool).printPoolMarkdown();
 
         return report;
     }

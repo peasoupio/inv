@@ -26,7 +26,7 @@ public class RequireStatement implements Statement {
 
     @Override
     public String getLabel() {
-        if (unbloatable)
+        if (Boolean.TRUE.equals(unbloatable))
             return "[UNBLOATABLE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());
 
         return "[REQUIRE] [" + getName() + "] " + DefaultGroovyMethods.toString(getId());

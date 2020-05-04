@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NetworkValuablePoolExecutor {
 
-    private final static int THREAD_COUNT = 4;
+    private static final int THREAD_COUNT = 4;
     private static int count = 0;
 
     private final NetworkValuablePoolEater eater;

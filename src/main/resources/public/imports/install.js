@@ -200,7 +200,7 @@ Vue.component('install', {
                     stillRunning = true
 
                 // If was running and now complete, show toast
-                if (wasRunning & !stillRunning)
+                if (wasRunning && !stillRunning)
                     vm.$bus.$emit('toast', `success:Installation <strong>was completed</strong> successfully!`)
                 else if (stillRunning) // If still running, says it refreshed
                     vm.$bus.$emit('toast', `Refreshing <strong>completed</strong>!`)

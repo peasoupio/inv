@@ -445,13 +445,9 @@ Vue.component('configure-parameters-carousel', {
             })
         },
         whenLastSaved: function(scmParameters) {
-            var vm = this
-
             return TimeAgo.inWords(scmParameters.lastModified)
         },
         whenError: function(error) {
-            var vm = this
-
             return TimeAgo.inWords(error.when)
         },
         editParameters: function(scmParameters) {

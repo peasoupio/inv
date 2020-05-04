@@ -164,17 +164,17 @@ Vue.component('choose-inv', {
             if (!element.active) {
                 element.options.push({
                   label: 'Pick',
-                  click: function(element) {
-                     if (element.sending)
+                  click: function(e) {
+                     if (e.sending)
                          return
 
-                     element.icon = 'fa-spinner fa-pulse'
-                     element.sending = true
+                     e.icon = 'fa-spinner fa-pulse'
+                     e.sending = true
 
-                     axios.post(element.links.stage).then(response => {
-                         fetch()
-                         element.icon = ''
-                        element.sending = false
+                     axios.post(e.links.stage).then(response => {
+                        fetch()
+                        e.icon = ''
+                        e.sending = false
                      })
                   }
                 })
@@ -184,16 +184,15 @@ Vue.component('choose-inv', {
             if (owner.selectedBy > 0) {
                 element.options.push({
                     label: 'Unpick?',
-                    click: function(element) {
-                        element.icon = 'fa-spinner fa-pulse'
-                         element.sending = true
+                    click: function(e) {
+                        e.icon = 'fa-spinner fa-pulse'
+                        e.sending = true
 
-                         axios.post(element.links.unstage).then(response => {
-                             fetch()
-
-                             element.icon = ''
-                             element.sending = false
-                         })
+                        axios.post(e.links.unstage).then(response => {
+                            fetch()
+                            e.icon = ''
+                            e.sending = false
+                        })
                     }
                 })
             }
@@ -202,9 +201,9 @@ Vue.component('choose-inv', {
             if (element.active) {
                 element.options.push({
                     label: 'Who brought me?',
-                    click: function(element) {
-                        axios.get(element.links.tree).then(response => {
-                            vm.whoBroughtMe = element.label
+                    click: function(e) {
+                        axios.get(e.links.tree).then(response => {
+                            vm.whoBroughtMe = e.label
                             vm.whoBroughtMeTree = response.data
                         })
                     }

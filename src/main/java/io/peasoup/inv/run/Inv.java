@@ -51,28 +51,9 @@ public class Inv {
     }
 
     public synchronized boolean dumpDelegate() {
-        if (StringUtils.isEmpty(name)) name = delegate.getName();
-        if (StringUtils.isEmpty(path)) path = delegate.getPath();
+        initalizeProperties();
 
-        if (StringUtils.isEmpty(name))
-            throw new IllegalStateException("Name is required");
-
-        if (StringUtils.isEmpty(path))
-            throw new IllegalStateException("Path is required");
-
-        if (markdown == null) markdown = properties.getMarkdown();
-        if (ready == null) ready = properties.getReady();
-        if (tail == null) tail = properties.isTail();
-        if (pop == null) pop = properties.isPop();
-        if (tags == null) {
-            tags = delegate.getTags();
-
-            // Print tags (if exist)
-            if (tags != null && !tags.isEmpty())
-                Logger.info("[" + name + "]" + " => [TAGS] " + DefaultGroovyMethods.toString(tags));
-        }
-
-        Boolean dumpedSomething = context.pool.include(this);
+        boolean dumpedSomething = context.pool.include(this);
 
         // Transfer Statement(s) from delegate to INV
         for (Statement statement : properties.getStatements()) {
@@ -106,6 +87,32 @@ public class Inv {
         properties.reset();
 
         return dumpedSomething;
+    }
+
+    /**
+     * Initialize properties from latest dump
+     */
+    private void initalizeProperties() {
+        if (StringUtils.isEmpty(name)) name = delegate.getName();
+        if (StringUtils.isEmpty(path)) path = delegate.getPath();
+
+        if (StringUtils.isEmpty(name))
+            throw new IllegalStateException("Name is required");
+
+        if (StringUtils.isEmpty(path))
+            throw new IllegalStateException("Path is required");
+
+        if (markdown == null) markdown = properties.getMarkdown();
+        if (ready == null) ready = properties.getReady();
+        if (tail == null) tail = properties.isTail();
+        if (pop == null) pop = properties.isPop();
+        if (tags == null) {
+            tags = delegate.getTags();
+
+            // Print tags (if exist)
+            if (tags != null && !tags.isEmpty())
+                Logger.info("[" + name + "]" + " => [TAGS] " + DefaultGroovyMethods.toString(tags));
+        }
     }
 
     public synchronized void addProperty(String propertyName, Object value) {

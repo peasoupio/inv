@@ -3,41 +3,42 @@ package io.peasoup.inv.run;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import io.peasoup.inv.Home;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.*;
 
 public class PoolReportMarkdown {
 
-    final private NetworkValuablePool pool;
-    final private PoolReport report;
+    private final NetworkValuablePool pool;
 
-    public PoolReportMarkdown(NetworkValuablePool pool, PoolReport report) {
+    public PoolReportMarkdown(NetworkValuablePool pool) {
         if (pool == null) {
             throw new IllegalArgumentException("Pool is required");
         }
 
-        if (report == null) {
-            throw new IllegalArgumentException("Report is required");
-        }
-
         this.pool = pool;
-        this.report = report;
     }
 
     public void printPoolMarkdown() {
-        File outputFile = new File(Home.getCurrent(), "report.md");
-        outputFile.delete();
+        File outputFile = new File(RunsRoller.getLatest().folder(), "report.md");
 
-        try {
+        // Delete existing file
+        if (outputFile.exists()) {
+            try {
+                Files.delete(outputFile.toPath());
+            } catch (IOException e) {
+                Logger.error(e);
+            }
+        }
+
+        // Write new report to file
+        try (Writer outputWriter = new FileWriter(outputFile, true)){
             MustacheFactory mf = new DefaultMustacheFactory();
             Mustache mustache = mf.compile("poolreportmarkdown.mustache");
-
-            Writer outputWriter = new FileWriter(outputFile, true);
 
             // Process all scopes inside same file
             for(Map<String, Object> scopes: getAllScopes()) {
@@ -45,9 +46,8 @@ public class PoolReportMarkdown {
             }
 
             outputWriter.flush();
-            outputWriter.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
     }
 

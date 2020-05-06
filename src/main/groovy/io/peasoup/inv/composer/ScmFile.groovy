@@ -11,46 +11,66 @@ import io.peasoup.inv.utils.Regexes
 @CompileStatic
 class ScmFile {
 
-    final File sourceFile
     final Map<String, SourceFileElement> elements = [:]
 
-    String text
-    Long lastEdit
+    final File scriptFile
+    final String text
+    final Long lastEdit
 
-    ScmFile(File file) {
+    final File expectedParameterFile
 
-        sourceFile = file
+    ScmFile(File scriptFile, File parametersFolder = null) {
+        assert scriptFile, 'ScriptFile is required.'
+        assert scriptFile.exists(), 'ScriptFile must be present on current filesystem.'
 
-        text = file.text
-        lastEdit = file.lastModified()
+        this.scriptFile = scriptFile
+        this.text = scriptFile.text
+        this.lastEdit = scriptFile.lastModified()
+
+        // Resolve expected parameter file
+        if (parametersFolder)
+            expectedParameterFile = new File(parametersFolder, simpleName() + ".json")
+        else
+            expectedParameterFile = null
 
         new ScmExecutor().with {
-            read(file)
 
+            if(expectedParameterFile && expectedParameterFile.exists())
+               read(scriptFile, expectedParameterFile)
+            else
+                read(scriptFile)
+
+            ScmFile myself = this
             scms.each { String name, ScmDescriptor desc ->
-                elements[name] = new SourceFileElement(desc, file)
+                elements[name] = new SourceFileElement(myself, desc)
             }
         }
     }
 
+    /**
+     Get filename without extension
+     */
+    String simpleName() {
+        return scriptFile.name.split('\\.')[0]
+    }
+
     static class SourceFileElement {
         final ScmDescriptor descriptor
-        final File scriptFile
+        final ScmFile scmFile
 
-        SourceFileElement(ScmDescriptor descriptor, File scripFile) {
+        SourceFileElement(ScmFile scmFile, ScmDescriptor descriptor) {
+            assert scmFile, 'ScmFile is required'
             assert descriptor, 'SCM descriptor is required'
-            assert scripFile, 'Script file is required'
-            assert scripFile.exists(), 'Script file must exist on filesystem'
 
             this.descriptor = descriptor
-            this.scriptFile = scripFile
+            this.scmFile = scmFile
         }
 
         /**
          Get filename without extension
          */
         String simpleName() {
-            return scriptFile.name.split('\\.')[0]
+            return scmFile.simpleName()
         }
 
         /**
@@ -118,8 +138,8 @@ class ScmFile {
                     name        : descriptor.name,
                     script      : [
                             source  : simpleName(),
-                            text    : scriptFile.text,
-                            lastEdit: scriptFile.lastModified()
+                            text    : scmFile.text,
+                            lastEdit: scmFile.lastEdit
                     ],
                     parameters  : parameters,
                     lastModified: lastModified,
@@ -280,7 +300,6 @@ class ScmFile {
                     }
 
                     merge(existing, output)
-
                     output = existing
 
                     parametersFile.delete()

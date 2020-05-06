@@ -36,8 +36,8 @@ Vue.component('pagination', {
         startSlice: {
             get() {
                 var startSlice = 0
-                if (this.currentIndex - this.threshold > 0)
-                    startSlice = this.currentIndex - this.threshold
+                if (this.currentIndex - this.threshold + 1 > 0)
+                    startSlice = this.currentIndex - this.threshold + 1
 
                 return startSlice
             }
@@ -47,7 +47,7 @@ Vue.component('pagination', {
                 var endSlice = this.remainings
 
                 if (this.currentIndex + this.threshold < this.remainings)
-                    endSlice = Math.max(this.threshold * 2, this.currentIndex + this.threshold)
+                    endSlice = Math.max(this.threshold * 2 - 1, this.currentIndex + this.threshold)
 
                 return endSlice
             }
@@ -80,7 +80,8 @@ Vue.component('pagination', {
                 indexes.push(i)
             }
 
-            return indexes.slice(this.startSlice, this.endSlice)
+            var highestPossibleStart = Math.min(this.startSlice, this.remainings - (2 * this.threshold) + 1)
+            return indexes.slice(highestPossibleStart, this.endSlice)
         },
         seeAt: function(index) {
             var vm = this
@@ -88,15 +89,13 @@ Vue.component('pagination', {
             vm.currentIndex = index
             vm.value.from = index * vm.value.step
 
-            console.log(vm.value.from)
-
             vm.value.refresh(vm.value.from)
         },
         isStartOutOfSight: function() {
-            return (this.currentIndex - this.threshold) > 1
+            return this.remainings > (this.threshold * 2) - 1 &&  (this.currentIndex - this.threshold + 1) > 0
         },
         isEndOutOfSight: function() {
-            return (this.currentIndex + this.threshold) < this.remainings
+            return this.remainings > (this.threshold * 2) - 1 && (this.currentIndex + this.threshold) < this.remainings
         }
     }
 })

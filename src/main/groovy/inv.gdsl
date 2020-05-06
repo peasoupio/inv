@@ -8,8 +8,11 @@ contributor(context(scope: closureScope())) {
 
     if (enclosingCall('inv')) {
         //noinspection GroovyAssignabilityCheck
+        property name: '$', type: 'java.util.Map<String, io.peasoup.inv.run.StatementDescriptor>'
+        //noinspection GroovyAssignabilityCheck
         delegatesTo(findClass('io.peasoup.inv.run.InvDescriptor'))
     }
+
 
     if (enclosingCall('scm')) {
         //noinspection GroovyAssignabilityCheck
@@ -20,5 +23,14 @@ contributor(context(scope: closureScope())) {
         property name: 'response', type: 'java.lang.Object', doc: 'A generic object withholding the broadcast response'
         property name: 'resolvedBy', type: 'java.lang.String', doc: 'The owner INV name for this response'
     }
+}
+
+
+//noinspection GroovyAssignabilityCheck
+contribute(context(ctype: "io.peasoup.inv.run.InvNames")) {
+
+    //name: Name of the method
+    //type: The type of the property, give full class name here or the keyword for native types
+    property(name: "README", type: 'long')
 }
 

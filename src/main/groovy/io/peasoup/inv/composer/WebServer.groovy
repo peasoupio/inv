@@ -60,10 +60,14 @@ class WebServer {
         if (!scmsLocationFolder.exists())
             scmsLocationFolder.mkdirs()
 
+        def parametersFolder = new File(parametersLocation)
+        if (!parametersFolder.exists())
+            parametersFolder.mkdirs()
+
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        scms = new ScmFileCollection(scmsLocationFolder)
-        exec = new Execution(scmsLocationFolder, new File(parametersLocation))
+        scms = new ScmFileCollection(scmsLocationFolder, parametersFolder)
+        exec = new Execution(scmsLocationFolder, parametersFolder)
 
         boot = new Boot(this)
         pagination = new Pagination(settings)

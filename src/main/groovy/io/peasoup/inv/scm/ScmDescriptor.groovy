@@ -37,13 +37,6 @@ class ScmDescriptor {
             this.path = filePath
         else
             this.path = new File(Home.getCurrent(), value)
-
-        /*if (Main.currentHome != Main.DEFAULT_HOME)
-            this.path = new File(Main.currentHome, value)
-        else
-            this.path = rawFile
-
-         */
     }
 
     String src
@@ -75,8 +68,7 @@ class ScmDescriptor {
     //@Override
     def propertyMissing(String propertyName) {
         // Loading parameters only when need - since name is not available at ctor
-        if (parametersFile && parametersFile.exists() && parametersProperties == null)
-            loadParametersProperties()
+        loadParametersProperties()
 
         // Check if a value is defined in the parameter file
         def fromParamFile = parametersProperties[propertyName]
@@ -93,8 +85,13 @@ class ScmDescriptor {
     }
 
     private void loadParametersProperties() {
-        Map<String, Map> parameters = new JsonSlurper().parseText(parametersFile.text) as Map<String, Map>
-        parametersProperties.putAll(parameters[name])
+        if (parametersFile && parametersFile.exists()) {
+            Map<String, Map> parameters = new JsonSlurper().parseText(parametersFile.text) as Map<String, Map>
+
+            // Get parameters for this SCM only
+            if (parameters[name])
+                parametersProperties.putAll(parameters[name])
+        }
     }
 
     class HookDescriptor {

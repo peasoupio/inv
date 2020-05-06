@@ -11,12 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 class ScmFileCollectionTest {
 
     String base = "./examples/composer/scms/"
+    File params = new File("./examples/composer/parameters/")
     ScmFileCollection scmFileCollection
 
     @Before
     void setup() {
         def scmFolder = new File(base)
-        scmFileCollection = new ScmFileCollection(scmFolder)
+        scmFileCollection = new ScmFileCollection(scmFolder, params)
 
         // Load scm files
         scmFolder.listFiles().each {
@@ -26,17 +27,21 @@ class ScmFileCollectionTest {
 
     @Test
     void ok() {
-        new ScmFileCollection(new File(base))
+        new ScmFileCollection(new File(base), params)
     }
 
     @Test
     void not_ok() {
         assertThrows(AssertionError.class, {
-            new ScmFileCollection(null)
+            new ScmFileCollection(null, params)
         })
 
         assertThrows(AssertionError.class, {
-            new ScmFileCollection(new File("not-existing"))
+            new ScmFileCollection(new File("not-existing"), params)
+        })
+
+        assertThrows(AssertionError.class, {
+            new ScmFileCollection(new File(base), null)
         })
     }
 

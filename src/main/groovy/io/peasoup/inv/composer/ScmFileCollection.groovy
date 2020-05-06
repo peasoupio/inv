@@ -5,18 +5,23 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class ScmFileCollection {
 
-
     private final List<ScmFile> scms = [].asSynchronized() as List<ScmFile>
 
     final File scmFolder
+    final File parametersFolder
     final Map<String, ScmFile.SourceFileElement> elements = [:]
     final Set<String> staged = new HashSet<>()
 
-    ScmFileCollection(File scmFolder) {
+    ScmFileCollection(File scmFolder, File parametersFolder) {
         assert scmFolder != null, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
+        assert parametersFolder != null, 'Parameters folder is required'
+        if (!parametersFolder.exists())
+            parametersFolder.mkdirs()
+
         this.scmFolder = scmFolder
+        this.parametersFolder = parametersFolder
     }
 
     void load(File file) {
@@ -25,7 +30,7 @@ class ScmFileCollection {
 
         // Check for duplicates
         scms.removeAll {
-            if (it.sourceFile != file)
+            if (it.scriptFile != file)
                 return false
 
             it.elements.keySet().each {
@@ -35,7 +40,7 @@ class ScmFileCollection {
             return true
         }
 
-        def scm = new ScmFile(file)
+        def scm = new ScmFile(file, parametersFolder)
         scms << scm
         elements.putAll(scm.elements)
     }
@@ -51,7 +56,7 @@ class ScmFileCollection {
         if (!existingElement)
             return false
 
-        load(existingElement.scriptFile)
+        load(existingElement.scmFile.scriptFile)
 
         def latestElement = scms.elements[name]
         if (!latestElement)
@@ -68,11 +73,11 @@ class ScmFileCollection {
             return false
 
         // Delete the actual file
-        existingElement.scriptFile.delete()
+        existingElement.scmFile.scriptFile.delete()
 
         // Remove its elements
         scms.removeAll {
-            if (it.sourceFile != existingElement.scriptFile)
+            if (it.scriptFile != existingElement.scmFile.scriptFile)
                 return false
 
             it.elements.keySet().each {
@@ -101,11 +106,11 @@ class ScmFileCollection {
 
     List<File> toFiles(List<String> names = null) {
         if (!names)
-            return elements.values().collect { it.scriptFile }
+            return elements.values().collect { it.scmFile.scriptFile }
 
         return names
                 .findAll { elements.containsKey(it) }
-                .collect { elements[it].scriptFile }
+                .collect { elements[it].scmFile.scriptFile }
     }
 
     Map toMap(RunFile runFile = null, Map filter = [:], String parametersLocation = null) {

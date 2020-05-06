@@ -2,11 +2,11 @@ Vue.component('choose-inv', {
     template: `
 <div class="columns">
 
-    <div class="column is-5">
+    <div class="column is-6">
         <panel v-model="ownersSettings" v-if="ownersSettings" />
     </div>
 
-    <div class="column is-7" v-show="idPanels.length > 0">
+    <div class="column is-6" v-show="idPanels.length > 0">
         <div v-for="(settings, index) in idPanels">
             <panel v-model="idPanels[index]" />
         </div>

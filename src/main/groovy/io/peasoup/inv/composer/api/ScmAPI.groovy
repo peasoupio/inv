@@ -176,10 +176,10 @@ class ScmAPI {
                 try {
                     // If existing, replace
                     if (element) {
-                        element.scriptFile.delete()
-                        element.scriptFile << req.body()
+                        element.scmFile.scriptFile.delete()
+                        element.scmFile.scriptFile << req.body()
 
-                        webServer.scms.load(element.scriptFile)
+                        webServer.scms.load(element.scmFile.scriptFile)
                     } else {
                         // Otherwise create new one
                         def newFile = new File(webServer.scms.scmFolder, name + ".groovy")

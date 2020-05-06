@@ -5,10 +5,7 @@ Vue.component('panel', {
         <a class="icon is-pulled-left" v-show="value.help" @click="showHelp = !showHelp" style="margin-right: 0.75em">
             <i class="fas fa-question-circle" aria-hidden="true"></i>
         </a>
-
-        {{value.title}} ({{selected}}/{{value.total}})
-
-
+        <span>{{value.title}} ({{selected}}/{{value.total}})</span>
         <a class="icon is-pulled-right" v-show="value.close" @click="value.close()">
             <i class="fas fa-times-circle" aria-hidden="true"></i>
         </a>
@@ -19,12 +16,17 @@ Vue.component('panel', {
     </div>
 
     <div class="panel-block">
-        <p class="control has-icons-left">
-            <input class="input" type="text" placeholder="Search" v-model="filters.input" @keyup="raiseFilterKeyUp()">
-            <span class="icon is-left">
-                <i class="fas fa-search" aria-hidden="true"></i>
-            </span>
-        </p>
+        <div class="field has-addons" style="width: 100%">
+            <div class="control has-icons-left is-expanded">
+                <input class="input" type="text" placeholder="Search" v-model="filters.input" @keyup="raiseFilterKeyUp()">
+                <span class="icon is-left">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                </span>
+            </div>
+            <div class="control">
+                <button type="submit" class="button" v-bind:class="{ 'is-info': showAdvanced }" @click="showAdvanced=!showAdvanced">Advanced</button>
+            </div>
+        </div>
     </div>
 
     <p class="panel-tabs">
@@ -34,7 +36,24 @@ Vue.component('panel', {
         </a>
     </p>
 
-    <div class="container" v-if="value.elements.length == 0">
+    <div class="panel-block" v-if="showAdvanced">
+        <button class="button is-link is-outlined is-fullwidth" @click="reset()">
+            Reset filter
+        </button>
+    </div>
+
+    <div class="panel-block" v-if="showAdvanced && value.options != undefined">
+        <button v-for="option in value.options"
+                class="button is-link is-outlined is-fullwidth" @click="clickOption(option)">
+                <span>{{option.label}}</span>
+                <span class="icon is-small" v-show="option.toggle"><i class="fas fa-check-square"></i></span>
+                <span class="icon is-small" v-if="option.toggle == false"><i class="far fa-square"></i></span>
+        </button>
+    </div>
+
+
+
+    <div class="content" style="padding: 1em" v-if="value.elements.length == 0">
         <p class="has-text-centered">Nothing to show</p>
     </div>
 
@@ -83,29 +102,13 @@ Vue.component('panel', {
     <div style="padding: 1em">
         <pagination v-model="paginationSettings()" />
     </div>
-
-
-    <div class="panel-block">
-        <button class="button is-link is-outlined is-fullwidth" @click="reset()">
-            Reset filter
-        </button>
-    </div>
-
-    <div class="panel-block" v-if="value.options != undefined">
-        <button v-for="option in value.options"
-                class="button is-link is-outlined is-fullwidth" @click="clickOption(option)">
-                <span>{{option.label}}</span>
-
-                <span class="icon is-small" v-show="option.toggle"><i class="fas fa-check-square"></i></span>
-                <span class="icon is-small" v-if="option.toggle == false"><i class="far fa-square"></i></span>
-        </button>
-    </div>
 </nav>
 `,
     props: ['value'],
     data: function() {
         return {
             showHelp: false,
+            showAdvanced: false,
             filters: {
                 input: '',
                 panel: '',
@@ -160,7 +163,7 @@ Vue.component('panel', {
                     if (vm.value.refresh != undefined)
                         vm.value.refresh(from)
                 },
-                threshold: 1,
+                threshold: 2,
                 from: vm.filters.from,
                 step: vm.filters.step,
                 total: vm.value.total
@@ -199,6 +202,7 @@ Vue.component('panel', {
         reset: function() {
             var vm = this
 
+            vm.filters.from = 0
             vm.filters.input = ''
             vm.raiseFilterKeyUp()
         },

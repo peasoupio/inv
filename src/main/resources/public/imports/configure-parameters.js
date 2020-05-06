@@ -49,17 +49,20 @@ Vue.component('configure-parameters', {
         </div>
 
         <hr />
-        <configure-parameters-carousel v-model="selectedSettings" :key="updateIndex" />
+        <configure-parameters-carousel v-model="selectedSettings" />
         <hr />
-        <configure-parameters-carousel v-model="requiredSettings" :key="updateIndex" />
+        <configure-parameters-carousel v-model="requiredSettings" />
 
         <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
             <div class="modal-background"></div>
             <div class="modal-content">
                 <div class="box" v-click-outside="close">
-                    <h1 class="title is-5">Parameter(s) of: {{currentScmParameter.name}} </h1>
+                    <h1 class="title is-4">Parameter(s) of: {{currentScmParameter.name}} </h1>
                     <div v-for="(parameter, index) in currentScmParameter.parameters" style="padding-bottom: 1em;">
-                        <p>{{index +1 }}. {{parameter.name}}</p>
+                        <p>
+                            <span class="title is-5">{{index +1 }}. {{parameter.name}}</span>
+                            <span class="title is-6" v-if="parameter.values.length">(has {{parameter.values.length}} value(s) available)</span>
+                        </p>
                         <p class="help">
                             Usage: {{parameter.usage}}.
                             Default value:
@@ -67,27 +70,13 @@ Vue.component('configure-parameters', {
                             <span v-else>(not defined)</span>
                         </p>
                         <div class="field has-addons">
-                            <div class="control">
-                                <div v-if="parameter.values.length > 0">
-                                    <div class="select" v-if="!areValuesUnavailable(parameter)" style="max-width: 300px;">
-                                        <select v-model="parameter.value" @change="parameter.changed = true">
-                                            <option value="" disabled hidden selected>Select value</option>
-                                            <option v-for="value in parameter.values">{{value}}</option>
-                                        </select>
-                                    </div>
-                                    <div class="field" v-else>
-                                        <input class="input" type="text" value="No match found" disabled></input>
-                                    </div>
-                                </div>
-
-                                <div class="field" v-if="parameter.values.length == 0">
-                                    <input class="input" type="text" value="No values available" disabled></input>
-                                </div>
+                            <div class="control is-expanded">
+                                <input class="input" :list="'list-' + parameter.name" v-model="parameter.value" @input="parameter.changed=true" placeholder="Define new value"></input>
+                                <datalist :id="'list-' + parameter.name">
+                                    <option v-for="value in parameter.values">{{value}}</option>
+                                </datalist>
                             </div>
 
-                            <p class="control is-expanded">
-                                <input class="input" type="text" placeholder="Value" v-model="parameter.value" @input="parameter.changed = true">
-                            </p>
                             <button class="control button is-success" v-if="parameter.saved && !parameter.changed" v-bind:class=" { 'is-loading': parameter.sending }" :disabled="true">
                                 <span>Saved</span>
                                 <span class="icon is-small">
@@ -95,7 +84,6 @@ Vue.component('configure-parameters', {
                                 </span>
                             </button>
                         </div>
-
                     </div>
 
                     <footer class="modal-card-foot">
@@ -238,6 +226,7 @@ Vue.component('configure-parameters', {
                 vm.saveParameter(parameter)
             })
 
+            scm.updateIndex++
             vm.$bus.$emit('toast', `warn:Reset <strong>parameters</strong> successfully!`)
         },
         saveParameter: function(parameter) {
@@ -255,8 +244,6 @@ Vue.component('configure-parameters', {
                 parameter.sending = false
                 parameter.saved = true
                 parameter.changed = false
-
-                vm.updateIndex++
             })
         },
         close: function() {
@@ -267,9 +254,8 @@ Vue.component('configure-parameters', {
                 vm.currentScmParameter.saved = response.data.saved
                 vm.currentScmParameter.lastModified = response.data.lastModified
                 vm.currentScmParameter.completed = response.data.completed
+                vm.currentScmParameter.updateIndex++
                 vm.currentScmParameter = null
-
-                vm.updateIndex++
             })
         }
     },
@@ -293,7 +279,7 @@ Vue.component('configure-parameters-carousel', {
 
     <div class="field">
         <p class="control is-expanded has-icons-right">
-            <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="fetchScms()">
+            <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="filterScms()">
             <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
         </p>
     </div>
@@ -301,9 +287,9 @@ Vue.component('configure-parameters-carousel', {
     <div v-if="scms.count == 0" class="container">
         <p class="has-text-centered">Nothing to show</p>
     </div>
-    <div class="columns is-multiline" v-else>
-        <div class="column is-one-quarter" v-for="scm in scms.descriptors" >
-            <div class="card">
+    <div class="columns is-multiline" style="min-height: 300px;" v-else>
+        <div class="column is-one-quarter" v-for="scm in scms.descriptors">
+            <div class="card" :key="scm.updateIndex && getStats(scm)">
                 <div class="card-content">
                     <p class="title is-5">
                         <span v-bind:class="{ 'has-text-danger': scm.errors.length > 0, 'has-text-success': scm.completed }">
@@ -402,6 +388,12 @@ Vue.component('configure-parameters-carousel', {
         }
     },
     methods: {
+        filterScms: function() {
+            var vm = this
+
+            vm.filters.from = 0
+            vm.fetchScms()
+        },
         fetchScms: function() {
             var vm = this
 
@@ -423,22 +415,10 @@ Vue.component('configure-parameters-carousel', {
                     vm.$set(scm, 'showErrors', false)
                     vm.$set(scm, 'loading', false)
                     vm.$set(scm, 'showDetails', false)
+                    vm.$set(scm, 'updateIndex', 0)
 
-                    scm.parameters.forEach(function(parameter) {
-                        var hasValue = parameter.value != null &&
-                                       parameter.value != undefined &&
-                                       parameter.value != ''
-
-                        if (parameter.required) {
-                            scm.requiredCount++
-
-                            if (!hasValue)
-                                scm.requiredNotCompletedCount++
-                        }
-
-                        if (hasValue)
-                            scm.completedCount++
-                    })
+                    // Initialized stats
+                    vm.getStats(scm)
                 })
 
                 vm.loading = false
@@ -449,6 +429,29 @@ Vue.component('configure-parameters-carousel', {
         },
         whenError: function(error) {
             return TimeAgo.inWords(error.when)
+        },
+        getStats: function(scm) {
+            scm.requiredCount = 0
+            scm.requiredNotCompletedCount = 0
+            scm.completedCount = 0
+
+            scm.parameters.forEach(function(parameter) {
+                var hasValue = parameter.value != null &&
+                               parameter.value != undefined &&
+                               parameter.value != ''
+
+                if (parameter.required) {
+                    scm.requiredCount++
+
+                    if (!hasValue)
+                        scm.requiredNotCompletedCount++
+                }
+
+                if (hasValue)
+                    scm.completedCount++
+            })
+
+            return true
         },
         editParameters: function(scmParameters) {
 

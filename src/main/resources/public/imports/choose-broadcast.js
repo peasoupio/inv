@@ -92,6 +92,7 @@ Vue.component('choose-broadcast', {
             </tr>
             </tbody>
         </table>
+
         <pagination v-model="paginationSettings" />
 
         <div class="modal is-active" v-if="viewScm">

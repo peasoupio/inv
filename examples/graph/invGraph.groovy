@@ -6,7 +6,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 inv {
     name "appA"
 
-    require inv.Kubernetes using {
+    require $inv.Kubernetes using {
         resolved {
             response.installPod("my-mod-for-app-3")
         }
@@ -16,7 +16,7 @@ inv {
 inv {
     name "appB"
 
-    require inv.IIS using {
+    require $inv.IIS using {
         resolved {
             response.deploy("my-web-app")
         }
@@ -26,9 +26,9 @@ inv {
 inv {
     name "iis"
 
-    require inv.Server(name: "server-a")
+    require $inv.Server(name: "server-a")
 
-    broadcast inv.IIS using {
+    broadcast $inv.IIS using {
         ready {
             return [
                     deploy: {webApp ->
@@ -42,7 +42,7 @@ inv {
 inv {
     name "Kubernetes"
 
-    require inv.Server using {
+    require $inv.Server using {
         id name: "server-a"
 
         resolved {
@@ -52,7 +52,7 @@ inv {
         }
     }
 
-    broadcast inv.Kubernetes using {
+    broadcast $inv.Kubernetes using {
         ready {
             return [
                     http      : "http://my-kubernetes.my.host.com",
@@ -68,7 +68,7 @@ inv {
 inv {
     name "ServerA"
 
-    broadcast inv.Server using {
+    broadcast $inv.Server using {
         id name: "server-a"
         ready {
             return [
@@ -84,7 +84,7 @@ inv {
 inv {
     name "ServerB"
 
-    broadcast inv.Server using {
+    broadcast $inv.Server using {
         id name: "server-b"
         ready {
             return [
@@ -97,7 +97,7 @@ inv {
 inv {
     name "my-app-1"
 
-    require inv.Maven using {
+    require $inv.Maven using {
         resolved {
             impersonate response.analyze withArgs "app1/pom.xml"
         }
@@ -107,7 +107,7 @@ inv {
 inv {
     name "my-app-2"
 
-    require inv.Maven using {
+    require $inv.Maven using {
         resolved {
             impersonate response.analyze withArgs "app2/pom.xml"
 
@@ -124,7 +124,7 @@ inv {
 inv {
     name "files"
 
-    broadcast inv.Files using {
+    broadcast $inv.Files using {
         ready {[
             glob: { String glob ->
                 return new FileNameFinder().getFileNames(pwd, glob)
@@ -136,9 +136,9 @@ inv {
 inv {
     name "maven"
 
-    require inv.Files into '$files'
+    require $inv.Files into '$files'
 
-    broadcast inv.Maven using {
+    broadcast $inv.Maven using {
         ready {[
             analyze: { glob ->
 
@@ -147,7 +147,7 @@ inv {
                     MavenXpp3Reader reader = new MavenXpp3Reader()
                     Model model = reader.read(new FileReader(it))
 
-                    broadcast inv.Artifact using {
+                    broadcast $inv.Artifact using {
                         id model.groupId + ":" + model.artifactId
 
                         ready {
@@ -156,7 +156,7 @@ inv {
                     }
 
                     model.dependencies.each {
-                        require inv.Artifact(it.groupId + ":" + it.artifactId)
+                        require $inv.Artifact(it.groupId + ":" + it.artifactId)
                     }
                 }
             }

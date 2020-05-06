@@ -59,8 +59,8 @@ public class RequireDescriptor {
      * The property is available in the NEXT scope. This includes step().
      * Will work:
      * <pre>
-     *     require inv.Something into '$something'
-     *     broadcast inv.Else using {
+     *     require $inv.Something into '$something'
+     *     broadcast $inv.Else using {
      *         ready {
      *             $something...
      *         }
@@ -68,8 +68,8 @@ public class RequireDescriptor {
      * </pre>
      * Will NOT work:
      * <pre>
-     *     require inv.Something into '$something'
-     *     require inv.Else($something...)
+     *     require $inv.Something into '$something'
+     *     require $inv.Else($something...)
      * </pre>
      *
      * By convention, you should add "$" before the name.

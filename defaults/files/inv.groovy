@@ -12,7 +12,7 @@ import java.nio.file.Paths
 */
 
 inv {
-    broadcast inv.Files using {
+    broadcast $inv.Files using {
         ready { new Files() }
     }
 }

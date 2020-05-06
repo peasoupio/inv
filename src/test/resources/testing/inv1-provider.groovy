@@ -1,6 +1,6 @@
 inv {
     name "provider"
 
-    broadcast inv.Element
+    broadcast $inv.Element
 }
 

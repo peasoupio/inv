@@ -22,11 +22,11 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready {
                         [
                                 withContext: { String ctx ->
-                                    broadcast inv.Endpoint(context: ctx)
+                                    broadcast $inv.Endpoint(context: ctx)
                                 }
                         ]
                     }
@@ -37,7 +37,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     response.withContext(myCtx)
                 }
@@ -47,7 +47,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myCtx)
+            require $inv.Endpoint(context: myCtx)
         }
 
         def report = executor.execute()
@@ -62,12 +62,12 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready {
                         [
                                 $          : { [defaultContext: myCtx] },
                                 withContext: { String ctx ->
-                                    broadcast inv.Endpoint(context: ctx)
+                                    broadcast $inv.Endpoint(context: ctx)
                                 }
                         ]
                     }
@@ -78,7 +78,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     response.withContext(response.defaultContext)
                 }
@@ -88,7 +88,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myCtx)
+            require $inv.Endpoint(context: myCtx)
         }
 
         def report = executor.execute()
@@ -104,7 +104,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready {return new MyResponseClass1()}
                 }
             }
@@ -113,7 +113,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     response.withContext(myCtx)
                 }
@@ -123,7 +123,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myCtx)
+            require $inv.Endpoint(context: myCtx)
         }
 
         def report = executor.execute()
@@ -138,7 +138,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready {return new MyResponseClass2()}
                 }
             }
@@ -147,7 +147,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     def resp = response as MyResponseClass2
                     resp.withContext2(myself, myCtx)
@@ -158,7 +158,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myCtx)
+            require $inv.Endpoint(context: myCtx)
         }
 
         def report = executor.execute()
@@ -173,7 +173,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -182,7 +182,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     response.withContext(response.defaultContext)
                 }
@@ -192,7 +192,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myCtx)
+            require $inv.Endpoint(context: myCtx)
         }
 
         def report = executor.execute()
@@ -208,7 +208,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -217,7 +217,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
                     assert respCls2.myCtx == myCtx
@@ -232,9 +232,9 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.Endpoint(context: myNewCtx)
+            require $inv.Endpoint(context: myNewCtx)
 
-            require inv.EndpointMapper using {
+            require $inv.EndpointMapper using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
                     assert respCls2.myCtx == myNewCtx
@@ -255,7 +255,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast inv.EndpointMapper using {
+                broadcast $inv.EndpointMapper using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -264,9 +264,9 @@ class BroadcastResponseTest {
         inv {
             name "my-proxy"
 
-            require inv.EndpointMapper into '$mapper'
+            require $inv.EndpointMapper into '$mapper'
 
-            broadcast inv.EndpointMapperProxy using {
+            broadcast $inv.EndpointMapperProxy using {
                 ready {
                     $mapper.defaultContext = myNewCtx
 
@@ -278,7 +278,7 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require inv.EndpointMapperProxy using {
+            require $inv.EndpointMapperProxy using {
                 resolved {
                     assert response.defaultContext == myNewCtx
                 }
@@ -291,7 +291,7 @@ class BroadcastResponseTest {
 
     class MyResponseClass1 {
         Closure withContext(String ctx) {{
-            broadcast inv.Endpoint(context: ctx)
+            broadcast $inv.Endpoint(context: ctx)
         } as Closure}
     }
 
@@ -306,7 +306,7 @@ class BroadcastResponseTest {
 
         Closure withContext(String ctx) {
             return {
-                broadcast inv.Endpoint(context: ctx)
+                broadcast $inv.Endpoint(context: ctx)
             } as Closure
         }
 

@@ -32,7 +32,7 @@ class MavenTests {
             path app1
 
             // Using default
-            require inv.Maven into '$maven'
+            require $inv.Maven into '$maven'
 
             step {
                 assert $maven.poms
@@ -43,7 +43,7 @@ class MavenTests {
 
             name "app2"
 
-            require inv.Maven using {
+            require $inv.Maven using {
 
                 // Disabling defaults and calling manually
                 defaults false

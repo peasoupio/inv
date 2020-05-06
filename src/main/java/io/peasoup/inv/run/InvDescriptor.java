@@ -109,7 +109,7 @@ public class InvDescriptor {
      * Per example:
      * <pre>
      *     tags(myType: 'type1')
-     *     require inv.Type(tags.myType)
+     *     require $inv.Type(tags.myType)
      * </pre>
      *
      * @param tags @optional @default None, value required
@@ -259,6 +259,15 @@ public class InvDescriptor {
         return this.properties.tags;
     }
 
+
+    /**
+     * @deprecated Check get$() instead.
+     */
+    @Deprecated
+    public final InvNames getInv() {
+        return InvNames.Instance;
+    }
+
     /**
      * Create a new generic StatementDescriptor.
      * <p>
@@ -272,7 +281,7 @@ public class InvDescriptor {
      * </pre>
      * @return a new StatementDescriptor
      */
-    public final InvNames getInv() {
+    public final InvNames get$inv() {
         return InvNames.Instance;
     }
 

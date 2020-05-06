@@ -4,9 +4,9 @@ import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 
 inv {
-    require inv.Files into '$files'
+    require $inv.Files into '$files'
 
-    broadcast inv.Maven using {
+    broadcast $inv.Maven using {
         ready {
             def instance = [:]
             instance << [
@@ -32,14 +32,14 @@ inv {
                         MavenXpp3Reader reader = new MavenXpp3Reader()
                         Model model = reader.read(new FileReader(file))
 
-                        broadcast inv.Artifact using {
+                        broadcast $inv.Artifact using {
                             id model.groupId + ":" + model.artifactId
 
                             ready { [model: model] }
                         }
 
                         for(Dependency dep : model.dependencies) {
-                            require inv.Artifact(dep.groupId + ":" + dep.artifactId)
+                            require $inv.Artifact(dep.groupId + ":" + dep.artifactId)
                         }
 
                         poms << model

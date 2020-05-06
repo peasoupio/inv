@@ -19,12 +19,12 @@ class RequireStatementTest {
 
         inv {
             name "provide"
-            broadcast inv.Element
+            broadcast $inv.Element
         }
 
         inv {
             name "consume"
-            require inv.Element
+            require $inv.Element
         }
 
         def report = executor.execute()
@@ -52,7 +52,7 @@ class RequireStatementTest {
         inv {
             name "consume"
 
-            require inv.Bloatable using {
+            require $inv.Bloatable using {
                 unbloatable true
 
                 unresolved {
@@ -86,7 +86,7 @@ class RequireStatementTest {
         inv {
             name "consume"
 
-            require inv.Bloatable using {
+            require $inv.Bloatable using {
                 unbloatable false
 
                 unresolved {
@@ -107,13 +107,13 @@ class RequireStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element
+            broadcast $inv.Element
         }
 
         inv {
             name "consume"
 
-            require inv.Element into '$element'
+            require $inv.Element into '$element'
 
             step {
                 assert $element

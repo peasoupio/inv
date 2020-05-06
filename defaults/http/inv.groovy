@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
 
 inv {
 
-    broadcast inv.HTTP using {
+    broadcast $inv.HTTP using {
         ready {[
                 newRequest: { String url ->
 

@@ -19,7 +19,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready {[
                     my: { return "method" }
                 ]}
@@ -29,7 +29,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert response.my
@@ -47,7 +47,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready { return null }
             }
         }
@@ -55,7 +55,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert my == null
@@ -72,7 +72,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready {[
                     something: "valuable"
                 ]}
@@ -82,7 +82,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert my == null
@@ -99,7 +99,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready {[
                         my: "method"
                 ]}
@@ -109,7 +109,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert my
@@ -127,7 +127,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready {[
                     my: "property"
                 ]}
@@ -137,7 +137,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert my
@@ -156,7 +156,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast inv.Element using {
+            broadcast $inv.Element using {
                 ready {[
                         $: {
                             return [
@@ -170,7 +170,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require inv.Element using {
+            require $inv.Element using {
 
                 resolved {
                     assert my

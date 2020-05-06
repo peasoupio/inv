@@ -6,7 +6,7 @@ import org.hidetake.groovy.ssh.Ssh
 
 inv {
 
-    broadcast inv.SSH using {
+    broadcast $inv.SSH using {
         ready {[
             $: {
                 def instance = [:]

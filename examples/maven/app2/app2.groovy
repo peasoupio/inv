@@ -1,7 +1,7 @@
 inv {
     name "my-app-2"
 
-    require inv.Maven using {
+    require $inv.Maven using {
         resolved {
             analyze("app2/pom.xml")
 

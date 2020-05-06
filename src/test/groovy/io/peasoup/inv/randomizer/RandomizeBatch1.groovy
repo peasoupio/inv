@@ -105,7 +105,7 @@ class RandomizeBatch1 {
                             // Otherwise link them
                             invBoostrap.requires.add(currentRequire.name)
 
-                            myself.require((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(currentRequire.name))
+                            myself.require((myself.inv.getProperty("Randomized") as StatementDescriptor).call(currentRequire.name))
 
                             currentRequire.done = true
 
@@ -114,7 +114,7 @@ class RandomizeBatch1 {
                     }
                 }
 
-                myself.broadcast((myself.inv.propertyMissing("Randomized") as StatementDescriptor).call(invBoostrap.name))
+                myself.broadcast((myself.inv.getProperty("Randomized") as StatementDescriptor).call(invBoostrap.name))
 
                 ++index
 

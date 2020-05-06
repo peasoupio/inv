@@ -14,7 +14,7 @@ class HttpTests {
 
         new InvHandler(executor).call {
 
-            require inv.HTTP into '$http'
+            require $inv.HTTP into '$http'
 
             step {
                 assert $http.newRequest("https://google.com")
@@ -35,7 +35,7 @@ class HttpTests {
 
         new InvHandler(executor).call {
 
-            require inv.HTTP into '$http'
+            require $inv.HTTP into '$http'
 
             step {
 

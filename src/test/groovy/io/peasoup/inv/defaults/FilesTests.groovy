@@ -17,7 +17,7 @@ class FilesTests {
 
         new InvHandler(executor).call {
 
-            require inv.Files into '$files'
+            require $inv.Files into '$files'
 
             step {
                 $files.glob(files).each { println it + "-GLOB-ALL" }
@@ -51,7 +51,7 @@ class FilesTests {
 
         new InvHandler(executor).call {
 
-            require inv.Files into '$files'
+            require $inv.Files into '$files'
 
             step {
                 $files.find(files as String).each { println it.path + "-FIND-ALL" }

@@ -33,7 +33,7 @@ inv {
         println "App1 curl result: ${myCurlProcess.exitValue()}"
 
         if (!myCurlProcess.exitValue()) {
-            broadcast inv.App(context: "/", port: 9090)
+            broadcast $inv.App(context: "/", port: 9090)
         }
 
         // Kill it

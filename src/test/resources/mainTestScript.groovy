@@ -3,7 +3,7 @@ inv {
 
     name "mainTestScript"
 
-    broadcast inv.Something
+    broadcast $inv.Something
 }
 
 

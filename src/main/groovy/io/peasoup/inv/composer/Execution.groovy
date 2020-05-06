@@ -1,9 +1,11 @@
 package io.peasoup.inv.composer
 
+import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.Main
+import io.peasoup.inv.cli.ScmCommand
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
@@ -55,7 +57,7 @@ class Execution {
     }
 
     File latestScmFiles() {
-        return new File(RunsRoller.runsFolder(), "scm-list.txt")
+        return new File(RunsRoller.runsFolder(), ScmCommand.LIST_FILE_SUFFIX)
     }
 
     List<String> latestScmFilesList() {
@@ -76,7 +78,7 @@ class Execution {
     }
 
     @CompileDynamic
-    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<File> scms) {
+    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<ScmFile> scms) {
         if (scms == null)
             throw new IllegalArgumentException('SCM collection is required')
 
@@ -241,12 +243,18 @@ class Execution {
         return jvmArgs + appArgs
     }
 
-    private File generateScmListFile(List<File> scms) {
+    private File generateScmListFile(List<ScmFile> scms) {
         def scmListFile = latestScmFiles()
         scmListFile.delete()
-        scms.each {
-            scmListFile << it.absolutePath + System.lineSeparator()
-        }
+
+        scmListFile << JsonOutput.toJson(
+                scms.collectEntries {
+                    [(it.simpleName()): [
+                            script               : it.scriptFile.absolutePath,
+                            expectedParameterFile: it.expectedParameterFile.absolutePath
+                    ]]
+                }
+        )
 
         return scmListFile
     }

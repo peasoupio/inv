@@ -104,13 +104,13 @@ class ScmFileCollection {
         staged.remove(name)
     }
 
-    List<File> toFiles(List<String> names = null) {
+    List<ScmFile> toFiles(List<String> names = null) {
         if (!names)
-            return elements.values().collect { it.scmFile.scriptFile }
+            return elements.values().collect { it.scmFile }
 
         return names
                 .findAll { elements.containsKey(it) }
-                .collect { elements[it].scmFile.scriptFile }
+                .collect { elements[it].scmFile }
     }
 
     Map toMap(RunFile runFile = null, Map filter = [:], String parametersLocation = null) {

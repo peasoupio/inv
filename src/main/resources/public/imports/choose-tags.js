@@ -36,7 +36,7 @@ Vue.component('choose-tags', {
                 </aside>
             </div>
             <div class="column is-half">
-
+                <p class="title is-4">Current selection :</p>
                 <div v-if="!previewTag && !previewInv"><p>Nothing selected yet. Click on an element from menu to the left.</p></div>
                 <div class="notification content" v-if="previewTag">
                     <button class="delete" @click="previewTag = null"></button>

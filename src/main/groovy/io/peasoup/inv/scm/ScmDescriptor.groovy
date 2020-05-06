@@ -17,8 +17,8 @@ class ScmDescriptor {
     final HookDescriptor hooks = new HookDescriptor()
     final AskDescriptor ask = new AskDescriptor()
 
-    private File parametersFile = null
-    private Map<String, Object> parametersProperties = [:]
+    final File parametersFile
+    private final Map<String, Object> parametersProperties = [:]
 
     ScmDescriptor(File parametersFile = null) {
         this.parametersFile = parametersFile

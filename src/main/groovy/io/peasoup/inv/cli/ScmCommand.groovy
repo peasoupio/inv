@@ -1,5 +1,7 @@
 package io.peasoup.inv.cli
 
+
+import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.fs.Pattern
@@ -14,7 +16,7 @@ import java.nio.file.Files
 @CompileStatic
 class ScmCommand implements CliCommand {
 
-    public static final String LIST_FILE_SUFFIX = 'scm-list.txt'
+    public static final String LIST_FILE_SUFFIX = 'scm-list.json'
 
     List<String> patterns
     String exclude
@@ -36,15 +38,20 @@ class ScmCommand implements CliCommand {
 
             Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
 
-            def lines = scmListFile.readLines()
-            def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), lines.size(), false)
+            Map scmListJson = new JsonSlurper().parse(scmListFile) as Map
+            if (!scmListJson || !scmListJson.size())
+                return -2
+
+            def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), scmListJson.size(), false)
             progress.start {
 
-                lines.each {
-                    scmExecutor.read(new File(it))
+                scmListJson.values().each {
+                    Map scm = it as Map
 
+                    scmExecutor.read(new File(scm.get("script") as String), new File(scm.get("expectedParameterFile") as String))
                     progress.step()
                 }
+
             }
         } else {
             def scmFiles = Pattern.get(patterns, exclude, Home.getCurrent())

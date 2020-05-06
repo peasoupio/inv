@@ -37,6 +37,8 @@ class ScmExecutor {
             futures << pool.submit({
                 def report = new SCMReport(name: name, repository: repository)
 
+                Logger.debug("[SCM] script: ${repository.name}, parameter: ${repository.parametersFile ? repository.parametersFile.absolutePath : 'not defined'}")
+
                 if (!repository.hooks)
                     return report
 

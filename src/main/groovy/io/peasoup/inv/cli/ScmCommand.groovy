@@ -38,17 +38,32 @@ class ScmCommand implements CliCommand {
 
             Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
 
-            Map scmListJson = new JsonSlurper().parse(scmListFile) as Map
+            Map<String, Map> scmListJson = new JsonSlurper().parse(scmListFile) as Map
             if (!scmListJson || !scmListJson.size())
                 return -2
 
             def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), scmListJson.size(), false)
             progress.start {
 
-                scmListJson.values().each {
-                    Map scm = it as Map
+                scmListJson.each { String name, Map scm ->
+                    String script = "", expectedParameter = ""
 
-                    scmExecutor.read(new File(scm.get("script") as String), new File(scm.get("expectedParameterFile") as String))
+                    if (scm.containsKey("script"))
+                        script = scm.get("script") as String
+
+                    if (scm.containsKey("expectedParameterFile"))
+                        expectedParameter = scm.get("expectedParameterFile") as String
+
+                    if (!script) {
+                        Logger.warn("[SCM] name: ${name} as no script defined")
+                        return
+                    }
+
+                    if (!expectedParameter)
+                        scmExecutor.read(new File(script))
+                    else
+                        scmExecutor.read(new File(script), new File(expectedParameter))
+
                     progress.step()
                 }
 

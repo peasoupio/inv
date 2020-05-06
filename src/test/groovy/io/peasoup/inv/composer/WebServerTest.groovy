@@ -407,7 +407,7 @@ scm {
 
         assert jsonStart
         assert jsonStart.files
-        assert jsonStart.files.any { it.contains("scmB.groovy") }
+        assert jsonStart.files.any { it.contains("scmB") }
 
         def responseAfter = get("execution")
         assert responseAfter

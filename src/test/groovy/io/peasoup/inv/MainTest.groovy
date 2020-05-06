@@ -1,5 +1,6 @@
 package io.peasoup.inv
 
+import groovy.json.JsonOutput
 import io.peasoup.inv.cli.ScmCommand
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
@@ -190,8 +191,10 @@ class MainTest {
         comparable.read(scm2)
 
         def scmListFile = new File(TempHome.testResources, ScmCommand.LIST_FILE_SUFFIX)
-        scmListFile << scm1.absolutePath + System.lineSeparator()
-        scmListFile << scm2.absolutePath + System.lineSeparator()
+        scmListFile << JsonOutput.toJson([
+                "scm1": [ script: scm1.absolutePath],
+                "scm2": [ script: scm2.absolutePath]
+        ])
 
         Main.main("scm", scmListFile.path)
 

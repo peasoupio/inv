@@ -118,63 +118,69 @@ class NetworkValuablePoolTest {
         def ctx = new Inv.Context(pool)
         def invs = [
             ctx.build().with {
-                name = "3"
-
-                tail = false
-                pop = false
-
+                delegate.delegate.with {
+                    name "3"
+                    tail false
+                    pop false
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 0
 
                 return delegate
             },
 
             ctx.build().with {
-                name = "2"
-
-                tail = false
-                pop = false
-
+                delegate.delegate.with {
+                    name "2"
+                    tail false
+                    pop false
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 0
 
                 return delegate
             },
             ctx.build().with {
-                name = "0"
-
-                tail = false
-                pop = true
-
+                delegate.delegate.with {
+                    name "0"
+                    tail false
+                    pop true
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 0
 
                 return delegate
             },
 
             ctx.build().with {
-                name = "4"
-
-                tail = true
-                pop = false
-
+                delegate.delegate.with {
+                    name "4"
+                    tail true
+                    pop false
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 10
 
                 return delegate
             },
             ctx.build().with {
-                name = "5"
-
-                tail = true
-                pop = false
-
+                delegate.delegate.with {
+                    name "5"
+                    tail true
+                    pop false
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 999
 
                 return delegate
             },
             ctx.build().with {
-                name = "1"
-
-                tail = false
-                pop = true
-
+                delegate.delegate.with {
+                    name "1"
+                    tail false
+                    pop true
+                }
+                dumpDelegate()
                 digestionSummary.unbloats = 999
 
                 return delegate
@@ -184,7 +190,7 @@ class NetworkValuablePoolTest {
         pool.remainingInvs.clear()
         pool.remainingInvs.addAll(invs)
 
-        def sortedInvs = pool.sortRemainingInvs()
+        def sortedInvs = pool.sort()
 
         assert sortedInvs[0].name == "0"
         assert sortedInvs[1].name == "1"

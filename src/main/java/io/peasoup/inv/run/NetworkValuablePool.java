@@ -9,9 +9,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class NetworkValuablePool {
-    private static final String HALTING = "HALTED";
-    private static final String UNBLOATING = "UNBLOATING";
-    private static final String RUNNING = "RUNNING";
+    public static final String HALTING = "HALTED";
+    public static final String UNBLOATING = "UNBLOATING";
+    public static final String RUNNING = "RUNNING";
 
     private final Queue<String> names = new ConcurrentLinkedQueue<>();
     private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
@@ -80,7 +80,7 @@ public class NetworkValuablePool {
         Inv.Digestion digestion = new Inv.Digestion();
 
         // Get sorted INV
-        List<Inv> sorted = sortRemainingInvs();
+        List<Inv> sorted = sort();
 
         // Eat invs
         Queue<PoolReport.PoolError> errorsCaught = null;
@@ -109,26 +109,6 @@ public class NetworkValuablePool {
         );
 
         return new PoolReport(invsCompleted, errorsCaught, runningState.equals(HALTING));
-    }
-
-    private List<Inv> sortRemainingInvs() {
-        List<Inv> sorted = new ArrayList<>(remainingInvs);
-        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloats()));
-        sorted.sort((a, b) -> {
-
-            if (a.isPop() == b.isPop() && a.isTail() == b.isTail())
-                return 0;
-
-            if (a.isPop())
-                return -1;
-
-            if (a.isTail())
-                return 1;
-
-            return 0;
-        });
-
-        return sorted;
     }
 
     /**
@@ -258,6 +238,30 @@ public class NetworkValuablePool {
             stagingStatements.put(name, new ConcurrentHashMap<>(24, 0.9f, 1));
             unbloatedStatements.put(name, new ConcurrentLinkedQueue<>());
         }
+    }
+
+    /**
+     * Sort the remaining invs based on their pop and tail configuration
+     * @return A new list with the sorted invs
+     */
+    List<Inv> sort() {
+        List<Inv> sorted = new ArrayList<>(remainingInvs);
+        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloats()));
+        sorted.sort((a, b) -> {
+
+            if (a.isPop() == b.isPop() && a.isTail() == b.isTail())
+                return 0;
+
+            if (a.isPop())
+                return -1;
+
+            if (a.isTail())
+                return 1;
+
+            return 0;
+        });
+
+        return sorted;
     }
 
     /**

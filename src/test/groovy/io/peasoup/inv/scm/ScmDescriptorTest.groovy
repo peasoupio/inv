@@ -37,6 +37,34 @@ class ScmDescriptorTest {
         descriptor.path(absolutePath)
         assert descriptor.path.toString() == absolutePath
     }
+    
+    @Test
+    void properties_file_ok() {
+        def parameterFile = new File(Home.getCurrent(), "/test-resources/scm-parameter.json")
+        assert parameterFile.exists()
+
+        def descriptor = new ScmDescriptor(parameterFile)
+        descriptor.name("scm1")
+
+        assert descriptor.propertyMissing("branch") == "my-branch"
+    }
+
+    @Test
+    void properties_file_not_ok() {
+        def descriptor = new ScmDescriptor()
+        assert descriptor.propertyMissing("branch") == "\${branch}"
+    }
+
+    @Test
+    void properties_file_not_ok_2() {
+        def parameterFile = new File(Home.getCurrent(), "/test-resources/scm-parameter.json")
+        assert parameterFile.exists()
+
+        def descriptor = new ScmDescriptor(parameterFile)
+        descriptor.name("not-there")
+
+        assert descriptor.propertyMissing("branch") == "\${branch}"
+    }
 
     @Test
     void missing_parameter_name() {

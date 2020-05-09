@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import org.codehaus.groovy.runtime.StackTraceUtils;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,7 +97,7 @@ public class PoolReport {
             }
 
             this.inv = inv;
-            this.throwable = throwable;
+            this.throwable = StackTraceUtils.sanitize(throwable);
         }
 
         public Inv getInv() {

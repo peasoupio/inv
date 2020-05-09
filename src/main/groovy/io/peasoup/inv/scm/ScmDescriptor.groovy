@@ -66,7 +66,7 @@ class ScmDescriptor {
     }
 
     //@Override
-    def propertyMissing(String propertyName) {
+    Object propertyMissing(String propertyName) {
         // Loading parameters only when need - since name is not available at ctor
         loadParametersProperties()
 

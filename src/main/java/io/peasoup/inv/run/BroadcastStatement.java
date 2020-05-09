@@ -13,7 +13,7 @@ public class BroadcastStatement implements Statement {
     private String markdown;
     private Closure<Object> ready;
     private Inv inv;
-    private StatementStatus state = StatementStatus.NOT_PROCESSED;
+    protected StatementStatus state = StatementStatus.NOT_PROCESSED;
 
     public Manageable getMatch() {
         return BROADCAST;

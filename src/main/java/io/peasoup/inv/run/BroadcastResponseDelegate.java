@@ -89,6 +89,9 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
 
     @Override
     public MetaClass getMetaClass() {
+        if (broadcastResponse.getResponse() == null)
+            return null;
+
         return InvokerHelper.getMetaClass(broadcastResponse.getResponse());
     }
 

@@ -19,7 +19,7 @@ public class RequireStatement implements Statement {
     private String into;
     private Closure<Object> resolved;
     private Closure<Object> unresolved;
-    private StatementStatus state = StatementStatus.NOT_PROCESSED;
+    protected StatementStatus state = StatementStatus.NOT_PROCESSED;
 
     public Manageable getMatch() {
         return REQUIRE;

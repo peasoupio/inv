@@ -9,6 +9,7 @@ import java.util.stream.Stream
 
 import static org.junit.jupiter.api.Assertions.assertThrows
 
+@SuppressWarnings(["GroovyAssignabilityCheck", "GroovyMissingReturnStatement", "GrEqualsBetweenInconvertibleTypes"])
 @RunWith(TempHome.class)
 class InvHandlerTest {
 
@@ -19,6 +20,8 @@ class InvHandlerTest {
     void setup() {
         executor = new InvExecutor()
         inv = new InvHandler(executor)
+
+        RunsRoller.latest.roll()
     }
 
     @Test
@@ -95,7 +98,6 @@ class InvHandlerTest {
 
     @Test
     void call_broadcast_twice() {
-
         inv {
             name "my-webservice-2"
 
@@ -157,7 +159,6 @@ class InvHandlerTest {
 
     @Test
     void call_using_step() {
-
         inv {
             name "my-webservice"
 
@@ -204,8 +205,6 @@ class InvHandlerTest {
 
     @Test
     void call_using_step_and_unbloating() {
-
-
         inv {
             name "my-webservice"
 
@@ -257,8 +256,6 @@ class InvHandlerTest {
 
     @Test
     void call_using_step_unbloating_and_broadcast_after() {
-
-
         inv {
             name "my-webservice"
 
@@ -320,8 +317,6 @@ class InvHandlerTest {
 
     @Test
     void call_using_multiple_unbloating() {
-
-
         inv {
             name "my-app-1"
 
@@ -523,7 +518,6 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception() {
-
         inv {
             name "my-exception"
 
@@ -540,7 +534,6 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception_2() {
-
         inv {
             name "my-exception"
 
@@ -560,7 +553,6 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception_3() {
-
         inv {
             name "provide"
 
@@ -611,7 +603,6 @@ class InvHandlerTest {
 
     @Test
     void pop_and_tail() {
-
         int index = 0
 
         inv {
@@ -670,7 +661,7 @@ class InvHandlerTest {
             }
         }
 
-        def remainingInvs = executor.pool.sortRemainingInvs()
+        def remainingInvs = executor.pool.sort()
 
         assert remainingInvs[0].name == "0"
         assert remainingInvs[1].name == "1"
@@ -1043,9 +1034,6 @@ class InvHandlerTest {
             }
         }
 
-        def steps2 = [
-
-        ]
         inv {
             name "step2"
 
@@ -1075,8 +1063,6 @@ class InvHandlerTest {
 
     @Test
     void ok_doc() {
-        RunsRoller.latest.roll()
-
         inv {
             name "doc"
             markdown '''

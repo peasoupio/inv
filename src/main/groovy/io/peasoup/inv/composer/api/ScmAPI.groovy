@@ -222,7 +222,7 @@ class ScmAPI {
             def latestElement = webServer.scms.elements[name]
 
             // Make sure we at least try to get repository with default or no parameters
-            List<ScmExecutor.SCMReport> report = new ScmExecutor().with {
+            List<ScmExecutor.SCMExecutionReport> report = new ScmExecutor().with {
                 add(latestElement.descriptor)
                 return execute()
             }

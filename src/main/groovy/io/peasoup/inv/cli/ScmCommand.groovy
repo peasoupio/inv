@@ -82,7 +82,7 @@ class ScmCommand implements CliCommand {
         }
 
         def scmFiles = scmExecutor.execute()
-        def invsFiles = scmFiles.collectMany { ScmExecutor.SCMReport report ->
+        def invsFiles = scmFiles.collectMany { ScmExecutor.SCMExecutionReport report ->
 
             // If something happened, do not include/try-to-include into the pool
             if (!report.isOk)

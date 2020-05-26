@@ -63,14 +63,16 @@ Vue.component('layout', {
           <img src="logo.png" alt="Peasoup INV: Open source, environment as code solution" width="112" height="28">
         </a>
 
-        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false"
+            v-bind:class="{ 'is-active': showBurger }"
+            @click="showBurger=!showBurger">
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
           <span aria-hidden="true"></span>
         </a>
       </div>
 
-      <div id="navbarBasicExample" class="navbar-menu">
+      <div class="navbar-menu" v-bind:class="{ 'is-active': showBurger }">
         <div class="navbar-start">
           <div class="navbar-item has-dropdown is-hoverable">
               <a class="navbar-link">
@@ -85,7 +87,7 @@ Vue.component('layout', {
                 <a class="navbar-item" @click.stop="showConfigureInit()">Edit init file</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item" @click.stop="pullInit()">Pull changes</a>
-                <a class="navbar-item">Push changes (coming soon!)</a>
+                <a class="navbar-item" @click.stop="pushInit()">Push changes</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item has-text-danger">Reset everything (coming soon!)</a>
               </div>
@@ -104,6 +106,21 @@ Vue.component('layout', {
               <a class="navbar-item" href="https://github.com/peasoupio/inv" target="_blank"><i class="fab fa-github"></i><span style="padding-left: 0.25em">@peasoupio/inv</span></a>
               <hr class="navbar-divider">
               <a class="navbar-item" href="https://github.com/peasoupio/inv/issues" target="_blank">Report an issue</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="navbar-end" v-if="shared.setup.initInfo">
+          <div class="navbar-item">
+            <div class="buttons" v-if="!shared.setup.initInfo.standalone">
+                <a class="button" target="_blank" :href="shared.setup.initInfo.source">
+                    <span class="has-text-link has-text-weight-semibold">{{shared.setup.initInfo.version}}</span><span class="has-text-weight-semibold">@{{shared.setup.initInfo.source}}</span>
+                </a>
+            </div>
+            <div class="buttons" v-if="shared.setup.initInfo.standalone">
+                <button class="button" disabled>
+                    Source: Standalone
+                </button>
             </div>
           </div>
         </div>
@@ -162,7 +179,8 @@ Vue.component('layout', {
         <div class="content has-text-centered">
             <p>
                 <strong>INV - Composer</strong> by <a href="https://peasoup.io">peasoup.io</a>. The source code is licensed <a href="https://github.com/peasoupio/inv/blob/master/LICENSE">GPL-3.0</a>.<br />
-                The website content is licensed <a href="http://https://creativecommons.org/licenses/by-nd/4.0/">CC BY-ND 4.0</a>.
+                The website content is licensed <a href="http://https://creativecommons.org/licenses/by-nd/4.0/">CC BY-ND 4.0</a>.<br />
+                Release version: <strong>{{shared.setup.releaseVersion}}</strong>
             </p>
         </div>
     </footer>
@@ -170,6 +188,7 @@ Vue.component('layout', {
 `,
     data: function() {
         return {
+            showBurger: false,
             currentStep: {},
             bootData: {
                 todo: 0,
@@ -327,6 +346,15 @@ Vue.component('layout', {
             .catch(err => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>pull init file changes</strong>!`)
             })
+        },
+        pushInit: function() {
+            var vm = this
+            axios.post(vm.shared.api.links.initFile.push).then(response => {
+                vm.$bus.$emit('toast', `success:Pushed <strong>init file changes</strong> successfully!`)
+            })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>push init file changes</strong>!`)
+            })
         }
     },
     mounted: function() {
@@ -354,6 +382,13 @@ Vue.component('layout', {
 
             // Proceed to setup
             vm.setup()
+        })
+
+        // Check if resize, to reset burger
+        vm.$nextTick(() => {
+            window.addEventListener('resize', () => {
+                vm.showBurger = false
+            })
         })
     }
 })

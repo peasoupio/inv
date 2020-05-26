@@ -3,13 +3,16 @@ package io.peasoup.inv.run;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.tinylog.configuration.Configuration;
 
 import java.util.Queue;
 
 public final class Logger {
     private static Queue<Object> captureQueue = null;
     private static Closure<Object> captureClosure = null;
+
+
+    private static boolean systemEnabled = false;
+    private static boolean debugEnabled = false;
 
     private Logger() {
 
@@ -19,69 +22,66 @@ public final class Logger {
      * Enable debug mode
      */
     public static void enableSystem() {
-        Configuration.set("level", "trace");
+        systemEnabled = true;
     }
 
     /**
      * Enable debug mode
      */
     public static void enableDebug() {
-        Configuration.set("level", "debug");
+        debugEnabled = true;
     }
 
     public static void system(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.trace("[SYSTEM] " + message);
+        if (!systemEnabled)
+            return;
+
+        System.out.append("[SYSTEM] ").append(message).append(System.lineSeparator());
     }
 
     public static void debug(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.debug("[DEBUG] " + message);
+        if (!debugEnabled)
+            return;
+
+        System.out.append("[DEBUG] ").append(message).append(System.lineSeparator());
     }
 
     public static void info(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.info("[INV] " + message);
+        System.out.append("[INV] ").append(message).append(System.lineSeparator());
     }
 
     public static void warn(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.warn("[WARN] " + message);
+        System.err.append("[WARN] ").append(message).append(System.lineSeparator());
     }
 
     public static void fail(Object arg) {
         String message = arg.toString();
         send(message);
 
-        org.tinylog.Logger.error("[FAIL] " + message);
+        System.err.append("[FAIL] ").append(message).append(System.lineSeparator());
     }
 
     public static void error(Throwable throwable) {
-        org.tinylog.Logger.error(StackTraceUtils.sanitize(throwable), "[ERROR] " + throwable.getMessage());
+        StackTraceUtils.sanitize(throwable).printStackTrace();
     }
 
     public static void error(final String invName, final Throwable throwable) {
         send("inv: " + invName + ", message:" + throwable.getMessage());
 
-        org.tinylog.Logger.error(StackTraceUtils.sanitize(throwable), "[ERROR] inv: " + invName);
-    }
-
-    /**
-     * Enables the single logging file
-     * @param logFilepath the log file absolute path
-     */
-    public static void enableFileLogging(String logFilepath) {
-        Configuration.set("writer1", "file");
-        Configuration.set("writer1.file", logFilepath);
-        Configuration.set("writer1.format", "{message}");
+        System.err.append("[ERROR] inv: ").append(invName).append(System.lineSeparator());
+        StackTraceUtils.sanitize(throwable).printStackTrace();
     }
 
     @SuppressWarnings("unchecked")

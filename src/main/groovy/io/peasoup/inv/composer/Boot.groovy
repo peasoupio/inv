@@ -1,6 +1,7 @@
 package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
@@ -80,6 +81,12 @@ class Boot {
     protected void readScmsFiles() {
         def scmFolder = webServer.scms.scmFolder
         def files = scmFolder.listFiles()
+
+        if (!files) {
+            Logger.warn("No files to be found in'${scmFolder.absolutePath}'")
+            return
+        }
+
         thingsToDo.addAndGet(files.size())
 
         def progress = new Progressbar("Reading from '${scmFolder.absolutePath}'".toString(), files.size(), false)

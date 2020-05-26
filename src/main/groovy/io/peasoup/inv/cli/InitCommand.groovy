@@ -14,7 +14,7 @@ class InitCommand implements CliCommand {
     int call() {
         assert initFileLocation, 'Scm file path is required'
 
-        ScmExecutor.SCMReport report = processSCM()
+        ScmExecutor.SCMExecutionReport report = processSCM()
         if (!report) {
             return -1
         }
@@ -36,7 +36,7 @@ class InitCommand implements CliCommand {
         return false
     }
 
-    ScmExecutor.SCMReport processSCM() {
+    ScmExecutor.SCMExecutionReport processSCM() {
         String actualFileLocation = initFileLocation
         File scmFile
 

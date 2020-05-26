@@ -29,7 +29,7 @@ class ScmInvokerTest {
 
         def reports = executor.execute()
 
-        ScmExecutor.SCMReport report = reports.find { it.name == "my-repository" }
+        ScmExecutor.SCMExecutionReport report = reports.find { it.name == "my-repository" }
 
         assert report
         assert report.repository.entry.size() == 1

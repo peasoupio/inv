@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
 
 import java.nio.file.Files
+import java.nio.file.attribute.FileTime
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @CompileStatic
@@ -44,34 +45,11 @@ class Execution {
         // Set initial last execution times
         if (latestLog().exists()) {
             lastExecution = latestLog().lastModified()
-            lastExecutionStartedOn = (Files.getAttribute(latestLog().toPath(), "creationTime") as java.nio.file.attribute.FileTime).toMillis()
+            lastExecutionStartedOn = (Files.getAttribute(latestLog().toPath(), "creationTime") as FileTime).toMillis()
         }
     }
 
-    File latestRun() {
-        return new File(RunsRoller.latest.folder(), "run.txt")
-    }
 
-    File latestLog() {
-        return new File(RunsRoller.latest.folder(), "log.txt")
-    }
-
-    File latestScmFiles() {
-        return new File(RunsRoller.runsFolder(), ScmCommand.LIST_FILE_SUFFIX)
-    }
-
-    List<String> latestScmFilesList() {
-        def scmListFile = latestScmFiles()
-
-        if (!scmListFile.exists())
-            return []
-
-        return scmListFile
-                .readLines()
-                .collect {
-                    new File(it).name
-                }
-    }
 
     boolean isRunning() {
         currentProcess && currentProcess.isAlive()
@@ -195,7 +173,8 @@ class Execution {
                 lastExecution: [
                         logSize  : latestLog().length(),
                         endedOn  : lastExecution,
-                        startedOn: lastExecutionStartedOn
+                        startedOn: lastExecutionStartedOn,
+                        scms     : []
                 ],
                 executions   : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                         .findAll { it.name.isInteger() }
@@ -223,7 +202,7 @@ class Execution {
         return output
     }
 
-    private List<String> resolveArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
+    private static List<String> resolveArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
 
         def myClassPath = System.getProperty("java.class.path")
         def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
@@ -243,7 +222,7 @@ class Execution {
         return jvmArgs + appArgs
     }
 
-    private File generateScmListFile(List<ScmFile> scms) {
+    private static File generateScmListFile(List<ScmFile> scms) {
         def scmListFile = latestScmFiles()
         scmListFile.delete()
 
@@ -259,16 +238,43 @@ class Execution {
         return scmListFile
     }
 
+    static File latestRun() {
+        return new File(RunsRoller.latest.folder(), "run.txt")
+    }
+
+    static File latestLog() {
+        return new File(RunsRoller.latest.folder(), "log.txt")
+    }
+
+    static File latestScmFiles() {
+        return new File(RunsRoller.runsFolder(), ScmCommand.LIST_FILE_SUFFIX)
+    }
+
+    static List<String> latestScmFilesList() {
+        def scmListFile = latestScmFiles()
+
+        if (!scmListFile.exists())
+            return []
+
+        return scmListFile
+                .readLines()
+                .collect {
+                    new File(it).name
+                }
+    }
+
     @WebSocket
     static class MessageStreamer {
 
         protected static final Queue<Session> sessions = new ConcurrentLinkedQueue<>()
 
+        @SuppressWarnings("GrMethodMayBeStatic")
         @OnWebSocketConnect
         void connected(Session session) {
             sessions.add(session)
         }
 
+        @SuppressWarnings("GrMethodMayBeStatic")
         @OnWebSocketClose
         void closed(Session session, int statusCode, String reason) {
             sessions.remove(session)

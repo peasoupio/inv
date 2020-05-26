@@ -24,6 +24,13 @@ public class PoolReportMarkdown {
     }
 
     public void printPoolMarkdown() {
+
+        // Make sure latest run folder exists.
+        if (!RunsRoller.getLatest().folder().exists()) {
+            Logger.warn("Cannot print markdown without a run folder.");
+            return;
+        }
+
         File outputFile = new File(RunsRoller.getLatest().folder(), "report.md");
 
         // Delete existing file

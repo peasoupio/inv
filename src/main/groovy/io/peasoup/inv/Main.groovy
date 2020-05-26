@@ -12,64 +12,6 @@ import org.docopt.DocoptExitException
 @CompileStatic
 class Main extends Script {
 
-    String usage = """Inv.
-
-Usage:
-  inv (run|scm|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
-  inv composer [-d | -x] [-s]
-  inv init [-d | -x] [-s] <initFile>
-  inv promote [<runIndex>] 
-  inv delta <base> <other>
-  inv graph (plain|dot) <base>
-  
-Options:
-  run          Load and execute INV files.
-  scm          Load and execute SCM files.
-  syntax       Test the syntax of an INV or SCM file.
-  composer     Start Composer dashboard
-  init         Start Composer dashboard from an SCM file.
-  promote      Promote a run.txt as the new base.
-  delta        Generate delta between two run files.
-  graph        Generate a graph representation.
-  -d --debug   Debug out. Excellent for troubleshooting.
-  -x --system  Print system troubleshooting messages.
-  -s --secure  Enable the secure mode for script files.
-  -e --exclude Exclude files from loading.
-  -h --help    Show this screen.
-  
-Parameters:
-  
-  <include>    Indicates the files to include.
-               It is Ant-compatible 
-               (p.e *.groovy, ./**/*.groovy, ...)
-               It is also expandable using a space-separator
-               (p.e myfile1.groovy myfile2.groovy)
-               For scm: 
-                   You can use a file ending with 'scm-list.txt'
-                   for it to list all your SCM file references.
-                   Each line must equal to the absolute path
-                   of your SCM file on the current filesystems.
-  <exclude>    Indicates the files to exclude.
-               Exclusion is predominant over inclusion
-               It is Ant-compatible 
-               (p.e *.groovy, ./**/*.groovy, ...)
-  <initFile>   The SCM file location. The file can be local
-               or remote, using an URL.
-  <runIndex>   The run index whose promotion will be granted.
-               Runs are located inside INV_HOME/.runs/ 
-               By default, it uses the latest successful run
-               location.
-  <base>       Base file location
-  <other>      Other file location
-  plain        No specific output structure
-  dot          Graph Description Language (DOT) output structure
-"""
-
-    /**
-     * Determines whether or not the main is embedded into another JVM process or has its own
-     */
-    static boolean embedded = false
-
     /**
      * Returns the latest run exit code
      */
@@ -89,18 +31,24 @@ Parameters:
 
         // Parse docopt arguments
         try {
-            arguments = new Docopt(usage)
+            arguments = new Docopt(usage())
                     .withExit(false)
                     .parse(getProperty("args") as List<String>)
         } catch(DocoptExitException ex) {
-            println usage
+            println usage()
             return -1
+        }
+
+        // Do system checks
+        if (SystemInfo.consistencyFails()) {
+            RunsRoller.latest.latestHaveFailed()
+            return -2
         }
 
         // Find a matching command
         CliCommand command = findCommand()
         if (!command) {
-            println usage
+            println usage()
             return -1
         }
 
@@ -120,11 +68,7 @@ Parameters:
         if (arguments["--secure"])
             CommonLoader.enableSecureMode()
 
-        // Do system checks
-        if (new SystemChecks().consistencyFails(this)) {
-            RunsRoller.latest.latestHaveFailed()
-            return -2
-        }
+
 
         // Execute command
         int result
@@ -183,23 +127,83 @@ Parameters:
         return null
     }
 
+    private static String usage() {
+        return """Inv, version: ${SystemInfo.version()}.
+
+Usage:
+  inv (run|scm|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv composer [-d | -x] [-s]
+  inv init [-d | -x] [-s] <initFile>
+  inv promote [<runIndex>] 
+  inv delta <base> <other>
+  inv graph (plain|dot) <base>
+  
+Options:
+  run          Load and execute INV files.
+  scm          Load and execute SCM files.
+  syntax       Test the syntax of an INV or SCM file.
+  composer     Start Composer dashboard
+  init         Start Composer dashboard from an SCM file.
+  promote      Promote a run.txt as the new base.
+  delta        Generate delta between two run files.
+  graph        Generate a graph representation.
+  -d --debug   Debug out. Excellent for troubleshooting.
+  -x --system  Print system troubleshooting messages.
+  -s --secure  Enable the secure mode for script files.
+  -e --exclude Exclude files from loading.
+  -h --help    Show this screen.
+  
+Parameters:
+  
+  <include>    Indicates the files to include.
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+               It is also expandable using a space-separator
+               (p.e myfile1.groovy myfile2.groovy)
+               For scm: 
+                   You can use a file ending with 'scm-list.txt'
+                   for it to list all your SCM file references.
+                   Each line must equal to the absolute path
+                   of your SCM file on the current filesystems.
+  <exclude>    Indicates the files to exclude.
+               Exclusion is predominant over inclusion
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+  <initFile>   The SCM file location. The file can be local
+               or remote, using an URL.
+  <runIndex>   The run index whose promotion will be granted.
+               Runs are located inside INV_HOME/.runs/ 
+               By default, it uses the latest successful run
+               location.
+  <base>       Base file location
+  <other>      Other file location
+  plain        No specific output structure
+  dot          Graph Description Language (DOT) output structure
+"""
+    }
+
     private static void setupRolling() throws IOException {
         // Roll a new run folder
         RunsRoller.getLatest().roll()
-
-        // Enable file logging
-        Logger.enableFileLogging(new File(RunsRoller.getLatest().folder(), "run.txt").getCanonicalPath())
     }
 
-    static void main(String[] args) {
+    /**
+     * Allows to execute CLI commands within the current process.
+     * @param args CLI args
+     */
+    static void start(String[] args) {
         exitCode = InvokerHelper.runScript(Main, args) as int
+    }
 
-        if (embedded)
-            return
+    /**
+     * JVM entry-point. Do not call directly
+     * @param args CLI args
+     */
+    static void main(String[] args) {
+        start(args)
 
-        if (exitCode == 0)
-            return
-
-        System.exit(exitCode)
+        // Return exit code if != 0
+        if (exitCode)
+            System.exit(exitCode)
     }
 }

@@ -2,8 +2,12 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.SystemInfo
 import io.peasoup.inv.cli.InitCommand
 import io.peasoup.inv.composer.WebServer
+import io.peasoup.inv.run.Logger
+import io.peasoup.inv.scm.HookExecutor
+import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.security.CommonLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
@@ -14,9 +18,12 @@ import static spark.Spark.*
 class SystemAPI {
 
     private final WebServer webServer
+    private final Map initInfo
 
     SystemAPI(WebServer webServer) {
         this.webServer = webServer
+
+        this.initInfo = initInfo()
     }
 
     void routes() {
@@ -32,8 +39,9 @@ class SystemAPI {
                             ],
                             initFile : [
                                     default: webServer.API_CONTEXT_ROOT + "/initfile",
-                                    save: webServer.API_CONTEXT_ROOT + "/initfile",
-                                    pull: webServer.API_CONTEXT_ROOT + "/initfile/pull"
+                                    save   : webServer.API_CONTEXT_ROOT + "/initfile",
+                                    pull   : webServer.API_CONTEXT_ROOT + "/initfile/pull",
+                                    push   : webServer.API_CONTEXT_ROOT + "/initfile/push"
                             ],
                             run      : [
                                     default   : webServer.API_CONTEXT_ROOT + "/run",
@@ -69,10 +77,13 @@ class SystemAPI {
         })
 
         get("/setup", { Request req, Response res ->
+
             return JsonOutput.toJson([
-                    booted   : webServer.boot.isDone(),
-                    firstTime: webServer.run == null,
-                    links    : [
+                    booted        : webServer.boot.isDone(),
+                    releaseVersion: SystemInfo.version(),
+                    initInfo      : initInfo,
+                    firstTime     : webServer.run == null,
+                    links         : [
                             stream: "/boot/stream"
                     ]
             ])
@@ -148,10 +159,65 @@ class SystemAPI {
             def report = initCommand.processSCM()
 
             if (!report)
-                webServer.showResult("Could not pull init")
+                return webServer.showError(res, "Could not pull init")
 
             return webServer.showResult("Pulled init successfully")
         })
+
+        post("/initfile/push", { Request req, Response res ->
+            if (!webServer.webServerConfigs.initFile)
+                return webServer.showError(res, "Missing init file")
+
+            if (!(webServer.webServerConfigs.initFile instanceof String))
+                return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
+
+            // Invoke push hook manually
+            def initFile = new File(webServer.webServerConfigs.initFile as String)
+            ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
+                read(initFile)
+
+                if (!scms.containsKey("main"))
+                    return null
+
+                def report = new ScmExecutor.SCMExecutionReport("main", scms.get("main"))
+                HookExecutor.push(report)
+
+                return report
+            }
+
+            if (!report || !report.isOk)
+                return webServer.showError(res, "Could not push init")
+
+            return webServer.showResult("Pushed init successfully")
+        })
     }
 
+
+    private Map initInfo() {
+        if (!webServer.webServerConfigs.initFile)
+            return [standalone: true]
+
+        def initFile = new File(webServer.webServerConfigs.initFile as String)
+        ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
+            read(initFile)
+
+            if (!scms.containsKey("main"))
+                return null
+
+            def report = new ScmExecutor.SCMExecutionReport("main", scms.get("main"))
+            HookExecutor.version(report)
+
+            return report
+        }
+
+        if (!report) {
+            Logger.warn("Could not read init file to get info")
+            return [standalone: true]
+        }
+
+        return [
+                source: report.repository.src,
+                version: report.stdout.trim()
+        ]
+    }
 }

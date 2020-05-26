@@ -62,7 +62,6 @@ class ScmDescriptor {
         askBody.resolveStrategy = Closure.DELEGATE_ONLY
         askBody.delegate = ask
         askBody()
-
     }
 
     //@Override
@@ -110,6 +109,21 @@ class ScmDescriptor {
          * @param value the Shell Script (Sh) commands
          */
         void pull(String value) {this.pull = value }
+
+        String push
+        /**
+         * Indicates how to push changes to the remote source code manager.
+         * @param value the Shell Script (Sh) commands
+         */
+        void push(String value) {this.push = value }
+
+        String version
+        /**
+         * Indicates how to retrieve the current version. <br/>
+         * Important: Only the first returned line is used.
+         * @param value the Shell Script (Sh) commands
+         */
+        void version(String value) {this.version = value }
 
         /**
          * DEPRECATED. See 'pull' instead

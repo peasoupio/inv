@@ -16,7 +16,7 @@ class RunsRollerTest {
 
     @Test
     void roll() {
-        FileUtils.deleteDirectory(RunsRoller.runsFolder())
+        RunsRoller.forceDelete();
         assert RunsRoller.runsFolder().listFiles() == null
 
         RunsRoller.getLatest().roll()

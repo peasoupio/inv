@@ -5,28 +5,14 @@ import io.peasoup.inv.cli.ScmCommand
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Stdout
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(TempHome.class)
 class MainTest {
 
-    @Before
-    void before() {
-        Main.embedded = true
-    }
-
-    @After
-    void after() {
-        Logger.capture(null)
-
-        Main.embedded = false
-    }
-
     @Test
-    void main() {
+    void start() {
         // Enable capture
         def logs = Logger.capture(new LinkedList())
 
@@ -35,7 +21,7 @@ class MainTest {
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main("run", "-x", script.path)
+        Main.start("run", "-x", script.path)
 
         assert Main.exitCode == 0
         assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
@@ -51,7 +37,7 @@ class MainTest {
 
         def canonicalPath = new File(script.path).canonicalPath
 
-        Main.main("run", "-s", script.path)
+        Main.start("run", "-s", script.path)
 
         assert Main.exitCode == 0
         assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
@@ -60,7 +46,7 @@ class MainTest {
     @Test
     void main_no_args() {
 
-        Stdout.capture ({ Main.main() }, {
+        Stdout.capture ({ Main.start() }, {
             assert Main.exitCode == -1
             assert it.contains("Usage")
         })
@@ -76,7 +62,7 @@ class MainTest {
             new File(TempHome.testResources, "/mainTestScript2.groovy").canonicalPath
         ]
 
-        Main.main("run", "-e", "pattern", "test-resources/mainTestScript.groovy", "test-resources/mainTestScript2.groovy")
+        Main.start("run", "-e", "pattern", "test-resources/mainTestScript.groovy", "test-resources/mainTestScript2.groovy")
 
         assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
@@ -93,7 +79,7 @@ class MainTest {
                 new File(TempHome.testResources, "/mainTestScript2.groovy").canonicalPath
         ]
 
-        Main.main("run", "test-resources/mainTestScript*.*")
+        Main.start("run", "test-resources/mainTestScript*.*")
 
         assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [mainTestScript]".toString())
@@ -112,7 +98,7 @@ class MainTest {
             new File(TempHome.testResources, "/pattern/inside/different/mainTestScript2.groovy").canonicalPath,
         ]
 
-        Main.main("run", "test-resources/pattern/**/*.*")
+        Main.start("run", "test-resources/pattern/**/*.*")
 
         assert Main.exitCode == 0
         assert logs.contains("[undefined] [${files[0]}] [different-folder]".toString())
@@ -127,12 +113,12 @@ class MainTest {
         assert logOutput
 
         println "\nTest selecting 'plain': "
-        Main.main("graph", "plain", logOutput.path)
+        Main.start("graph", "plain", logOutput.path)
 
         assert Main.exitCode == 0
 
         println "\nTest selecting 'dot': "
-        Main.main("graph", "dot", logOutput.path)
+        Main.start("graph", "dot", logOutput.path)
 
         assert Main.exitCode == 0
     }
@@ -150,12 +136,12 @@ class MainTest {
         if (comparable.scms["my-repository"].path.exists())
             comparable.scms["my-repository"].path.deleteDir()
 
-        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.start("scm", scmFile.path) }, {
             assert Main.exitCode == 0
             assert it.contains("init")
         })
 
-        Stdout.capture ({ Main.main("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.start("scm", scmFile.path) }, {
             assert Main.exitCode == 0
             assert it.contains("update")
         })
@@ -174,7 +160,7 @@ class MainTest {
         def scriptFile = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
         assert scriptFile.exists()
 
-        Main.main("scm", scmFile.path)
+        Main.start("scm", scmFile.path)
 
         assert logs.contains("[my-repository-relative] [${scriptFile.canonicalPath}] [mainTestScript]".toString())
     }
@@ -196,7 +182,7 @@ class MainTest {
                 "scm2": [ script: scm2.absolutePath]
         ])
 
-        Main.main("scm", scmListFile.path)
+        Main.start("scm", scmListFile.path)
 
         def scm1Entry = new File(comparable.scms["my-repository"].entry[0])
         def scm2Entry = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
@@ -214,10 +200,10 @@ class MainTest {
         assert validSyntaxFile
         assert invalidSyntaxFile
 
-        Main.main("syntax", validSyntaxFile.path)
+        Main.start("syntax", validSyntaxFile.path)
         assert Main.exitCode == 0
 
-        Main.main("syntax", invalidSyntaxFile.path)
+        Main.start("syntax", invalidSyntaxFile.path)
         assert Main.exitCode == -2
     }
 
@@ -230,7 +216,7 @@ class MainTest {
         assert logOutput
         assert logOutputAfter
 
-        Main.main("delta", logOutput.path, logOutputAfter.path)
+        Main.start("delta", logOutput.path, logOutputAfter.path)
 
         assert Main.exitCode == 0
     }

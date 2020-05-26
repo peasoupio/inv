@@ -27,7 +27,7 @@ class ScmExecutorTest {
 
         assert report
         assert report.size() == 1
-        assert report[0].isOk
+        assert !report[0].isOk
     }
 
     @Test
@@ -45,7 +45,7 @@ class ScmExecutorTest {
 
         assert report
         assert report.size() == 1
-        assert report[0].isOk
+        assert !report[0].isOk
     }
 
     @Test

@@ -21,6 +21,9 @@ class TempHome extends BlockJUnit4ClassRunner {
         Home.getCurrent().deleteDir()
         Home.getCurrent().mkdirs()
 
+        // Clear existing tests runs
+        RunsRoller.forceDelete()
+
         // Move test resources to temp INV_HOME
         def testResourcesSource = new File("./", "src/test/resources")
         testResources = new File(Home.getCurrent(), "test-resources")

@@ -437,7 +437,7 @@ scm {
         }
 
         // Let execution close
-        sleep(100)
+        sleep(500)
 
         def responseEnd = get("execution")
         assert responseEnd

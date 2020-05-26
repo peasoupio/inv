@@ -1,27 +1,47 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Home;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.plexus.util.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
 
 public class RunsRoller {
     private static final RunsRoller latest = new RunsRoller();
 
+    /**
+     * Gets the ".runs/" folder location
+     * @return File object representation of the location
+     */
     public static File runsFolder() {
         return new File(Home.getCurrent(), ".runs/");
     }
 
+    /**
+     * Gets the latest roller instance.
+     * @return Singleton instance of RunsRoller.
+     */
     public static RunsRoller getLatest() {
         // Make sure .runs/ exists
         if (runsFolder().mkdirs())
             Logger.system("Created runs (./runs) folder");
 
         return latest;
+    }
+
+    public static boolean forceDelete() {
+        try {
+            getLatest().closeRunfileOutputStream();
+            FileUtils.deleteDirectory(RunsRoller.runsFolder());
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public File folder() {
@@ -39,6 +59,8 @@ public class RunsRoller {
     private File latestSymlink() {
         return new File(runsFolder(), "latest/");
     }
+
+    private OutputStream latestRunFileOutputStream;
 
     private RunsRoller() {
     }
@@ -76,6 +98,8 @@ public class RunsRoller {
 
         // Create new symlink for new run folder
         Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());
+
+        configureRunfileOutputStreams();
     }
 
     private Integer latestIndex() {
@@ -98,5 +122,45 @@ public class RunsRoller {
         return files.length > 0;
     }
 
+    /**
+     * Enables the single logging file
+     */
+    private void configureRunfileOutputStreams() {
+        try {
+            closeRunfileOutputStream();
 
+            // Create a new run file FOS
+            File outputFile = new File(latest.folder(), "run.txt");
+            latestRunFileOutputStream = new BufferedOutputStream(new FileOutputStream(outputFile));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    latestRunFileOutputStream.flush();
+                }
+                catch (Throwable t) {
+                    // Ignore
+                }
+            }, "Shutdown hook, thread flushing run file: " + outputFile.getAbsolutePath()));
+
+            // Redirect Out and Err to FOS.
+            TeeOutputStream runFileOut = new TeeOutputStream(System.out, latestRunFileOutputStream);
+            PrintStream psOut = new PrintStream(runFileOut, true);
+            System.setOut(psOut);
+
+            TeeOutputStream runFileErr = new TeeOutputStream(System.err, latestRunFileOutputStream);
+            PrintStream psErr = new PrintStream(runFileErr, true);
+            System.setErr(psErr);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeRunfileOutputStream() throws IOException {
+        // Make sure latest run file is flushed and closed.
+        if (latestRunFileOutputStream != null) {
+            latestRunFileOutputStream.flush();
+            latestRunFileOutputStream.close();
+            latestRunFileOutputStream = null;
+        }
+    }
 }

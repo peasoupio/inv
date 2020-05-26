@@ -2,7 +2,6 @@ package io.peasoup.inv.scm
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
-import org.apache.commons.lang.RandomStringUtils
 
 import java.util.concurrent.*
 
@@ -27,15 +26,15 @@ class ScmExecutor {
         scms.put(descriptor.name, descriptor)
     }
 
-    List<SCMReport> execute() {
+    List<SCMExecutionReport> execute() {
 
         ExecutorService pool = Executors.newFixedThreadPool(4)
-        final List<Future<SCMReport>> futures = []
-        final List<SCMReport> reports = []
+        final List<Future<SCMExecutionReport>> futures = []
+        final List<SCMExecutionReport> reports = []
 
         scms.each { String name, ScmDescriptor repository ->
             futures << pool.submit({
-                def report = new SCMReport(name: name, repository: repository)
+                def report = new SCMExecutionReport(name, repository)
 
                 Logger.debug("[SCM] script: ${repository.name}, parameter: ${repository.parametersFile ? repository.parametersFile.absolutePath : 'not defined'}")
 
@@ -44,25 +43,22 @@ class ScmExecutor {
 
                 Boolean doesPathExistsAndNotEmpty = repository.path.exists() && repository.path.list().size() > 0
 
-                if (repository.hooks.init && !doesPathExistsAndNotEmpty) {
+                if (!doesPathExistsAndNotEmpty) {
 
                     // Make sure path is clean before init
                     repository.path.deleteDir()
 
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] start")
-                    report.isOk = executeCommands(repository, repository.hooks.init)
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [INIT] done")
+                    // Execute hook
+                    HookExecutor.init(report)
 
-                } else if (repository.hooks.pull) {
-
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [PULL] start")
-                    report.isOk = executeCommands(repository, repository.hooks.pull)
-                    Logger.info("[SCM] name: ${name}, path: ${repository.path.canonicalPath} [PULL] done")
+                } else  {
+                    // Execute hook
+                    HookExecutor.pull(report)
                 }
 
                 return report
 
-            } as Callable<SCMReport>)
+            } as Callable<SCMExecutionReport>)
         }
 
         try {
@@ -81,56 +77,16 @@ class ScmExecutor {
         return reports
     }
 
-    private boolean executeCommands(ScmDescriptor repository, String commands) {
+    static class SCMExecutionReport {
+        final String name
+        final ScmDescriptor repository
 
-        // Make sure cache is available with minimal accesses
-        if (!repository.path.exists()) {
-            repository.path.mkdirs()
-            repository.path.setExecutable(true)
-            repository.path.setWritable(true)
-            repository.path.setReadable(true)
-        }
-
-        // Create file and dirs for the SH file
-        def shFile = new File(repository.path.parentFile, randomSuffix() + '.scm-sh')
-        shFile.delete()
-
-        // Write the commands into the script file
-        shFile << commands
-
-        // Calling the SH file with the commands in it
-        // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
-        def cmd = "bash ${shFile.canonicalPath}"
-        def envs = repository.env.collect { "${it.key}=${it.value}"}
-        def process = cmd.execute(envs, repository.path.canonicalFile)
-
-        Logger.system "[SCM] ${cmd}"
-
-        // Consome output and wait until done.
-        process.consumeProcessOutput(System.out, System.err)
-        process.waitForOrKill(repository.timeout ?: 60000)
-
-        shFile.delete()
-
-        if (process.exitValue() != 0) {
-            Logger.warn "SCM path ${repository.path.absolutePath} was deleted since hook returned ${process.exitValue()}"
-
-            repository.path.deleteDir()
-
-            return false
-        }
-
-        return true
-    }
-
-    private static String randomSuffix() {
-        return RandomStringUtils.random(9, true, true)
-    }
-
-    static class SCMReport {
-
-        String name
-        ScmDescriptor repository
         boolean isOk = true
+        String stdout
+
+        SCMExecutionReport(String name, ScmDescriptor repository) {
+            this.name = name
+            this.repository = repository
+        }
     }
 }

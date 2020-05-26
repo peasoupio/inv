@@ -4,20 +4,30 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 
 @CompileStatic
-class SystemChecks {
+class SystemInfo {
+
+    static String version() {
+        Properties releaseInfo = new Properties()
+        def releaseFile = SystemInfo.getResourceAsStream("/release.properties")
+        if (!releaseFile)
+            return
+
+        releaseInfo.load(releaseFile)
+
+        return releaseInfo.version
+    }
 
     /**
      * Check whether or not the system fails to meet the minimal "consistency" requirements
      * @param main Main class instance
      * @return true if fails, otherwise false
      */
-    boolean consistencyFails(Main main) {
-        assert main, 'Main is required'
-
-        return checkInvHome(Home.getCurrent())
+    static boolean consistencyFails() {
+        return checkInvHome(Home.getCurrent()) &&
+               checkReleaseInfo(version())
     }
 
-    boolean checkInvHome(File invHome) {
+    protected static boolean checkInvHome(File invHome) {
         if (invHome == null) {
             Logger.fail "INV_HOME is not valid"
             return true
@@ -41,5 +51,14 @@ class SystemChecks {
         }
 
         return false
+    }
+
+    protected static boolean checkReleaseInfo(String version) {
+        if (!version) {
+            Logger.fail "couldn't get current version"
+            return false
+        }
+
+        return true
     }
 }

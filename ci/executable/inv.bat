@@ -10,4 +10,4 @@ REM Get INV jar
 SET INVJAR=${project.artifactId}-${project.version}.jar
 
 REM Call INV jar with parameters
-java -jar %LIBDIR%/%INVJAR% "%*"
+java -jar %LIBDIR%/%INVJAR% %*

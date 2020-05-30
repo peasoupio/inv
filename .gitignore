@@ -24,4 +24,4 @@ reports/
 *.scm-sh
 .gitcache/
 node_modules/
-/report.md
+reports/

@@ -1091,6 +1091,9 @@ This is a sample description for **this** broadcast statement
 
         def report = executor.execute()
         assert report.isOk()
-        assert new File(RunsRoller.latest.folder(), "report.md").exists()
+
+        def reportFolder = new File(RunsRoller.latest.folder(), "reports")
+        assert reportFolder.exists()
+        assert new File(reportFolder, "doc.md").exists()
     }
 }

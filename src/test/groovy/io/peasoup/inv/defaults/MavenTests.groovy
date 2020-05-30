@@ -1,11 +1,14 @@
 package io.peasoup.inv.defaults
 
+import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.InvHandler
 import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(TempHome.class)
 class MavenTests {
 
     @Before

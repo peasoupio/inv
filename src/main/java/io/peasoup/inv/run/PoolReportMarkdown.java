@@ -3,12 +3,12 @@ package io.peasoup.inv.run;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.file.Files;
 import java.util.*;
 
 public class PoolReportMarkdown {
@@ -31,30 +31,38 @@ public class PoolReportMarkdown {
             return;
         }
 
-        File outputFile = new File(RunsRoller.getLatest().folder(), "report.md");
-
-        // Delete existing file
-        if (outputFile.exists()) {
+        // Make sure latest run report folder exists (pe: ".runs/1/reports")
+        File reportFolder = new File(RunsRoller.getLatest().folder(), "reports");
+        if (reportFolder.exists()) {
             try {
-                Files.delete(outputFile.toPath());
+                FileUtils.deleteDirectory(reportFolder);
+            } catch (IOException e) {
+                Logger.error(e);
+                return;
+            }
+        }
+        boolean reportFolderCreated = reportFolder.mkdirs();
+        if (!reportFolderCreated) {
+            Logger.error(new RuntimeException("Report folder could not be created at :" + reportFolder.getAbsolutePath()));
+            return;
+        }
+
+        // Create new MustacheFactory
+        MustacheFactory mf = new DefaultMustacheFactory();
+        Mustache mustache = mf.compile("poolreportmarkdown.mustache");
+
+        // Write new report to file
+        for(Map<String, Object> scopes: getAllScopes()) {
+            String reportFilename = scopes.get("name").toString() + ".md";
+            File outputFile = new File(reportFolder, reportFilename);
+
+            // Write report file for INV scope.
+            try (Writer outputWriter = new FileWriter(outputFile, false)) {
+                mustache.execute(outputWriter, scopes);
+                outputWriter.flush();
             } catch (IOException e) {
                 Logger.error(e);
             }
-        }
-
-        // Write new report to file
-        try (Writer outputWriter = new FileWriter(outputFile, true)){
-            MustacheFactory mf = new DefaultMustacheFactory();
-            Mustache mustache = mf.compile("poolreportmarkdown.mustache");
-
-            // Process all scopes inside same file
-            for(Map<String, Object> scopes: getAllScopes()) {
-                mustache.execute(outputWriter, scopes);
-            }
-
-            outputWriter.flush();
-        } catch (IOException e) {
-            Logger.error(e);
         }
     }
 

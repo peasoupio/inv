@@ -4,9 +4,26 @@ import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 
 inv {
+    markdown '''
+Provide a Maven reader that scan the callee current location for 'pom.xml' files.  
+It also analyzes the artifacts and the dependencies to generate broadcasts (artifacts) and requires (dependencies).
+'''
+
+
     require $inv.Files into '$files'
 
     broadcast $inv.Maven using {
+        markdown '''
+Returns a new Maven instance.  
+
+Exposes:
+```
+    $: Default hook so it can analyze each callee individually. It uses the callee 'pwd' location.
+    analyze: Analyze the artifacts and dependencies for a specific folder.
+```
+'''
+
+
         ready {
             def instance = [:]
             instance << [

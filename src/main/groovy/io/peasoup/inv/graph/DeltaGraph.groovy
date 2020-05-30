@@ -3,6 +3,7 @@ package io.peasoup.inv.graph
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
 import io.peasoup.inv.run.InvInvoker
+import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 
 @CompileStatic
@@ -38,7 +39,10 @@ class DeltaGraph {
         for(GraphNavigator.Linkable link : baseGraph.navigator.links()) {
 
             def linksNode = baseGraph.navigator.nodes[link.value]
-            assert linksNode, "Link's node cannot be null"
+            if (!linksNode) {
+                Logger.warn("[BASEGRAPH] ${link.value} node cannot be null (a missing broadcast?).")
+                continue
+            }
 
             def fileStatement = cacheBaseFiles[linksNode.owner]
 
@@ -58,7 +62,10 @@ class DeltaGraph {
         for(GraphNavigator.Linkable link : otherGraph.navigator.links()) {
 
             def linksNode = otherGraph.navigator.nodes[link.value]
-            assert linksNode, "Link's node cannot be null"
+            if (!linksNode) {
+                Logger.warn("[LATESTGRAPH] ${link.value} node cannot be null (a missing broadcast?).")
+                continue
+            }
 
             // Check if it has a valid SCM reference
             def fileStatement = cacheOtherFiles[linksNode.owner]

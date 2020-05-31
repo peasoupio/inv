@@ -9,8 +9,8 @@ services:
   - docker
 cache:
   directories:
-    - "$HOME/.cache"
-    - "$HOME/.m2"
+    - $HOME/.cache
+    - $HOME/.m2
 
 addons:
   sonarcloud:
@@ -23,6 +23,9 @@ install: mvn -B dependency:go-offline
 jobs:
   include:
     # Do the actual build (and test reporting)
+    - stage: prepare cache
+      script: true
+
     - stage: package (maven)
       script: mvn -B -o package -Pdistribute # goes "online" since gmaven-plus uses runtime dependencies
 

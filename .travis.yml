@@ -38,7 +38,7 @@ jobs:
       if: branch =~ ^release\/.*$
       services:
         - docker
-      script: 'bash ./target/docker/build.sh'
+      script: (cd ./target/docker/ && bash build.sh)
 
     - stage: distribute
       script: true

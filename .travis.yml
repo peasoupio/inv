@@ -5,8 +5,7 @@ language: java
 dist: xenial
 jdk:
   - openjdk8
-services:
-  - docker
+
 cache:
   directories:
     - $HOME/.cache
@@ -37,9 +36,12 @@ jobs:
 
     - stage: distribute
       if: branch =~ ^release\/.*$
-      script: target/docker/build.sh
+      services:
+        - docker
+      script: 'bash ./target/docker/build.sh'
 
     - stage: distribute
+      script: true
       deploy:
         provider: releases
         skip_cleanup: true
@@ -49,19 +51,3 @@ jobs:
         file: target/dist/*
         on:
           tags: true
-
-#deploy:
-#  - provider: script
-#    skip_cleanup: true
-#    script: 'bash ./ci/deploy.sh'
-#    on:
-#      all_branches: true
-#      condition: $TRAVIS_BRANCH =~ ^release\/.*$
-#  - provider: releases
-#    skip_cleanup: true
-#    token: $GITHUB_OAUTH
-#    draft: true
-#    file_glob: true
-#    file: target/dist/*
-#    on:
-#      tags: true

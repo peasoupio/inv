@@ -1,8 +1,8 @@
 os:
   - linux
 #  - osx
-sudo: false
 language: java
+dist: xenial
 jdk:
   - openjdk8
 services:
@@ -20,17 +20,13 @@ addons:
 deploy:
   - provider: script
     script: 'bash ./ci/deploy.sh'
-    skip_cleanup: true
     on:
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^release\/.*$
   - provider: releases
-    api_key: $GITHUB_OAUTH
+    token: $GITHUB_OAUTH
     draft: true
     file_glob: true
-    file:
-     - target/inv-*.zip
-     - target/inv-*.tar.gz
-    skip_cleanup: true
+    file: target/dist/*
     on:
       tags: true

@@ -4,7 +4,7 @@
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 # Move tar gz here
-cp "${project.build.directory}/${project.artifactId}-${project.version}.tar.gz" "${project.artifactId}-${project.version}.tar.gz"
+cp "${project.build.directory}/dist/${project.artifactId}-${project.version}.tar.gz" "${project.artifactId}-${project.version}.tar.gz"
 
 # Compile docker image
 docker build -t "peasoupio/${project.artifactId}:${project.version}" .

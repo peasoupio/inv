@@ -19,11 +19,13 @@ addons:
 
 deploy:
   - provider: script
+    skip_cleanup: true
     script: 'bash ./ci/deploy.sh'
     on:
       all_branches: true
       condition: $TRAVIS_BRANCH =~ ^release\/.*$
   - provider: releases
+    skip_cleanup: true
     token: $GITHUB_OAUTH
     draft: true
     file_glob: true

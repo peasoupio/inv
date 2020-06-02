@@ -179,21 +179,21 @@ class ScmFile {
             descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
                 Logger.system "[PARAMETER] scm: ${descriptor.name}, name: '${parameter.name}'"
 
-                List<String> values = parameter.values ?: []
+                Collection<String> values = parameter.values ?: []
 
                 if (parameter.command && descriptor.path.exists()) {
                     String stdout = parameter.command.execute(descriptor.set, descriptor.path).in.text
 
                     Logger.system "[PARAMETER] command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 
-                    values = stdout.split(Regexes.NEWLINES) as List<String>
+                    values = stdout.split(Regexes.NEWLINES) as Collection<String>
                 }
 
                 Boolean hasFilter = parameter.filter != null
                 def hasRegexFilter = parameter.filterRegex
 
                 if (hasFilter || hasRegexFilter) {
-                    List<String> copy = values.collect()
+                    Collection<String> copy = values.collect()
                     values.clear()
 
                     for (String value : copy) {

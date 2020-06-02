@@ -58,14 +58,14 @@ class ScmHandlerTest {
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new ScmHandler(null)
         })
     }
 
     @Test
     void invalid_scm() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             scm.call null
         })
     }
@@ -108,7 +108,7 @@ class ScmHandlerTest {
 
     @Test
     void invalid_hooks() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             scm.call {
                 hooks null
             }
@@ -117,7 +117,7 @@ class ScmHandlerTest {
 
     @Test
     void invalid_ask() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             scm.call {
                 ask null
             }

@@ -42,11 +42,11 @@ class ScmInvokerTest {
 
         def scmFile =  new File(getClass().getResource('/scm-multiple.groovy').toURI())
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             ScmInvoker.invoke(null, scmFile)
         })
 
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             ScmInvoker.invoke(scmHandler, null)
         })
     }

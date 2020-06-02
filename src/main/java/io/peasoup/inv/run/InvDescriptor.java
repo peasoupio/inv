@@ -25,7 +25,6 @@ public class InvDescriptor {
         this.properties = properties;
     }
 
-
     /**
      * Defines the name of the new INV object.
      * <p>
@@ -261,7 +260,7 @@ public class InvDescriptor {
 
 
     /**
-     * @deprecated Check get$() instead.
+     * @deprecated Check get$() instead. Will be removed in 2021.
      */
     @Deprecated
     public final InvNames getInv() {
@@ -281,7 +280,7 @@ public class InvDescriptor {
      * </pre>
      * @return a new StatementDescriptor
      */
-    public final InvNames get$inv() {
+    public InvNames get$inv() {
         return InvNames.Instance;
     }
 

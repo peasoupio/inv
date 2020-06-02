@@ -58,14 +58,14 @@ class InitCommand implements CliCommand {
         scmExecutor.read(scmFile)
         def reports = scmExecutor.execute()
 
-        if (reports.any { !it.isOk }) {
+        if (reports.any { !it.isOk() }) {
             //TODO Log a message ?
             return null
         }
 
         def report = reports.find { it.name.toLowerCase() == "main" }
 
-        if (!report || !report.isOk) {
+        if (!report || !report.isOk()) {
             Logger.warn "No named 'main' SCM is defined or available for init."
             return null
         }

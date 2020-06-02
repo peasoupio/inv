@@ -84,11 +84,11 @@ class InvInvokerTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), 'pwd', null, null)
+            InvInvoker.invoke(new InvHandler(), null, 'pwd', null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), 'pwd', new File("filename"), null)
+            InvInvoker.invoke(new InvHandler(), new File("filename"), 'pwd', null)
         })
     }
 }

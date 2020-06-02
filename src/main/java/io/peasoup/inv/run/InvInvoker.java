@@ -33,16 +33,14 @@ public class InvInvoker {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invHandler, scriptPath.getParent(), scriptPath, UNDEFINED_SCM);
+        invoke(invHandler, scriptPath, scriptPath.getAbsoluteFile().getParent(), UNDEFINED_SCM);
     }
 
-    public static void invoke(InvHandler invHandler, String pwd, final File scriptFile, String scm) throws IOException {
+    public static void invoke(InvHandler invHandler, File scriptFile, String pwd, String scm) throws IOException {
         if (invHandler == null) {
             throw new IllegalArgumentException("InvHandler is required");
         }
-        if (StringUtils.isEmpty(pwd)) {
-            throw new IllegalArgumentException("Pwd (current working directory) is required");
-        }
+
         if (scriptFile == null) {
             throw new IllegalArgumentException("Script file is required");
         }
@@ -52,8 +50,11 @@ public class InvInvoker {
             return;
         }
 
-
         Logger.system("[INVOKER] file: " + scriptFile.getCanonicalPath());
+
+        if (StringUtils.isEmpty(pwd)) {
+            throw new IllegalArgumentException("Pwd (current working directory) is required");
+        }
 
         String preferredClassname = (normalizeClassName(scriptFile) + "_" + checksum(scriptFile)).toLowerCase();
         Script myNewScript;

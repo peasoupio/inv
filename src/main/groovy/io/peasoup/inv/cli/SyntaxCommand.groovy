@@ -18,8 +18,13 @@ class SyntaxCommand implements CliCommand {
         if (patterns.isEmpty())
             return -1
 
+        // Handle excluding patterns
+        def excludePatterns = [".runs/*"]
+        if (exclude)
+            excludePatterns.add(exclude)
+
         def commonLoader = new CommonLoader()
-        def syntaxFiles = Pattern.get(patterns, exclude, Home.getCurrent())
+        def syntaxFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
         def succeeded = true
 
         syntaxFiles.each {

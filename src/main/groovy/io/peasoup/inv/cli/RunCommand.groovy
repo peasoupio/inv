@@ -17,9 +17,14 @@ class RunCommand implements CliCommand {
         if (patterns.isEmpty())
             return -1
 
+        // Handle excluding patterns
+        def excludePatterns = [".runs/*"]
+        if (exclude)
+            excludePatterns.add(exclude)
+
         def invExecutor = new InvExecutor()
 
-        def invFiles = Pattern.get(patterns, exclude, Home.getCurrent())
+        def invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
         def progress = new Progressbar("Reading INV files from args".toString(), invFiles.size(), false)
         progress.start {
             invFiles.each {

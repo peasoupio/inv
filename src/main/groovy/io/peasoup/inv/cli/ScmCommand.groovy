@@ -69,7 +69,12 @@ class ScmCommand implements CliCommand {
 
             }
         } else {
-            def scmFiles = Pattern.get(patterns, exclude, Home.getCurrent())
+            // Handle excluding patterns
+            def excludePatterns = [".runs/*"]
+            if (exclude)
+                excludePatterns.add(exclude)
+
+            def scmFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
             def progress = new Progressbar("Reading SCM from args".toString(), scmFiles.size(), false)
             progress.start {
 

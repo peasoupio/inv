@@ -23,10 +23,6 @@ class Progressbar {
 
     final OutputStream out = System.out
 
-    Progressbar(String title, boolean eol=false) {
-        this(title, 0, eol)
-    }
-
     Progressbar(String title, int limit, boolean eol=false) {
         assert title, 'Title is required'
         assert limit > -1, 'Limit must be a positive value'

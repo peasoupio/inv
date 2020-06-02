@@ -8,15 +8,17 @@ class Pattern {
 
     }
 
-    static List<File> get(List<String> patterns, String exclude = '', File root = null) {
-        assert exclude != null, 'ExcludePattern is required. Can be empty'
+    static List<File> get(List<String> patterns, List<String> excludes = [], File root = null) {
+        assert patterns != null, 'Patterns is required.'
+        assert excludes != null, 'Exclude is required. Can be empty'
 
-        def excludePattern = exclude
-                .replace("\\", "/")
-                .replace("/", "\\/")
-                .replace(".", "\\.")
-                .replace("*", ".*")
-                .replace("?", ".*")
+        def excludePatterns = excludes.collect {
+            it.replace("\\", "/")
+                    .replace("/", "\\/")
+                    .replace(".", "\\.")
+                    .replace("*", ".*")
+                    .replace("?", ".*")
+        }
 
         return patterns.collectMany {
             String lookupPattern = it
@@ -45,8 +47,11 @@ class Pattern {
                 def file = it.path.replace("\\", "/")
 
                 // Check if file should be excluded
-                if (excludePattern && file ==~ /.*${excludePattern}.*/)
-                    return
+                if (excludePatterns) {
+                    // Any file match any exclusion pattern
+                    if (excludePatterns.any { file ==~ /.*${it}.*/ })
+                        return
+                }
 
                 // Check if file should be included
                 if (!(file ==~ /.*${includePattern}.*/))

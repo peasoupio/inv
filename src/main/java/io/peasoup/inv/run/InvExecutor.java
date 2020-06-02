@@ -19,7 +19,7 @@ public class InvExecutor {
     }
 
     public void read(String pwd, File scriptFile, String scm) throws IOException {
-        InvInvoker.invoke(new InvHandler(this), pwd, scriptFile, scm);
+        InvInvoker.invoke(new InvHandler(this), scriptFile, pwd, scm);
     }
 
     public PoolReport execute() {

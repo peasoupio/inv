@@ -71,7 +71,11 @@ public class RunsRoller {
         if (failFolder().exists())
             Files.delete(failFolder().toPath());
 
-        Files.createSymbolicLink(failFolder().toPath(), folder().getCanonicalFile().toPath());
+        try {
+            Files.createSymbolicLink(failFolder().toPath(), folder().getCanonicalFile().toPath());
+        } catch(IOException ex) {
+            Logger.warn("Cannot create 'latestFailed' symbolic link.");
+        }
     }
 
     public void latestHaveSucceed() throws IOException {
@@ -80,7 +84,11 @@ public class RunsRoller {
         if (successFolder().exists())
             Files.delete(successFolder().toPath());
 
-        Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
+        try {
+            Files.createSymbolicLink(successFolder().toPath(), folder().getCanonicalFile().toPath());
+        } catch(IOException ex) {
+            Logger.warn("Cannot create 'latestSucceed' symbolic link.");
+        }
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -97,7 +105,11 @@ public class RunsRoller {
         nextFolder.mkdirs();
 
         // Create new symlink for new run folder
-        Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());
+        try {
+            Files.createSymbolicLink(latestSymlink().toPath(), nextFolder.getCanonicalFile().toPath());
+        } catch(IOException ex) {
+            Logger.warn("Cannot create 'latest' symbolic link.");
+        }
 
         configureRunfileOutputStreams();
     }

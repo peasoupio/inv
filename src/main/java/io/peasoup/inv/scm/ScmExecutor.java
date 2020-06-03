@@ -61,8 +61,10 @@ public class ScmExecutor {
 
                 if (!doesPathExistsAndNotEmpty) {
 
-                    // Make sure path is clean before init
-                    FileUtils.deleteDirectory(repository.getPath());
+                    // Make sure path is clean before init (if exists)
+                    // NOTE: Do not delete, might be mounted on docker.
+                    if (repository.getPath().exists())
+                        FileUtils.cleanDirectory(repository.getPath());
 
                     // Execute hook
                     HookExecutor.init(report);

@@ -49,9 +49,9 @@ Vue.component('configure-parameters', {
         </div>
 
         <hr />
-        <configure-parameters-carousel v-model="selectedSettings" />
+        <configure-parameters-carousel v-model="selectedSettings" :key="updateIndex" />
         <hr />
-        <configure-parameters-carousel v-model="requiredSettings" />
+        <configure-parameters-carousel v-model="requiredSettings" :key="updateIndex" />
 
         <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
             <div class="modal-background"></div>
@@ -157,6 +157,9 @@ Vue.component('configure-parameters', {
             var vm = this
 
             vm.filters.hideOnComplete = !vm.filters.hideOnComplete
+
+            vm.selectedSettings.filters.hideOnComplete = vm.filters.hideOnComplete
+            vm.requiredSettings.filters.hideOnComplete = vm.filters.hideOnComplete
 
             vm.updateIndex++
         },

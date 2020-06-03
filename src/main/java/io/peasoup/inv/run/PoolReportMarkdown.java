@@ -41,11 +41,6 @@ public class PoolReportMarkdown {
                 return;
             }
         }
-        boolean reportFolderCreated = reportFolder.mkdirs();
-        if (!reportFolderCreated) {
-            Logger.error(new RuntimeException("Report folder could not be created at :" + reportFolder.getAbsolutePath()));
-            return;
-        }
 
         // Create new MustacheFactory
         MustacheFactory mf = new DefaultMustacheFactory();
@@ -55,6 +50,13 @@ public class PoolReportMarkdown {
         for(Map<String, Object> scopes: getAllScopes()) {
             String reportFilename = scopes.get("name").toString() + ".md";
             File outputFile = new File(reportFolder, reportFilename);
+
+            // Use the output file parent in case name as slashes.
+            boolean reportFolderCreated = outputFile.getParentFile().mkdirs();
+            if (!reportFolderCreated) {
+                Logger.error(new RuntimeException("Report folder could not be created at :" + outputFile.getParentFile().getAbsolutePath()));
+                return;
+            }
 
             // Write report file for INV scope.
             try (Writer outputWriter = new FileWriter(outputFile, false)) {

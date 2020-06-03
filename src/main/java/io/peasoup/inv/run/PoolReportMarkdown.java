@@ -52,10 +52,12 @@ public class PoolReportMarkdown {
             File outputFile = new File(reportFolder, reportFilename);
 
             // Use the output file parent in case name as slashes.
-            boolean reportFolderCreated = outputFile.getParentFile().mkdirs();
-            if (!reportFolderCreated) {
-                Logger.error(new RuntimeException("Report folder could not be created at :" + outputFile.getParentFile().getAbsolutePath()));
-                return;
+            if (!outputFile.getParentFile().exists()) {
+                boolean reportFolderCreated = outputFile.getParentFile().mkdirs();
+                if (!reportFolderCreated) {
+                    Logger.error(new RuntimeException("Report folder could not be created at :" + outputFile.getParentFile().getAbsolutePath()));
+                    return;
+                }
             }
 
             // Write report file for INV scope.

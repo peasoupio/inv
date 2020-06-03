@@ -71,11 +71,12 @@ public class ScmDescriptor {
     }
 
     public void entry(String value) {
-        if (StringUtils.isEmpty(value))
+        if (value == null)
             throw new IllegalArgumentException("value");
 
         this.entry = Arrays.stream(value.split("\\r?\\n"))
-                .filter(s -> (s != null && s.length() > 0))
+                .filter(s -> (s != null))
+                .distinct()
                 .toArray(String[]::new);
     }
 

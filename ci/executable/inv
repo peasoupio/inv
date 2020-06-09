@@ -9,5 +9,8 @@ LIBDIR=$BASEDIR/../lib
 # Get INV jar
 INVJAR=${project.artifactId}-${project.version}.jar
 
+# Set Java properties
+JAVAPROPS=-Djava.system.class.loader=groovy.lang.GroovyClassLoader
+
 # Call INV jar with parameters
-java -jar $LIBDIR/$INVJAR $@
+java $JAVAPROPS -jar $LIBDIR/$INVJAR $@

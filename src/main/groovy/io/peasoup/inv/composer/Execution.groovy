@@ -205,7 +205,7 @@ class Execution {
     private static List<String> resolveArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
 
         def myClassPath = System.getProperty("java.class.path")
-        def jvmArgs = ["java", "-classpath", myClassPath, Main.class.canonicalName]
+        def jvmArgs = ["java", "-Djava.system.class.loader=groovy.lang.GroovyClassLoader", "-classpath", myClassPath, Main.class.canonicalName]
         def appArgs = ["scm"]
 
         if (debugMode)

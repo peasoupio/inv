@@ -53,8 +53,8 @@ public class CommonLoader {
         compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
 
         this.secureMode = secureMode;
-        this.generalClassLoader = new GroovyClassLoader();
-        this.securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration);
+        this.generalClassLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader());
+        this.securedClassLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader(), compilerConfiguration);
     }
 
     public Script parseClass(File file) throws IOException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {

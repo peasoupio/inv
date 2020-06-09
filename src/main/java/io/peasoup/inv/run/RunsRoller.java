@@ -39,7 +39,7 @@ public class RunsRoller {
 
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.error(e);
             return false;
         }
     }
@@ -163,7 +163,7 @@ public class RunsRoller {
             System.setErr(psErr);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.error(e);
         }
     }
 

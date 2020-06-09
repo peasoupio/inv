@@ -3,6 +3,7 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
 import io.peasoup.inv.composer.api.*
+import io.peasoup.inv.run.Logger
 import spark.Response
 
 import static spark.Spark.*
@@ -50,10 +51,7 @@ class WebServer {
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
-            final StringWriter sw = new StringWriter()
-            final PrintWriter pw = new PrintWriter(sw, true)
-            e.printStackTrace(pw)
-            System.err.println(sw.getBuffer().toString())
+            Logger.error(e)
         })
 
         def scmsLocationFolder = new File(scmsLocation)

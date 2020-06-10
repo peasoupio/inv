@@ -120,7 +120,7 @@ public class HookExecutor {
         Process process = null;
         try {
             process = ProcessGroovyMethods.execute(cmd, envs, repository.getPath());
-            //ProcessGroovyMethods.waitForOrKill(process, timeout != null ? timeout : 60000);
+            ProcessGroovyMethods.waitForOrKill(process, timeout != null ? timeout : 60000);
         } catch (IOException e) {
             Logger.error(e);
         }

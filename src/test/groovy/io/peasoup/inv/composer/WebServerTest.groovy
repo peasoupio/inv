@@ -6,6 +6,7 @@ import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import spark.Spark
@@ -466,6 +467,7 @@ scm {
     }
 
     @Test
+    @Ignore
     void execution_stop() {
         def responseBefore = get("execution")
         assert responseBefore

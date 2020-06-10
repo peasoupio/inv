@@ -1,5 +1,6 @@
 package io.peasoup.inv.scm;
 
+import groovy.lang.GroovyRuntimeException;
 import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -127,12 +128,18 @@ public class HookExecutor {
             return;
 
         // Consume output and wait until done.
-        if (returnStdout) {
-            ExecOutput execOutput = new ExecOutput();
-            ProcessGroovyMethods.waitForProcessOutput(process, execOutput, System.err);
-            report.setStdout(execOutput.getOutput().toString());
-        } else {
-            ProcessGroovyMethods.waitForProcessOutput(process, System.out, (Appendable)System.err);
+        try {
+            if (returnStdout) {
+                ExecOutput execOutput = new ExecOutput();
+                ProcessGroovyMethods.waitForProcessOutput(process, execOutput, System.err);
+                report.setStdout(execOutput.getOutput().toString());
+            } else {
+                ProcessGroovyMethods.waitForProcessOutput(process, System.out, (Appendable) System.err);
+            }
+        } catch(GroovyRuntimeException exception) {
+            // IOException could happen if process is closed before any reading
+            if (!(exception.getCause() instanceof IOException))
+                Logger.error(exception);
         }
 
         // Delete SH file when done (successful or not)

@@ -10,7 +10,8 @@ cache:
   directories:
     - $HOME/.cache
     - $HOME/.m2
-    - $TRAVIS_BUILD_DIR/target
+    - $TRAVIS_BUILD_DIR/core/target
+    - $TRAVIS_BUILD_DIR/launcher/target
 
 install: true
 

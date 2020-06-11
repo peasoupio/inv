@@ -38,7 +38,7 @@ jobs:
       if: branch =~ ^release\/.*$
       services:
         - docker
-      script: (cd ./target/docker/ && bash build.sh)
+      script: (cd ./launcher/target/docker/ && bash build.sh)
 
     - stage: distribute
       script: true
@@ -48,6 +48,6 @@ jobs:
         token: $GITHUB_OAUTH
         draft: true
         file_glob: true
-        file: target/dist/*
+        file: launcher/target/dist/*
         on:
           tags: true

@@ -64,6 +64,7 @@ public class AppLauncher {
         // Create commands
         List<String> commands = new ArrayList<>();
         commands.add("java");
+        commands.add("-Djava.system.class.loader=groovy.lang.GroovyClassLoader");
         commands.add("-cp");
         commands.add(String.join(delimiter, urls));
         commands.add("io.peasoup.inv.Main");

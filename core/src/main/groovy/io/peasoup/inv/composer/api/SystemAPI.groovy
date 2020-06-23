@@ -122,7 +122,7 @@ class SystemAPI {
             List<String> exceptionMessages = []
 
             try {
-                new CommonLoader().parseClass(fileContent)
+                new CommonLoader().compile(fileContent)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

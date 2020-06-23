@@ -7,14 +7,14 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>launcher</artifactId>
+    <artifactId>inv-launcher</artifactId>
 
     <dependencies>
 
         <!-- include core -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>inv-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

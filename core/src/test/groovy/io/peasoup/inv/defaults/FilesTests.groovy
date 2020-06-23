@@ -16,7 +16,7 @@ class FilesTests {
         def files = new File(FilesTests.class.getResource("/defaults/files").path)
 
         def executor = new InvExecutor()
-        executor.read(new File("./defaults/files/inv.groovy"))
+        executor.read(new File("../defaults/files/inv.groovy"))
 
         new InvHandler(executor).call {
 
@@ -50,7 +50,7 @@ class FilesTests {
 
         def files = new File(FilesTests.class.getResource("/defaults/files").path).absolutePath
         def executor = new InvExecutor()
-        executor.read(new File("./defaults/files/inv.groovy"))
+        executor.read(new File("../defaults/files/inv.groovy"))
 
         new InvHandler(executor).call {
 

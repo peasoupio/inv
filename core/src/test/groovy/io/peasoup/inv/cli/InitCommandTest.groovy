@@ -21,7 +21,7 @@ class InitCommandTest {
 
         assert report
         assert report.name.toLowerCase() == "main"
-        assert report.isOk
+        assert report.isOk()
     }
 
     @Test
@@ -30,7 +30,7 @@ class InitCommandTest {
 
         assert report
         assert report.name.toLowerCase() == "main"
-        assert report.isOk
+        assert report.isOk()
     }
 
     @Test

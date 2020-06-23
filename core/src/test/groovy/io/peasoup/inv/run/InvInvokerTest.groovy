@@ -14,30 +14,27 @@ class InvInvokerTest {
         assert script
 
         def scriptFile = new File(script.path)
-        def inv = new InvHandler(new InvExecutor())
 
-        Stdout.capture ({ InvInvoker.invoke(inv, scriptFile) }, {
+        Stdout.capture ({ InvInvoker.invoke(new InvExecutor(), scriptFile) }, {
             assert it.contains("inv-invoker-script.groovy")
         })
     }
 
     @Test
-    void cache() {
-
-        def script = InvInvokerTest.class.getResource("/inv-invoker-script.groovy")
+    void invoke_standalone() {
+        def script = InvInvokerTest.class.getResource("/inv-invoker-standalone.groovy")
         assert script
 
-        // Clean if already existing
-        def scriptFolder = new File(RunsRoller.latest.folder(), "scripts/")
-        scriptFolder.deleteDir()
+        def scriptFile = new File(script.path)
+        assert scriptFile.exists()
 
-        assert !scriptFolder.exists()
+        def scriptObj = (Script) new GroovyClassLoader().parseClass(scriptFile).getDeclaredConstructor().newInstance()
+        assert scriptObj
 
-        InvInvoker.cache(new File(script.path), "my-class")
-
-        assert scriptFolder.exists()
-        assert new File(scriptFolder, "my-class.groovy").exists()
+        scriptObj.run()
     }
+
+
 
     @Test
     void debug_ok() {
@@ -47,22 +44,15 @@ class InvInvokerTest {
         assert script
 
         def scriptFile = new File(script.path)
-        def inv = new InvHandler(new InvExecutor())
 
-        InvInvoker.invoke(inv, scriptFile)
+        InvInvoker.invoke(new InvExecutor(), scriptFile)
 
         assert logs.any { it == "ok" }
 
         Logger.capture(null)
     }
 
-    @Test
-    void normalize() {
-        assert InvInvoker.normalizeClassName(new File("test.groovy")) == "test"
-        assert InvInvoker.normalizeClassName(new File("parent", "inv")) == "parent"
-        assert InvInvoker.normalizeClassName(new File("parent", "inv.groovy")) == "parent"
-        assert InvInvoker.normalizeClassName(new File("parent" ,"inv.groovy")) == "parent"
-    }
+
 
     @Test
     void invoke_not_ok() {
@@ -72,7 +62,7 @@ class InvInvokerTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), null)
+            InvInvoker.invoke(new InvExecutor(), null)
         })
 
         assertThrows(IllegalArgumentException.class, {
@@ -80,15 +70,11 @@ class InvInvokerTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), null, null, null)
+            InvInvoker.invoke(new InvExecutor(), null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), null, 'pwd', null)
-        })
-
-        assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvHandler(), new File("filename"), 'pwd', null)
+            InvInvoker.invoke(new InvExecutor(), null, 'pwd', null)
         })
     }
 }

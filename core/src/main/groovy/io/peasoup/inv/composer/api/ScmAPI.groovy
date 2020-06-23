@@ -164,7 +164,7 @@ class ScmAPI {
             List<String> exceptionMessages = []
 
             try {
-                new CommonLoader().parseClass(source)
+                new CommonLoader().compile(source)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

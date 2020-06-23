@@ -63,7 +63,7 @@ abstract class JUnitInvTestingBase {
         if (!invFile.exists())
             assert invFile.exists(), "${value} does not exists on the filesystem"
 
-        InvInvoker.invoke(new InvHandler(invExecutor), invFile)
+        InvInvoker.invoke(invExecutor, invFile)
     }
 
 }

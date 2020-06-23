@@ -62,6 +62,10 @@ class Main extends Script {
         if (arguments["--secure"])
             CommonLoader.enableSecureMode()
 
+        // Enable SystemClassLoader
+        if (System.getProperty("java.system.class.loader"))
+            CommonLoader.enableSystemClassloader()
+
         // Do system checks
         if (SystemInfo.consistencyFails()) {
             RunsRoller.latest.latestHaveFailed()

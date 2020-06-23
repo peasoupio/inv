@@ -26,8 +26,8 @@ class MavenTests {
         def app2 = new File(FilesTests.class.getResource("/defaults/maven/SimpleMavenLookup/app2").path).absolutePath
 
         def executor = new InvExecutor()
-        executor.read(new File("./defaults/files/inv.groovy"))
-        executor.read(new File("./defaults/maven/inv.groovy"))
+        executor.read(new File("../defaults/files/inv.groovy"))
+        executor.read(new File("../defaults/maven/inv.groovy"))
 
         new InvHandler(executor).call {
 

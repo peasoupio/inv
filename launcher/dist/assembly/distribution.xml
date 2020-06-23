@@ -23,14 +23,14 @@
     </fileSets>
     <files>
         <file>
-            <source>${project.build.directory}/launcher-${project.version}.jar</source>
+            <source>${project.build.directory}/inv-launcher-${project.version}.jar</source>
         </file>
     </files>
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
             <includes>
-                <include>${project.groupId}:core:jar:*</include>
+                <include>${project.groupId}:inv-core:jar:*</include>
                 <include>*:commons-io:jar:*</include>
                 <include>*:commons-lang:jar:*</include>
                 <include>*:docopt:jar:*</include>
@@ -43,8 +43,7 @@
         <dependencySet>
             <outputDirectory>libext</outputDirectory>
             <excludes>
-                <exclude>${project.groupId}:core:jar:*</exclude>
-                <exclude>${project.groupId}:launcher:jar:*</exclude>
+                <exclude>${project.groupId}:inv-core:jar:*</exclude>
                 <exclude>org.codehaus.groovy:groovy-groovydoc:jar:*</exclude>
                 <exclude>org.codehaus.groovy:groovy-docgenerator:jar:*</exclude>
                 <exclude>*:javaparser-core:jar:*</exclude>

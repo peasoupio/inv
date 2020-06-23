@@ -8,6 +8,10 @@ public class Home {
 
     private static File current;
 
+    /**
+     * Gets the current Home filesystem location
+     * @return File reference to the current location
+     */
     public static File getCurrent() {
         if (current == null)
             current = DEFAULT_HOME;
@@ -15,6 +19,10 @@ public class Home {
         return current;
     }
 
+    /**
+     * Sets the current Home filesystem location
+     * @param current File reference to the current location
+     */
     public static void setCurrent(File current) {
         Home.current = current;
     }

@@ -15,11 +15,11 @@ public class InvExecutor {
     }
 
     public void read(File scriptFile) throws IOException {
-        InvInvoker.invoke(new InvHandler(this), scriptFile);
+        InvInvoker.invoke(this, scriptFile);
     }
 
     public void read(String pwd, File scriptFile, String scm) throws IOException {
-        InvInvoker.invoke(new InvHandler(this), scriptFile, pwd, scm);
+        InvInvoker.invoke(this, scriptFile, pwd, scm);
     }
 
     public PoolReport execute() {

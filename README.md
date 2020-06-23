@@ -1,4 +1,4 @@
-# ![TiteCan](src/main/resources/public/favicon-32x32.png) INV - Intertwined network valuables
+# ![TiteCan](core/src/main/resources/public/favicon-32x32.png) INV - Intertwined network valuables
 
 ***INV*** is a tool intended to facilitate the implementation of an *environment as a code* solution in your technological ecosystem.  
 It is completely generic, complementing automation with code instead of only configuration files.   

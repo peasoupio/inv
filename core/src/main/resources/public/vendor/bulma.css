@@ -1,4 +1,19 @@
-@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,700");
+
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('OpenSans-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: bold;
+  font-weight: 700;
+  src: url('OpenSans-Bold.ttf');
+}
+
 /*
 $black: hsl(0, 0%, 100%);
 $black-bis: hsl(0, 0%, 98%);

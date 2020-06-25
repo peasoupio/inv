@@ -25,18 +25,31 @@ public class InvInvoker {
 
     }
 
-    public static void invoke(InvExecutor invExecutor, File scriptPath) throws IOException {
+    /**
+     * Parse and invoke INV Groovy script file
+     * @param invExecutor Executor instance
+     * @param scriptFile INV Groovy script file
+     */
+    public static void invoke(InvExecutor invExecutor, File scriptFile) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
-        if (scriptPath == null) {
+        if (scriptFile == null) {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invExecutor, scriptPath, scriptPath.getAbsoluteFile().getParent(), UNDEFINED_SCM);
+        invoke(invExecutor, scriptFile, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_SCM);
     }
 
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String scm) throws IOException {
+    /**
+     * Parse and invoke INV Groovy script file with specific path (pwd).
+     * Also, it allows to define the SCM associated to this INV
+     * @param invExecutor Executor instance
+     * @param scriptFile INV Groovy script file
+     * @param pwd Pwd "Print working directory", the working directory
+     * @param scm The associated SCM name
+     */
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String scm) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -45,12 +58,21 @@ public class InvInvoker {
             throw new IllegalArgumentException("Script file is required");
         }
 
+        String scriptPath;
+
+        try {
+            scriptPath = scriptFile.getCanonicalPath();
+        } catch (IOException ex) {
+            Logger.warn("[INVOKER] file: " + scriptFile.getAbsolutePath() + ", canonical: false");
+            scriptPath = scriptFile.getAbsolutePath();
+        }
+
         if (!scriptFile.exists()) {
-            Logger.warn("[INVOKER] file: " + scriptFile.getCanonicalPath() + ", exists: false");
+            Logger.warn("[INVOKER] file: " + scriptPath + ", exists: false");
             return;
         }
 
-        Logger.system("[INVOKER] file: " + scriptFile.getCanonicalPath() + ", exists: true");
+        //Logger.system("[INVOKER] file: " + scriptPath + ", exists: true");
 
         if (StringUtils.isEmpty(pwd)) {
             throw new IllegalArgumentException("Pwd (current working directory) is required");
@@ -70,7 +92,7 @@ public class InvInvoker {
         Binding binding = myNewScript.getBinding();
 
         binding.setProperty("inv", new InvHandler(invExecutor));
-        binding.setProperty("$0", scriptFile.getCanonicalPath());
+        binding.setProperty("$0", scriptPath);
         binding.setProperty("pwd", checkSubordinateSlash(pwd));
         binding.setProperty("scm", StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
         binding.setProperty("debug", DebugLogger.Instance);

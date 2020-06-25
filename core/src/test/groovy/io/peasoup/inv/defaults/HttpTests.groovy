@@ -13,7 +13,7 @@ class HttpTests {
     void get() {
 
         def executor = new InvExecutor()
-        executor.read(new File("../defaults/http/inv.groovy"))
+        executor.parse(new File("../defaults/http/inv.groovy"))
 
         new InvHandler(executor).call {
 
@@ -34,7 +34,7 @@ class HttpTests {
     void post() {
 
         def executor = new InvExecutor()
-        executor.read(new File("../defaults/http/inv.groovy"))
+        executor.parse(new File("../defaults/http/inv.groovy"))
 
         new InvHandler(executor).call {
 

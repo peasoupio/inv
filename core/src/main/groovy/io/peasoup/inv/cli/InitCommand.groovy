@@ -55,7 +55,7 @@ class InitCommand implements CliCommand {
         assert scmFile.exists(), 'Scm file path must exist on filesystem'
 
         def scmExecutor = new ScmExecutor()
-        scmExecutor.read(scmFile)
+        scmExecutor.parse(scmFile)
         def reports = scmExecutor.execute()
 
         if (reports.any { !it.isOk() }) {

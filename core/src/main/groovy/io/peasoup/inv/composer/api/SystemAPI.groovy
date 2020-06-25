@@ -174,7 +174,7 @@ class SystemAPI {
             // Invoke push hook manually
             def initFile = new File(webServer.webServerConfigs.initFile as String)
             ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
-                read(initFile)
+                parse(initFile)
 
                 if (!scms.containsKey("main"))
                     return null
@@ -199,7 +199,7 @@ class SystemAPI {
 
         def initFile = new File(webServer.webServerConfigs.initFile as String)
         ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
-            read(initFile)
+            parse(initFile)
 
             if (!scms.containsKey("main"))
                 return null

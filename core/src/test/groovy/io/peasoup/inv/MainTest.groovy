@@ -128,7 +128,7 @@ class MainTest {
         def scmFile = new File(TempHome.testResources, '/scm.groovy')
 
         def comparable = new ScmExecutor()
-        comparable.read(scmFile)
+        comparable.parse(scmFile)
 
         assert comparable.scms["my-repository"]
 
@@ -154,7 +154,7 @@ class MainTest {
         def scmFile = new File(TempHome.testResources, '/scm-relative.groovy')
 
         def comparable = new ScmExecutor()
-        comparable.read(scmFile)
+        comparable.parse(scmFile)
 
         assert comparable.scms["my-repository-relative"]
         def scriptFile = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
@@ -173,8 +173,8 @@ class MainTest {
         def scm2 = new File(TempHome.testResources, '/scm-relative.groovy')
 
         def comparable = new ScmExecutor()
-        comparable.read(scm1)
-        comparable.read(scm2)
+        comparable.parse(scm1)
+        comparable.parse(scm2)
 
         def scmListFile = new File(TempHome.testResources, ScmCommand.LIST_FILE_SUFFIX)
         scmListFile << JsonOutput.toJson([

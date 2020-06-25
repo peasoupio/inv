@@ -234,32 +234,33 @@ public class CommonLoader {
 
         // Make sure cache is available with minimal accesses
         if (!cache.exists()) {
-            Logger.system("Created cache folder: " + cache.mkdirs());
+            Logger.system("[CACHE] folder: " + cache.getAbsolutePath() + ", created: " + cache.mkdirs());
 
             // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
             if (!cache.setExecutable(true)) {
                 throw new IllegalArgumentException("Could not set executable");
             }
 
-            boolean writabledSet = cache.setWritable(true);
+            boolean writabledSet = cache.setWritable(true, false);
             Logger.system("[SECURITY] writable: " + writabledSet);
 
-            if (!cache.setReadable(true)) {
+            if (!cache.setReadable(true, false)) {
                 throw new IllegalArgumentException("Could not set readable");
             }
         }
 
         final File filename = new File(cache, classname + ".groovy");
-        Logger.system("Created filename folder: " + filename.mkdirs());
+        Logger.system("[CACHE] folder: " + classname + ", created: " + filename.getParentFile().mkdirs());
 
         // Make sure we got latest
-        Files.delete(Paths.get(filename.getAbsolutePath()));
+        if (filename.exists())
+            Files.delete(Paths.get(filename.getAbsolutePath()));
 
         // Create a symlink to have dynamic updates adn save space
         //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
         Files.copy(Paths.get(scriptFile.getAbsolutePath()), Paths.get(filename.getAbsolutePath()));
 
-        Logger.system("[CACHE] file: " + filename.getAbsolutePath());
+        Logger.system("[CACHE] file: " + filename.getName());
 
         return filename.getAbsolutePath();
     }

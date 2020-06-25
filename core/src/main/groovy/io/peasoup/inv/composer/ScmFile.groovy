@@ -36,9 +36,9 @@ class ScmFile {
         new ScmExecutor().with {
 
             if(expectedParameterFile && expectedParameterFile.exists())
-               read(scriptFile, expectedParameterFile)
+               parse(scriptFile, expectedParameterFile)
             else
-                read(scriptFile)
+                parse(scriptFile)
 
             ScmFile myself = this
             scms.each { String name, ScmDescriptor desc ->

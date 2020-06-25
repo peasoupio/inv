@@ -25,15 +25,13 @@ class RunCommand implements CliCommand {
         def invExecutor = new InvExecutor()
 
         def invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
-        def progress = new Progressbar("Reading INV files from args".toString(), invFiles.size(), false)
-        progress.start {
-            invFiles.each {
-                invExecutor.read(it)
 
-                progress.step()
-            }
+        // Parse INV Groovy files
+        invFiles.each {
+            invExecutor.parse(it)
         }
 
+        // Do the actual execution
         if (!invExecutor.execute().isOk())
             return -1
 

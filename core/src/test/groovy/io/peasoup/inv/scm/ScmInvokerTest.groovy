@@ -25,7 +25,7 @@ class ScmInvokerTest {
 
         def scmFile =  new File(TempHome.testResources,  '/scm.groovy')
         def executor = new ScmExecutor()
-        executor.read(scmFile)
+        executor.parse(scmFile)
 
         def reports = executor.execute()
 
@@ -47,8 +47,11 @@ class ScmInvokerTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            ScmInvoker.invoke(scmHandler, null)
+            ScmInvoker.invoke(new ScmExecutor(), null)
         })
+
+        // parametersFile is nullable
+        ScmInvoker.invoke(new ScmExecutor(), scmFile, null)
     }
 
     @Test
@@ -56,7 +59,7 @@ class ScmInvokerTest {
 
         def scmFile =  new File(getClass().getResource('/scm-multiple.groovy').toURI())
         def executor = new ScmExecutor()
-        executor.read(scmFile)
+        executor.parse(scmFile)
 
         def reports = executor.execute()
 
@@ -70,7 +73,7 @@ class ScmInvokerTest {
 
         def scmFile =  new File(getClass().getResource('/scm-invalid.groovy').toURI())
         def executor = new ScmExecutor()
-        executor.read(scmFile)
+        executor.parse(scmFile)
 
         def report = executor.execute()
         assert !report.any { it.isOk }
@@ -83,7 +86,7 @@ class ScmInvokerTest {
         def scmFile =  new File(TempHome.testResources,  '/scm-debug.groovy')
         def executor = new ScmExecutor()
 
-        executor.read(scmFile)
+        executor.parse(scmFile)
 
         assert logs.any { it == "ok" }
 

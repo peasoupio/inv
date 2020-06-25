@@ -11,9 +11,24 @@ public class ScmInvoker {
     private ScmInvoker() {
     }
 
-    public static void invoke(ScmHandler scmHandler, final File scmFile) {
-        if (scmHandler == null) {
-            throw new IllegalArgumentException("scmHandler");
+    /**
+     * Parse and invoke an SCM groovy File
+     * @param scmExecutor ScmExecutor instance
+     * @param scmFile Scm Groovy file
+     */
+    public static void invoke(ScmExecutor scmExecutor, File scmFile) {
+        invoke(scmExecutor, scmFile, null);
+    }
+
+    /**
+     * Parse and invoke an SCM groovy File
+     * @param scmExecutor ScmExecutor instance
+     * @param scmFile Scm Groovy file
+     * @param parametersFile Parameters file to load with the SCM
+     */
+    public static void invoke(ScmExecutor scmExecutor, File scmFile, File parametersFile) {
+        if (scmExecutor == null) {
+            throw new IllegalArgumentException("scmExecutor");
         }
         if (scmFile == null) {
             throw new IllegalArgumentException("scmFile");
@@ -35,7 +50,7 @@ public class ScmInvoker {
             return;
 
         // Run new script
-        myNewScript.getBinding().setProperty("scm", scmHandler);
+        myNewScript.getBinding().setProperty("scm", new ScmHandler(scmExecutor, parametersFile));
         myNewScript.getBinding().setProperty("debug", DebugLogger.Instance);
         myNewScript.run();
     }

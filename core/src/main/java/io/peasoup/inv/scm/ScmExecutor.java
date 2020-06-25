@@ -20,18 +20,27 @@ public class ScmExecutor {
         this.scms = new ConcurrentHashMap<>();
     }
 
-    public void read(File scriptFile, File parametersFile) {
+    /**
+     * Parse and invoke an SCM Groovy script file
+     * @param scriptFile SCM Groovy script file
+     */
+    public void parse(File scriptFile) {
+        parse(scriptFile, null);
+    }
+
+    /**
+     * Parse and invoke an SCM Groovy script file with a matching parameters file
+     * @param scriptFile SCM Groovy script file
+     * @param parametersFile Matching parameters file
+     */
+    public void parse(File scriptFile, File parametersFile) {
         if (scriptFile == null)
             throw new IllegalArgumentException("scriptFile");
 
         if (!scriptFile.exists())
             throw new IllegalStateException("Script file must exist on filesystem");
 
-        ScmInvoker.invoke(new ScmHandler(this, parametersFile), scriptFile);
-    }
-
-    public void read(File scriptFile) {
-        read(scriptFile, null);
+        ScmInvoker.invoke(this, scriptFile, parametersFile);
     }
 
     public void add(ScmDescriptor descriptor) {

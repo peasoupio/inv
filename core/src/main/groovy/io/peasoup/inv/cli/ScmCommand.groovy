@@ -38,35 +38,29 @@ class ScmCommand implements CliCommand {
 
             Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
 
-            Map<String, Map> scmListJson = new JsonSlurper().parse(scmListFile) as Map
+            Map<String, Map> scmListJson = new JsonSlurper().parse(scmListFile) as Map<String, Map>
             if (!scmListJson || !scmListJson.size())
                 return -2
 
-            def progress = new Progressbar("Reading SCM from '${scmListFile.canonicalPath}'".toString(), scmListJson.size(), false)
-            progress.start {
+            // Parse and incoke SCM file from JSON list file
+            scmListJson.each { String name, Map scm ->
+                String script = "", expectedParameter = ""
 
-                scmListJson.each { String name, Map scm ->
-                    String script = "", expectedParameter = ""
+                if (scm.containsKey("script"))
+                    script = scm.get("script") as String
 
-                    if (scm.containsKey("script"))
-                        script = scm.get("script") as String
+                if (scm.containsKey("expectedParameterFile"))
+                    expectedParameter = scm.get("expectedParameterFile") as String
 
-                    if (scm.containsKey("expectedParameterFile"))
-                        expectedParameter = scm.get("expectedParameterFile") as String
-
-                    if (!script) {
-                        Logger.warn("[SCM] name: ${name} as no script defined")
-                        return
-                    }
-
-                    if (!expectedParameter)
-                        scmExecutor.read(new File(script))
-                    else
-                        scmExecutor.read(new File(script), new File(expectedParameter))
-
-                    progress.step()
+                if (!script) {
+                    Logger.warn("[SCM] name: ${name} as no script defined")
+                    return
                 }
 
+                if (!expectedParameter)
+                    scmExecutor.parse(new File(script))
+                else
+                    scmExecutor.parse(new File(script), new File(expectedParameter))
             }
         } else {
             // Handle excluding patterns
@@ -75,14 +69,10 @@ class ScmCommand implements CliCommand {
                 excludePatterns.add(exclude)
 
             def scmFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
-            def progress = new Progressbar("Reading SCM from args".toString(), scmFiles.size(), false)
-            progress.start {
 
-                scmFiles.each {
-                    scmExecutor.read(it)
-
-                    progress.step()
-                }
+            // Parse and incoke SCM file
+            scmFiles.each {
+                scmExecutor.parse(it)
             }
         }
 
@@ -119,12 +109,13 @@ class ScmCommand implements CliCommand {
             }
         } as List<Map>
 
+        // Parse and invoke INV files resolved from SCM
         invsFiles
             .findAll()
             .each {
-                invExecutor.read(
-                        it.path as String,
+                invExecutor.parse(
                         it.scriptFile as File,
+                        it.path as String,
                         it.name as String)
             }
 

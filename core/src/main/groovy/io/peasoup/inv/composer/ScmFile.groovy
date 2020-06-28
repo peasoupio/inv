@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
+import io.peasoup.inv.scm.ScmInvoker
 import io.peasoup.inv.utils.Regexes
 
 @CompileStatic
@@ -19,7 +20,7 @@ class ScmFile {
 
     final File expectedParameterFile
 
-    ScmFile(File scriptFile, File parametersFolder = null) {
+    ScmFile(File scriptFile) {
         assert scriptFile, 'ScriptFile is required.'
         assert scriptFile.exists(), 'ScriptFile must be present on current filesystem.'
 
@@ -28,17 +29,15 @@ class ScmFile {
         this.lastEdit = scriptFile.lastModified()
 
         // Resolve expected parameter file
-        if (parametersFolder)
-            expectedParameterFile = new File(parametersFolder, simpleName() + ".json")
-        else
-            expectedParameterFile = null
+        this.expectedParameterFile = ScmInvoker.expectedParametersfileLocation(scriptFile)
 
+        // Do the actual parsing
         new ScmExecutor().with {
 
             if(expectedParameterFile && expectedParameterFile.exists())
                parse(scriptFile, expectedParameterFile)
             else
-                parse(scriptFile)
+               parse(scriptFile)
 
             ScmFile myself = this
             scms.each { String name, ScmDescriptor desc ->
@@ -81,7 +80,7 @@ class ScmFile {
          * @param parametersFile Optional parameters file to parse its values on parameters
          * @return Map object
          */
-        Map toMap(Map filter = [:], File parametersFile = null) {
+        Map toMap(Map filter = [:]) {
 
             if (filter.name && !descriptor.name.contains(filter.name as CharSequence)) return null
             if (filter.src && !descriptor.src.contains(filter.src as CharSequence)) return null
@@ -91,12 +90,12 @@ class ScmFile {
             def lastModified = 0
             def saved = false
 
-            if (parametersFile && parametersFile.exists()) {
-                String parametersFileText = parametersFile.text
+            if (scmFile.expectedParameterFile.exists()) {
+                String parametersFileText = scmFile.expectedParameterFile.text
 
                 if (parametersFileText) {
                     saved = true
-                    lastModified = parametersFile.lastModified()
+                    lastModified = scmFile.expectedParameterFile.lastModified()
 
                     externalProperties = new JsonSlurper().parseText(parametersFileText) as Map
                 }
@@ -246,8 +245,7 @@ class ScmFile {
          * @param descriptorName The specific SCM descriptor
          * @param parameter The parameter
          */
-        void writeParameterDefaultValue(File parametersFile, String descriptorName, ScmDescriptor.AskParameter parameter) {
-            assert parametersFile, 'ParametersFile is required'
+        void writeParameterDefaultValue(String descriptorName, ScmDescriptor.AskParameter parameter) {
             assert descriptorName, "DescriptorName is required"
             assert parameter, "Parameter is required"
 
@@ -255,7 +253,6 @@ class ScmFile {
                 return
 
             writeParameterValue(
-                    parametersFile,
                     descriptorName,
                     parameter.name,
                     parameter.defaultValue)
@@ -264,13 +261,11 @@ class ScmFile {
         /**
          * Write (or update) this ScmFile parameter file for a specific parameter with a specific value
          *
-         * @param parametersFile The writable parameters file
          * @param descriptorName The specific SCM descriptor
          * @param parameter The parameter
          * @param value The value
          */
-        void writeParameterValue(File parametersFile, String descriptorName, String parameter, String value) {
-            assert parametersFile, 'ParametersFile is required'
+        void writeParameterValue(String descriptorName, String parameter, String value) {
             assert descriptorName, "DescriptorName is required"
             assert parameter, "Parameter (name) is required"
             assert value != null, "Parameter (value) is required"
@@ -281,8 +276,8 @@ class ScmFile {
                     ]
             ]
 
-            if (parametersFile.exists()) {
-                String parametersFileText = parametersFile.text
+            if (scmFile.expectedParameterFile.exists()) {
+                String parametersFileText = scmFile.expectedParameterFile.text
 
                 if (parametersFileText) {
                     Map existing = new JsonSlurper().parseText(parametersFileText) as Map
@@ -302,11 +297,11 @@ class ScmFile {
                     merge(existing, output)
                     output = existing
 
-                    parametersFile.delete()
+                    scmFile.expectedParameterFile.delete()
                 }
             }
 
-            parametersFile << JsonOutput.prettyPrint(JsonOutput.toJson(output))
+            scmFile.expectedParameterFile << JsonOutput.prettyPrint(JsonOutput.toJson(output))
         }
     }
 }

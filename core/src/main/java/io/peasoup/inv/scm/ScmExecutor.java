@@ -43,6 +43,10 @@ public class ScmExecutor {
         ScmInvoker.invoke(this, scriptFile, parametersFile);
     }
 
+    /**
+     * Adds a ScmDescriptor instance to the executor
+     * @param descriptor ScmDescriptor instance
+     */
     public void add(ScmDescriptor descriptor) {
         if (descriptor == null)
             throw new IllegalArgumentException("descriptor");
@@ -50,6 +54,13 @@ public class ScmExecutor {
         scms.put(descriptor.getName(), descriptor);
     }
 
+    /**
+     * Execute all the parsed ScmDescriptors.
+     * It raises automatically, if available, the "init" and "pull" hooks.
+     * "init" is raised when the computed or user-defined path is not existing. Upon failure, it is automatically deleted.
+     * "pull" is raised when the computed or user-defined path is existing. Upoen failure, nothing is deleted.
+     * @return List of ScmExecutionReport
+     */
     public List<SCMExecutionReport> execute() {
 
         final ExecutorService pool = Executors.newFixedThreadPool(4);
@@ -59,20 +70,20 @@ public class ScmExecutor {
         for(Map.Entry<String, ScmDescriptor> kpv : scms.entrySet()) {
             futures.add(pool.submit(() -> {
                 String name = kpv.getKey();
-                ScmDescriptor repository = kpv.getValue();
+                ScmDescriptor descriptor = kpv.getValue();
 
-                SCMExecutionReport report = new SCMExecutionReport(name, repository);
-                Logger.debug("[SCM] script: " + repository.getName() + ", parameter: " +
-                        (repository.getParametersFile() != null ? repository.getParametersFile().getAbsolutePath() : "not defined"));
+                SCMExecutionReport report = new SCMExecutionReport(name, descriptor);
+                Logger.debug("[SCM] script: " + descriptor.getName() + ", parameter: " +
+                        (descriptor.getParametersFile() != null ? descriptor.getParametersFile().getAbsolutePath() : "not defined"));
 
-                String[] pathFiles = repository.getPath().list();
-                boolean doesPathExistsAndNotEmpty = repository.getPath().exists() && pathFiles != null && pathFiles.length > 0;
+                String[] pathFiles = descriptor.getPath().list();
+                boolean doesPathExistsAndNotEmpty = descriptor.getPath().exists() && pathFiles != null && pathFiles.length > 0;
 
                 if (!doesPathExistsAndNotEmpty) {
 
                     // Make sure path is clean before init (if exists)
                     // NOTE: Do not delete, might be mounted on docker.
-                    ResourceGroovyMethods.deleteDir(repository.getPath());
+                    ResourceGroovyMethods.deleteDir(descriptor.getPath());
 
                     // Execute hook
                     HookExecutor.init(report);
@@ -100,43 +111,79 @@ public class ScmExecutor {
         return reports;
     }
 
+    /**
+     * Gets the map of ScmDescriptor with their respective name
+     * @return Map of <String, ScmDescriptor>
+     */
     public final Map<String, ScmDescriptor> getScms() {
         return scms;
     }
 
     public static class SCMExecutionReport {
         private final String name;
-        private final ScmDescriptor repository;
+        private final ScmDescriptor descriptor;
 
         private boolean isOk = true;
         private String stdout;
 
-        public SCMExecutionReport(String name, ScmDescriptor repository) {
+        /**
+         * Creates a new ScmExecutionReport.
+         * It is usally available upon executing an ScmDescriptor through ScmExecutor.executor() or HookExecutor's methods.
+         *
+         * @param name String representation of the name of the ScmDescriptor
+         * @param descriptor ScmDescriptor instance
+         */
+        public SCMExecutionReport(String name, ScmDescriptor descriptor) {
             this.name = name;
-            this.repository = repository;
+            this.descriptor = descriptor;
         }
 
+        /**
+         * Gets the user-defined name (specified with the "name" instruction in the Groovy script file) for this descriptor.
+         * It is not related to the Groovy script file name.
+         * @return String representation of the name.
+         */
         public final String getName() {
             return name;
         }
 
-        public final ScmDescriptor getRepository() {
-            return repository;
+        /**
+         * Gets the ScmDescriptor instance.
+         * @return ScmDescriptor instance.
+         */
+        public final ScmDescriptor getDescriptor() {
+            return descriptor;
         }
 
+        /**
+         * Indicates whether or not the execution was completed successively.
+         * @return TRue if success, otherwise false.
+         */
         public boolean isOk() {
             return isOk;
         }
 
-        public void setIsOk(boolean isOk) {
+        /**
+         * Sets whether or not the execution was completed successively.
+         * @param isOk True if success, otherwise false.
+         */
+        protected void setIsOk(boolean isOk) {
             this.isOk = isOk;
         }
 
+        /**
+         * Gets the stdout representation of the execution.
+         * @return String representation.
+         */
         public String getStdout() {
             return stdout;
         }
 
-        public void setStdout(String stdout) {
+        /**
+         * Sets the stdout representation of the execution.
+         * @param stdout String representation.
+         */
+        protected void setStdout(String stdout) {
             this.stdout = stdout;
         }
 

@@ -14,7 +14,6 @@ class WebServer {
     final Map webServerConfigs
     final String runLocation
     final String scmsLocation
-    final String parametersLocation
 
     final Boot boot
     final Pagination pagination
@@ -37,7 +36,6 @@ class WebServer {
 
         runLocation = webServerConfigs.workspace as String
         scmsLocation = webServerConfigs.workspace + "/scms" as String
-        parametersLocation = webServerConfigs.workspace + "/parameters" as String
 
         // Browser configs
         port(webServerConfigs.port as int)
@@ -58,14 +56,10 @@ class WebServer {
         if (!scmsLocationFolder.exists())
             scmsLocationFolder.mkdirs()
 
-        def parametersFolder = new File(parametersLocation)
-        if (!parametersFolder.exists())
-            parametersFolder.mkdirs()
-
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        scms = new ScmFileCollection(scmsLocationFolder, parametersFolder)
-        exec = new Execution(webServerConfigs.appLauncher as String, scmsLocationFolder, parametersFolder)
+        scms = new ScmFileCollection(scmsLocationFolder)
+        exec = new Execution(webServerConfigs.appLauncher as String, scmsLocationFolder)
 
         boot = new Boot(this)
         pagination = new Pagination(settings)

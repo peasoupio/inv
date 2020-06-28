@@ -32,9 +32,9 @@ class ScmInvokerTest {
         ScmExecutor.SCMExecutionReport report = reports.find { it.name == "my-repository" }
 
         assert report
-        assert report.repository.entry.size() == 1
-        assert report.repository.entry[0].contains("mainTestScript.groovy")
-        assert report.repository.path.absolutePath.contains("test-resources")
+        assert report.descriptor.entry.size() == 1
+        assert report.descriptor.entry[0].contains("mainTestScript.groovy")
+        assert report.descriptor.path.absolutePath.contains("test-resources")
     }
 
     @Test

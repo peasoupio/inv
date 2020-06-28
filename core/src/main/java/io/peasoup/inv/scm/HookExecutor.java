@@ -22,65 +22,65 @@ public class HookExecutor {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
-        if (StringUtils.isEmpty(report.getRepository().getHooks().getInit())) {
+        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getInit())) {
             Logger.warn("hook 'init' not defined for " + report.getName());
             report.setIsOk(false);
             return;
         }
 
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [INIT] start");
-        executeCommands(report, report.getRepository().getHooks().getInit());
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [INIT] done");
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [INIT] start");
+        executeCommands(report, report.getDescriptor().getHooks().getInit());
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [INIT] done");
     }
 
     public static void pull(final ScmExecutor.SCMExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
-        if (StringUtils.isEmpty(report.getRepository().getHooks().getPull())) {
+        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPull())) {
             Logger.warn("hook 'pull' not defined for " + report.getName());
             report.setIsOk(false);
             return;
         }
 
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [PULL] start");
-        executeCommands(report, report.getRepository().getHooks().getPull());
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [PULL] done");
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PULL] start");
+        executeCommands(report, report.getDescriptor().getHooks().getPull());
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PULL] done");
     }
 
     public static void push(final ScmExecutor.SCMExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
-        if (StringUtils.isEmpty(report.getRepository().getHooks().getPush())) {
+        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPush())) {
             Logger.warn("hook 'push' not defined for " + report.getName());
             report.setIsOk(false);
             return;
         }
 
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [PUSH] start");
-        executeCommands(report, report.getRepository().getHooks().getPush());
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [PUSH] done");
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PUSH] start");
+        executeCommands(report, report.getDescriptor().getHooks().getPush());
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PUSH] done");
     }
 
     public static void version(final ScmExecutor.SCMExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
-        if (StringUtils.isEmpty(report.getRepository().getHooks().getVersion())) {
+        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getVersion())) {
             Logger.warn("hook 'version' not defined for " + report.getName());
             report.setIsOk(false);
             return;
         }
 
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [VERSION] start");
-        executeCommands(report, report.getRepository().getHooks().getVersion(), true);
-        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getRepository().getPath().getAbsolutePath() + " [VERSIOn] done");
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [VERSION] start");
+        executeCommands(report, report.getDescriptor().getHooks().getVersion(), true);
+        Logger.info("[SCM] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [VERSIOn] done");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void executeCommands(ScmExecutor.SCMExecutionReport report, String commands, boolean returnStdout) {
-        ScmDescriptor repository = report.getRepository();
+        ScmDescriptor repository = report.getDescriptor();
         boolean shouldDeleteUponFailure = false;
 
         // Make sure cache is available with minimal accesses

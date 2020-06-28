@@ -39,7 +39,7 @@ class ScmAPI {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            Map output = webServer.scms.toMap(webServer.run, filter, webServer.parametersLocation)
+            Map output = webServer.scms.toMap(webServer.run, filter)
             output.descriptors = webServer.pagination.resolve(
                     output.descriptors,
                     filter.from as Integer,
@@ -83,10 +83,8 @@ class ScmAPI {
                 if (webServer.run != null && !webServer.run.isSelected(element.descriptor.name))
                     return
 
-                def parametersFile = new File(webServer.parametersLocation, element.simpleName() + ".json")
-
                 element.descriptor.ask.parameters.each { ScmDescriptor.AskParameter parameter ->
-                    element.writeParameterDefaultValue(parametersFile, element.descriptor.name, parameter)
+                    element.writeParameterDefaultValue(element.descriptor.name, parameter)
                 }
             }
 
@@ -99,12 +97,10 @@ class ScmAPI {
                 if (webServer.run != null && !webServer.run.isSelected(element.descriptor.name))
                     return
 
-                def parametersFile = new File(webServer.parametersLocation, element.simpleName() + ".json")
-
-                if (!parametersFile.exists())
+                if (!element.scmFile.expectedParameterFile.exists())
                     return
 
-                parametersFile.delete()
+                element.scmFile.expectedParameterFile.delete()
             }
 
             return webServer.showResult("Ok")
@@ -122,7 +118,7 @@ class ScmAPI {
                 return webServer.showError(res, "No SCM found for the specified name")
 
             def element = webServer.scms.elements[name]
-            def output = element.toMap([:], new File(webServer.parametersLocation, element.simpleName() + ".json"))
+            def output = element.toMap([:])
 
             return JsonOutput.toJson(output)
         })
@@ -253,10 +249,7 @@ class ScmAPI {
             if (payload)
                 parameterValue = new JsonSlurper().parseText(payload).parameterValue
 
-            def parametersFile = new File(webServer.parametersLocation, element.simpleName() + ".json")
-
             element.writeParameterValue(
-                    parametersFile,
                     element.descriptor.name,
                     parameter,
                     parameterValue.toString())

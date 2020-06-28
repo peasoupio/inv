@@ -216,7 +216,7 @@ class SystemAPI {
         }
 
         return [
-                source: report.repository.src,
+                source: report.descriptor.src,
                 version: report.stdout.trim()
         ]
     }

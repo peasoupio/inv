@@ -8,6 +8,11 @@ import io.peasoup.inv.security.CommonLoader;
 import java.io.File;
 
 public class ScmInvoker {
+
+    public static String[] DEFAULT_EXCLUDED = new String[]{ ".runs/*", "*.json" };
+
+    private static final CommonLoader loader = new CommonLoader();
+
     private ScmInvoker() {
     }
 
@@ -55,5 +60,16 @@ public class ScmInvoker {
         myNewScript.run();
     }
 
-    private static final CommonLoader loader = new CommonLoader();
+
+    /**
+     * Gets the expected location of a parameters JSON file for a specific scmFile.
+     * @param scmFile ScmFile location
+     * @return Expected parameters file location
+     */
+    public static File expectedParametersfileLocation(File scmFile) {
+        if (scmFile == null) throw new IllegalArgumentException("scmFile");
+
+        String simpleName = scmFile.getName().split("\\.")[0];
+        return new File(scmFile.getParentFile(), simpleName + ".json");
+    }
 }

@@ -9,7 +9,7 @@ import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import io.peasoup.inv.scm.ScmExecutor
-import io.peasoup.inv.utils.Progressbar
+import io.peasoup.inv.scm.ScmInvoker
 
 import java.nio.file.Files
 
@@ -64,7 +64,7 @@ class ScmCommand implements CliCommand {
             }
         } else {
             // Handle excluding patterns
-            def excludePatterns = [".runs/*"]
+            def excludePatterns = ScmInvoker.DEFAULT_EXCLUDED.toList()
             if (exclude)
                 excludePatterns.add(exclude)
 
@@ -72,7 +72,7 @@ class ScmCommand implements CliCommand {
 
             // Parse and incoke SCM file
             scmFiles.each {
-                scmExecutor.parse(it)
+                scmExecutor.parse(it, ScmInvoker.expectedParametersfileLocation(it))
             }
         }
 
@@ -86,9 +86,9 @@ class ScmCommand implements CliCommand {
             def name = report.name
 
             // Manage entry points for SCM
-            return report.repository.entry.collect {
+            return report.descriptor.entry.collect {
 
-                def path = report.repository.path
+                def path = report.descriptor.path
                 def scriptFile = new File(it)
 
                 if (!scriptFile.exists()) {

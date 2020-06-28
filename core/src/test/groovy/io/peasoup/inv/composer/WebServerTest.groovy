@@ -13,6 +13,8 @@ import spark.Spark
 
 import java.nio.charset.Charset
 
+import static org.junit.Assert.assertFalse
+
 @RunWith(TempHome.class)
 class WebServerTest {
 
@@ -309,11 +311,17 @@ scm {
 
     @Test
     void scm_applyDefaultAll_and_resetAll() {
-        def parametersFolder = new File(base, "parameters/")
+
+        // Create scms folder ref and delete existing json files
+        def parametersFolder = new File(base, "scms/")
+        parametersFolder.listFiles()
+            .findAll { it.name.endsWith(".json") }
+            .each { it.delete() }
+
         post("run/stageAll")
 
         //Apply
-        assert parametersFolder.listFiles().size() == 0
+        assertFalse parametersFolder.listFiles().any { it.name.endsWith(".json")}
 
         def responseBeforeApply = get("scms/view?name=scm1")
         assert responseBeforeApply
@@ -325,7 +333,7 @@ scm {
 
         post("scms/applyDefaultAll")
 
-        assert parametersFolder.listFiles().size() == 2 // Only 4 descriptors has parameters on 2 files
+        assert parametersFolder.listFiles().findAll { it.name.endsWith(".json")}.size() == 2 // Only 4 descriptors has parameters on 2 files
 
         def responseAfterApply = get("scms/view?name=scm1")
         assert responseAfterApply

@@ -17,11 +17,7 @@ class ExecutionTest {
     void not_ok() {
 
         assertThrows(AssertionError.class, {
-            new Execution(null, null, new File(base, "params/"))
-        })
-
-        assertThrows(AssertionError.class, {
-            new Execution(null, new File(base, "scms/"), null)
+            new Execution(null, null)
         })
     }
 

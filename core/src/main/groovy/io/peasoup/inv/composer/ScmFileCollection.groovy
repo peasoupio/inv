@@ -8,20 +8,14 @@ class ScmFileCollection {
     private final List<ScmFile> scms = [].asSynchronized() as List<ScmFile>
 
     final File scmFolder
-    final File parametersFolder
     final Map<String, ScmFile.SourceFileElement> elements = [:]
     final Set<String> staged = new HashSet<>()
 
-    ScmFileCollection(File scmFolder, File parametersFolder) {
+    ScmFileCollection(File scmFolder) {
         assert scmFolder != null, 'SCM folder is required'
         assert scmFolder.exists(), "SCM folder must exist on filesystem"
 
-        assert parametersFolder != null, 'Parameters folder is required'
-        if (!parametersFolder.exists())
-            parametersFolder.mkdirs()
-
         this.scmFolder = scmFolder
-        this.parametersFolder = parametersFolder
     }
 
     void load(File file) {
@@ -40,7 +34,7 @@ class ScmFileCollection {
             return true
         }
 
-        def scm = new ScmFile(file, parametersFolder)
+        def scm = new ScmFile(file)
         scms << scm
         elements.putAll(scm.elements)
     }
@@ -113,7 +107,7 @@ class ScmFileCollection {
                 .collect { elements[it].scmFile }
     }
 
-    Map toMap(RunFile runFile = null, Map filter = [:], String parametersLocation = null) {
+    Map toMap(RunFile runFile = null, Map filter = [:]) {
 
         List<Map> filtered = []
         Integer selectedCount = 0
@@ -146,11 +140,7 @@ class ScmFileCollection {
                 if (filter.staged && !isStaged)
                     return
 
-                File parameterLocation
-                if (parametersLocation)
-                    parameterLocation = new File(parametersLocation, it.simpleName() + ".json")
-
-                def scm = it.toMap(filter, parameterLocation)
+                def scm = it.toMap(filter)
                 if (!scm)
                     return
 

@@ -1,7 +1,10 @@
 package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
+import io.peasoup.inv.Home
+import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.run.Logger
+import io.peasoup.inv.scm.ScmInvoker
 import io.peasoup.inv.utils.Progressbar
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
@@ -79,8 +82,8 @@ class Boot {
     }
 
     protected void readScmsFiles() {
-        def scmFolder = webServer.scms.scmFolder
-        def files = scmFolder.listFiles()
+        File scmFolder = webServer.scms.scmFolder
+        def files = Pattern.get(["*"], ScmInvoker.DEFAULT_EXCLUDED.toList(), scmFolder)
 
         if (!files) {
             Logger.warn("No files to be found in'${scmFolder.absolutePath}'")

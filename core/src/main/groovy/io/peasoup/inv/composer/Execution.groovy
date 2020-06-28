@@ -22,14 +22,13 @@ class Execution {
 
     private final String appLauncher;
     private final File scmFolder
-    private final File externalParametersFolder
 
     private Process currentProcess
 
     private long lastExecution = 0
     private long lastExecutionStartedOn = 0
 
-    Execution(String appLauncher, File scmFolder, File externalParametersFolder) {
+    Execution(String appLauncher, File scmFolder) {
         if (!appLauncher) {
             Logger.warn("AppLauncher is not defined. Classic execution will be used. Classic is for test-purposes only.")
         }
@@ -39,14 +38,8 @@ class Execution {
             scmFolder.mkdir()
         assert scmFolder.isDirectory(), 'SCM location must be a directory'
 
-        assert externalParametersFolder, 'External parameters location (folder) is required'
-        if (!externalParametersFolder.exists())
-            externalParametersFolder.mkdir()
-        assert externalParametersFolder.isDirectory(), 'External parameters location must be a directory'
-
         this.appLauncher = appLauncher
         this.scmFolder = scmFolder
-        this.externalParametersFolder = externalParametersFolder
 
         // Set initial last execution times
         if (latestLog().exists()) {

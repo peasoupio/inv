@@ -28,6 +28,7 @@ public class InvDescriptor {
      * Gets the base file location used to create this INV instance
      * @return String representation of the filesystem location
      */
+    @SuppressWarnings("squid:S100")
     public String get$0() {
         return baseFilename;
     }
@@ -285,6 +286,7 @@ public class InvDescriptor {
      * </pre>
      * @return a new StatementDescriptor
      */
+    @SuppressWarnings("squid:S100")
     public InvNames get$inv() {
         return InvNames.Instance;
     }

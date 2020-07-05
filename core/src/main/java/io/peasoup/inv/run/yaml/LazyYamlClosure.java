@@ -35,24 +35,30 @@ public class LazyYamlClosure extends Closure {
         this.codeBlock = codeBlock;
     }
 
+    @Override
     public Object invokeMethod(String method, Object arguments) { return getCodeClosure().invokeMethod(method, arguments); }
 
+    @Override
     public Object getProperty(String property) {
         return getCodeClosure().getProperty(property);
     }
 
+    @Override
     public void setProperty(String property, Object newValue) {
         getCodeClosure().setProperty(property, newValue);
     }
 
+    @Override
     public Object call() {
         return getCodeClosure().call();
     }
 
+    @Override
     public Object call(Object arguments) {
         return getCodeClosure().call(arguments);
     }
 
+    @Override
     public Object call(Object... args) {
         return getCodeClosure().call(args);
     }
@@ -61,50 +67,63 @@ public class LazyYamlClosure extends Closure {
         return this.call(args);
     }
 
+    @Override
     public Object getDelegate() {
         return getCodeClosure().getDelegate();
     }
 
+    @Override
     public void setDelegate(Object delegate) {
         getCodeClosure().setDelegate(delegate);
     }
 
+    @Override
     public Class[] getParameterTypes() {
         return getCodeClosure().getParameterTypes();
     }
 
+    @Override
     public int getMaximumNumberOfParameters() {
         return getCodeClosure().getMaximumNumberOfParameters();
     }
 
+    @Override
     public void run() {
         getCodeClosure().run();
     }
 
+    @Override
+    @SuppressWarnings("squid:S1182")
     public Object clone() {
-        return ((Closure)getCodeClosure().clone()).asWritable();
+        return getCodeClosure().clone();
     }
 
+    @Override
     public int hashCode() {
         return getCodeClosure().hashCode();
     }
 
+    @Override
     public boolean equals(Object arg0) {
         return getCodeClosure().equals(arg0);
     }
 
+    @Override
     public String toString() {
         return getCodeClosure().toString();
     }
 
+    @Override
     public Closure curry(Object... arguments) {
         return (new CurriedClosure(this, arguments)).asWritable();
     }
 
+    @Override
     public void setResolveStrategy(int resolveStrategy) {
         getCodeClosure().setResolveStrategy(resolveStrategy);
     }
 
+    @Override
     public int getResolveStrategy() {
         return getCodeClosure().getResolveStrategy();
     }

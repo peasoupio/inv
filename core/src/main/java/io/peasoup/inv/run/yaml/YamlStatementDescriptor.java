@@ -1,7 +1,5 @@
 package io.peasoup.inv.run.yaml;
 
-import java.util.List;
-
 public class YamlStatementDescriptor {
 
     private YamlRequireStatementDescriptor require;

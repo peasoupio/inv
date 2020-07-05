@@ -83,7 +83,7 @@ class Boot {
 
     protected void readScmsFiles() {
         File scmFolder = webServer.scms.scmFolder
-        def files = Pattern.get(["*"], ScmInvoker.DEFAULT_EXCLUDED.toList(), scmFolder)
+        def files = Pattern.get(["*"], ScmInvoker.DEFAULT_EXCLUDED, scmFolder)
 
         if (!files) {
             Logger.warn("No files to be found in'${scmFolder.absolutePath}'")

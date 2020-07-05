@@ -64,7 +64,7 @@ class ScmCommand implements CliCommand {
             }
         } else {
             // Handle excluding patterns
-            def excludePatterns = ScmInvoker.DEFAULT_EXCLUDED.toList()
+            def excludePatterns = ScmInvoker.DEFAULT_EXCLUDED
             if (exclude)
                 excludePatterns.add(exclude)
 

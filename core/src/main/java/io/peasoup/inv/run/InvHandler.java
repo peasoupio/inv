@@ -5,8 +5,6 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.Script;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.File;
-
 @SuppressWarnings("rawtypes")
 public class InvHandler {
     private final InvExecutor invExecutor;

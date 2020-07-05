@@ -6,10 +6,13 @@ import io.peasoup.inv.run.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class ScmInvoker {
 
-    public static String[] DEFAULT_EXCLUDED = new String[]{ ".runs/*", "*.json" };
+    public static final List<String> DEFAULT_EXCLUDED = Collections.unmodifiableList(Arrays.asList(".runs/*", "*.json" ));
 
     private static final GroovyLoader loader = new GroovyLoader();
 

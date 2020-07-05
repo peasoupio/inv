@@ -4,7 +4,6 @@ package io.peasoup.inv.run.yaml;
 import groovy.text.GStringTemplateEngine;
 import groovy.text.TemplateEngine;
 import io.peasoup.inv.run.*;
-import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
@@ -47,9 +46,7 @@ public class YamlHandler {
 
         try {
             // Parse descriptor into inv object
-            if (!parseDescriptor(yamlDescriptor, inv)) {
-                throw new IllegalStateException("Cannot parse descriptor");
-            }
+            parseDescriptor(yamlDescriptor, inv);
 
         } catch (Exception ex) {
             invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
@@ -68,7 +65,7 @@ public class YamlHandler {
 
     }
 
-    private boolean parseDescriptor(YamlDescriptor descriptor, Inv inv) throws IOException, ClassNotFoundException {
+    private void parseDescriptor(YamlDescriptor descriptor, Inv inv) throws IOException, ClassNotFoundException {
 
         InvDescriptor delegate = inv.getDelegate();
 
@@ -97,7 +94,7 @@ public class YamlHandler {
 
         // If workflow is not defined, do not proceed
         if (descriptor.getWorkflow() == null || descriptor.getWorkflow().isEmpty())
-            return true;
+            return;
 
         // Validate all statetement descriptors
         Queue<YamlStatementDescriptor> statementDescriptors = new LinkedList<>(descriptor.getWorkflow());
@@ -115,9 +112,6 @@ public class YamlHandler {
             if (statementDescriptor.getRequire() != null)
                 parseRequireStatement(statementDescriptor.getRequire(), inv, interpolatable);
         }
-
-
-        return true;
     }
 
     private void parseBroadcastStatement(YamlBroadcastStatementDescriptor descriptor, Inv inv, Map<String, String> interpolatable) throws IOException, ClassNotFoundException {

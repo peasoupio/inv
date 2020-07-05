@@ -16,23 +16,13 @@ public class RequireDescriptor {
     }
 
     /**
-     * Defines a broadcast statement using specific options and events.
-     * <p>
-     * It is a sub-option of the shorthanded broadcast statement.
+     * Defines the require using descriptor using a RequireUsingDescriptor instance.
      *
-     * @param usingBody @default None, value required
-     * @return Current require descriptor
+     * @param requireUsingDescriptor RequireUsingDescriptor instance
+     * @return RequireDescriptor owner reference
      */
-    public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure<Object> usingBody) {
-        if (usingBody == null) {
-            throw new IllegalArgumentException("Using body is required");
-        }
-
-        RequireUsingDescriptor requireUsingDescriptor = new RequireUsingDescriptor();
-
-        usingBody.setResolveStrategy(Closure.DELEGATE_FIRST);
-        usingBody.setDelegate(requireUsingDescriptor);
-        usingBody.call();
+    public RequireDescriptor using(RequireUsingDescriptor requireUsingDescriptor) {
+        if (requireUsingDescriptor == null) throw new IllegalArgumentException("requireUsingDescriptor");
 
         if (requireUsingDescriptor.getId() != null)
             requireStatement.setId(requireUsingDescriptor.getId());
@@ -48,6 +38,26 @@ public class RequireDescriptor {
         requireStatement.setUnresolved(requireUsingDescriptor.getUnresolved());
 
         return this;
+    }
+
+    /**
+     * Defines the require using descriptor using a closure.
+     *
+     * @param usingBody Closure representation of RequireUsingDescriptor
+     * @return RequireDescriptor owner reference
+     */
+    public RequireDescriptor using(@DelegatesTo(RequireUsingDescriptor.class) Closure<Object> usingBody) {
+        if (usingBody == null) {
+            throw new IllegalArgumentException("Using body is required");
+        }
+
+        RequireUsingDescriptor requireUsingDescriptor = new RequireUsingDescriptor();
+
+        usingBody.setResolveStrategy(Closure.DELEGATE_FIRST);
+        usingBody.setDelegate(requireUsingDescriptor);
+        usingBody.call();
+
+        return using(requireUsingDescriptor);
     }
 
     /**

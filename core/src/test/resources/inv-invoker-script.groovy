@@ -1,4 +1,9 @@
-assert pwd
-assert $0
+assert debug
 
-println $0
+inv {
+    assert $0
+    debug($0)
+}
+
+
+

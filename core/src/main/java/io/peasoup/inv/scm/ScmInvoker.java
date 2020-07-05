@@ -3,7 +3,7 @@ package io.peasoup.inv.scm;
 import groovy.lang.Script;
 import io.peasoup.inv.run.DebugLogger;
 import io.peasoup.inv.run.Logger;
-import io.peasoup.inv.security.CommonLoader;
+import io.peasoup.inv.loader.GroovyLoader;
 
 import java.io.File;
 
@@ -11,7 +11,7 @@ public class ScmInvoker {
 
     public static String[] DEFAULT_EXCLUDED = new String[]{ ".runs/*", "*.json" };
 
-    private static final CommonLoader loader = new CommonLoader();
+    private static final GroovyLoader loader = new GroovyLoader();
 
     private ScmInvoker() {
     }

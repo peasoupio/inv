@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.run.Logger
-import io.peasoup.inv.security.CommonLoader
+import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 
 @CompileStatic
@@ -23,13 +23,13 @@ class SyntaxCommand implements CliCommand {
         if (exclude)
             excludePatterns.add(exclude)
 
-        def commonLoader = new CommonLoader()
+        def commonLoader = new GroovyLoader()
         def syntaxFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
         def succeeded = true
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.compile(it)
+                def result = commonLoader.parseText(it)
                 if (result)
                     Logger.info("[SYNTAX] startup succeeded: ${it.absolutePath}")
                 else {

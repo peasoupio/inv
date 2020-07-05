@@ -38,6 +38,7 @@
                 <include>*:ivy:jar:*</include>
                 <include>*:jakarta*:jar:*</include>
                 <include>*:compiler:jar:*</include> <!-- mustache -->
+                <include>*:snakeyaml:jar:*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -56,6 +57,7 @@
                 <exclude>*:ivy:jar:*</exclude>
                 <exclude>*:jakarta*:jar:*</exclude>
                 <exclude>*:compiler:jar:*</exclude> <!-- mustache -->
+                <exclude>*:snakeyaml:jar:*</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>

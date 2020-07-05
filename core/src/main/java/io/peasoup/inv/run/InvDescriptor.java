@@ -17,12 +17,19 @@ public class InvDescriptor {
 
     private final Properties properties;
 
-    protected InvDescriptor(Properties properties) {
-        if (properties == null) {
-            throw new IllegalArgumentException("Temporaries is required");
-        }
+    private final String baseFilename;
 
+    protected InvDescriptor(Properties properties, String baseFilename) {
         this.properties = properties;
+        this.baseFilename = baseFilename;
+    }
+
+    /**
+     * Gets the base file location used to create this INV instance
+     * @return String representation of the filesystem location
+     */
+    public String get$0() {
+        return baseFilename;
     }
 
     /**
@@ -132,9 +139,7 @@ public class InvDescriptor {
      * @return a new BroadcastDescriptor
      */
     public BroadcastDescriptor broadcast(StatementDescriptor statementDescriptor) {
-        if (statementDescriptor == null) {
-            throw new IllegalArgumentException("Statement descriptor is required");
-        }
+        if (statementDescriptor == null) throw new IllegalArgumentException("Statement descriptor is required");
 
         BroadcastStatement broadcastStatement = new BroadcastStatement();
 

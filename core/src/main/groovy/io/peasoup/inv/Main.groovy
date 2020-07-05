@@ -4,7 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
-import io.peasoup.inv.security.CommonLoader
+import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
@@ -60,11 +60,11 @@ class Main extends Script {
 
         // Enable secure mode
         if (arguments["--secure"])
-            CommonLoader.enableSecureMode()
+            GroovyLoader.enableSecureMode()
 
         // Enable SystemClassLoader
         if (System.getProperty("java.system.class.loader"))
-            CommonLoader.enableSystemClassloader()
+            GroovyLoader.enableSystemClassloader()
 
         // Do system checks
         if (SystemInfo.consistencyFails()) {

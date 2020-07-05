@@ -6,7 +6,7 @@ import io.peasoup.inv.composer.ScmFile
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.scm.ScmDescriptor
 import io.peasoup.inv.scm.ScmExecutor
-import io.peasoup.inv.security.CommonLoader
+import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -160,7 +160,7 @@ class ScmAPI {
             List<String> exceptionMessages = []
 
             try {
-                new CommonLoader().compile(source)
+                new GroovyLoader().parseText(source)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

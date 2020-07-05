@@ -13,7 +13,7 @@ class InvDescriptorTest {
     @Before
     void setup() {
         properties = new InvDescriptor.Properties()
-        myself = new InvDescriptor(properties)
+        myself = new InvDescriptor(properties, null)
     }
 
     @Test

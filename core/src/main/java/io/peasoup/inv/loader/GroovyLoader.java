@@ -1,4 +1,4 @@
-package io.peasoup.inv.security;
+package io.peasoup.inv.loader;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
@@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,7 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 
-public class CommonLoader {
+public class GroovyLoader {
 
 
     /**
@@ -55,7 +54,7 @@ public class CommonLoader {
     /**
      * Create a common loader using system-wide secure mode preference
      */
-    public CommonLoader() {
+    public GroovyLoader() {
         this(systemSecureModeEnabled);
     }
 
@@ -64,14 +63,14 @@ public class CommonLoader {
      *
      * @param secureMode Determines if using secure mode or not
      */
-    public CommonLoader(boolean secureMode) {
+    public GroovyLoader(boolean secureMode) {
 
         SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
         secureASTCustomizer.setPackageAllowed(false);
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
 
         LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
-        map.put("extensions", "io.peasoup.inv.security.SecuredTypeChecked");
+        map.put("extensions", "io.peasoup.inv.loader.SecuredTypeChecked");
         ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
 
         final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
@@ -94,27 +93,35 @@ public class CommonLoader {
     }
 
     /**
-     * Compile a Groovy text with preferred secure and classloading options
+     * Compile a Groovy text with preferred secure and classloading options.
+     * This method does not cache the Groovy script file.
+     * For caching, use "parseClass".
+     *
      * @param file Groovy file
+     * @return Compiled Object
+     *
      * @throws IOException
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws NoSuchMethodException
      * @throws InvocationTargetException
      */
-    public boolean compile(File file) throws IOException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        return compile(ResourceGroovyMethods.getText(file));
+    public Script parseText(File file) throws IOException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        return parseText(ResourceGroovyMethods.getText(file));
     }
 
     /**
      * Compile a Groovy text with preferred secure and classloading options
+     *
      * @param text Groovy text
+     * @return Compiled Object
+     *
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws NoSuchMethodException
      * @throws InvocationTargetException
      */
-    public boolean compile(String text) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    public Script parseText(String text) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         // If secure is enabled, use secure classloader
         if (secureMode) {
@@ -122,20 +129,18 @@ public class CommonLoader {
                 Class<?> cls = securedClassLoader.parseClass(text);
                 if (cls == null) throw new IllegalStateException("text could not be parsed as a Class object");
 
-                cls.getDeclaredConstructor().newInstance();
-                return true;
+                return (Script)cls.getDeclaredConstructor().newInstance();
             } catch (MultipleCompilationErrorsException ex) {
                 if (hasFatalException(ex))
-                    return false;
+                    return null;
             }
         }
 
         // Otherwise, use general classloader
         Class<?> cls = generalClassLoader.parseClass(text);
-        if (cls == null) return false;
+        if (cls == null) return null;
 
-        cls.getDeclaredConstructor().newInstance();
-        return true;
+        return (Script)cls.getDeclaredConstructor().newInstance();
     }
 
     /**

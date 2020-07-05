@@ -2,27 +2,24 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
-import io.peasoup.inv.security.CommonLoader;
+import io.peasoup.inv.run.yaml.YamlDescriptor;
+import io.peasoup.inv.run.yaml.YamlHandler;
+import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class InvInvoker {
     public static final String UNDEFINED_SCM = "undefined";
-    private static final CommonLoader loader = new CommonLoader();
+    private static final GroovyLoader loader = new GroovyLoader();
+    private static final Yaml yaml = new Yaml(new Constructor(YamlDescriptor.class));
 
     private InvInvoker() {
-
+        // empty ctor
     }
 
     /**
@@ -72,12 +69,34 @@ public class InvInvoker {
             return;
         }
 
-        //Logger.system("[INVOKER] file: " + scriptPath + ", exists: true");
-
         if (StringUtils.isEmpty(pwd)) {
             throw new IllegalArgumentException("Pwd (current working directory) is required");
         }
 
+        // Check if either a YAML or Groovy Script file
+        if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
+            parseYaml(invExecutor, scriptFile,pwd, scm, scriptPath);
+        else
+            runScript(invExecutor, scriptFile,pwd, scm, scriptPath);
+    }
+
+    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
+
+        // Create YAML handler
+        YamlHandler yamlHandler = new YamlHandler(
+                invExecutor,
+                scriptPath,
+                checkSubordinateSlash(pwd),
+                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+
+        try {
+            yamlHandler.call(yaml.load(ResourceGroovyMethods.newReader(scriptFile)));
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
         Script myNewScript;
 
         try {
@@ -89,12 +108,14 @@ public class InvInvoker {
 
         if (myNewScript == null) return;
 
-        Binding binding = myNewScript.getBinding();
+        InvHandler invHandler = new InvHandler(
+                invExecutor,
+                scriptPath,
+                checkSubordinateSlash(pwd),
+                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
 
-        binding.setProperty("inv", new InvHandler(invExecutor));
-        binding.setProperty("$0", scriptPath);
-        binding.setProperty("pwd", checkSubordinateSlash(pwd));
-        binding.setProperty("scm", StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+        Binding binding = myNewScript.getBinding();
+        binding.setProperty("inv", invHandler);
         binding.setProperty("debug", DebugLogger.Instance);
 
         try {
@@ -102,7 +123,6 @@ public class InvInvoker {
         } catch (Exception ex) {
             Logger.error(ex);
         }
-
     }
 
     private static String checkSubordinateSlash(String path) {

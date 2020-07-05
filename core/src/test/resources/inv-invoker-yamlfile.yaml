@@ -1,0 +1,24 @@
+name: my-inv
+
+# Handle tags + String interpolation
+tags:
+  my: ${name}
+
+workflow:
+  # Casual "broadcast"
+  - broadcast:
+      name: Server
+
+      # Returns a "string-interpolated" Map object.
+      ready: |
+        return [
+          my: "${name}"
+        ]
+
+  # Casual require
+  - require:
+      name: Server
+
+      # Validate response content
+      resolved: |
+        assert response.my == name

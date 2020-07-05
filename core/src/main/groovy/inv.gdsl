@@ -8,9 +8,9 @@ contributor(context(scope: closureScope())) {
 
     if (enclosingCall('inv')) {
         //noinspection GroovyAssignabilityCheck
-        property name: '$', type: 'java.util.Map<String, io.peasoup.inv.run.StatementDescriptor>'
+        property name: '$', type: 'java.util.Map<String, io.peasoup.inv.run.GroovyStatementDescriptor>'
         //noinspection GroovyAssignabilityCheck
-        delegatesTo(findClass('io.peasoup.inv.run.InvDescriptor'))
+        delegatesTo(findClass('io.peasoup.inv.run.GroovyInvDescriptor'))
     }
 
 

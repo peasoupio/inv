@@ -14,6 +14,30 @@ public class BroadcastDescriptor {
         this.broadcastStatement = broadcastStatement;
     }
 
+    /**
+     * Defines the broadcast with a BroadcastUsingDescriptor instance.
+     *
+     * @param broadcastUsingDescriptor BroadcastUsingDescriptor instance
+     * @return BroadcastDescriptor owner reference
+     */
+    public BroadcastDescriptor using(BroadcastUsingDescriptor broadcastUsingDescriptor) {
+        if (broadcastUsingDescriptor == null) throw new IllegalArgumentException("broadcastUsingDescriptor");
+
+        if (broadcastUsingDescriptor.getId() != null)
+            broadcastStatement.setId(broadcastUsingDescriptor.getId());
+
+        broadcastStatement.setMarkdown(broadcastUsingDescriptor.getMarkdown());
+        broadcastStatement.setReady(broadcastUsingDescriptor.getReady());
+
+        return this;
+    }
+
+    /**
+     * Defines the broadcast using descriptor using a closure.
+     *
+     * @param usingBody Closure representation of BroadcastUsingDescriptor
+     * @return BroadcastDescriptor owner reference
+     */
     public BroadcastDescriptor using(@DelegatesTo(BroadcastUsingDescriptor.class) Closure<Object> usingBody) {
         if (usingBody == null) {
             throw new IllegalArgumentException("Using body is required");
@@ -25,13 +49,6 @@ public class BroadcastDescriptor {
         usingBody.setDelegate(broadcastUsingDescriptor);
         usingBody.call();
 
-        if (broadcastUsingDescriptor.getId() != null)
-            broadcastStatement.setId(broadcastUsingDescriptor.getId());
-
-
-        broadcastStatement.setMarkdown(broadcastUsingDescriptor.getMarkdown());
-        broadcastStatement.setReady(broadcastUsingDescriptor.getReady());
-
-        return this;
+        return using(broadcastUsingDescriptor);
     }
 }

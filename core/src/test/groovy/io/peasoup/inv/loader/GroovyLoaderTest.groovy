@@ -1,6 +1,6 @@
-package io.peasoup.inv.security
+package io.peasoup.inv.loader
 
-import io.peasoup.inv.run.InvInvoker
+
 import io.peasoup.inv.run.RunsRoller
 import org.junit.Before
 import org.junit.Test
@@ -10,46 +10,46 @@ import static org.junit.jupiter.api.Assertions.assertNotNull
 import static org.junit.jupiter.api.Assertions.assertNull
 import static org.junit.jupiter.api.Assertions.assertTrue
 
-class CommonLoaderTest {
+class GroovyLoaderTest {
 
-    CommonLoader loader
+    GroovyLoader loader
 
     @Before
     void setup() {
-        loader = new CommonLoader(true)
+        loader = new GroovyLoader(true)
     }
 
     @Test
     void ok() {
-        assertTrue loader.compile('''
+        assertNotNull loader.parseText('''
 println "Hello world!"
 ''')
     }
 
     @Test
     void insecure_package() {
-        assertFalse loader.compile('''
+        assertNull loader.parseText('''
 package io.peasoup.inv
 ''')
     }
 
     @Test
     void insecure_system() {
-        assertFalse loader.compile('''
+        assertNull loader.parseText('''
 System.lineSeparator()
 ''')
     }
 
     @Test
     void insecure_thread() {
-        assertFalse loader.compile('''
+        assertNull loader.parseText('''
 Thread.currentThread()
 ''')
     }
 
     @Test
     void insecure_eval() {
-        assertFalse loader.compile('''
+        assertNull loader.parseText('''
 Eval.me('1+1')
 ''')
     }
@@ -57,7 +57,7 @@ Eval.me('1+1')
     @Test
     void cache() {
 
-        def script = CommonLoaderTest.class.getResource("/inv-invoker-script.groovy")
+        def script = GroovyLoaderTest.class.getResource("/inv-invoker-script.groovy")
         assert script
 
         // Clean if already existing

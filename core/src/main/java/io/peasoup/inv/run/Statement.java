@@ -1,6 +1,6 @@
 package io.peasoup.inv.run;
 
-interface Statement {
+public interface Statement {
 
     /**
      * Gets the current ID of this statement

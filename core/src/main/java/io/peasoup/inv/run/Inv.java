@@ -32,16 +32,14 @@ public class Inv {
     private final Queue<Statement> totalStatements;
     private int stepCount;
 
-    private Inv(Context context) {
-        if (context == null) {
-            throw new IllegalArgumentException("Context is required");
-        }
+    private Inv(Context context, String baseFilename) {
+        if (context == null) throw new IllegalArgumentException("Context is required");
 
         this.context = context;
 
         this.digestionSummary  = new Digestion();
         this.properties = new InvDescriptor.Properties();
-        this.delegate = new InvDescriptor(this.properties);
+        this.delegate = new InvDescriptor(this.properties, baseFilename);
 
         this.remainingStatements = new LinkedBlockingQueue<>();
         this.steps = new LinkedBlockingQueue<>();
@@ -351,15 +349,14 @@ public class Inv {
         public static final String WORKING_DIR = System.getProperty("user.dir");
 
         private final NetworkValuablePool pool;
+
         private String defaultName;
         private String defaultPath = WORKING_DIR;
         private String scm;
-        private String scriptFilename;
+        private String baseFilename;
 
         public Context(NetworkValuablePool pool) {
-            if (pool == null) {
-                throw new IllegalArgumentException("Pool is required");
-            }
+            if (pool == null) throw new IllegalArgumentException("Pool is required");
 
             this.pool = pool;
         }
@@ -385,24 +382,25 @@ public class Inv {
             this.scm = scm;
         }
 
-        public void setScriptFilename(String scriptFilename) {
+        public void setBaseFilename(String scriptFilename) {
             if (StringUtils.isEmpty(scriptFilename))
                 return;
 
-            this.scriptFilename = scriptFilename;
+            this.baseFilename = scriptFilename;
         }
 
         public Inv build() {
 
-            Inv inv = new Inv(this);
+            Inv inv = new Inv(this, baseFilename);
 
             // Set name from delegate - needs digestion to apply.
             if (StringUtils.isNotEmpty(defaultName))
                 inv.delegate.name(defaultName);
 
             // Set path from delegate - needs digestion to apply.
-            if (StringUtils.isNotEmpty(defaultPath))
+            if (StringUtils.isNotEmpty(defaultPath)) {
                 inv.delegate.path(defaultPath);
+            }
 
             return inv;
         }
@@ -421,8 +419,8 @@ public class Inv {
             return scm;
         }
 
-        public String getScriptFilename() {
-            return scriptFilename;
+        public String getBaseFilename() {
+            return baseFilename;
         }
     }
 

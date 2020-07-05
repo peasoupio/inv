@@ -137,7 +137,7 @@ public class PoolReport {
          * @param inv INV object reference
          * @param throwable Throwable object reference
          */
-        PoolError(Inv inv, Throwable throwable) {
+        public PoolError(Inv inv, Throwable throwable) {
             if (inv == null) {
                 throw new IllegalArgumentException("Inv is required");
             }

@@ -1,4 +1,4 @@
-package io.peasoup.inv.security
+package io.peasoup.inv.loader
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -28,7 +28,7 @@ class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeChecking
 
         onMethodSelection { expr, methodNode ->
             if (methodNode.declaringClass.name in blacklistedClasses)
-                throw new CommonLoader.MethodCallNotAllowedException(expr)
+                throw new GroovyLoader.MethodCallNotAllowedException(expr)
 
             if (methodNode.name in knownDescriptor)
                 return delegatesTo(classNodeFor(knownDescriptor[methodNode.name]))

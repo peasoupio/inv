@@ -1,7 +1,6 @@
 package io.peasoup.inv.testing
 
 import io.peasoup.inv.run.InvExecutor
-import io.peasoup.inv.run.InvHandler
 import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.PoolReport
 import org.junit.Before

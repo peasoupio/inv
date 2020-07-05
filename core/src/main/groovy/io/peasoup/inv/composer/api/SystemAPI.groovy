@@ -8,7 +8,7 @@ import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.HookExecutor
 import io.peasoup.inv.scm.ScmExecutor
-import io.peasoup.inv.security.CommonLoader
+import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -122,7 +122,7 @@ class SystemAPI {
             List<String> exceptionMessages = []
 
             try {
-                new CommonLoader().compile(fileContent)
+                new GroovyLoader().parseText(fileContent)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

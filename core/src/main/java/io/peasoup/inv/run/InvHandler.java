@@ -5,16 +5,32 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.Script;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
+
 @SuppressWarnings("rawtypes")
 public class InvHandler {
-    private final InvExecutor executor;
+    private final InvExecutor invExecutor;
 
-    public InvHandler(InvExecutor executor) {
-        if (executor == null) {
-            throw new IllegalArgumentException("Executor is required to handle INV script(s)");
-        }
+    private String scriptPath;
+    private String pwd;
+    private String scm;
 
-        this.executor = executor;
+    public InvHandler(InvExecutor invExecutor) {
+        if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
+
+        this.invExecutor = invExecutor;
+    }
+
+    public InvHandler(InvExecutor invExecutor, String scriptPath, String pwd, String scm) {
+        if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
+        if (scriptPath == null) throw new IllegalArgumentException("scriptPath");
+        if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
+        if (StringUtils.isEmpty(scm)) throw new IllegalArgumentException("scm");
+
+        this.invExecutor = invExecutor;
+        this.scriptPath = scriptPath;
+        this.pwd = pwd;
+        this.scm = scm;
     }
 
     public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws INVOptionRequiredException {
@@ -30,7 +46,7 @@ public class InvHandler {
             throw new IllegalArgumentException("Body is required");
         }
 
-        Inv.Context context = new Inv.Context(executor.getPool());
+        Inv.Context context = new Inv.Context(invExecutor.getPool());
 
         // Set default name
         if (StringUtils.isNotEmpty(defaultName)) context.setDefaultName(defaultName);
@@ -39,13 +55,16 @@ public class InvHandler {
         Script script = (body.getOwner() instanceof Script) ? (Script) body.getOwner() : null;
         if (script != null) {
             // Set default path
-            context.setDefaultPath((String) script.getBinding().getVariables().get("pwd"));
+            if (StringUtils.isNotEmpty(pwd))
+                context.setDefaultPath(pwd);
 
             // Set SCM
-            context.setSCM((String) script.getBinding().getVariables().get("scm"));
+            if (StringUtils.isNotEmpty(scm))
+                context.setSCM(scm);
 
             // Set Script filename
-            context.setScriptFilename((String) script.getBinding().getVariables().get("$0"));
+            if (StringUtils.isNotEmpty(scriptPath))
+                context.setBaseFilename(scriptPath);
         }
 
         final Inv inv = context.build();
@@ -55,7 +74,7 @@ public class InvHandler {
         try {
             body.call();
         } catch (Exception ex) {
-            executor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
+            invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
         }
 
         // Make sure, at any cost, delegate.name is not empty before dumping for the first time
@@ -67,7 +86,7 @@ public class InvHandler {
 
         // Print SCM reference
         if (script != null) {
-            Logger.info("[" + context.getScm() + "] [" + context.getScriptFilename() + "] " + inv);
+            Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
         }
     }
 

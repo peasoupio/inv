@@ -21,8 +21,8 @@ public class ScmDescriptor {
             .map(e -> e.getKey() + ":" + e.getValue() )
             .collect(Collectors.toList());
 
-    private static final Integer DEFAULT_TIMEOUT = 30000;
-    private static final String DEFAULT_ENTRY = "inv.groovy";
+    public static final Integer DEFAULT_TIMEOUT = 30000;
+    public static final String DEFAULT_ENTRY = "inv.groovy";
 
     private final HookDescriptor hooks = new HookDescriptor();
     private final AskDescriptor ask = new AskDescriptor();

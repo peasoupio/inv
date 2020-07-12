@@ -1,24 +1,30 @@
-name: my-inv
+inv:
+  - name: my-inv
 
-# Handle tags + String interpolation
-tags:
-  my: ${name}
+    # Handle tags + String interpolation
+    tags:
+      my: ${name}
+      andPath: ${$0}
 
-workflow:
-  # Casual "broadcast"
-  - broadcast:
-      name: Server
+    workflow:
+      # Casual "broadcast"
+      - broadcast:
+          name: Server
 
-      # Returns a "string-interpolated" Map object.
-      ready: |
-        return [
-          my: "${name}"
-        ]
+          # Returns a "string-interpolated" Map object.
+          ready: |
+            return [
+              my: "${name}",
+              andPath: tags.andPath
+            ]
 
-  # Casual require
-  - require:
-      name: Server
+      # Casual require
+      - require:
+          name: Server
 
-      # Validate response content
-      resolved: |
-        assert response.my == name
+          # Validate response content
+          resolved: |
+            println response
+
+            assert response.my == name
+            assert response.andPath == $0

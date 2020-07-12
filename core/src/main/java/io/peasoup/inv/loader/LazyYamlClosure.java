@@ -1,4 +1,4 @@
-package io.peasoup.inv.run.yaml;
+package io.peasoup.inv.loader;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;

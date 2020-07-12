@@ -3,7 +3,7 @@ package io.peasoup.inv.run.yaml;
 import java.util.List;
 import java.util.Map;
 
-public class YamlDescriptor {
+public class YamlInvDescriptor {
 
     private String name;
 
@@ -13,7 +13,7 @@ public class YamlDescriptor {
 
     private List<YamlStatementDescriptor> workflow;
 
-    public YamlDescriptor() {
+    public YamlInvDescriptor() {
         // empty ctor
     }
 

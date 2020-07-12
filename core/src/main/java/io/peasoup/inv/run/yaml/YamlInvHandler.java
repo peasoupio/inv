@@ -3,13 +3,15 @@ package io.peasoup.inv.run.yaml;
 
 import groovy.text.GStringTemplateEngine;
 import groovy.text.TemplateEngine;
+import io.peasoup.inv.loader.YamlLoader;
+import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.run.*;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
 
-public class YamlHandler {
+public class YamlInvHandler {
 
     private final TemplateEngine engine = new GStringTemplateEngine();
 
@@ -18,7 +20,7 @@ public class YamlHandler {
     private final String pwd;
     private final String scm;
 
-    public YamlHandler(InvExecutor invExecutor, String yamlPath, String pwd, String scm) {
+    public YamlInvHandler(InvExecutor invExecutor, String yamlPath, String pwd, String scm) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
         if (StringUtils.isEmpty(yamlPath)) throw new IllegalArgumentException("scriptPath");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
@@ -30,7 +32,14 @@ public class YamlHandler {
         this.scm = scm;
     }
 
-    public void call(YamlDescriptor yamlDescriptor) throws InvHandler.INVOptionRequiredException {
+    public void call(YamlLoader.Descriptor yamlLoader) throws InvHandler.INVOptionRequiredException {
+
+        // Skip if cannot get YamlInvDescriptor's
+        if (yamlLoader == null ||
+                yamlLoader.getInv() == null ||
+                yamlLoader.getInv().isEmpty())
+            return;
+
         Inv.Context context = new Inv.Context(invExecutor.getPool());
 
         // Set default path
@@ -42,30 +51,33 @@ public class YamlHandler {
         // Set Script filename
         context.setBaseFilename(yamlPath);
 
-        final Inv inv = context.build();
+        for (YamlInvDescriptor yamlInvDescriptor : yamlLoader.getInv()) {
 
-        try {
-            // Parse descriptor into inv object
-            parseDescriptor(yamlDescriptor, inv);
+            final Inv inv = context.build();
 
-        } catch (Exception ex) {
-            invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
-            return;
+            try {
+                // Parse descriptor into inv object
+                parseDescriptor(yamlInvDescriptor, inv);
+
+            } catch (Exception ex) {
+                invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
+                return;
+            }
+
+            // Make sure, at any cost, delegate.name is not empty before dumping for the first time
+            if (StringUtils.isEmpty(inv.getDelegate().getName()))
+                throw new InvHandler.INVOptionRequiredException("name");
+
+            // Attempt to dump delegate to insert it into pool
+            inv.dumpDelegate();
+
+            // Print SCM reference
+            Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
         }
-
-        // Make sure, at any cost, delegate.name is not empty before dumping for the first time
-        if (StringUtils.isEmpty(inv.getDelegate().getName()))
-            throw new InvHandler.INVOptionRequiredException("name");
-
-        // Attempt to dump delegate to insert it into pool
-        inv.dumpDelegate();
-
-        // Print SCM reference
-        Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
 
     }
 
-    private void parseDescriptor(YamlDescriptor descriptor, Inv inv) throws IOException, ClassNotFoundException {
+    private void parseDescriptor(YamlInvDescriptor descriptor, Inv inv) throws IOException, ClassNotFoundException {
 
         InvDescriptor delegate = inv.getDelegate();
 
@@ -78,13 +90,14 @@ public class YamlHandler {
             delegate.path(descriptor.getPath());
 
         Map<String, String> interpolatable = new HashMap<>();
+        interpolatable.put("$0", delegate.get$0());
         interpolatable.put("name", delegate.getName());
         interpolatable.put("path", delegate.getPath());
 
         // Sets tags
         if (descriptor.getTags() != null) {
             // Interpolate tags
-            Map interpolated = interpolateMap(descriptor.getTags(), interpolatable);
+            Map interpolated = YamlLoader.interpolateMap(descriptor.getTags(), interpolatable);
 
             // Sets and add interpolated tags as interpolatable
             delegate.tags(interpolated);
@@ -119,10 +132,10 @@ public class YamlHandler {
         BroadcastUsingDescriptor broadcastUsingDescriptor = new BroadcastUsingDescriptor();
 
         if (descriptor.getId() != null)
-            broadcastUsingDescriptor.id(interpolate(descriptor.getId(), interpolatable));
+            broadcastUsingDescriptor.id(YamlLoader.interpolate(descriptor.getId(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
-            broadcastUsingDescriptor.markdown((String)interpolate(descriptor.getMarkdown(), interpolatable));
+            broadcastUsingDescriptor.markdown((String)YamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getReady()))
             broadcastUsingDescriptor.ready(new LazyYamlClosure(inv, descriptor.getReady()));
@@ -136,10 +149,10 @@ public class YamlHandler {
         RequireUsingDescriptor requireUsingDescriptor = new RequireUsingDescriptor();
 
         if (descriptor.getId() != null)
-            requireUsingDescriptor.id(interpolate(descriptor.getId(), interpolatable));
+            requireUsingDescriptor.id(YamlLoader.interpolate(descriptor.getId(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
-            requireUsingDescriptor.markdown((String)interpolate(descriptor.getMarkdown(), interpolatable));
+            requireUsingDescriptor.markdown((String) YamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
         if (descriptor.getUnbloatable() != null)
             requireUsingDescriptor.unbloatable(descriptor.getUnbloatable());
@@ -156,49 +169,4 @@ public class YamlHandler {
         RequireDescriptor requireDescriptor = inv.getDelegate().require(statementDescriptor);
         requireDescriptor.using(requireUsingDescriptor);
     }
-
-    private Object interpolate(Object receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
-        if (receiver instanceof String)
-            return interpolateString((String)receiver, data);
-
-        if (receiver instanceof Map<?,?>)
-            return interpolateMap((Map)receiver, data);
-
-        return receiver;
-    }
-
-    private Map<String, String> interpolateMap(Map receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
-        if (receiver.isEmpty())
-            return new HashMap<>();
-
-        Map<String, String> interpolated = new HashMap<>();
-
-        for(Map.Entry<?,?> entry : (Set<Map.Entry>)receiver.entrySet()) {
-
-            // Do not proceed if key or value is not a String type
-            if (!(entry.getKey() instanceof String))
-                continue;
-
-            if (!(entry.getValue() instanceof String))
-                continue;
-
-            interpolated.put(
-                    engine.createTemplate((String)entry.getKey()).make(data).toString(),
-                    engine.createTemplate((String)entry.getValue()).make(data).toString()
-            );
-        }
-
-        return interpolated;
-    }
-
-    private String interpolateString(String receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
-        if (receiver.isEmpty())
-            return "";
-
-        return engine.createTemplate(receiver).make(data).toString();
-    }
-
-
-
-
 }

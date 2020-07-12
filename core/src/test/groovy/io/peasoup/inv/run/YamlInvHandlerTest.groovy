@@ -1,15 +1,17 @@
 package io.peasoup.inv.run
 
-
-import io.peasoup.inv.run.yaml.YamlHandler
+import io.peasoup.inv.TempHome
+import io.peasoup.inv.run.yaml.YamlInvHandler
 import org.junit.Test
+import org.junit.runner.RunWith
 
-class YamlHandlerTest {
+@RunWith(TempHome.class)
+class YamlInvHandlerTest {
 
     @Test
     void ok() {
 
-        def yamlResource = YamlHandler.class.getResource("/inv-invoker-yamlfile.yaml")
+        def yamlResource = YamlInvHandler.class.getResource("/inv-invoker-yamlfile.yaml")
         assert yamlResource
 
         def executor = new InvExecutor()

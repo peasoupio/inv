@@ -2,8 +2,8 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
-import io.peasoup.inv.run.yaml.YamlDescriptor;
-import io.peasoup.inv.run.yaml.YamlHandler;
+import io.peasoup.inv.loader.YamlLoader;
+import io.peasoup.inv.run.yaml.YamlInvHandler;
 import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -16,7 +16,6 @@ import java.io.IOException;
 public class InvInvoker {
     public static final String UNDEFINED_SCM = "undefined";
     private static final GroovyLoader loader = new GroovyLoader();
-    private static final Yaml yaml = new Yaml(new Constructor(YamlDescriptor.class));
 
     private InvInvoker() {
         // empty ctor
@@ -83,14 +82,14 @@ public class InvInvoker {
     private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
 
         // Create YAML handler
-        YamlHandler yamlHandler = new YamlHandler(
+        YamlInvHandler yamlInvHandler = new YamlInvHandler(
                 invExecutor,
                 scriptPath,
                 checkSubordinateSlash(pwd),
                 StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
 
         try {
-            yamlHandler.call(yaml.load(ResourceGroovyMethods.newReader(scriptFile)));
+            yamlInvHandler.call(YamlLoader.parseYaml(scriptFile));
         } catch (Exception e) {
             Logger.error(e);
         }

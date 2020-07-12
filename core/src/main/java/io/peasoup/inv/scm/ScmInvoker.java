@@ -3,12 +3,9 @@ package io.peasoup.inv.scm;
 import groovy.lang.Script;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.DebugLogger;
-import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
-import io.peasoup.inv.run.yaml.YamlInvHandler;
 import io.peasoup.inv.scm.yaml.YamlScmHandler;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;

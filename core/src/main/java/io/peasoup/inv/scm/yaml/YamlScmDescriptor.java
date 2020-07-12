@@ -1,9 +1,5 @@
 package io.peasoup.inv.scm.yaml;
 
-import io.peasoup.inv.Home;
-import io.peasoup.inv.scm.ScmDescriptor;
-
-import java.io.File;
 import java.util.List;
 
 public class YamlScmDescriptor {

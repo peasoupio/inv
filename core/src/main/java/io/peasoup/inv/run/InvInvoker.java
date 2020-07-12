@@ -6,9 +6,6 @@ import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
 import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.File;
 import java.io.IOException;

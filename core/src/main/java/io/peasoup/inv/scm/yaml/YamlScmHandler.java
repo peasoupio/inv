@@ -74,6 +74,12 @@ public class YamlScmHandler {
         if (StringUtils.isNotEmpty(descriptor.getEntry()))
             scm.entry(YamlLoader.interpolateString(descriptor.getEntry(), interpolatable));
 
+        parseAsk(descriptor, scm, interpolatable);
+        parseHooks(descriptor, scm, interpolatable);
+
+    }
+
+    private void parseAsk(YamlScmDescriptor descriptor, ScmDescriptor scm, Map<String, String> interpolatable) throws IOException, ClassNotFoundException, ScmHandler.SCMOptionRequiredException {
         // Sets ask parameters
         if (descriptor.getAsk() != null) {
 
@@ -101,7 +107,9 @@ public class YamlScmHandler {
                         options);
             }
         }
+    }
 
+    private void parseHooks(YamlScmDescriptor descriptor, ScmDescriptor scm, Map<String, String> interpolatable) throws IOException, ClassNotFoundException {
         // Sets hooks
         if (descriptor.getHooks() != null) {
 
@@ -121,4 +129,7 @@ public class YamlScmHandler {
                 scm.getHooks().update(YamlLoader.interpolateString(descriptor.getHooks().getUpdate(), interpolatable));
         }
     }
+
+
 }
+

@@ -1,8 +1,5 @@
 package io.peasoup.inv.run.yaml;
 
-
-import groovy.text.GStringTemplateEngine;
-import groovy.text.TemplateEngine;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.run.*;
@@ -12,8 +9,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class YamlInvHandler {
-
-    private final TemplateEngine engine = new GStringTemplateEngine();
 
     private final InvExecutor invExecutor;
     private final String yamlPath;

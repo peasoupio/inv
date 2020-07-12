@@ -89,7 +89,7 @@ public class InvHandler {
     }
 
     public static class INVOptionRequiredException extends Exception {
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-Syntax";
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-groovy-Syntax";
 
         public INVOptionRequiredException(final String option) {
             super("Option " + option + " is not valid. Please visit " + HELP_LINK + " for more information");

@@ -56,6 +56,6 @@ public class ScmHandler {
             super("Option " + option + " is not valid. Please visit " + HELP_LINK + " for more information");
         }
 
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/SCM-Syntax";
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/SCM-groovy-Syntax";
     }
 }

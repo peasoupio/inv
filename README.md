@@ -15,21 +15,22 @@ Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more 
 
 ##  :sparkles: Features
 
-| Explanation | Implemented | Flavor |
-| --- | --- | --- |
-| Execute Network valuables sequencing runs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Extract sources with a SCM script file  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x:, Web  :white_check_mark: |
-| Init Web (*Composer*) with a SCM script file | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x:, Web  :white_check_mark: |
-| Validate synthax  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x:, Web  :x: |
-| Generate DOT graphs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :x: |
-| Generate markdown documentation  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Works in a Windows | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Works in a Linux | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Works in a Docker container | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Report and keeps tracks | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark:, Web  :white_check_mark: |
-| Allow SSL | Not yet :-1:  | Groovy   :x:, Yaml  :x:, Web  :white_check_mark: |
 
-
+| Explanation | Implemented | Targeted flavor(s) | Available on *Composer* (Web platform)
+| --- | --- | --- | --- |
+| Execute Network valuables sequencing runs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
+| Extract sources with a SCM script file  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :white_check_mark: |  
+| Init Web (*Composer*) with a SCM script file | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :white_check_mark: |  
+| Validate synthax  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :x: |  
+| Generate DOT graphs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :x: |  
+| Generate markdown documentation  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
+| Works in a Windows | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :white_check_mark: |  
+| Works in a Linux | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :white_check_mark: |  
+| Works in a Docker container | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
+| Report and keeps tracks | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
+| Allow SSL | Not yet :-1:  | Groovy   :x:, Yaml  :x: |  :white_check_mark: |  
+| Test reporting framework | Not yet :-1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
+| Code coverage | Not yet :-1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
 
 ## :computer: Installation: How to get?  
 Visit [here](https://github.com/peasoupio/inv/wiki/Installation) for the installation guide.  

@@ -233,8 +233,6 @@ Vue.component('configure-parameters', {
             vm.$bus.$emit('toast', `warn:Reset <strong>parameters</strong> successfully!`)
         },
         saveParameter: function(parameter) {
-            var vm = this
-
             if (parameter.sending)
                 return
 

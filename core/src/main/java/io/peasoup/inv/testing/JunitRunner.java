@@ -21,13 +21,13 @@ public class JunitRunner {
 
     public JunitRunner() {
         junit = new JUnitCore();
-        junit.addListener(new InvTextListener(System.out));
+        junit.addListener(new TextListener(System.out));
 
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStarImports("org.junit");
         importCustomizer.addStaticStars("org.junit.Assert");
 
-        groovyLoader = new GroovyLoader(false, "io.peasoup.inv.testing.JUnitInvTestingBase", importCustomizer);
+        groovyLoader = new GroovyLoader(false, "io.peasoup.inv.testing.JunitScriptBase", importCustomizer);
     }
 
     public void add(String scriptLocation) {
@@ -35,7 +35,6 @@ public class JunitRunner {
         if (!scriptFile.exists()) {
             Logger.warn(scriptFile.getAbsolutePath() + " does not exist on current filesystem.");
             return;
-
         }
 
         // Load and put class into list
@@ -56,12 +55,15 @@ public class JunitRunner {
         classes.add(scriptObj.getClass());
     }
 
-    public void run() {
+    public boolean run() {
         Result result = junit.run(classes.toArray(new Class[0]));
+
         System.out.println("Finished. Result: Failures: " + result.getFailureCount() +
                 ". Ignored: " + result.getIgnoreCount() +
                 ". Tests run: " + result.getRunCount() +
                 ". Time: " + result.getRunTime() + "ms.");
+
+        return result.getFailureCount() == 0;
     }
 
 

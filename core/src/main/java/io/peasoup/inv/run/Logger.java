@@ -7,9 +7,9 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import java.util.Queue;
 
 public final class Logger {
+
     private static Queue<Object> captureQueue = null;
     private static Closure<Object> captureClosure = null;
-
 
     private static boolean systemEnabled = false;
     private static boolean debugEnabled = false;

@@ -1,18 +1,18 @@
 @Test
 void ok() {
-    invoke(
+    simulate(
         "/testing/inv1-provider.groovy",
         "/testing/inv1.groovy"
     )
 
-    assertEquals true
+    assertTrue true
 
     assert isOk
 }
 
 @Test
 void missing_element() {
-    invoke(
+    simulate(
         "/testing/inv1.groovy"
     )
 

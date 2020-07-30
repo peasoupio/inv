@@ -1,21 +1,20 @@
 package io.peasoup.inv.testing;
 
 import org.junit.internal.JUnitSystem;
-import org.junit.internal.TextListener;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 
 import java.io.PrintStream;
 
-public class InvTextListener extends TextListener {
+public class TextListener extends org.junit.internal.TextListener {
 
     private final PrintStream writer;
 
-    public InvTextListener(JUnitSystem system) {
+    public TextListener(JUnitSystem system) {
         this(system.out());
     }
 
-    public InvTextListener(PrintStream writer) {
+    public TextListener(PrintStream writer) {
         super(writer);
 
         this.writer = writer;

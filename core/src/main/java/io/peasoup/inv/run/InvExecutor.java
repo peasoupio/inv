@@ -50,6 +50,13 @@ public class InvExecutor {
 
         Logger.info("---- [DIGEST] completed ----");
 
+        // TODO Horrible fix. PoolStacktraces print before pool has done printing even with flushing.
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Logger.error(e);
+        }
+
         new PoolReportTrace(pool, report).printPoolTrace();
         new PoolReportMarkdown(pool).printPoolMarkdown();
 

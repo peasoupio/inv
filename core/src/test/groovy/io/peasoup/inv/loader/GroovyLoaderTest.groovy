@@ -1,14 +1,11 @@
 package io.peasoup.inv.loader
 
-
 import io.peasoup.inv.run.RunsRoller
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertFalse
 import static org.junit.jupiter.api.Assertions.assertNotNull
 import static org.junit.jupiter.api.Assertions.assertNull
-import static org.junit.jupiter.api.Assertions.assertTrue
 
 class GroovyLoaderTest {
 
@@ -16,7 +13,7 @@ class GroovyLoaderTest {
 
     @Before
     void setup() {
-        loader = new GroovyLoader(true)
+        loader = new GroovyLoader(true, null, null)
     }
 
     @Test

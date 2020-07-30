@@ -30,9 +30,7 @@ class TestCommand implements CliCommand {
             runner.add(it.absolutePath)
         }
 
-        runner.run()
-
-        return 0
+        return runner.run() ? 0 : 1
     }
 
     boolean rolling() {

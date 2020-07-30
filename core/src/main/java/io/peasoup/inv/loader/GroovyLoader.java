@@ -10,6 +10,7 @@ import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
+import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.Message;
@@ -55,41 +56,42 @@ public class GroovyLoader {
      * Create a common loader using system-wide secure mode preference
      */
     public GroovyLoader() {
-        this(systemSecureModeEnabled);
+        this(systemSecureModeEnabled, null, null);
     }
 
     /**
      * Create a common loader
      *
      * @param secureMode Determines if using secure mode or not
+     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
+     * @param importCustomizer A pre-defined import customizer. Can be null.
      */
-    public GroovyLoader(boolean secureMode) {
-
-        SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
-        secureASTCustomizer.setPackageAllowed(false);
-        secureASTCustomizer.setIndirectImportCheckEnabled(false);
-
-        LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
-        map.put("extensions", "io.peasoup.inv.loader.SecuredTypeChecked");
-        ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
-
-        final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-        compilerConfiguration.addCompilationCustomizers(astTransformationCustomizer);
-        compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
-
+    public GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
 
-        if (systemClassloaderEnabled) {
-            this.generalClassLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader());
-            this.securedClassLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader(), compilerConfiguration);
+        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
 
+        if (StringUtils.isNotEmpty(scriptBaseClass)) {
+            compilerConfiguration.setScriptBaseClass(scriptBaseClass);
+            securedCompilerConfiguration.setScriptBaseClass(scriptBaseClass); // TODO Is it safe ?
+        }
+
+        if (importCustomizer != null) {
+            compilerConfiguration.addCompilationCustomizers(importCustomizer);
+            securedCompilerConfiguration.addCompilationCustomizers(importCustomizer);
+        }
+
+        ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
+        if (systemClassloaderEnabled) {
+            loaderToUse = ClassLoader.getSystemClassLoader();
             Logger.system("[CLASSLOADER] system: true");
         } else {
-            this.generalClassLoader = new GroovyClassLoader();
-            this.securedClassLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(), compilerConfiguration);
-
             Logger.system("[CLASSLOADER] system: false");
         }
+
+        this.generalClassLoader = new GroovyClassLoader(loaderToUse, compilerConfiguration);
+        this.securedClassLoader = new GroovyClassLoader(loaderToUse, applySecureTransformers(securedCompilerConfiguration));
     }
 
     /**
@@ -299,6 +301,23 @@ public class GroovyLoader {
         }
 
         return checksumValue;
+    }
+
+    private CompilerConfiguration applySecureTransformers(CompilerConfiguration compilerConfiguration) {
+
+        // Apply custom AST transformer to trap type checking errors
+        LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
+        map.put("extensions", "io.peasoup.inv.loader.SecuredTypeChecked");
+        ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
+        compilerConfiguration.addCompilationCustomizers(astTransformationCustomizer);
+
+        // Apply generalized secured configurations
+        SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
+        secureASTCustomizer.setPackageAllowed(false);
+        secureASTCustomizer.setIndirectImportCheckEnabled(false);
+        compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
+
+        return compilerConfiguration;
     }
 
     public static class MethodCallNotAllowedException extends Exception {

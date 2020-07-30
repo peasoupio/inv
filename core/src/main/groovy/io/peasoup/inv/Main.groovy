@@ -2,9 +2,9 @@ package io.peasoup.inv
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
+import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
-import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
 import org.docopt.DocoptExitException
@@ -104,6 +104,11 @@ class Main extends Script {
                     patterns: arguments["<include>"] as List<String>,
                     exclude: arguments["--exclude"] as String ?: "")
 
+        if (arguments["test"])
+            return new TestCommand(
+                    patterns: arguments["<include>"] as List<String>,
+                    exclude: arguments["--exclude"] as String ?: "")
+
         if (arguments["syntax"])
             return new SyntaxCommand(
                     patterns: arguments["<include>"] as List<String>,
@@ -133,7 +138,7 @@ class Main extends Script {
         return """Inv, version: ${SystemInfo.version()}.
 
 Usage:
-  inv (run|scm|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv (run|scm|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
   inv composer [-d | -x] [-s]
   inv init [-d | -x] [-s] <initFile>
   inv promote [<runIndex>] 
@@ -143,6 +148,7 @@ Usage:
 Options:
   run          Load and execute INV files.
   scm          Load and execute SCM files.
+  test         Load and execute a unit test script
   syntax       Test the syntax of an INV or SCM file.
   composer     Start Composer dashboard
   init         Start Composer dashboard from an SCM file.

@@ -220,4 +220,20 @@ class MainTest {
 
         assert Main.exitCode == 0
     }
+
+    @Test
+    void main_test() {
+        // Enable capture
+        def logs = Logger.capture(new LinkedList())
+
+        def script = MainTest.class.getResource("/mainTestScript.groovy")
+        assert script
+
+        def canonicalPath = new File(script.path).canonicalPath
+
+        Main.start("test", "-x", script.path)
+
+        assert Main.exitCode == 0
+        assert logs.contains("[undefined] [${canonicalPath}] [mainTestScript]".toString())
+    }
 }

@@ -12,14 +12,16 @@ buildNumber.properties
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
 .idea
-/*.iml
+*.iml
 
 # Application specific
 /src/main/example/spring-boot/app1/
 /src/main/example/spring-boot/app2/
-/reports/
-**/.cache/
-**/.runs/
 /src/main/example/composer/executions/
+reports/
+.cache/
+.runs/
 *.scm-sh
-/.gitcache/
+.gitcache/
+node_modules/
+reports/

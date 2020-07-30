@@ -3,27 +3,69 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.peasoup</groupId>
     <artifactId>inv</artifactId>
-    <version>0.5-beta-SNAPSHOT</version>
+    <version>0.6-beta-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
+        <groovy.version>3.0.3</groovy.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- https://stackoverflow.com/questions/13228472/how-to-access-maven-build-timestamp-for-resource-filtering -->
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
     </properties>
+
+    <modules>
+        <module>core</module>
+        <module>launcher</module>
+    </modules>
 
     <dependencies>
 
+        <!-- Groovy stuff -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>3.0.1</version>
-            <type>pom</type>
-            <exclusions>
-                <exclusion>
-                    <!-- exclude testNG otherwise Maven doesn't run TestFeatures -->
-                    <groupId>org.testng</groupId>
-                    <artifactId>testng</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-nio</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-templates</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-test</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-test-junit5</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>${groovy.version}</version>
         </dependency>
 
         <dependency>
@@ -31,6 +73,8 @@
             <artifactId>ivy</artifactId>
             <version>2.4.0</version>
         </dependency>
+
+        <!-- Frameworks -->
 
         <dependency>
             <groupId>commons-lang</groupId>
@@ -63,16 +107,24 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.6</version>
+        </dependency>
+
+        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
             <version>2.3.2</version>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.23</version>
         </dependency>
+
+        <!-- Utils -->
 
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -81,158 +133,26 @@
         </dependency>
 
         <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-impl</artifactId>
-            <version>2.0.1</version>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.6</version>
         </dependency>
 
         <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-api</artifactId>
-            <version>2.0.1</version>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
+
+        <!-- Loggers -->
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.5</version>
-            <scope>test</scope>
         </dependency>
 
-
-
     </dependencies>
-
-    <build>
-        <plugins>
-
-            <!-- core engine -->
-            <plugin>
-                <groupId>org.codehaus.gmavenplus</groupId>
-                <artifactId>gmavenplus-plugin</artifactId>
-                <version>1.7.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>addSources</goal>
-                            <goal>addTestSources</goal>
-                            <goal>compile</goal>
-                            <goal>compileTests</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- tests and coverage -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!-- attached to Maven test phase -->
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- assembly -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>io.peasoup.inv.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-
-            <!-- used only to distribute to github release page -->
-            <id>distribute</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>distribution</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <appendAssemblyId>false</appendAssemblyId>
-                                    <descriptors>
-                                        <descriptor>src/main/assembly/distribution.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>image</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>image</finalName>
-                                    <descriptors>
-                                        <descriptor>src/main/assembly/image.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <distributionManagement>
         <snapshotRepository>

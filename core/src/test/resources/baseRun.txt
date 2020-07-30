@@ -1,0 +1,50 @@
+[INV] [scm1] [appA.groovy] [appA]
+[INV] [scm2] [appB.groovy] [appB]
+[INV] [scm3] [iis.groovy] [IIS]
+[INV] [scm4] [kubernetes.groovy] [Kubernetes]
+[INV] [scm5] [serverA.groovy] [ServerA]
+[INV] [scm6] [serverB.groovy] [ServerB]
+[INV] [undefined] [removed.groovy] [removed]
+
+[INV] [appA] => [TAGS] [my:tag]
+[INV] [appB] => [TAGS] [my:tag]
+[INV] [IIS] => [TAGS] [other:tag]
+[INV] [Kubernetes] => [TAGS] [other:tag]
+
+[INV] ---- [DIGEST] #1 (state=RUNNING) ----
+[INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
+[INV] [ServerB] => [BROADCAST] [Server] [name:server-b]
+[INV] ---- [DIGEST] #2 (state=RUNNING) ----
+[INV] [IIS] => [REQUIRE] [Server] [name:server-a]
+[INV] [IIS] => [BROADCAST] [IIS] undefined
+[INV] [Kubernetes] => [REQUIRE] [Server] [name:server-a]
+[INV] [Kubernetes] => [BROADCAST] [Kubernetes] undefined
+Installing service kubectl on 10.22.99.999
+[INV] ---- [DIGEST] #3 (state=RUNNING) ----
+[INV] [appA] => [REQUIRE] [Kubernetes] undefined
+[INV] [appB] => [REQUIRE] [IIS] undefined
+[INV] [appA] => [BROADCAST] [App] [id=AppA]
+[INV] [appB] => [BROADCAST] [App] [id=AppB]
+IIS webapp my-web-app has been deployed
+[INV] --- completed ----
+[INV] file: \inv\src\main\example\maven\app1\app1.groovy
+[INV] file: \inv\src\main\example\maven\app2\app2.groovy
+[INV] file: inv\src\main\example\maven\maven.groovy
+my-app-2 is ready!
+[INV] ---- [DIGEST] #1 (state=RUNNING) ----
+[INV] [files] => [BROADCAST] [Files] undefined
+[INV] ---- [DIGEST] #2 (state=RUNNING) ----
+[INV] [maven] => [REQUIRE] [Files] undefined
+[INV] [maven] => [BROADCAST] [Maven] undefined
+[INV] ---- [DIGEST] #3 (state=RUNNING) ----
+[INV] [my-app-1] => [REQUIRE] [Maven] undefined
+[INV] [my-app-2] => [REQUIRE] [Maven] undefined
+got my poms
+[INV] ---- [DIGEST] #4 (state=RUNNING) ----
+[INV] [my-app-1] => [BROADCAST] [Artifact] com.mycompany.app:my-app-1
+[INV] [my-app-2] => [BROADCAST] [Artifact] com.mycompany.app:my-app-2
+[INV] ---- [DIGEST] #5 (state=RUNNING) ----
+[INV] [my-app-2] => [REQUIRE] [Artifact] com.mycompany.app:my-app-1
+[INV] --- completed ----
+# Added manually
+[INV] [removed] => [BROADCAST] [Artifact] com.mycompany.app:my-app-3

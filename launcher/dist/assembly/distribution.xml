@@ -1,0 +1,64 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>distribution</id>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <formats>
+        <format>tar.gz</format>
+        <format>zip</format>
+        <!-- LOCAL USAGE <format>dir</format> -->
+        <format>dir</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}/dist/executable</directory>
+            <filtered>true</filtered>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>../examples</directory>
+            <outputDirectory>/examples</outputDirectory>
+        </fileSet>
+    </fileSets>
+    <files>
+        <file>
+            <source>${project.build.directory}/inv-launcher-${project.version}.jar</source>
+        </file>
+    </files>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <includes>
+                <include>${project.groupId}:inv-core:jar:*</include>
+                <include>*:commons-io:jar:*</include>
+                <include>*:commons-lang:jar:*</include>
+                <include>*:docopt:jar:*</include>
+                <include>*:groovy*:jar:*</include>
+                <include>*:ivy:jar:*</include>
+                <include>*:jakarta*:jar:*</include>
+                <include>*:compiler:jar:*</include> <!-- mustache -->
+                <include>*:snakeyaml:jar:*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>libext</outputDirectory>
+            <excludes>
+                <exclude>${project.groupId}:inv-core:jar:*</exclude>
+                <exclude>org.codehaus.groovy:groovy-groovydoc:jar:*</exclude>
+                <exclude>org.codehaus.groovy:groovy-docgenerator:jar:*</exclude>
+                <exclude>*:javaparser-core:jar:*</exclude>
+
+                <exclude>${project.groupId}:${project.artifactId}:jar:*</exclude>
+                <exclude>*:commons-io:jar:*</exclude>
+                <exclude>*:commons-lang:jar:*</exclude>
+                <exclude>*:docopt:jar:*</exclude>
+                <exclude>*:groovy*:jar:*</exclude>
+                <exclude>*:ivy:jar:*</exclude>
+                <exclude>*:jakarta*:jar:*</exclude>
+                <exclude>*:compiler:jar:*</exclude> <!-- mustache -->
+                <exclude>*:snakeyaml:jar:*</exclude>
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+</assembly>

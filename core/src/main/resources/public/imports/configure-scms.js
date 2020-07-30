@@ -1,0 +1,322 @@
+Vue.component('configure-scms', {
+    template: `
+<div>
+    <div class="modal" v-bind:class="{ 'is-active': value.visible }">
+        <div class="modal-background"></div>
+        <div class="modal-content configure-scms-modal">
+            <div class="box" v-click-outside="close">
+                <p class="title is-6">Edit SCM(s):</p>
+                <configure-scms-details v-model="value.shared" />
+            </div>
+        </div>
+    </div>
+</div>
+`,
+    props: ['value'],
+    data: function() {
+        return {
+            opened: false
+        }
+    },
+    methods: {
+        close: function() {
+            var vm = this
+
+            vm.value.visible = false
+        }
+    }
+})
+
+Vue.component('configure-scms-details', {
+    template: `
+<div>
+    <div v-if="scms.descriptors">
+        <div class="field is-grouped is-grouped-right">
+            <div class="field">
+                <button @click.stop="openAdd()" class="button breath is-link">
+                    Add new SCM file
+                </button>
+            </div>
+        </div>
+
+        <table class="table is-striped is-narrow is-hoverable is-fullwidth">
+            <thead>
+            <tr class="field">
+                <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchScm(true)"></th>
+                <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchScm(true)"></th>
+                <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchScm(true)"></th>
+                <th style="width: 8%">Timeout</th>
+                <th style="width: 10%">Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="scm in filter()">
+                <td><span>{{scm.name}}</span><br/><span style="color: lightgrey">Last edit: {{whenLastEdit(scm)}}</span></td>
+                <td>{{scm.descriptor.src}}</td>
+                <td><p v-for="entry in scm.descriptor.entry">{{entry}}</p></td>
+                <td>{{scm.descriptor.timeout}}</td>
+                <td>
+                    <button class="button is-link breathe" @click.stop="openEdit(scm)">
+                        <span class="icon is-small">
+                          <i class="fas fa-edit"></i>
+                        </span>
+                    </button>
+                    <button class="button is-danger is-outlined breathe" @click.stop="removeSCM(scm)">
+                        <span class="icon is-small">
+                          <i class="fas fa-trash"></i>
+                        </span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p class="has-text-centered" v-if="scms.count == 0">Nothing to show</p>
+        <pagination v-model="paginationSettings" v-if="scms.count > 0" />
+    </div>
+
+    <div class="modal is-active code" v-bind:class=" { 'hidden': !editScript } ">
+        <div class="modal-background"></div>
+        <div class="modal-content">
+            <div class="box" v-click-outside="closeEdit">
+                <div class="columns" v-if="editScript">
+                    <div class="column">
+                        <h1 class="title is-3">Edit SCM</h1>
+                        <h4 class="subtitle is-6" v-if="mode == 'edit'">source: {{editScript.descriptor.src}}</h4>
+                        <div class="field" v-if="mode == 'new'">
+                            <p class="control is-expanded has-icons-right">
+                                <input class="input" type="text" v-model="newName" placeholder="Name of the new SCM file (.groovy will be added automatically)">
+                                <span class="icon is-small is-right"><i class="fas fa-plus"></i></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="column is-one-fifth">
+                        <div class="buttons has-addons is-right">
+                            <button class="button is-success" @click="saveSource()" v-bind:class=" { 'is-loading': sending }" :disabled="!canSave()">
+                                <span class="icon is-small" v-if="saved">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="configure-scms-editarea"></div>
+
+                <div v-if="errorCount > 0">
+                    <p>Compilation error(s) caught:</p>
+                    <p class="has-text-danger" v-for="error in errors">{{error}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+`,
+    props: ['value'],
+    data: function() {
+        return {
+            // Table
+            scms: {},
+            //showWhoBroughtMe: null,
+            filters: {
+                from: 0,
+                to: 5,
+                name: '',
+                src: '',
+                entry: ''
+            },
+
+            // Determine the mode (edit, new)
+            mode: 'edit',
+
+            // Add new SCM
+            newName: '',
+
+            // Code editing
+            codeMirror: null,
+            opened: false,
+            editScript: null,
+            edited: false,
+            sending: false,
+            saved: false,
+            errorCount: 0,
+            errors: []
+        }
+    },
+    computed: {
+        paginationSettings: {
+            get() {
+                var vm = this
+                return {
+                    refresh: function(from) {
+                        vm.filters.from = from
+                        vm.searchScm()
+                    },
+                    from: vm.filters.from,
+                    step: vm.filters.to,
+                    total: vm.scms.count
+                }
+            }
+        }
+    },
+    methods: {
+        filter: function() {
+            var vm = this
+
+            var filtered = []
+
+            vm.scms.descriptors.forEach(function(scm) {
+                filtered.push(scm)
+            })
+
+            return filtered.sort(compareValues('name'))
+        },
+        searchScm: function(fromFilter) {
+            var vm = this
+
+            if (fromFilter)
+                vm.filters.from = 0
+
+            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
+                vm.scms = response.data
+            })
+        },
+        whenLastEdit: function(scm) {
+            return TimeAgo.inWords(scm.script.lastEdit)
+        },
+        openAdd: function() {
+            var vm = this
+
+            vm.codeMirror.setValue('')
+            vm.codeMirror.refresh()
+
+            vm.editScript = {
+                links: {
+                    get save() {
+                        return vm.value.api.links.scms.add + "?name=" + vm.newName
+                    }
+                }
+            }
+
+            vm.edited = false
+            vm.mode = 'new'
+        },
+        openEdit: function(scm) {
+            var vm = this
+
+            axios.get(scm.links.default).then(response => {
+                var latestScm = response.data
+
+                vm.codeMirror.setValue(latestScm.script.text)
+                vm.codeMirror.refresh()
+
+                vm.editScript = latestScm
+
+                vm.edited = false
+                vm.mode = 'edit'
+            })
+        },
+        canSave: function() {
+            var vm = this
+
+            if (!vm.edited)
+                return false
+
+            if (vm.mode == 'new' && vm.newName.length < 3)
+                return false
+
+            return true
+        },
+        saveSource: function() {
+            var vm = this
+
+            if (vm.sending)
+                return
+
+            vm.sending = true
+
+            var content = vm.codeMirror.getValue()
+
+            axios.post(vm.editScript.links.save, content, {
+                headers: { 'Content-Type': 'text/plain' }
+            }).then(response => {
+
+                vm.errorCount = response.data.errorCount
+                vm.errors = response.data.errors
+
+                vm.sending = false
+                vm.edited = false
+
+                if (vm.errorCount == 0) {
+                    vm.saved = true
+
+                    if (vm.mode == 'edit')
+                        vm.$bus.$emit('toast', `success:Saved <strong>${vm.editScript.descriptor.name}</strong> successfully!`)
+
+                    if (vm.mode == 'new')
+                        vm.$bus.$emit('toast', `success:Saved <strong>${vm.newName}</strong> successfully!`)
+
+                    vm.searchScm()
+                }
+            })
+            .catch(err => {
+                if (vm.mode == 'edit')
+                    vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.editScript.descriptor.name}</strong>!`)
+
+                if (vm.mode == 'new')
+                    vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.newName}</strong>!`)
+            })
+        },
+        closeEdit: function() {
+            var vm = this
+
+            if (vm.edited && !vm.saved) {
+                var ok = confirm("Clear unsaved work ?")
+
+                if (!ok)
+                    return
+            }
+
+            vm.editScript = null
+
+            vm.sending = false
+            vm.saved = false
+            vm.edited = false
+        },
+        removeSCM: function(scm) {
+            var vm = this
+
+            axios.post(scm.links.remove).then(response => {
+                vm.$bus.$emit('toast', `warn:Removed <strong>${scm.descriptor.name}</strong> successfully!`)
+                vm.searchScm()
+            })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:Failed <strong>to remove ${scm.descriptor.name}</strong>!`)
+            })
+        }
+    },
+    mounted: function() {
+        var vm = this
+
+        var codeMirror = CodeMirror(function(elt) {
+            var element = document.querySelector('#configure-scms-editarea')
+            element.appendChild(elt)
+        }, {
+            autoRefresh: true,
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "text/x-groovy"
+        })
+
+        codeMirror.setSize(null, 640)
+
+        codeMirror.on("change",function(cm,change){
+            vm.saved = false
+            vm.edited = true
+        })
+
+        vm.codeMirror = codeMirror
+        vm.searchScm()
+    }
+})

@@ -2,9 +2,9 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
+import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
-import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -96,7 +96,7 @@ public class InvInvoker {
         Script myNewScript;
 
         try {
-            myNewScript = loader.parseClass(scriptFile);
+            myNewScript = loader.parseScriptFile(scriptFile);
         } catch (Exception e) {
             Logger.error(e);
             return;

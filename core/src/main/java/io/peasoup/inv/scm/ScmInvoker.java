@@ -1,10 +1,10 @@
 package io.peasoup.inv.scm;
 
 import groovy.lang.Script;
+import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.DebugLogger;
 import io.peasoup.inv.run.Logger;
-import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.scm.yaml.YamlScmHandler;
 
 import java.io.File;
@@ -102,7 +102,7 @@ public class ScmInvoker {
         // Parse new class
         Script myNewScript = null;
         try {
-            myNewScript = loader.parseClass(scmFile);
+            myNewScript = loader.parseScriptFile(scmFile);
         } catch (Exception ex) {
             Logger.error(ex);
         }

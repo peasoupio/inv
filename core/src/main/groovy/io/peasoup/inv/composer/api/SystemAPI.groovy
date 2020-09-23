@@ -5,10 +5,10 @@ import groovy.json.JsonSlurper
 import io.peasoup.inv.SystemInfo
 import io.peasoup.inv.cli.InitCommand
 import io.peasoup.inv.composer.WebServer
+import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.scm.HookExecutor
 import io.peasoup.inv.scm.ScmExecutor
-import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -122,7 +122,7 @@ class SystemAPI {
             List<String> exceptionMessages = []
 
             try {
-                new GroovyLoader().parseText(fileContent)
+                new GroovyLoader().parseClassText(fileContent)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }

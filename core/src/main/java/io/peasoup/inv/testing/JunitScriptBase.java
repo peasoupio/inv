@@ -58,7 +58,7 @@ public abstract class JunitScriptBase extends Script {
         File invFile = new File(invScriptfile);
 
         if (!invFile.exists()) {
-            String testClassLocation = (String)getMetaClass().getProperty(this, "$0");
+            String testClassLocation = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
             invFile = new File(new File(testClassLocation).getParentFile(), invScriptfile);
         }
 

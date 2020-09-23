@@ -1,11 +1,8 @@
 package io.peasoup.inv.testing;
 
-import groovy.lang.Script;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.run.Logger;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.InvokerHelper;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
@@ -38,21 +35,15 @@ public class JunitRunner {
         }
 
         // Load and put class into list
-        Script scriptObj;
+        Class classObj;
         try {
-            scriptObj = groovyLoader.parseClass(scriptFile);
+            classObj = groovyLoader.parseClassFile(scriptFile);
         } catch (Exception e) {
             Logger.error(e);
             return;
         }
 
-        // Add script location into the metaClass properties
-        InvokerHelper.setProperty(
-                DefaultGroovyMethods.getMetaClass(scriptObj.getClass()),
-                "$0",
-                scriptLocation);
-
-        classes.add(scriptObj.getClass());
+        classes.add(classObj);
     }
 
     public boolean run() {

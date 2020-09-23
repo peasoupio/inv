@@ -8,6 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Launch a new "inv" cli process with minimal required libraries.
+ * Using this mechanism prevent Composer's JAR being injected into INV "scripting" libraries.
+ * Also, it allows the CLI and Composer to launch using the same entry point.
+ */
 public class AppLauncher {
 
     public static void main(String[] args) throws URISyntaxException, IOException, InterruptedException {

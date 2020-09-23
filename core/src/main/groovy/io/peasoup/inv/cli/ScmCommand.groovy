@@ -29,84 +29,20 @@ class ScmCommand implements CliCommand {
         def invExecutor = new InvExecutor()
         def scmExecutor = new ScmExecutor()
 
+        // Check if a single file matches the LIST_FILE_SUFFIX
         if (patterns.size() == 1 && patterns[0].endsWith(LIST_FILE_SUFFIX)) {
-            def scmListPath = patterns[0]
-            def scmListFile = new File(scmListPath)
-
-            if (!scmListFile.exists())
-                return -1
-
-            Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
-
-            Map<String, Map> scmListJson = new JsonSlurper().parse(scmListFile) as Map<String, Map>
-            if (!scmListJson || !scmListJson.size())
-                return -2
-
-            // Parse and incoke SCM file from JSON list file
-            scmListJson.each { String name, Map scm ->
-                String script = "", expectedParameter = ""
-
-                if (scm.containsKey("script"))
-                    script = scm.get("script") as String
-
-                if (scm.containsKey("expectedParameterFile"))
-                    expectedParameter = scm.get("expectedParameterFile") as String
-
-                if (!script) {
-                    Logger.warn("[SCM] name: ${name} as no script defined")
-                    return
-                }
-
-                if (!expectedParameter)
-                    scmExecutor.parse(new File(script))
-                else
-                    scmExecutor.parse(new File(script), new File(expectedParameter))
-            }
+            if (!addSCMsFromListFile(scmExecutor)) return -1
         } else {
-            // Handle excluding patterns
-            def excludePatterns = ScmInvoker.DEFAULT_EXCLUDED
-            if (exclude)
-                excludePatterns.add(exclude)
-
-            def scmFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
-
-            // Parse and incoke SCM file
-            scmFiles.each {
-                scmExecutor.parse(it, ScmInvoker.expectedParametersfileLocation(it))
-            }
+            // Otherwise, process patterns normally
+            addSCMsFromPatterns(scmExecutor)
         }
 
+        // Execute SCM files
         def scmFiles = scmExecutor.execute()
+
+        // Extracted INVs file
         def invsFiles = scmFiles.collectMany { ScmExecutor.SCMExecutionReport report ->
-
-            // If something happened, do not include/try-to-include into the pool
-            if (!report.isOk())
-                return []
-
-            def name = report.name
-
-            // Manage entry points for SCM
-            return report.descriptor.entry.collect {
-
-                def path = report.descriptor.path
-                def scriptFile = new File(it)
-
-                if (!scriptFile.exists()) {
-                    scriptFile = new File(path, it)
-                    path = scriptFile.parentFile
-                }
-
-                if (!scriptFile.exists()) {
-                    Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
-                    return null
-                }
-
-                return [
-                        name: name,
-                        path: path.canonicalPath,
-                        scriptFile: scriptFile
-                ]
-            }
+            return extractINVsFromReports(report)
         } as List<Map>
 
         // Parse and invoke INV files resolved from SCM
@@ -130,5 +66,87 @@ class ScmCommand implements CliCommand {
 
     boolean rolling() {
         return true
+    }
+
+    private boolean addSCMsFromListFile(ScmExecutor scmExecutor) {
+        def scmListPath = patterns[0]
+        def scmListFile = new File(scmListPath)
+
+        if (!scmListFile.exists())
+            return false
+
+        Files.copy(scmListFile.toPath(), new File(RunsRoller.latest.folder(), scmListFile.name).toPath())
+
+        Map<String, Map> scmListJson = new JsonSlurper().parse(scmListFile) as Map<String, Map>
+        if (!scmListJson || !scmListJson.size())
+            return false
+
+        // Parse and incoke SCM file from JSON list file
+        scmListJson.each { String name, Map scm ->
+            String script = "", expectedParameter = ""
+
+            if (scm.containsKey("script"))
+                script = scm.get("script") as String
+
+            if (scm.containsKey("expectedParameterFile"))
+                expectedParameter = scm.get("expectedParameterFile") as String
+
+            if (!script) {
+                Logger.warn("[SCM] name: ${name} as no script defined")
+                return
+            }
+
+            if (!expectedParameter)
+                scmExecutor.parse(new File(script))
+            else
+                scmExecutor.parse(new File(script), new File(expectedParameter))
+        }
+
+        return true
+    }
+
+    private void addSCMsFromPatterns(ScmExecutor scmExecutor) {
+        // Handle excluding patterns
+        def excludePatterns = ScmInvoker.DEFAULT_EXCLUDED
+        if (exclude)
+            excludePatterns.add(exclude)
+
+        def scmFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+
+        // Parse and incoke SCM file
+        scmFiles.each {
+            scmExecutor.parse(it, ScmInvoker.expectedParametersfileLocation(it))
+        }
+    }
+
+    private List extractINVsFromReports(ScmExecutor.SCMExecutionReport report) {
+        // If something happened, do not include/try-to-include into the pool
+        if (!report.isOk())
+            return []
+
+        def name = report.name
+
+        // Manage entry points for SCM
+        return report.descriptor.entry.collect {
+
+            def path = report.descriptor.path
+            def scriptFile = new File(it)
+
+            if (!scriptFile.exists()) {
+                scriptFile = new File(path, it)
+                path = scriptFile.parentFile
+            }
+
+            if (!scriptFile.exists()) {
+                Logger.warn "${scriptFile.canonicalPath} does not exist. Won't run."
+                return null
+            }
+
+            return [
+                    name: name,
+                    path: path.canonicalPath,
+                    scriptFile: scriptFile
+            ]
+        }
     }
 }

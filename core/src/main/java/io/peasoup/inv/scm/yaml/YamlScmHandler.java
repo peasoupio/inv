@@ -2,7 +2,7 @@ package io.peasoup.inv.scm.yaml;
 
 
 import io.peasoup.inv.loader.YamlLoader;
-import io.peasoup.inv.run.*;
+import io.peasoup.inv.run.Logger;
 import io.peasoup.inv.scm.ScmDescriptor;
 import io.peasoup.inv.scm.ScmExecutor;
 import io.peasoup.inv.scm.ScmHandler;
@@ -10,7 +10,8 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class YamlScmHandler {
 
@@ -52,8 +53,7 @@ public class YamlScmHandler {
 
     private void parseDescriptor(YamlScmDescriptor descriptor, ScmDescriptor scm) throws IOException, ClassNotFoundException, ScmHandler.SCMOptionRequiredException {
 
-        Map<String, String> interpolatable = new HashMap<>();
-        interpolatable.putAll(ScmDescriptor.getEnv());
+        Map<String, String> interpolatable = new HashMap<>(ScmDescriptor.getEnv());
 
         // Sets name
         if (StringUtils.isNotEmpty(descriptor.getName()))
@@ -86,7 +86,7 @@ public class YamlScmHandler {
             for (YamlAskDescriptor askDescriptor : descriptor.getAsk()) {
                 YamlParameterDescriptor parameter = askDescriptor.getParameter();
 
-                Map options = new HashMap<String, Object>();
+                Map<String, Object> options = new HashMap<>();
 
                 if (StringUtils.isNotEmpty(parameter.getDefaultValue()))
                     options.put("defaultValue", YamlLoader.interpolateString(parameter.getDefaultValue(), interpolatable));

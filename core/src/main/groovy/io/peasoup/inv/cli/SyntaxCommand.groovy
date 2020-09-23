@@ -3,8 +3,8 @@ package io.peasoup.inv.cli
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.fs.Pattern
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.loader.GroovyLoader
+import io.peasoup.inv.run.Logger
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 
 @CompileStatic
@@ -29,7 +29,7 @@ class SyntaxCommand implements CliCommand {
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.parseText(it)
+                def result = commonLoader.parseClassFile(it) // TODO Should use its own classloader
                 if (result)
                     Logger.info("[SYNTAX] startup succeeded: ${it.absolutePath}")
                 else {

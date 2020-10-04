@@ -5,7 +5,7 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.Main
-import io.peasoup.inv.cli.ScmCommand
+import io.peasoup.inv.cli.RepoRunCommand
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
@@ -21,25 +21,25 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class Execution {
 
     private final String appLauncher;
-    private final File scmFolder
+    private final File repoFolder
 
     private Process currentProcess
 
     private long lastExecution = 0
     private long lastExecutionStartedOn = 0
 
-    Execution(String appLauncher, File scmFolder) {
+    Execution(String appLauncher, File repoFolder) {
         if (!appLauncher) {
             Logger.warn("AppLauncher is not defined. Classic execution will be used. Classic is for test-purposes only.")
         }
 
-        assert scmFolder, 'SCM location (folder) is required'
-        if (!scmFolder.exists())
-            scmFolder.mkdir()
-        assert scmFolder.isDirectory(), 'SCM location must be a directory'
+        assert repoFolder, 'REPO location (folder) is required'
+        if (!repoFolder.exists())
+            repoFolder.mkdir()
+        assert repoFolder.isDirectory(), 'REPO location must be a directory'
 
         this.appLauncher = appLauncher
-        this.scmFolder = scmFolder
+        this.repoFolder = repoFolder
 
         // Set initial last execution times
         if (latestLog().exists()) {
@@ -55,12 +55,12 @@ class Execution {
     }
 
     @CompileDynamic
-    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<ScmFile> scms) {
-        if (scms == null)
-            throw new IllegalArgumentException('SCM collection is required')
+    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<RepoFile> repos) {
+        if (repos == null)
+            throw new IllegalArgumentException('REPO collection is required')
 
-        if (scms.isEmpty()) {
-            Logger.warn "SCM collection is empty. Will NOT try to start execution"
+        if (repos.isEmpty()) {
+            Logger.warn "REPO collection is empty. Will NOT try to start execution"
             return
         }
 
@@ -82,11 +82,11 @@ class Execution {
         BufferedWriter logWriter
 
         // Get args
-        final File scmListFile = generateScmListFile(scms)
+        final File repoListFile = generateRepoListFile(repos)
         final List<String> args = appLauncher ?
-                resolveLauncherArgs(debugMode, systemMode, secureMode, scmListFile)
+                resolveLauncherArgs(debugMode, systemMode, secureMode, repoListFile)
                 :
-                resolveClassicArgs(debugMode, systemMode, secureMode, scmListFile)
+                resolveClassicArgs(debugMode, systemMode, secureMode, repoListFile)
 
         Logger.system("Using arrgs: ${args}")
 
@@ -178,7 +178,7 @@ class Execution {
                         logSize  : latestLog().length(),
                         endedOn  : lastExecution,
                         startedOn: lastExecutionStartedOn,
-                        scms     : []
+                        repos    : []
                 ],
                 executions   : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
                         .findAll { it.name.isInteger() }
@@ -199,18 +199,18 @@ class Execution {
             output.links["download"] = WebServer.API_CONTEXT_ROOT + "/execution/latest/download"
         }
 
-        // Add latest scm files (if not running)
-        if (!isRunning() && latestScmFiles().exists())
-            output.lastExecution["scms"] = latestScmFilesList()
+        // Add latest repo files (if not running)
+        if (!isRunning() && latestRepoFiles().exists())
+            output.lastExecution["repos"] = latestRepoFilesList()
 
         return output
     }
 
-    private List<String> resolveLauncherArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
+    private List<String> resolveLauncherArgs(boolean debugMode, boolean systemMode, boolean secureMode, File repoListFile) {
         Logger.info("Executing using AppLauncher configuration")
 
         def jvmArgs = ["java", "-jar", appLauncher]
-        def appArgs = ["scm"]
+        def appArgs = ["repo", "run"]
 
         if (debugMode)
             appArgs << "-d"
@@ -221,17 +221,17 @@ class Execution {
         if (secureMode)
             appArgs << "-s"
 
-        appArgs << scmListFile.absolutePath
+        appArgs << repoListFile.absolutePath
 
         return jvmArgs + appArgs
     }
 
-    private static List<String> resolveClassicArgs(boolean debugMode, boolean systemMode, boolean secureMode, File scmListFile) {
+    private static List<String> resolveClassicArgs(boolean debugMode, boolean systemMode, boolean secureMode, File repoListFile) {
         Logger.info("Executing with classic configuration (test-purposes only)")
 
         def myClassPath = System.getProperty("java.class.path")
         def jvmArgs = ["java", "-Djava.system.class.loader=groovy.lang.GroovyClassLoader", "-classpath", myClassPath, Main.class.canonicalName]
-        def appArgs = ["scm"]
+        def appArgs = ["repo", "run"]
 
         if (debugMode)
             appArgs << "-d"
@@ -242,17 +242,17 @@ class Execution {
         if (secureMode)
             appArgs << "-s"
 
-        appArgs << scmListFile.absolutePath
+        appArgs << repoListFile.absolutePath
 
         return jvmArgs + appArgs
     }
 
-    private static File generateScmListFile(List<ScmFile> scms) {
-        def scmListFile = latestScmFiles()
-        scmListFile.delete()
+    private static File generateRepoListFile(List<RepoFile> repos) {
+        def repoListFile = latestRepoFiles()
+        repoListFile.delete()
 
-        scmListFile << JsonOutput.toJson(
-                scms.collectEntries {
+        repoListFile << JsonOutput.toJson(
+                repos.collectEntries {
                     [(it.simpleName()): [
                             script               : it.scriptFile.absolutePath,
                             expectedParameterFile: it.expectedParameterFile.absolutePath
@@ -260,7 +260,7 @@ class Execution {
                 }
         )
 
-        return scmListFile
+        return repoListFile
     }
 
     static File latestRun() {
@@ -271,17 +271,17 @@ class Execution {
         return new File(RunsRoller.latest.folder(), "log.txt")
     }
 
-    static File latestScmFiles() {
-        return new File(RunsRoller.runsFolder(), ScmCommand.LIST_FILE_SUFFIX)
+    static File latestRepoFiles() {
+        return new File(RunsRoller.runsFolder(), RepoRunCommand.LIST_FILE_SUFFIX)
     }
 
-    static List<String> latestScmFilesList() {
-        def scmListFile = latestScmFiles()
+    static List<String> latestRepoFilesList() {
+        def repoListFile = latestRepoFiles()
 
-        if (!scmListFile.exists())
+        if (!repoListFile.exists())
             return []
 
-        return scmListFile
+        return repoListFile
                 .readLines()
                 .collect {
                     new File(it).name

@@ -11,7 +11,7 @@ class Settings {
             ],
             staged : [
                     ids : [],
-                    scms: []
+                    repos: []
             ]
     ]
     final private File settingsFile
@@ -45,20 +45,20 @@ class Settings {
         return settings.staged.ids
     }
 
-    void stageSCM(String id) {
-        settings.staged.scms << id
+    void stageREPO(String id) {
+        settings.staged.repos << id
     }
 
-    void unstageSCM(String id) {
-        settings.staged.scms.remove(id)
+    void unstageREPO(String id) {
+        settings.staged.repos.remove(id)
     }
 
-    void unstageAllSCMs() {
-        settings.staged.scms.clear()
+    void unstageAllREPOs() {
+        settings.staged.repos.clear()
     }
 
-    List<String> stagedSCMs() {
-        return settings.staged.scms
+    List<String> stagedREPOs() {
+        return settings.staged.repos
     }
 
     synchronized void save() {

@@ -2,19 +2,19 @@ package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
+import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.run.Logger
-import io.peasoup.inv.scm.ScmExecutor
 import org.apache.commons.validator.routines.UrlValidator
 
 @CompileStatic
 class InitCommand implements CliCommand {
 
-    String initFileLocation
+    String initRepoFileLocation
 
     int call() {
-        assert initFileLocation, 'Scm file path is required'
+        assert initRepoFileLocation, 'REPO file path is required'
 
-        ScmExecutor.SCMExecutionReport report = processSCM()
+        RepoExecutor.RepoExecutionReport report = processREPO()
         if (!report) {
             return -1
         }
@@ -26,7 +26,7 @@ class InitCommand implements CliCommand {
 
         // Define initFile
         composerCommand.settings = [
-            initFile: initFileLocation
+            initFile: initRepoFileLocation
         ]
 
         return composerCommand.call()
@@ -36,27 +36,27 @@ class InitCommand implements CliCommand {
         return false
     }
 
-    ScmExecutor.SCMExecutionReport processSCM() {
-        String actualFileLocation = initFileLocation
-        File scmFile
+    RepoExecutor.RepoExecutionReport processREPO() {
+        String actualFileLocation = initRepoFileLocation
+        File repoFile
 
         // Check if init file location is an URL
-        if (UrlValidator.instance.isValid(initFileLocation)) {
-            String initFileContent = new URL(initFileLocation).openConnection().inputStream.text
+        if (UrlValidator.instance.isValid(initRepoFileLocation)) {
+            String initFileContent = new URL(initRepoFileLocation).openConnection().inputStream.text
 
             File tmpFile = new File(System.getenv().TEMP ?: '/tmp', '/inv/init.groovy')
             tmpFile.delete()
             tmpFile << initFileContent
 
-            scmFile = tmpFile
+            repoFile = tmpFile
         } else
-            scmFile = new File(actualFileLocation)
+            repoFile = new File(actualFileLocation)
 
-        assert scmFile.exists(), 'Scm file path must exist on filesystem'
+        assert repoFile.exists(), 'Repo file path must exist on filesystem'
 
-        def scmExecutor = new ScmExecutor()
-        scmExecutor.parse(scmFile)
-        def reports = scmExecutor.execute()
+        def repoExecutor = new RepoExecutor()
+        repoExecutor.parse(repoFile)
+        def reports = repoExecutor.execute()
 
         if (reports.any { !it.isOk() }) {
             //TODO Log a message ?
@@ -66,7 +66,7 @@ class InitCommand implements CliCommand {
         def report = reports.find { it.name.toLowerCase() == "main" }
 
         if (!report || !report.isOk()) {
-            Logger.warn "No named 'main' SCM is defined or available for init."
+            Logger.warn "No named 'main' REPO is defined or available for init."
             return null
         }
 

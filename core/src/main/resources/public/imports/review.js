@@ -102,7 +102,7 @@ Vue.component('review', {
                 { name: 'Removed', value: 'removed', showHelp: false, help: `
 <ul>
 <li>List how many statements are <strong>removed</strong></li>
-<li>Remove occurs when a statement is missing and does not have an SCM associated with</li>
+<li>Remove occurs when a statement is missing and does not have a REPO associated with</li>
 </ul>
 `},
             ],

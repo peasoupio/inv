@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class InvInvoker {
-    public static final String UNDEFINED_SCM = "undefined";
+    public static final String UNDEFINED_REPO = "undefined";
     private static final GroovyLoader loader = new GroovyLoader();
 
     private InvInvoker() {
@@ -31,18 +31,18 @@ public class InvInvoker {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invExecutor, scriptFile, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_SCM);
+        invoke(invExecutor, scriptFile, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
     }
 
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
-     * Also, it allows to define the SCM associated to this INV
+     * Also, it allows to define the REPO associated to this INV
      * @param invExecutor Executor instance
      * @param scriptFile INV Groovy script file
      * @param pwd Pwd "Print working directory", the working directory
-     * @param scm The associated SCM name
+     * @param repo The associated REPO name
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String scm) {
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -71,19 +71,19 @@ public class InvInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(invExecutor, scriptFile,pwd, scm, scriptPath);
+            parseYaml(invExecutor, scriptFile,pwd, repo, scriptPath);
         else
-            runScript(invExecutor, scriptFile,pwd, scm, scriptPath);
+            runScript(invExecutor, scriptFile,pwd, repo, scriptPath);
     }
 
-    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
+    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo, String scriptPath) {
 
         // Create YAML handler
         YamlInvHandler yamlInvHandler = new YamlInvHandler(
                 invExecutor,
                 scriptPath,
                 checkSubordinateSlash(pwd),
-                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         try {
             yamlInvHandler.call(YamlLoader.parseYaml(scriptFile));
@@ -92,7 +92,7 @@ public class InvInvoker {
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String pwd, String repo, String scriptPath) {
         Script myNewScript;
 
         try {
@@ -108,7 +108,7 @@ public class InvInvoker {
                 invExecutor,
                 scriptPath,
                 checkSubordinateSlash(pwd),
-                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         Binding binding = myNewScript.getBinding();
         binding.setProperty("inv", invHandler);

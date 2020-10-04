@@ -21,7 +21,6 @@ buildNumber.properties
 reports/
 .cache/
 .runs/
-*.scm-sh
+*.repo-sh
 .gitcache/
 node_modules/
-reports/

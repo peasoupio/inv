@@ -23,13 +23,13 @@ class RunGraphTest {
         assert runGraph.navigator.contains(new GraphNavigator.Owner(value: "appB"))
 
         assert runGraph.files.size() == 7
-        assert runGraph.files.any {it.scm == "scm1"}
-        assert runGraph.files.any {it.scm == "scm2"}
-        assert runGraph.files.any {it.scm == "scm3"}
-        assert runGraph.files.any {it.scm == "scm4"}
-        assert runGraph.files.any {it.scm == "scm5"}
-        assert runGraph.files.any {it.scm == "scm6"}
-        assert runGraph.files.any {it.scm == InvInvoker.UNDEFINED_SCM}
+        assert runGraph.files.any {it.repo == "repo1"}
+        assert runGraph.files.any {it.repo == "repo2"}
+        assert runGraph.files.any {it.repo == "repo3"}
+        assert runGraph.files.any {it.repo == "repo4"}
+        assert runGraph.files.any {it.repo == "repo5"}
+        assert runGraph.files.any {it.repo == "repo6"}
+        assert runGraph.files.any {it.repo == InvInvoker.UNDEFINED_REPO}
 
         assert runGraph.toPlainList()
         assert runGraph.toDotGraph()

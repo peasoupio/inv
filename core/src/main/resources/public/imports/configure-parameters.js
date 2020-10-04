@@ -3,15 +3,15 @@
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="!areSCMsAvailable">
+    <div v-if="!areREPOsAvailable">
         <div class="content">
             <p class="has-text-warning has-text-centered title is-4">Nothing is staged for now.</p>
             <p>Have you considered the following?</p>
             <ul>
                 <li>Staging occurs in the <strong>choose</strong> step</li>
-                <li>You may stage SCMs individually.</li>
+                <li>You may stage REPOs individually.</li>
                 <li>You may also stage INVs by selecting <i>broadcast statement</i>.</li>
-                <li>Composer determines which SCM is associated to each <i>broadcast statement</i> based on the <strong>run.txt</strong> file</li>
+                <li>Composer determines which REPO is associated to each <i>broadcast statement</i> based on the <strong>run.txt</strong> file</li>
             </ul>
         </div>
     </div>
@@ -53,12 +53,12 @@ Vue.component('configure-parameters', {
         <hr />
         <configure-parameters-carousel v-model="requiredSettings" :key="updateIndex" />
 
-        <div class="modal is-active" v-if="currentScmParameter && currentScmParameter.loaded" >
+        <div class="modal is-active" v-if="currentRepoParameter && currentRepoParameter.loaded" >
             <div class="modal-background"></div>
             <div class="modal-content">
                 <div class="box" v-click-outside="close">
-                    <h1 class="title is-4">Parameter(s) of: {{currentScmParameter.name}} </h1>
-                    <div v-for="(parameter, index) in currentScmParameter.parameters" style="padding-bottom: 1em;">
+                    <h1 class="title is-4">Parameter(s) of: {{currentRepoParameter.name}} </h1>
+                    <div v-for="(parameter, index) in currentRepoParameter.parameters" style="padding-bottom: 1em;">
                         <p>
                             <span class="title is-5">{{index +1 }}. {{parameter.name}}</span>
                             <span class="title is-6" v-if="parameter.values.length">(has {{parameter.values.length}} value(s) available)</span>
@@ -87,8 +87,8 @@ Vue.component('configure-parameters', {
                     </div>
 
                     <footer class="modal-card-foot">
-                      <button class="button is-success" :disabled="!hasAnyChanged(currentScmParameter)" @click="saveParameters(currentScmParameter)">Save all</button>
-                      <button class="button" @click="resetParameters(currentScmParameter)">Reset all</button>
+                      <button class="button is-success" :disabled="!hasAnyChanged(currentRepoParameter)" @click="saveParameters(currentRepoParameter)">Save all</button>
+                      <button class="button" @click="resetParameters(currentRepoParameter)">Reset all</button>
                     </footer>
 
                 </div>
@@ -100,12 +100,12 @@ Vue.component('configure-parameters', {
     props: ['value'],
     data: function() {
         return {
-            areSCMsAvailable: false,
+            areREPOsAvailable: false,
             filters: {
                 hideOnComplete: true
             },
             updateIndex: 0,
-            currentScmParameter: null
+            currentRepoParameter: null
         }
     },
     computed: {
@@ -114,11 +114,11 @@ Vue.component('configure-parameters', {
                 var vm = this
                 return {
                     api: vm.value.api,
-                    edit: function(scm) {
-                        vm.currentScmParameter = scm
+                    edit: function(repo) {
+                        vm.currentRepoParameter = repo
                     },
-                    reset: function(scm) {
-                        vm.resetParameters(scm)
+                    reset: function(repo) {
+                        vm.resetParameters(repo)
                     },
                     title: 'Added from the choosing options',
                     filters: {
@@ -135,12 +135,12 @@ Vue.component('configure-parameters', {
                 var vm = this
                 return {
                     api: vm.value.api,
-                    edit: function(scm) {
-                        vm.currentScmParameter = scm
+                    edit: function(repo) {
+                        vm.currentRepoParameter = repo
                         vm.$forceUpdate()
                     },
-                    reset: function(scm) {
-                        vm.resetParameters(scm)
+                    reset: function(repo) {
+                        vm.resetParameters(repo)
                     },
                     title: 'Added manually',
                     filters: {
@@ -166,7 +166,7 @@ Vue.component('configure-parameters', {
         applyDefaultToAll: function() {
             var vm = this
 
-            axios.post(vm.value.api.links.scms.applyDefaultAll).then(response => {
+            axios.post(vm.value.api.links.repos.applyDefaultAll).then(response => {
                 vm.updateIndex++
 
                 vm.$bus.$emit('toast', `warn:Applied <strong>all defaults parameters</strong> successfully!`)
@@ -175,33 +175,33 @@ Vue.component('configure-parameters', {
         resetAll: function() {
             var vm = this
 
-            axios.post(vm.value.api.links.scms.resetAll).then(response => {
+            axios.post(vm.value.api.links.repos.resetAll).then(response => {
                 vm.updateIndex++
 
                 vm.$bus.$emit('toast', `warn:Reset <strong>all parameters</strong> successfully!`)
             })
         },
-        areValuesUnavailable: function(scmParameters) {
-            if (scmParameters.value == undefined)
+        areValuesUnavailable: function(repoParameters) {
+            if (repoParameters.value == undefined)
                 return false
 
-            if (scmParameters.value == null)
+            if (repoParameters.value == null)
                 return false
 
-            if (scmParameters.value === '')
+            if (repoParameters.value === '')
                 return false
 
-            return scmParameters.values.indexOf(scmParameters.value) < 0
+            return repoParameters.values.indexOf(repoParameters.value) < 0
         },
-        hasAnyChanged: function(scmParameters) {
-            return scmParameters.parameters.filter(function(parameter) {
+        hasAnyChanged: function(repoParameters) {
+            return repoParameters.parameters.filter(function(parameter) {
                 return parameter.changed
             }).length > 0
         },
-        saveParameters: function(scm) {
+        saveParameters: function(repo) {
             var vm = this
 
-            scm.parameters.forEach(function(parameter) {
+            repo.parameters.forEach(function(parameter) {
                 if (!parameter.changed)
                     return
 
@@ -214,10 +214,10 @@ Vue.component('configure-parameters', {
             parameter.value = parameter.defaultValue
             parameter.changed = true
         },
-        resetParameters: function(scm) {
+        resetParameters: function(repo) {
             var vm = this
 
-            scm.parameters.forEach(function(parameter) {
+            repo.parameters.forEach(function(parameter) {
 
                 if (parameter.value == null ||
                     parameter.value == undefined ||
@@ -229,7 +229,7 @@ Vue.component('configure-parameters', {
                 vm.saveParameter(parameter)
             })
 
-            scm.updateIndex++
+            repo.updateIndex++
             vm.$bus.$emit('toast', `warn:Reset <strong>parameters</strong> successfully!`)
         },
         saveParameter: function(parameter) {
@@ -250,22 +250,22 @@ Vue.component('configure-parameters', {
         close: function() {
             var vm = this
 
-            axios.get(vm.currentScmParameter.links.default).then(response => {
+            axios.get(vm.currentRepoParameter.links.default).then(response => {
 
-                vm.currentScmParameter.saved = response.data.saved
-                vm.currentScmParameter.lastModified = response.data.lastModified
-                vm.currentScmParameter.completed = response.data.completed
-                vm.currentScmParameter.updateIndex++
-                vm.currentScmParameter = null
+                vm.currentRepoParameter.saved = response.data.saved
+                vm.currentRepoParameter.lastModified = response.data.lastModified
+                vm.currentRepoParameter.completed = response.data.completed
+                vm.currentRepoParameter.updateIndex++
+                vm.currentRepoParameter = null
             })
         }
     },
     mounted: function() {
         var vm = this
 
-        // Check if any scm is selected or staged
-        axios.get(vm.value.api.links.scms.metadata).then(response => {
-            vm.areSCMsAvailable = (response.data.selected + response.data.staged) > 0
+        // Check if any repo is selected or staged
+        axios.get(vm.value.api.links.repos.metadata).then(response => {
+            vm.areREPOsAvailable = (response.data.selected + response.data.staged) > 0
         })
     }
 })
@@ -275,76 +275,76 @@ Vue.component('configure-parameters-carousel', {
     template: `
 <div>
     <p class="title is-3">
-        {{value.title}} ({{scms.count}}/{{scms.total}})
+        {{value.title}} ({{repos.count}}/{{repos.total}})
     </p>
 
     <div class="field">
         <p class="control is-expanded has-icons-right">
-            <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="filterScms()">
+            <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="filterRepos()">
             <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
         </p>
     </div>
 
-    <div v-if="scms.count == 0" class="container">
+    <div v-if="repos.count == 0" class="container">
         <p class="has-text-centered">Nothing to show</p>
     </div>
     <div class="columns is-multiline" style="min-height: 300px;" v-else>
-        <div class="column is-one-quarter" v-for="scm in scms.descriptors">
-            <div class="card" :key="scm.updateIndex && getStats(scm)">
+        <div class="column is-one-quarter" v-for="repo in repos.descriptors">
+            <div class="card" :key="repo.updateIndex && getStats(repo)">
                 <div class="card-content">
                     <p class="title is-5">
-                        <span v-bind:class="{ 'has-text-danger': scm.errors.length > 0, 'has-text-success': scm.completed }">
-                            {{scm.name}}
+                        <span v-bind:class="{ 'has-text-danger': repo.errors.length > 0, 'has-text-success': repo.completed }">
+                            {{repo.name}}
                         </span>
 
-                        <span class="icon is-medium" v-if="scm.loading">
+                        <span class="icon is-medium" v-if="repo.loading">
                             <i class="fas fa-spinner fa-pulse"></i>
                         </span>
                     </p>
                     <p class="subtitle is-6" style="color: lightgrey">
-                        <span  v-if="scm.saved">Last edit: {{whenLastSaved(scm)}}</span>
+                        <span  v-if="repo.saved">Last edit: {{whenLastSaved(repo)}}</span>
                         <span v-else>never saved</span>
                     </p>
 
                     <p class="has-text-centered">
                         <span class="tag is-danger"
                             style="cursor: pointer"
-                            @mouseover="scm.showErrors=true"
-                            @mouseleave="scm.showErrors=false"
-                            v-show="scm.errors.length > 0">{{scm.errors.length}} error(s) caught</span>
+                            @mouseover="repo.showErrors=true"
+                            @mouseleave="repo.showErrors=false"
+                            v-show="repo.errors.length > 0">{{repo.errors.length}} error(s) caught</span>
 
                         <span class="tag"
                             style="cursor: pointer"
-                            @mouseover="scm.showDetails=true"
-                            @mouseleave="scm.showDetails=false"
-                            v-bind:class="{ 'is-warning': scm.requiredNotCompletedCount > 0 }">{{scm.requiredNotCompletedCount}} parameter(s) required</span>
+                            @mouseover="repo.showDetails=true"
+                            @mouseleave="repo.showDetails=false"
+                            v-bind:class="{ 'is-warning': repo.requiredNotCompletedCount > 0 }">{{repo.requiredNotCompletedCount}} parameter(s) required</span>
                     </p>
                 </div>
 
                 <footer class="card-footer">
                     <p class="card-footer-item is-paddingless">
-                        <button class="button is-fullwidth" @click="resetParameters(scm)" :disabled="scm.parameters.length == 0">Reset</button>
+                        <button class="button is-fullwidth" @click="resetParameters(repo)" :disabled="repo.parameters.length == 0">Reset</button>
                     </p>
                     <p class="card-footer-item is-paddingless">
-                        <button class="button is-fullwidth is-link" @click.stop="editParameters(scm)" :disabled="scm.parameters.length == 0">Configure</button>
+                        <button class="button is-fullwidth is-link" @click.stop="editParameters(repo)" :disabled="repo.parameters.length == 0">Configure</button>
                     </p>
                 </footer>
 
-                <div class="notification is-primary content" v-if="scm.showDetails" style="position: absolute; z-index: 10">
+                <div class="notification is-primary content" v-if="repo.showDetails" style="position: absolute; z-index: 10">
                     <ul>
-                        <li>Has <span class="has-text-weight-bold">{{scm.parameters.length}}</span> parameter(s)</li>
-                        <li>Has <span class="has-text-weight-bold">{{scm.requiredCount}}</span> required parameter(s)</li>
-                        <li>Has answered <span class="has-text-weight-bold">{{scm.completedCount}}</span> parameter(s)</li>
+                        <li>Has <span class="has-text-weight-bold">{{repo.parameters.length}}</span> parameter(s)</li>
+                        <li>Has <span class="has-text-weight-bold">{{repo.requiredCount}}</span> required parameter(s)</li>
+                        <li>Has answered <span class="has-text-weight-bold">{{repocompletedCount}}</span> parameter(s)</li>
                         <li>
-                            <span v-if="scm.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
+                            <span v-if="repo.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
                             <span v-else>Has <span class="has-text-weight-bold has-text-warning">not answered</span> all of its parameters</span>
                          </li>
                     </ul>
                 </div>
 
-                <div class="notification is-danger content" v-show="scm.showErrors" style="position: absolute; z-index: 10">
+                <div class="notification is-danger content" v-show="repo.showErrors" style="position: absolute; z-index: 10">
                     <ul>
-                        <li v-for="error in scm.errors">{{error.message}}, {{whenError(error)}}.</li>
+                        <li v-for="error in repo.errors">{{error.message}}, {{whenError(error)}}.</li>
                     </ul>
                 </div>
             </div>
@@ -360,7 +360,7 @@ Vue.component('configure-parameters-carousel', {
 
         return {
             loading: false,
-            scms: [],
+            repos: [],
             total: 0,
             filters: {
                 name: '',
@@ -379,130 +379,130 @@ Vue.component('configure-parameters-carousel', {
                 return {
                     refresh: function(from) {
                         vm.filters.from = from
-                        vm.fetchScms()
+                        vm.fetchRepos()
                     },
                     from: vm.filters.from,
                     step: vm.filters.to,
-                    total: vm.scms.count
+                    total: vm.repos.count
                 }
             }
         }
     },
     methods: {
-        filterScms: function() {
+        filterRepos: function() {
             var vm = this
 
             vm.filters.from = 0
-            vm.fetchScms()
+            vm.fetchRepos()
         },
-        fetchScms: function() {
+        fetchRepos: function() {
             var vm = this
 
             vm.loading = true
 
-            axios.post(vm.value.api.links.scms.search, vm.filters).then(response => {
-                vm.scms = response.data
-                vm.scms.descriptors.sort(compareValues('name'))
+            axios.post(vm.value.api.links.repos.search, vm.filters).then(response => {
+                vm.repos = response.data
+                vm.repos.descriptors.sort(compareValues('name'))
 
                 // Calculate parameters metrics
-                vm.scms.descriptors.forEach(function(scm) {
+                vm.repos.descriptors.forEach(function(repo) {
                     // dependency metrics
-                    scm.requiredCount = 0
-                    scm.requiredNotCompletedCount = 0
-                    scm.completedCount = 0
+                    repo.requiredCount = 0
+                    repo.requiredNotCompletedCount = 0
+                    repo.completedCount = 0
 
                     // errors stack
-                    scm.errors = []
-                    vm.$set(scm, 'showErrors', false)
-                    vm.$set(scm, 'loading', false)
-                    vm.$set(scm, 'showDetails', false)
-                    vm.$set(scm, 'updateIndex', 0)
+                    repo.errors = []
+                    vm.$set(repo, 'showErrors', false)
+                    vm.$set(repo, 'loading', false)
+                    vm.$set(repo, 'showDetails', false)
+                    vm.$set(repo, 'updateIndex', 0)
 
                     // Initialized stats
-                    vm.getStats(scm)
+                    vm.getStats(repo)
                 })
 
                 vm.loading = false
             })
         },
-        whenLastSaved: function(scmParameters) {
-            return TimeAgo.inWords(scmParameters.lastModified)
+        whenLastSaved: function(repoParameters) {
+            return TimeAgo.inWords(repoParameters.lastModified)
         },
         whenError: function(error) {
             return TimeAgo.inWords(error.when)
         },
-        getStats: function(scm) {
-            scm.requiredCount = 0
-            scm.requiredNotCompletedCount = 0
-            scm.completedCount = 0
+        getStats: function(repo) {
+            repo.requiredCount = 0
+            repo.requiredNotCompletedCount = 0
+            repo.completedCount = 0
 
-            scm.parameters.forEach(function(parameter) {
+            repo.parameters.forEach(function(parameter) {
                 var hasValue = parameter.value != null &&
                                parameter.value != undefined &&
                                parameter.value != ''
 
                 if (parameter.required) {
-                    scm.requiredCount++
+                    repo.requiredCount++
 
                     if (!hasValue)
-                        scm.requiredNotCompletedCount++
+                        repo.requiredNotCompletedCount++
                 }
 
                 if (hasValue)
-                    scm.completedCount++
+                    repo.completedCount++
             })
 
             return true
         },
-        editParameters: function(scmParameters) {
+        editParameters: function(repoParameters) {
 
             var vm = this
 
-            if (scmParameters.parameters.length == 0)
+            if (repoParameters.parameters.length == 0)
                 return
 
-            if (scmParameters.loaded) {
-                vm.value.edit(scmParameters)
+            if (repoParameters.loaded) {
+                vm.value.edit(repoParameters)
                 return
             }
 
-            scmParameters.loading = true
+            repoParameters.loading = true
 
-            axios.get(scmParameters.links.parameters).then(response => {
+            axios.get(repoParameters.links.parameters).then(response => {
 
-                scmParameters.parameters.forEach(function(parameter) {
+                repoParameters.parameters.forEach(function(parameter) {
                     parameter.values = response.data[parameter.name]
 
                     if (!parameter.value)
                         parameter.value = ""
                 })
 
-                scmParameters.changed = false
-                scmParameters.loaded = true
-                scmParameters.loading = false
+                repoParameters.changed = false
+                repoParameters.loaded = true
+                repoParameters.loading = false
 
-                vm.value.edit(scmParameters)
+                vm.value.edit(repoParameters)
             })
             .catch(err => {
 
-                scmParameters.changed = false
-                scmParameters.loaded = false
-                scmParameters.loading = false
+                repoParameters.changed = false
+                repoParameters.loaded = false
+                repoParameters.loading = false
 
-                scmParameters.errors.push(error.response.data)
+                repoParameters.errors.push(error.response.data)
                 vm.$forceUpdate()
 
                 vm.$bus.$emit('toast', `error:Failed to <strong>edit parameters</strong>!`)
             })
         },
-        resetParameters: function(scmParameters) {
+        resetParameters: function(repoParameters) {
             var vm = this
-            vm.value.reset(scmParameters)
+            vm.value.reset(repoParameters)
         }
     },
     created: function() {
         var vm = this
 
-        vm.fetchScms()
+        vm.fetchRepos()
     }
 })

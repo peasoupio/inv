@@ -76,7 +76,7 @@ Vue.component('choose-broadcast', {
                 </div>
                 </th>
                 <th><input class="input" type="text" v-model="filters.id" placeholder="ID" @keyup="searchNodes(true)"></th>
-                <th><input class="input" type="text" v-model="filters.scm" placeholder="Source" @keyup="searchNodes(true)"></th>
+                <th><input class="input" type="text" v-model="filters.repo" placeholder="Source" @keyup="searchNodes(true)"></th>
             </tr>
             </thead>
             <tbody>
@@ -86,7 +86,7 @@ Vue.component('choose-broadcast', {
                 <td><p class="truncate">{{inv.name}}</p></td>
                 <td><p class="truncate">{{inv.id}}</p></td>
                 <td>
-                    <span class="truncate" v-if="inv.scm"><a @click.stop="showScm(inv)">{{inv.scm}}</a></span>
+                    <span class="truncate" v-if="inv.repo"><a @click.stop="showRepo(inv)">{{inv.repo}}</a></span>
                     <span v-else>Not defined</span>
                 </td>
             </tr>
@@ -95,11 +95,11 @@ Vue.component('choose-broadcast', {
 
         <pagination v-model="paginationSettings" />
 
-        <div class="modal is-active" v-if="viewScm">
+        <div class="modal is-active" v-if="viewRepo">
             <div class="modal-background"></div>
             <div class="modal-content" style="width: 60%">
                 <div class="box" v-click-outside="close">
-                    <h1 class="subtitle is-1">My scm</h1>
+                    <h1 class="subtitle is-1">My Repo</h1>
                     <table class="table is-fullwidth is-bordered">
                         <thead>
                         <tr class="field">
@@ -110,9 +110,9 @@ Vue.component('choose-broadcast', {
                         </thead>
                         <tbody>
                         <tr>
-                            <td><p class="truncate">{{viewScm.name}}</p></td>
-                            <td><p class="truncate">{{viewScm.descriptor.src}}</p></td>
-                            <td><p class="truncate" v-for="entry in viewScm.descriptor.entry">{{entry}}</p></td>
+                            <td><p class="truncate">{{viewRepo.name}}</p></td>
+                            <td><p class="truncate">{{viewRepo.descriptor.src}}</p></td>
+                            <td><p class="truncate" v-for="entry in viewRepo.descriptor.entry">{{entry}}</p></td>
                         </tr>
                         </tbody>
                     </table>
@@ -129,14 +129,14 @@ Vue.component('choose-broadcast', {
             notAvailable: false,
             owners: [],
             names: [],
-            viewScm: null,
+            viewRepo: null,
             filters: {
                 from: 0,
                 step: 20,
                 name: '',
                 id: '',
                 owner: '',
-                scm: '',
+                repo: '',
                 required: false,
                 selected: false
             }
@@ -279,15 +279,15 @@ Vue.component('choose-broadcast', {
             }
         },
 
-        showScm: function(inv) {
+        showRepo: function(inv) {
             var vm = this
 
-            axios.get(inv.links.viewScm).then(response => {
-                vm.viewScm = response.data
+            axios.get(inv.links.viewRepo).then(response => {
+                vm.viewRepo = response.data
             })
         },
         close: function() {
-            this.viewScm = null
+            this.viewRepo = null
         }
     },
     created: function() {

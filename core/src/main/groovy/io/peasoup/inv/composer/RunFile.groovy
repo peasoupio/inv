@@ -14,8 +14,8 @@ class RunFile {
     final File runFile
     final private RunGraph runGraph
 
-    final private Map<String, List<String>> ownerOfScm
-    final private Map<String, RunGraph.FileStatement> invOfScm
+    final private Map<String, List<String>> ownerOfRepo
+    final private Map<String, RunGraph.FileStatement> invOfRepo
 
     final Map<String, StagedId> staged = [:]
     final Set<GraphNavigator.Linkable> nodes
@@ -32,8 +32,8 @@ class RunFile {
         this.runFile = runFile
         runGraph = new RunGraph(runFile.newReader())
 
-        ownerOfScm = (Map<String, List<String>>) runGraph.files.groupBy { it.scm }.collectEntries { [(it.key): it.value.collect { it.inv }] }
-        invOfScm = runGraph.files.collectEntries { [(it.inv): it.scm] }
+        ownerOfRepo = (Map<String, List<String>>) runGraph.files.groupBy { it.repo }.collectEntries { [(it.key): it.value.collect { it.inv }] }
+        invOfRepo = runGraph.files.collectEntries { [(it.inv): it.repo] }
 
         // Get Id only and filter out unbloated ones
         nodes = runGraph.navigator.links().findAll { it.isId() && runGraph.navigator.nodes.containsKey(it.value) }
@@ -231,11 +231,11 @@ class RunFile {
         return output
     }
 
-    boolean isSelected(String scm) {
-        if (!ownerOfScm.containsKey(scm))
+    boolean isSelected(String repo) {
+        if (!ownerOfRepo.containsKey(repo))
             return false
 
-        return ownerOfScm[scm].any { String inv ->
+        return ownerOfRepo[repo].any { String inv ->
             def node = runGraph.navigator.nodes[inv] as GraphNavigator.Node
 
             if (!node)
@@ -245,11 +245,11 @@ class RunFile {
         }
     }
 
-    List<String> selectedScms() {
+    List<String> selectedRepos() {
         return staged.values()
                 .collect { runGraph.navigator.nodes[it.link.value] }
                 .findAll { it }
-                .collect { invOfScm[it.owner] }
+                .collect { invOfRepo[it.owner] }
                 .findAll { it }
                 .unique() as List<String>
     }
@@ -308,7 +308,7 @@ class RunFile {
                     String value = it.link.value as String
                     String owner = it.node.owner as String
 
-                    String scm = invOfScm[owner]
+                    String repo = invOfRepo[owner]
 
                     return [
                             required: staged[value] && staged[value].required,
@@ -316,9 +316,9 @@ class RunFile {
                             owner   : owner,
                             name    : it.name,
                             id      : it.subId,
-                            scm     : scm,
+                            repo     : repo,
                             links   : [
-                                    viewScm   : WebServer.API_CONTEXT_ROOT + "/scms/view?name=${scm}",
+                                    viewRepo  : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${repo}",
                                     requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${value}",
                                     stage     : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${value}",
                                     unstage   : WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${value}"

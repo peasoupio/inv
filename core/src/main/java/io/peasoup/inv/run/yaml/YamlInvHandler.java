@@ -1,30 +1,33 @@
 package io.peasoup.inv.run.yaml;
 
-import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.loader.LazyYamlClosure;
+import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.*;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
 
 public class YamlInvHandler {
 
     private final InvExecutor invExecutor;
     private final String yamlPath;
     private final String pwd;
-    private final String scm;
+    private final String repo;
 
-    public YamlInvHandler(InvExecutor invExecutor, String yamlPath, String pwd, String scm) {
+    public YamlInvHandler(InvExecutor invExecutor, String yamlPath, String pwd, String repo) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
         if (StringUtils.isEmpty(yamlPath)) throw new IllegalArgumentException("scriptPath");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
-        if (StringUtils.isEmpty(scm)) throw new IllegalArgumentException("scm");
+        if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
         this.invExecutor = invExecutor;
         this.yamlPath = yamlPath;
         this.pwd = pwd;
-        this.scm = scm;
+        this.repo = repo;
     }
 
     public void call(YamlLoader.Descriptor yamlLoader) throws InvHandler.INVOptionRequiredException {
@@ -40,8 +43,8 @@ public class YamlInvHandler {
         // Set default path
         context.setDefaultPath(pwd);
 
-        // Set SCM
-        context.setSCM(scm);
+        // Set REPO
+        context.setRepo(repo);
 
         // Set Script filename
         context.setBaseFilename(yamlPath);
@@ -66,8 +69,8 @@ public class YamlInvHandler {
             // Attempt to dump delegate to insert it into pool
             inv.dumpDelegate();
 
-            // Print SCM reference
-            Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
+            // Print REPO reference
+            Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
         }
 
     }

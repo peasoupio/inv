@@ -11,7 +11,7 @@ public class InvHandler {
 
     private String scriptPath;
     private String pwd;
-    private String scm;
+    private String repo;
 
     public InvHandler(InvExecutor invExecutor) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
@@ -19,16 +19,16 @@ public class InvHandler {
         this.invExecutor = invExecutor;
     }
 
-    public InvHandler(InvExecutor invExecutor, String scriptPath, String pwd, String scm) {
+    public InvHandler(InvExecutor invExecutor, String scriptPath, String pwd, String repo) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
         if (scriptPath == null) throw new IllegalArgumentException("scriptPath");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
-        if (StringUtils.isEmpty(scm)) throw new IllegalArgumentException("scm");
+        if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
         this.invExecutor = invExecutor;
         this.scriptPath = scriptPath;
         this.pwd = pwd;
-        this.scm = scm;
+        this.repo = repo;
     }
 
     public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws INVOptionRequiredException {
@@ -56,9 +56,9 @@ public class InvHandler {
             if (StringUtils.isNotEmpty(pwd))
                 context.setDefaultPath(pwd);
 
-            // Set SCM
-            if (StringUtils.isNotEmpty(scm))
-                context.setSCM(scm);
+            // Set REPO
+            if (StringUtils.isNotEmpty(repo))
+                context.setRepo(repo);
 
             // Set Script filename
             if (StringUtils.isNotEmpty(scriptPath))
@@ -82,9 +82,9 @@ public class InvHandler {
         // Attempt to dump delegate to insert it into pool
         inv.dumpDelegate();
 
-        // Print SCM reference
+        // Print REPO reference
         if (script != null) {
-            Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
+            Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
         }
     }
 

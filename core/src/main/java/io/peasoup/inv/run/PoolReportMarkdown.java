@@ -80,7 +80,7 @@ public class PoolReportMarkdown {
         Map<String, Object> scopes = new HashMap<>();
         scopes.put("name", inv.getName());
         scopes.put("markdown", inv.getMarkdown());
-        scopes.put("scm", inv.getContext().getScm());
+        scopes.put("repo", inv.getContext().getRepo());
 
         List<Map<String, Object>> statements = new ArrayList<>();
 

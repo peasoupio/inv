@@ -18,9 +18,9 @@ class PackageDiscovererTest {
         assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/inv.yml"))
         assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/inv.yaml"))
 
-        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/scm.groovy"))
-        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/scm.yml"))
-        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/scm.yaml"))
+        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/repo.groovy"))
+        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/repo.yml"))
+        assertEquals expectedPackage, PackageDiscoverer.forFile(new File(packageFileEquivalent + ".inv/vars/repo.yaml"))
     }
 
     @Test

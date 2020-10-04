@@ -47,6 +47,7 @@ System.lineSeparator()
         assertNull securedLoader.parseClassText('''
 Thread.currentThread()
 ''')
+        
     }
 
     @Test
@@ -90,9 +91,9 @@ Eval.me('1+1')
 
     @Test
     void normalize() {
-        assert securedLoader.normalizeClassName(new File("test.groovy")) == "test"
-        assert securedLoader.normalizeClassName(new File("parent", "inv")) == "parent"
-        assert securedLoader.normalizeClassName(new File("parent", "inv.groovy")) == "parent"
-        assert securedLoader.normalizeClassName(new File("parent" ,"inv.groovy")) == "parent"
+        assert securedLoader.normalizeGroovyFilename(new File("test.groovy")) == "test"
+        assert securedLoader.normalizeGroovyFilename(new File("parent", "inv")) == "parent"
+        assert securedLoader.normalizeGroovyFilename(new File("parent", "inv.groovy")) == "parent"
+        assert securedLoader.normalizeGroovyFilename(new File("parent" ,"inv.groovy")) == "parent"
     }
 }

@@ -26,18 +26,18 @@ class WebServerTest {
         new File(base, "executions/").deleteDir()
         new File(base, "settings.json").delete()
         new File(base, "parameters/").deleteDir()
-        new File(base + "scms/", "scm7.groovy").delete()
+        new File(base + "repos/", "repo7.groovy").delete()
     }
 
     @BeforeClass
     static void setup() {
         clean()
 
-        def scm7 = new File(base + "scms/", "scm7.groovy")
+        def repo7 = new File(base + "repos/", "repo7.groovy")
 
-        scm7 << """
-scm {
-    name 'scm7'
+        repo7 << """
+repo {
+    name 'repo7'
     path 'ok'
 }
 """
@@ -170,8 +170,8 @@ scm {
     }
 
     @Test
-    void scms() {
-        def response = get("scms")
+    void repos() {
+        def response = get("repos")
         assert response
 
         def json = new JsonSlurper().parseText(response)
@@ -179,12 +179,12 @@ scm {
         assert json
         assert json.total == 7
         assert json.descriptors.size() == 7
-        assert json.descriptors.any { it.name == "scm1"}
+        assert json.descriptors.any { it.name == "repo1"}
     }
 
     @Test
-    void scms_search() {
-        def response = postJson("scms", [name: "scm1"])
+    void repos_search() {
+        def response = postJson("repos", [name: "repo1"])
         assert response
 
         def json = new JsonSlurper().parseText(response)
@@ -193,13 +193,13 @@ scm {
         assert json.total == 7
         assert json.count == 1
         assert json.descriptors.size() == 1
-        assert json.descriptors.any { it.name == "scm1"}
+        assert json.descriptors.any { it.name == "repo1"}
     }
 
     @Test
-    void scms_selected() {
+    void repos_selected() {
 
-        def responseBeforeStage = postJson ("scms", [selected: true, staged: false])
+        def responseBeforeStage = postJson ("repos", [selected: true, staged: false])
         assert responseBeforeStage
 
         def jsonBeforeStage = new JsonSlurper().parseText(responseBeforeStage)
@@ -209,7 +209,7 @@ scm {
 
         post("run/stage?id=[Kubernetes]%20undefined")
 
-        def responseAfterStage = postJson ("scms", [selected: true, staged: false])
+        def responseAfterStage = postJson ("repos", [selected: true, staged: false])
         assert responseAfterStage
 
         def jsonAfterStage = new JsonSlurper().parseText(responseAfterStage)
@@ -221,46 +221,46 @@ scm {
     }
 
     @Test
-    void scm_view() {
-        def response = get("scms/view?name=scm1")
+    void repo_view() {
+        def response = get("repos/view?name=repo1")
         assert response
 
         def json = new JsonSlurper().parseText(response)
 
         assert json
-        assert json.name == "scm1"
+        assert json.name == "repo1"
     }
 
     @Test
-    void scm_source() {
+    void repo_source() {
 
         def sourceText = """
-scm {
-    name 'scm7'
+repo {
+    name 'repo7'
     path 'path'
     src 'my-src'
 }
 """.getBytes(Charset.forName("UTF-8"))
 
-        post("scms/source?name=scm7", sourceText)
+        post("repos/source?name=repo7", sourceText)
 
-        def response = get("scms/view?name=scm7")
+        def response = get("repos/view?name=repo7")
         assert response
 
         def json = new JsonSlurper().parseText(response)
 
         assert json
-        assert json.name == "scm7"
+        assert json.name == "repo7"
         assert json.script.text.contains("my-src")
     }
 
     @Test
-    void scm_stage_and_unstage() {
+    void repo_stage_and_unstage() {
 
-        def stageScmName = 'scm1'
-        post("scms/stage?name=${stageScmName}")
+        def stageRepoName = 'repo1'
+        post("repos/stage?name=${stageRepoName}")
 
-        def responseStage = post("scms")
+        def responseStage = post("repos")
         assert responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
@@ -268,13 +268,13 @@ scm {
         assert jsonStage
         assert jsonStage.descriptors
 
-        def scmStaged = jsonStage.descriptors.find { it.staged }
-        assert scmStaged
-        assert scmStaged.name == stageScmName
+        def repoStaged = jsonStage.descriptors.find { it.staged }
+        assert repoStaged
+        assert repoStaged.name == stageRepoName
 
-        post("scms/unstage?name=${stageScmName}")
+        post("repos/unstage?name=${stageRepoName}")
 
-        def responseUnstage = post("scms")
+        def responseUnstage = post("repos")
         assert responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
@@ -285,10 +285,10 @@ scm {
     }
 
     @Test
-    void scm_stageAll_and_unstageAll() {
-        post("scms/stageAll")
+    void repo_stageAll_and_unstageAll() {
+        post("repos/stageAll")
 
-        def responseStage = post("scms")
+        def responseStage = post("repos")
         assert responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
@@ -297,9 +297,9 @@ scm {
         assert jsonStage.descriptors != null
         assert !jsonStage.descriptors.any { !it.staged }
 
-        post("scms/unstageAll")
+        post("repos/unstageAll")
 
-        def responseUnstage = post("scms")
+        def responseUnstage = post("repos")
         assert responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
@@ -310,10 +310,10 @@ scm {
     }
 
     @Test
-    void scm_applyDefaultAll_and_resetAll() {
+    void repo_applyDefaultAll_and_resetAll() {
 
-        // Create scms folder ref and delete existing json files
-        def parametersFolder = new File(base, "scms/")
+        // Create repos folder ref and delete existing json files
+        def parametersFolder = new File(base, "repos/")
         parametersFolder.listFiles()
             .findAll { it.name.endsWith(".json") }
             .each { it.delete() }
@@ -323,7 +323,7 @@ scm {
         //Apply
         assertFalse parametersFolder.listFiles().any { it.name.endsWith(".json")}
 
-        def responseBeforeApply = get("scms/view?name=scm1")
+        def responseBeforeApply = get("repos/view?name=repo1")
         assert responseBeforeApply
 
         def jsonBeforeApply = new JsonSlurper().parseText(responseBeforeApply)
@@ -331,11 +331,11 @@ scm {
         assert jsonBeforeApply
         assert !jsonBeforeApply.parameters.any { it.value != null}
 
-        post("scms/applyDefaultAll")
+        post("repos/applyDefaultAll")
 
         assert parametersFolder.listFiles().findAll { it.name.endsWith(".json")}.size() == 2 // Only 4 descriptors has parameters on 2 files
 
-        def responseAfterApply = get("scms/view?name=scm1")
+        def responseAfterApply = get("repos/view?name=repo1")
         assert responseAfterApply
 
         def jsonAfterApply = new JsonSlurper().parseText(responseAfterApply)
@@ -344,9 +344,9 @@ scm {
         assert !jsonAfterApply.parameters.any { it.value != it.defaultValue}
 
         //Reset
-        post("scms/resetAll")
+        post("repos/resetAll")
 
-        def responseAfteReset = get("scms/view?name=scm1")
+        def responseAfteReset = get("repos/view?name=repo1")
         assert responseAfterApply
 
         def jsonAfterReset = new JsonSlurper().parseText(responseAfteReset)
@@ -358,12 +358,12 @@ scm {
     }
 
     @Test
-    void scm_parameters() {
+    void repo_parameters() {
         def parameterValue = new Date().time.toString()
 
-        postJson("scms/parameters?name=scm1&parameter=staticList", [parameterValue: parameterValue])
+        postJson("repos/parameters?name=repo1&parameter=staticList", [parameterValue: parameterValue])
 
-        def response = get("scms/view?name=scm1")
+        def response = get("repos/view?name=repo1")
         assert response
 
         def json = new JsonSlurper().parseText(response)
@@ -377,8 +377,8 @@ scm {
     }
 
     @Test
-    void scm_parametersValues() {
-        def response = get("scms/parametersValues?name=scm1")
+    void repo_parametersValues() {
+        def response = get("repos/parametersValues?name=repo1")
         assert response
 
         def json = new JsonSlurper().parseText(response)
@@ -416,7 +416,7 @@ scm {
 
         assert jsonStart
         assert jsonStart.files
-        assert jsonStart.files.any { it.contains("scmB") }
+        assert jsonStart.files.any { it.contains("repoB") }
 
         def responseAfter = get("execution")
         assert responseAfter

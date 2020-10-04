@@ -1,9 +1,9 @@
 package io.peasoup.inv
 
 import groovy.json.JsonOutput
-import io.peasoup.inv.cli.ScmCommand
+import io.peasoup.inv.cli.RepoRunCommand
+import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.run.Logger
-import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.utils.Stdout
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -124,71 +124,53 @@ class MainTest {
     }
 
     @Test
-    void main_launchScm() {
-        def scmFile = new File(TempHome.testResources, '/scm.groovy')
+    void main_launchRepo() {
+        def repoFile = new File(TempHome.testResources, '/repo.groovy')
 
-        def comparable = new ScmExecutor()
-        comparable.parse(scmFile)
+        def comparable = new RepoExecutor()
+        comparable.parse(repoFile)
 
-        assert comparable.scms["my-repository"]
+        assert comparable.repos["my-repository"]
 
         // Remove to make sure we trigger init
-        if (comparable.scms["my-repository"].path.exists())
-            comparable.scms["my-repository"].path.deleteDir()
+        if (comparable.repos["my-repository"].path.exists())
+            comparable.repos["my-repository"].path.deleteDir()
 
-        Stdout.capture ({ Main.start("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.start("repo", "run", repoFile.path) }, {
             assert Main.exitCode == 0
             assert it.contains("init")
         })
 
-        Stdout.capture ({ Main.start("scm", scmFile.path) }, {
+        Stdout.capture ({ Main.start("repo", "run", repoFile.path) }, {
             assert Main.exitCode == 0
-            assert it.contains("update")
+            assert it.contains("pull")
         })
     }
 
     @Test
-    void main_launchScm_relative() {
+    void main_launchRepo_list() {
         def logs = Logger.capture(new LinkedList())
 
-        def scmFile = new File(TempHome.testResources, '/scm-relative.groovy')
+        def repo1 = new File(TempHome.testResources, '/repo.groovy')
+        def repo2 = new File(TempHome.testResources, '/repo-relative.groovy')
 
-        def comparable = new ScmExecutor()
-        comparable.parse(scmFile)
+        def comparable = new RepoExecutor()
+        comparable.parse(repo1)
+        comparable.parse(repo2)
 
-        assert comparable.scms["my-repository-relative"]
-        def scriptFile = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
-        assert scriptFile.exists()
-
-        Main.start("scm", scmFile.path)
-
-        assert logs.contains("[my-repository-relative] [${scriptFile.canonicalPath}] [mainTestScript]".toString())
-    }
-
-    @Test
-    void main_launchScm_list() {
-        def logs = Logger.capture(new LinkedList())
-
-        def scm1 = new File(TempHome.testResources, '/scm.groovy')
-        def scm2 = new File(TempHome.testResources, '/scm-relative.groovy')
-
-        def comparable = new ScmExecutor()
-        comparable.parse(scm1)
-        comparable.parse(scm2)
-
-        def scmListFile = new File(TempHome.testResources, ScmCommand.LIST_FILE_SUFFIX)
-        scmListFile << JsonOutput.toJson([
-                "scm1": [ script: scm1.absolutePath],
-                "scm2": [ script: scm2.absolutePath]
+        def repoListFile = new File(TempHome.testResources, RepoRunCommand.LIST_FILE_SUFFIX)
+        repoListFile << JsonOutput.toJson([
+                "repo1": [ script: repo1.absolutePath],
+                "repo2": [ script: repo2.absolutePath]
         ])
 
-        Main.start("scm", scmListFile.path)
+        Main.start("repo", "run", repoListFile.path)
 
-        def scm1Entry = new File(comparable.scms["my-repository"].entry[0])
-        def scm2Entry = new File(comparable.scms["my-repository-relative"].path, comparable.scms["my-repository-relative"].entry[0])
+        def repo1Entry = new File(comparable.repos["my-repository"].entry[0])
+        def repo2Entry = new File(comparable.repos["my-repository-relative"].path, comparable.repos["my-repository-relative"].entry[0])
 
-        assert logs.contains("[my-repository] [${scm1Entry.canonicalPath}] [mainTestScript]".toString())
-        assert logs.contains("[my-repository-relative] [${scm2Entry.canonicalPath}] [mainTestScript]".toString())
+        assert logs.contains("[my-repository] [${repo1Entry.canonicalPath}] [mainTestScript]".toString())
+        assert logs.contains("[my-repository-relative] [${repo2Entry.canonicalPath}] [mainTestScript]".toString())
     }
 
     @Test
@@ -223,9 +205,6 @@ class MainTest {
 
     @Test
     void main_test() {
-        // Enable capture
-        def logs = Logger.capture(new LinkedList())
-
         def script = MainTest.class.getResource("/inv-test-script.groovy")
         assert script
 

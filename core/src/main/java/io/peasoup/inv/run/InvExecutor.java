@@ -29,13 +29,13 @@ public class InvExecutor {
 
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
-     * Also, it allows to define the SCM associated to this INV
+     * Also, it allows to define the REPO associated to this INV
      * @param scriptFile INV Groovy script file
      * @param pwd Pwd "Print working directory", the working directory
-     * @param scm The associated SCM name
+     * @param repo The associated REPO name
      */
-    public void parse(File scriptFile, String pwd, String scm) {
-        InvInvoker.invoke(this, scriptFile, pwd, scm);
+    public void parse(File scriptFile, String pwd, String repo) {
+        InvInvoker.invoke(this, scriptFile, pwd, repo);
     }
 
     /**

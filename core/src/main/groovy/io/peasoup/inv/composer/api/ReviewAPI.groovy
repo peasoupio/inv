@@ -41,7 +41,7 @@ class ReviewAPI {
                 }
             }
 
-            def review = new Review(base, webServer.exec.latestRun(), webServer.scms)
+            def review = new Review(base, webServer.exec.latestRun(), webServer.repos)
             return JsonOutput.toJson(review.compare())
         })
 
@@ -52,7 +52,7 @@ class ReviewAPI {
             if (!webServer.exec.latestRun().exists())
                 return webServer.showError(res, "Promote is not ready yet")
 
-            def review = new Review(webServer.baseFile(), webServer.exec.latestRun(), webServer.scms)
+            def review = new Review(webServer.baseFile(), webServer.exec.latestRun(), webServer.repos)
 
             if (webServer.baseFile().exists())
                 review.merge()
@@ -62,11 +62,11 @@ class ReviewAPI {
 
             // Recalculate RunFile
             webServer.run = new RunFile(webServer.baseFile())
-            webServer.scms.elements.keySet().each {
-                webServer.scms.unstage(it)
+            webServer.repos.elements.keySet().each {
+                webServer.repos.unstage(it)
             }
             webServer.settings.unstageAllIds()
-            webServer.settings.unstageAllSCMs()
+            webServer.settings.unstageAllREPOs()
             webServer.settings.save()
 
             return webServer.showResult("promoted")

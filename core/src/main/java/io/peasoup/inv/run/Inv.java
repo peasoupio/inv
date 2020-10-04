@@ -352,7 +352,7 @@ public class Inv {
 
         private String defaultName;
         private String defaultPath = WORKING_DIR;
-        private String scm;
+        private String repo;
         private String baseFilename;
 
         public Context(NetworkValuablePool pool) {
@@ -375,11 +375,11 @@ public class Inv {
             this.defaultPath = path;
         }
 
-        public void setSCM(String scm) {
-            if (StringUtils.isEmpty(scm))
+        public void setRepo(String repo) {
+            if (StringUtils.isEmpty(repo))
                 return;
 
-            this.scm = scm;
+            this.repo = repo;
         }
 
         public void setBaseFilename(String scriptFilename) {
@@ -415,8 +415,8 @@ public class Inv {
             return defaultPath;
         }
 
-        public String getScm() {
-            return scm;
+        public String getRepo() {
+            return repo;
         }
 
         public String getBaseFilename() {

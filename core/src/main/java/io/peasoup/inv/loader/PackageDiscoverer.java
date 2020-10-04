@@ -9,12 +9,17 @@ import java.util.LinkedList;
  *     .inv/
  *         resources/
  *         src/
- *             // groovy class files
- *             whatever.groovy
- *         vars/
+ *             // (many) Groovy class files
+ *             MyClass.groovy
+ *         test/
+ *              // (many) INV junit test files
  *             test.groovy
- *             scm.groovy (Y(A)ML equivalent also)
- *             inv.groovy (Y(A)ML equivalent also)
+ *         vars/
+ *             // (many) INV definition files. Could be a YAMl file.
+ *             inv.groovy
+ *
+ *          // (single) REPO file. Could be a YAMl file.
+ *          repo.groovy
  */
 public class PackageDiscoverer {
 
@@ -35,9 +40,9 @@ public class PackageDiscoverer {
             case "inv.groovy":
             case "inv.yml":
             case "inv.yaml":
-            case "scm.groovy":
-            case "scm.yaml":
-            case "scm.yml":
+            case "repo.groovy":
+            case "repo.yaml":
+            case "repo.yml":
                 return resolveVars(lookupFile);
             default:
                 return resolveSrc(lookupFile);

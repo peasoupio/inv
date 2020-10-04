@@ -9,7 +9,8 @@ Vue.component('first-time', {
                 <p>Have you considered the following?</p>
                 <ul>
                     <li>The error basically means no "run.txt" is available within Composer's reach</li>
-                    <li>The first-time usage does not provide a default "run.txt" file. You must start the process by choosing SCM. Take a look at "By SCM". Upon successful completion, "run.txt" will be available.</li>
+                    <li>The first-time usage does not provide a default "run.txt" file. You must start the process by choosing REPO. Take a look at "By REPO
+                    ". Upon successful completion, "run.txt" will be available.</li>
                     <li>Check on your filesystem under INV_HOME path or the current Composer execution path if "run.txt" is present</li>
                 </ul>
             </div>
@@ -83,7 +84,7 @@ Vue.component('layout', {
                 <a class="navbar-item" @click.stop="showConfigureRun()">Edit run.txt file</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item" @click.stop="showGlobalSettings()">Edit global settings</a>
-                <a class="navbar-item" @click.stop="showConfigureSCMs()">Edit SCMs</a>
+                <a class="navbar-item" @click.stop="showConfigureREPOs()">Edit REPOs</a>
                 <a class="navbar-item" @click.stop="showConfigureInit()">Edit init file</a>
                 <hr class="navbar-divider">
                 <a class="navbar-item" @click.stop="pullInit()">Pull changes</a>
@@ -203,9 +204,9 @@ Vue.component('layout', {
                     model   : { visible: false },
                     template: 'configure-settings'
                 },
-                configureSCMs: {
+                configureREPOs: {
                     model   : { visible: false },
-                    template: 'configure-scms'
+                    template: 'configure-repos'
                 },
                 configureInit: {
                     model   : { visible: false },
@@ -214,7 +215,7 @@ Vue.component('layout', {
             },
             steps: [
                 { name: 'Choose', template: 'choose', index: 1, showHelp: false, description: 'Choose your INVs'  },
-                { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and scms' },
+                { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and REPOs' },
                 { name: 'Install', template: 'install', index: 3, showHelp: false, description: 'Generate and install your freshly new INV ecosystem' },
                 { name: 'Review', template: 'review', index: 4, showHelp: false, description: 'Review added or missing broadcasts' },
                 { name: 'Promote', template: 'promote', index: 5, showHelp: false, description: 'Promote latest run' }
@@ -332,8 +333,8 @@ Vue.component('layout', {
         showGlobalSettings: function() {
             this.navbar.configureSettings.model.visible = true
         },
-        showConfigureSCMs: function() {
-            this.navbar.configureSCMs.model.visible = true
+        showConfigureREPOs: function() {
+            this.navbar.configureREPOs.model.visible = true
         },
         showConfigureInit: function() {
             this.navbar.configureInit.model.visible = true

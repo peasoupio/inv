@@ -1,6 +1,6 @@
 contributor(context(scope: scriptScope())) {
     method name: 'inv', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new INV object"
-    method name: 'scm', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new SCM object"
+    method name: 'repo', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new REPO object"
     method name: 'debug', type: 'void', params: [object: 'java.lang.Object'], doc: "Display a new debug message"
 }
 
@@ -14,9 +14,9 @@ contributor(context(scope: closureScope())) {
     }
 
 
-    if (enclosingCall('scm')) {
+    if (enclosingCall('repo')) {
         //noinspection GroovyAssignabilityCheck
-        delegatesTo(findClass('io.peasoup.inv.scm.ScmDescriptor'))
+        delegatesTo(findClass('io.peasoup.inv.repo.RepoDescriptor'))
     }
 
     if (enclosingCall('resolved')) {

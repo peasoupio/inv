@@ -98,7 +98,7 @@ public class AppLauncher {
         if ("run".equals(args[0]))
             return false;
 
-        if ("scm".equals(args[0]))
+        if ("repo".equals(args[0]))
             return false;
 
         if ("synthax".equals(args[0]))

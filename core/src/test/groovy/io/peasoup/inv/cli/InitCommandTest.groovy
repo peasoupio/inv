@@ -17,7 +17,7 @@ class InitCommandTest {
 
         file.deleteDir()
 
-        def report = new InitCommand(initFileLocation: file.absolutePath).processSCM()
+        def report = new InitCommand(initRepoFileLocation: file.absolutePath).processREPO()
 
         assert report
         assert report.name.toLowerCase() == "main"
@@ -26,7 +26,7 @@ class InitCommandTest {
 
     @Test
     void ok_url() {
-        def report = new InitCommand(initFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processSCM()
+        def report = new InitCommand(initRepoFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processREPO()
 
         assert report
         assert report.name.toLowerCase() == "main"

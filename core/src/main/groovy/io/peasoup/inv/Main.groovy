@@ -94,13 +94,16 @@ class Main extends Script {
     }
 
     CliCommand findCommand() {
+
+        if (arguments["repo"])
+            if (arguments["run"])
+                return new RepoRunCommand(repoFileLocation: arguments["<repoFile>"] as String)
+            if (arguments["create"]) {
+                //TODO do the implementation
+            }
+
         if (arguments["run"])
             return new RunCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["scm"])
-            return new ScmCommand(
                     patterns: arguments["<include>"] as List<String>,
                     exclude: arguments["--exclude"] as String ?: "")
 
@@ -126,7 +129,7 @@ class Main extends Script {
             return new ComposerCommand()
 
         if (arguments["init"])
-            return new InitCommand(initFileLocation: arguments["<initFile>"] as String)
+            return new InitCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
 
         if (arguments["promote"])
             return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
@@ -138,20 +141,21 @@ class Main extends Script {
         return """Inv, version: ${SystemInfo.version()}.
 
 Usage:
-  inv (run|scm|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv (run|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv repo (run|create) [-d | -x] [-s] <repoFile>
   inv composer [-d | -x] [-s]
-  inv init [-d | -x] [-s] <initFile>
+  inv init [-d | -x] [-s] <repoFile>
   inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph (plain|dot) <base>
   
 Options:
   run          Load and execute INV files.
-  scm          Load and execute SCM files.
   test         Load and execute a unit test script
-  syntax       Test the syntax of an INV or SCM file.
+  syntax       Test the syntax of an INV or REPO file.
+  repo         Run or create a REPO folder.
   composer     Start Composer dashboard
-  init         Start Composer dashboard from an SCM file.
+  init         Start Composer dashboard from an REPO file.
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
@@ -168,17 +172,17 @@ Parameters:
                (p.e *.groovy, ./**/*.groovy, ...)
                It is also expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-               For scm: 
-                   You can use a file ending with 'scm-list.txt'
-                   for it to list all your SCM file references.
-                   Each line must equal to the absolute path
-                   of your SCM file on the current filesystems.
   <exclude>    Indicates the files to exclude.
                Exclusion is predominant over inclusion
                It is Ant-compatible 
                (p.e *.groovy, ./**/*.groovy, ...)
-  <initFile>   The SCM file location. The file can be local
+  <repoFile>   The REPO file location. The file can be local
                or remote, using an URL.
+               When using "run": 
+                   You can use a file ending with 'repo-list.txt'
+                   for it to list all your repo file references.
+                   Each line must equal to the absolute path
+                   of your REPO file on the current filesystems.
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run

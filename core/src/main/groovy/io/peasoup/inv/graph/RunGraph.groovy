@@ -192,14 +192,14 @@ class RunGraph {
                 return null
 
             return new FileStatement(
-                scm: fileMatcher.group(1),
+                repo: fileMatcher.group(1),
                 file: fileMatcher.group(2),
                 inv: fileMatcher.group(3)
             )
         }
 
         // Ctor
-        String scm
+        String repo
         String file
         String inv
 

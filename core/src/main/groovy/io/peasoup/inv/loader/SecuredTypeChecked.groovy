@@ -2,8 +2,8 @@ package io.peasoup.inv.loader
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.run.InvDescriptor
-import io.peasoup.inv.scm.ScmDescriptor
 import org.codehaus.groovy.transform.stc.GroovyTypeCheckingExtensionSupport
 
 @CompileStatic
@@ -17,9 +17,9 @@ class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeChecking
 
     Map<String, Class> knownDescriptor = [
             'inv': InvDescriptor,
-            'scm': ScmDescriptor,
-            'ask': ScmDescriptor.AskDescriptor,
-            'hooks': ScmDescriptor.HookDescriptor
+            'repo': RepoDescriptor,
+            'ask': RepoDescriptor.AskDescriptor,
+            'hooks': RepoDescriptor.HookDescriptor
     ] as Map<String, Class>
 
     @CompileDynamic

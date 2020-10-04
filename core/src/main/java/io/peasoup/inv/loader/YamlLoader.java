@@ -2,8 +2,8 @@ package io.peasoup.inv.loader;
 
 import groovy.text.GStringTemplateEngine;
 import groovy.text.TemplateEngine;
+import io.peasoup.inv.repo.yaml.YamlRepoDescriptor;
 import io.peasoup.inv.run.yaml.YamlInvDescriptor;
-import io.peasoup.inv.scm.yaml.YamlScmDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.yaml.snakeyaml.Yaml;
@@ -93,7 +93,7 @@ public class YamlLoader {
 
         private List<YamlInvDescriptor> inv;
 
-        private List<YamlScmDescriptor> scm;
+        private List<YamlRepoDescriptor> repo;
 
         public List<YamlInvDescriptor> getInv() {
             return inv;
@@ -103,12 +103,12 @@ public class YamlLoader {
             this.inv = inv;
         }
 
-        public List<YamlScmDescriptor> getScm() {
-            return scm;
+        public List<YamlRepoDescriptor> getRepo() {
+            return repo;
         }
 
-        public void setScm(List<YamlScmDescriptor> scm) {
-            this.scm = scm;
+        public void setRepo(List<YamlRepoDescriptor> repo) {
+            this.repo = repo;
         }
     }
 }

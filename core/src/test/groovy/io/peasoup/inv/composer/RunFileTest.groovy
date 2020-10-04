@@ -130,28 +130,28 @@ class RunFileTest {
     void isSelected() {
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assert runFile.isSelected("scm4")
-        assert !runFile.isSelected("scm3")
+        assert runFile.isSelected("repo4")
+        assert !runFile.isSelected("repo3")
     }
 
     @Test
-    void selectedScms() {
+    void selectedRepos() {
         runFile.stageWithoutPropagate("does-not-exists")
         runFile.stageWithoutPropagate("[Maven] undefined") // does not have a file statement
-        runFile.stageWithoutPropagate("[Artifact] com.mycompany.app:my-app-1") // undefined scm
+        runFile.stageWithoutPropagate("[Artifact] com.mycompany.app:my-app-1") // undefined repo
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assert runFile.selectedScms()
-        assert runFile.selectedScms().size() == 2
-        assert runFile.selectedScms().find { it == "scm4" } // from Kubernetes
-        assert runFile.selectedScms().find { it == "undefined" } // from Artifact
+        assert runFile.selectedRepos()
+        assert runFile.selectedRepos().size() == 2
+        assert runFile.selectedRepos().find { it == "repo4" } // from Kubernetes
+        assert runFile.selectedRepos().find { it == "undefined" } // from Artifact
     }
 
     @Test
     void isSelected_not_ok() {
         assert !runFile.isSelected("not_existing")
 
-        runFile.ownerOfScm.put("exists", ["not-exists"])
+        runFile.ownerOfRepo.put("exists", ["not-exists"])
 
         assert !runFile.isSelected("exists")
     }

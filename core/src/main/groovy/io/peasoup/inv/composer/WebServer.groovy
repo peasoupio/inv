@@ -13,13 +13,13 @@ class WebServer {
 
     final Map webServerConfigs
     final String runLocation
-    final String scmsLocation
+    final String reposLocation
 
     final Boot boot
     final Pagination pagination
 
     final Settings settings
-    final ScmFileCollection scms
+    final RepoFileCollection repos
     final Execution exec
     RunFile run
 
@@ -35,7 +35,7 @@ class WebServer {
         ] + args
 
         runLocation = webServerConfigs.workspace as String
-        scmsLocation = webServerConfigs.workspace + "/scms" as String
+        reposLocation = webServerConfigs.workspace + "/repos" as String
 
         // Browser configs
         port(webServerConfigs.port as int)
@@ -52,14 +52,14 @@ class WebServer {
             Logger.error(e)
         })
 
-        def scmsLocationFolder = new File(scmsLocation)
-        if (!scmsLocationFolder.exists())
-            scmsLocationFolder.mkdirs()
+        def reposLocationFolder = new File(reposLocation)
+        if (!reposLocationFolder.exists())
+            reposLocationFolder.mkdirs()
 
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        scms = new ScmFileCollection(scmsLocationFolder)
-        exec = new Execution(webServerConfigs.appLauncher as String, scmsLocationFolder)
+        repos = new RepoFileCollection(reposLocationFolder)
+        exec = new Execution(webServerConfigs.appLauncher as String, reposLocationFolder)
 
         boot = new Boot(this)
         pagination = new Pagination(settings)
@@ -80,7 +80,7 @@ class WebServer {
         path(API_CONTEXT_ROOT, {
             new SystemAPI(this).routes()
             new RunAPI(this).routes()
-            new ScmAPI(this).routes()
+            new RepoAPI(this).routes()
             new ExecutionAPI(this).routes()
             new ReviewAPI(this).routes()
         })

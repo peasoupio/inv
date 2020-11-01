@@ -1,7 +1,6 @@
 package io.peasoup.inv
 
 import groovy.json.JsonOutput
-import io.peasoup.inv.cli.RepoRunCommand
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Stdout
@@ -158,13 +157,13 @@ class MainTest {
         comparable.parse(repo1)
         comparable.parse(repo2)
 
-        def repoListFile = new File(TempHome.testResources, RepoRunCommand.LIST_FILE_SUFFIX)
+        def repoListFile = new File(TempHome.testResources, "list.json")
         repoListFile << JsonOutput.toJson([
                 "repo1": [ script: repo1.absolutePath],
                 "repo2": [ script: repo2.absolutePath]
         ])
 
-        Main.start("repo", "run", repoListFile.path)
+        Main.start("repo", "run", "-l", repoListFile.path)
 
         def repo1Entry = new File(comparable.repos["my-repository"].entry[0])
         def repo2Entry = new File(comparable.repos["my-repository-relative"].path, comparable.repos["my-repository-relative"].entry[0])

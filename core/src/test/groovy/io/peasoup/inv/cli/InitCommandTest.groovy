@@ -1,6 +1,7 @@
 package io.peasoup.inv.cli
 
 import io.peasoup.inv.TempHome
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows
 class InitCommandTest {
 
     @Test
+    @Ignore
     void ok() {
 
         def file = new File("../examples/init/init.groovy")
@@ -25,6 +27,7 @@ class InitCommandTest {
     }
 
     @Test
+    @Ignore
     void ok_url() {
         def report = new InitCommand(initRepoFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processREPO()
 

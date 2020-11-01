@@ -62,7 +62,7 @@
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <outputDirectory>${project.build.directory}/dist</outputDirectory>
                                     <descriptors>
-                                        <descriptor>dist/assembly/distribution.xml</descriptor>
+                                        <descriptor>dist/assembly/packages.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>

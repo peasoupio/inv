@@ -13,9 +13,8 @@ import java.nio.file.Files
 @CompileStatic
 class RepoRunCommand implements CliCommand {
 
-    public static final String LIST_FILE_SUFFIX = 'repo-list.json'
-
     String repoFileLocation
+    Boolean list
 
     int call() {
         if (!repoFileLocation)
@@ -25,12 +24,12 @@ class RepoRunCommand implements CliCommand {
         def repoExecutor = new RepoExecutor()
 
         // Check if a single file matches the LIST_FILE_SUFFIX
-        if (repoFileLocation.endsWith(LIST_FILE_SUFFIX)) {
-            if (!addREPOsFromListFile(repoExecutor)) return -1
+        if (list) {
+            if (!addREPOsFromListFile(repoExecutor))
+                return -1
         } else {
             // Otherwise, process patterns normally
-            File repoFile = new File(repoFileLocation)
-            repoExecutor.parse(repoFile, RepoInvoker.expectedParametersfileLocation(repoFile))
+            parseRepofile(repoExecutor, repoFileLocation)
         }
 
         // Execute REPO files
@@ -92,10 +91,7 @@ class RepoRunCommand implements CliCommand {
                 return
             }
 
-            if (!expectedParameter)
-                repoExecutor.parse(new File(script))
-            else
-                repoExecutor.parse(new File(script), new File(expectedParameter))
+            parseRepofile(repoExecutor, script, expectedParameter)
         }
 
         return true
@@ -130,5 +126,17 @@ class RepoRunCommand implements CliCommand {
                     scriptFile: scriptFile
             ]
         }
+    }
+
+    private void parseRepofile(RepoExecutor repoExecutor, String repoFileLocation, String expectedParametersFileLocation = null) {
+        File localRepofile = new File(repoFileLocation)
+        File expectedParametersFile = RepoInvoker.expectedParametersfileLocation(localRepofile)
+
+        if (expectedParametersFileLocation)
+            expectedParametersFile = new File(expectedParametersFileLocation);
+
+        repoExecutor.parse(
+                localRepofile,
+                expectedParametersFile)
     }
 }

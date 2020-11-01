@@ -10,7 +10,7 @@ Basically, **anything** collaborating within your ecosystem.
 **INV** is a free, on-prem, java/groovy based solution.  
 Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more about the licence.
 
-![Travis build Status](https://travis-ci.org/peasoupio/inv.svg)
+[![Build Status](https://travis-ci.com/peasoupio/inv.svg?branch=master)](https://travis-ci.com/peasoupio/inv)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=inv&metric=alert_status)](https://sonarcloud.io/dashboard?id=inv)
 
 ##  :sparkles: Features

@@ -1,0 +1,19 @@
+./
+    .inv
+        src
+            (*.groovy as 'groovyFiles')
+./
+    .inv
+        test
+            (*.groovy as 'groovyTestFiles')
+./
+    .inv
+        vars
+            (*.groovy as 'invFiles')
+            (*.yml as 'invFiles')
+            (*.yaml as 'invFiles')
+./
+    .inv
+        (scm.groovy as 'scmFile')
+        (scm.yml as 'scmFile')
+        (scm.yaml as 'scmFile')

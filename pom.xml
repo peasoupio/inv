@@ -77,6 +77,12 @@
         <!-- Frameworks -->
 
         <dependency>
+            <groupId>io.peasoup</groupId>
+            <artifactId>fgroup</artifactId>
+            <version>0.1-beta-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.4</version>

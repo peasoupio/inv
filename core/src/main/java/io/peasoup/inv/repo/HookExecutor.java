@@ -11,8 +11,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HookExecutor {
+
+    private static final String SHEBANG_REGEX = "^#(.*)";
+    private static final Pattern SHEBANG_PATTERN = Pattern.compile(SHEBANG_REGEX);
+    private static final String DEFAULT_SHEBANG_UNIX = "/bin/bash";
+    private static final String DEFAULT_UNIX_EXTENSION = ".script";
+    private static final String DEFAULT_SHEBANG_WINDOW = "cmd /c ";
+    private static final String DEFAULT_WINDOWS_EXTENSION = ".cmd";
 
     private HookExecutor() {
 
@@ -93,8 +102,28 @@ public class HookExecutor {
             shouldDeleteUponFailure = true;
         }
 
+        // Check for shebang
+        // #!/bin/bash
+        String currentCommands = commands;
+        String program = DEFAULT_SHEBANG_UNIX;
+        String extention = DEFAULT_UNIX_EXTENSION;
+        List<String> envs = RepoDescriptor.getCurrentOSSet();
+
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            currentCommands = "@ECHO OFF" + System.lineSeparator() + currentCommands;
+            program = DEFAULT_SHEBANG_WINDOW;
+            extention = DEFAULT_WINDOWS_EXTENSION;
+        } else {
+            String firstLine = currentCommands.substring(0, commands.indexOf('\n'));
+            Matcher shebangMatcher = SHEBANG_PATTERN.matcher(firstLine);
+            if (shebangMatcher.matches()) {
+                currentCommands = currentCommands.substring(commands.indexOf('\n')); // remove first line
+                program = shebangMatcher.group(1);
+            }
+        }
+
         // Create file and dirs for the SH file
-        File shFile = new File(repository.getPath().getParentFile(), randomSuffix() + ".repo-sh");
+        File shFile = new File(repository.getPath().getParentFile(), randomSuffix() + extention);
 
         // Write the commands into the script file
         try {
@@ -103,17 +132,17 @@ public class HookExecutor {
                 Files.delete(shFile.toPath());
 
             // Writing commands to shFile
-            ResourceGroovyMethods.write(shFile, commands);
+            ResourceGroovyMethods.write(shFile, currentCommands);
         } catch (IOException e) {
             Logger.error(e);
         }
 
         // Calling the SH file with the commands in it
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
-        String cmd = "bash " + shFile.getAbsolutePath();
+        String cmd = program + " " + shFile.getAbsolutePath();
         Logger.system("[REPO] " + cmd);
 
-        List<String> envs = RepoDescriptor.getSet();
+
         Integer timeout = repository.getTimeout();
 
         // Execute the actual process

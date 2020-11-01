@@ -17,7 +17,10 @@ import java.util.stream.Collectors;
 public class RepoDescriptor {
 
     private static final Map<String, String> env = System.getenv();
-    private static final List<String> set = env.entrySet().stream()
+    private static final List<String> windowsSet = env.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue() )
+            .collect(Collectors.toList());
+    private static final List<String> unixSet = env.entrySet().stream()
             .map(e -> e.getKey() + ":" + e.getValue() )
             .collect(Collectors.toList());
 
@@ -154,8 +157,10 @@ public class RepoDescriptor {
         return env;
     }
 
-    public static List<String> getSet() {
-        return set;
+    public static List<String> getCurrentOSSet() {
+        return System.getProperty("os.name").startsWith("Windows")?
+                windowsSet:
+                unixSet;
     }
 
     public File getParametersFile() {

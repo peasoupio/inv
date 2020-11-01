@@ -181,7 +181,7 @@ class RepoFile {
                 Collection<String> values = parameter.values ?: []
 
                 if (parameter.command && descriptor.path.exists()) {
-                    String stdout = parameter.command.execute(descriptor.set, descriptor.path).in.text
+                    String stdout = parameter.command.execute(descriptor.currentOSSet, descriptor.path).in.text
 
                     Logger.system "[PARAMETER] command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 

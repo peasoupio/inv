@@ -111,6 +111,8 @@ public class RepoInvoker {
 
         // Run new script
         myNewScript.getBinding().setProperty("repo", new RepoHandler(repoExecutor, parametersFile));
+        // @Deprecated
+        myNewScript.getBinding().setProperty("scm", new RepoHandler(repoExecutor, parametersFile));
         myNewScript.getBinding().setProperty("debug", DebugLogger.Instance);
         myNewScript.run();
     }

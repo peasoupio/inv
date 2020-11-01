@@ -5,7 +5,6 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.Main
-import io.peasoup.inv.cli.RepoRunCommand
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
@@ -242,6 +241,8 @@ class Execution {
         if (secureMode)
             appArgs << "-s"
 
+        appArgs << "-l"
+
         appArgs << repoListFile.absolutePath
 
         return jvmArgs + appArgs
@@ -272,7 +273,7 @@ class Execution {
     }
 
     static File latestRepoFiles() {
-        return new File(RunsRoller.runsFolder(), RepoRunCommand.LIST_FILE_SUFFIX)
+        return new File(RunsRoller.runsFolder(), "repos.json")
     }
 
     static List<String> latestRepoFilesList() {

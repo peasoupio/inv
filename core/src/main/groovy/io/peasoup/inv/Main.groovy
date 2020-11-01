@@ -95,12 +95,20 @@ class Main extends Script {
 
     CliCommand findCommand() {
 
-        if (arguments["repo"])
+        if (arguments["repo"]) {
+            if (arguments["get"])
+                return new RepoGetCommand(
+                        repoUrl: arguments["<repoUrl>"] as String,
+                        createParameters: arguments["--create-parameters"] as Boolean,
+                        run: arguments["--run"] as Boolean)
             if (arguments["run"])
-                return new RepoRunCommand(repoFileLocation: arguments["<repoFile>"] as String)
+                return new RepoRunCommand(
+                        repoFileLocation: arguments["<repoFile>"] as String,
+                        list: arguments["--list"] as Boolean)
             if (arguments["create"]) {
                 //TODO do the implementation
             }
+        }
 
         if (arguments["run"])
             return new RunCommand(
@@ -142,7 +150,8 @@ class Main extends Script {
 
 Usage:
   inv (run|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
-  inv repo (run|create) [-d | -x] [-s] <repoFile>
+  inv repo get [-d | -x] [-s] [-p] [-r] <repoUrl>
+  inv repo (run|create) [-d | -x] [-s] [-l] <repoFile>
   inv composer [-d | -x] [-s]
   inv init [-d | -x] [-s] <repoFile>
   inv promote [<runIndex>] 
@@ -153,7 +162,7 @@ Options:
   run          Load and execute INV files.
   test         Load and execute a unit test script
   syntax       Test the syntax of an INV or REPO file.
-  repo         Run or create a REPO folder.
+  repo         Get, run or create a REPO folder.
   composer     Start Composer dashboard
   init         Start Composer dashboard from an REPO file.
   promote      Promote a run.txt as the new base.
@@ -163,6 +172,10 @@ Options:
   -x --system  Print system troubleshooting messages.
   -s --secure  Enable the secure mode for script files.
   -e --exclude Exclude files from loading.
+  -p, --create-parameters
+               Create a parameter file of a REPO file.
+  -r --run     Run a REPO file after getting it.
+  -l --list    Use a list of repo to run.
   -h --help    Show this screen.
   
 Parameters:
@@ -176,13 +189,12 @@ Parameters:
                Exclusion is predominant over inclusion
                It is Ant-compatible 
                (p.e *.groovy, ./**/*.groovy, ...)
-  <repoFile>   The REPO file location. The file can be local
-               or remote, using an URL.
-               When using "run": 
-                   You can use a file ending with 'repo-list.txt'
-                   for it to list all your repo file references.
-                   Each line must equal to the absolute path
-                   of your REPO file on the current filesystems.
+  <repoUrl>    The REPO remote file location.  
+  <repoFile>   The REPO file location. 
+               The file MUST be existing on the 
+               current file system.
+               Using --list with run, you can use a list
+               of repos. 
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run

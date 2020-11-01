@@ -12,7 +12,7 @@ class JunitRunnerTest {
         def testScript = JunitRunnerTest.class.getResource("/inv-test-script.groovy")
         assert testScript
 
-        def runner = new JunitRunner()
+        def runner = new JunitRunner("io.peasoup.inv.testing")
         runner.add(testScript.path)
 
         assertTrue runner.run()
@@ -23,7 +23,7 @@ class JunitRunnerTest {
         def testScript = JunitRunnerTest.class.getResource("/inv-test-script-failed.groovy")
         assert testScript
 
-        def runner = new JunitRunner()
+        def runner = new JunitRunner("io.peasoup.inv.testing.other")
         runner.add(testScript.path)
 
         assertFalse runner.run()

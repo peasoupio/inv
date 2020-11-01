@@ -8,8 +8,10 @@ import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
+import java.io.FilePermission;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,9 +39,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [INIT] start");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [INIT] start");
         executeCommands(report, report.getDescriptor().getHooks().getInit());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [INIT] done");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [INIT] done");
     }
 
     public static void pull(final RepoExecutor.RepoExecutionReport report) {
@@ -52,9 +54,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PULL] start");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PULL] start");
         executeCommands(report, report.getDescriptor().getHooks().getPull());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PULL] done");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PULL] done");
     }
 
     public static void push(final RepoExecutor.RepoExecutionReport report) {
@@ -67,9 +69,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PUSH] start");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PUSH] start");
         executeCommands(report, report.getDescriptor().getHooks().getPush());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [PUSH] done");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PUSH] done");
     }
 
     public static void version(final RepoExecutor.RepoExecutionReport report) {
@@ -82,9 +84,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [VERSION] start");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [VERSION] start");
         executeCommands(report, report.getDescriptor().getHooks().getVersion(), true);
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getPath().getAbsolutePath() + " [VERSIOn] done");
+        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [VERSIOn] done");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -93,11 +95,11 @@ public class HookExecutor {
         boolean shouldDeleteUponFailure = false;
 
         // Make sure cache is available with minimal accesses
-        if (!repository.getPath().exists()) {
-            repository.getPath().mkdirs();
-            repository.getPath().setExecutable(true);
-            repository.getPath().setWritable(true);
-            repository.getPath().setReadable(true);
+        if (!repository.getRepoPath().exists()) {
+            repository.getRepoPath().mkdirs();
+            repository.getRepoPath().setExecutable(true);
+            repository.getRepoPath().setWritable(true);
+            repository.getRepoPath().setReadable(true);
 
             shouldDeleteUponFailure = true;
         }
@@ -123,7 +125,7 @@ public class HookExecutor {
         }
 
         // Create file and dirs for the SH file
-        File shFile = new File(repository.getPath().getParentFile(), randomSuffix() + extention);
+        File shFile = new File(repository.getRepoPath().getParentFile(), randomSuffix() + extention);
 
         // Write the commands into the script file
         try {
@@ -148,7 +150,7 @@ public class HookExecutor {
         // Execute the actual process
         Process process = null;
         try {
-            process = ProcessGroovyMethods.execute(cmd, envs, repository.getPath());
+            process = ProcessGroovyMethods.execute(cmd, envs, repository.getRepoPath());
             ProcessGroovyMethods.waitForOrKill(process, timeout != null ? timeout : 60000);
         } catch (IOException e) {
             Logger.error(e);
@@ -182,8 +184,8 @@ public class HookExecutor {
 
             // Delete folder ONLY if this hook brought it
             if (shouldDeleteUponFailure) {
-                Logger.warn("REPO path " + repository.getPath().getAbsolutePath() + " was deleted since hook returned " + process.exitValue());
-                ResourceGroovyMethods.deleteDir(repository.getPath());
+                Logger.warn("REPO path " + repository.getRepoPath().toString() + " was deleted since hook returned " + process.exitValue());
+                ResourceGroovyMethods.deleteDir(repository.getRepoPath());
             }
 
             report.setIsOk(false);

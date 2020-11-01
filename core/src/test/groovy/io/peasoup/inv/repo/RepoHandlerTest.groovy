@@ -26,13 +26,11 @@ class RepoHandlerTest {
 
         assert executor.repos["my-repository"]
 
-        assertEquals executor.repos["my-repository"].src, "https://github.com/spring-guides/gs-spring-boot.git"
-        assertEquals executor.repos["my-repository"].entry.size(),  1
-        assertEquals executor.repos["my-repository"].entry[0], new File("./src/test/resources/mainTestScript.groovy").absolutePath
-        assertEquals executor.repos["my-repository"].timeout, 30000
+        assertEquals "https://github.com/spring-guides/gs-spring-boot.git", executor.repos["my-repository"].src
+        assertEquals 30000, executor.repos["my-repository"].timeout
 
         assert executor.repos["my-repository"].hooks
-        assert executor.repos["my-repository"].hooks.init.contains("mkdir my-repository")
+        assert executor.repos["my-repository"].hooks.init.contains("mkdir something")
         assert executor.repos["my-repository"].hooks.pull.contains("echo 'pull'")
     }
 
@@ -84,15 +82,6 @@ class RepoHandlerTest {
         assertThrows(Exception.class, {
             repo.call {
                 src 1
-            }
-        })
-    }
-
-    @Test
-    void invalid_entry() {
-        assertThrows(Exception.class, {
-            repo.call {
-                entry 1
             }
         })
     }

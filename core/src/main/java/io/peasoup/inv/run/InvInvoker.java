@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 public class InvInvoker {
     public static final String UNDEFINED_REPO = "undefined";
@@ -19,11 +20,34 @@ public class InvInvoker {
     }
 
     /**
+     * Add a groovy class to the current loader
+     * @param classFile Classfile to load
+     * @param packageName New package name assigned to the loaded classes
+     */
+    public static void addClass(File classFile, String packageName) {
+        try {
+            loader.parseClassFile(classFile, packageName);
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    /**
      * Parse and invoke INV Groovy script file
      * @param invExecutor Executor instance
      * @param scriptFile INV Groovy script file
      */
     public static void invoke(InvExecutor invExecutor, File scriptFile) {
+        invoke(invExecutor, scriptFile, null);
+    }
+
+    /**
+     * Parse and invoke INV Groovy script file
+     * @param invExecutor Executor instance
+     * @param scriptFile INV Groovy script file
+     * @param newPackage New package assigned to the script file
+     */
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -31,7 +55,7 @@ public class InvInvoker {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invExecutor, scriptFile, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
+        invoke(invExecutor, scriptFile, newPackage, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
     }
 
     /**
@@ -39,10 +63,11 @@ public class InvInvoker {
      * Also, it allows to define the REPO associated to this INV
      * @param invExecutor Executor instance
      * @param scriptFile INV Groovy script file
+     * @param newPackage New package assigned to the script file
      * @param pwd Pwd "Print working directory", the working directory
      * @param repo The associated REPO name
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -73,7 +98,7 @@ public class InvInvoker {
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
             parseYaml(invExecutor, scriptFile,pwd, repo, scriptPath);
         else
-            runScript(invExecutor, scriptFile,pwd, repo, scriptPath);
+            runScript(invExecutor, scriptFile, newPackage, pwd, repo, scriptPath);
     }
 
     private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo, String scriptPath) {
@@ -92,11 +117,11 @@ public class InvInvoker {
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String pwd, String repo, String scriptPath) {
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo, String scriptPath) {
         Script myNewScript;
 
         try {
-            myNewScript = loader.parseScriptFile(scriptFile);
+            myNewScript = loader.parseScriptFile(scriptFile, newPackage);
         } catch (Exception e) {
             Logger.error(e);
             return;

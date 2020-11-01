@@ -82,8 +82,6 @@ public class GroovyLoader {
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
 
-        compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
-
         if (StringUtils.isNotEmpty(scriptBaseClass)) {
             compilerConfiguration.setScriptBaseClass(scriptBaseClass);
             securedCompilerConfiguration.setScriptBaseClass(scriptBaseClass); // TODO Is it safe ?
@@ -93,6 +91,8 @@ public class GroovyLoader {
             compilerConfiguration.addCompilationCustomizers(importCustomizer);
             securedCompilerConfiguration.addCompilationCustomizers(importCustomizer);
         }
+
+        compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
 
         ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
         if (systemClassloader) {
@@ -131,20 +131,6 @@ public class GroovyLoader {
     }
 
     /**
-     * Parse class from a Groovy script file.
-     * @param groovyFile Groovy file
-     * @return
-     * @throws IOException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public Class<?> parseClassFile(File groovyFile) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return parseClassFile(groovyFile, null);
-    }
-
-    /**
      * Parse class from a Groovy script file, with a predefined package.
      * @param groovyFile Groovy file
      * @param newPackage Defines package for groovy file classes (nullable)
@@ -156,12 +142,10 @@ public class GroovyLoader {
      * @throws IllegalAccessException
      */
     public Class<?> parseClassFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (StringUtils.isEmpty(newPackage))
+            throw new IllegalArgumentException("newPackage");
 
-        String className;
-        if (StringUtils.isNotEmpty(newPackage))
-            className = newPackage + ".Class" + RandomStringUtils.random(9, true, true);
-        else
-            className = normalizeGroovyFilename(groovyFile);
+        String className = newPackage + "." + groovyFile.getName().split("\\.")[0];
 
         return parseGroovyCodeSource(new GroovyCodeSource(
                 new FileReader(groovyFile),

@@ -132,8 +132,8 @@ class MainTest {
         assert comparable.repos["my-repository"]
 
         // Remove to make sure we trigger init
-        if (comparable.repos["my-repository"].path.exists())
-            comparable.repos["my-repository"].path.deleteDir()
+        if (comparable.repos["my-repository"].repoPath.exists())
+            comparable.repos["my-repository"].repoPath.deleteDir()
 
         Stdout.capture ({ Main.start("repo", "run", repoFile.path) }, {
             assert Main.exitCode == 0
@@ -164,12 +164,6 @@ class MainTest {
         ])
 
         Main.start("repo", "run", "-l", repoListFile.path)
-
-        def repo1Entry = new File(comparable.repos["my-repository"].entry[0])
-        def repo2Entry = new File(comparable.repos["my-repository-relative"].path, comparable.repos["my-repository-relative"].entry[0])
-
-        assert logs.contains("[my-repository] [${repo1Entry.canonicalPath}] [mainTestScript]".toString())
-        assert logs.contains("[my-repository-relative] [${repo2Entry.canonicalPath}] [mainTestScript]".toString())
     }
 
     @Test

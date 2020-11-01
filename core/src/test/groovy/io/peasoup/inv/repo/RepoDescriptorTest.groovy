@@ -5,6 +5,7 @@ import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertThrows
 
 @RunWith(TempHome.class)
@@ -26,16 +27,18 @@ class RepoDescriptorTest {
     }
 
     @Test
-    void path_using_invHome() {
-        def relativePath = "./my/path"
-        def absolutePath = new File(Home.getCurrent(), "/my/path").absolutePath
+    void path_ok() {
+        String name = "my.name"
+        String path = "my.path"
+
         def descriptor = new RepoDescriptor()
+        descriptor.name(name)
 
-        descriptor.path(relativePath)
-        assert descriptor.path.absolutePath == new File(Home.getCurrent(), relativePath).absolutePath
+        assertEquals(RepoDescriptor.DEFAULT_PATH, descriptor.path)
+        assertEquals(new File(Home.getCurrent(), ".repo/" + name), descriptor.repoPath)
 
-        descriptor.path(absolutePath)
-        assert descriptor.path.toString() == absolutePath
+        descriptor.path(path)
+        assertEquals(new File(Home.getCurrent(), ".repo/" + name + "/" + path), descriptor.repoCompletePath)
     }
     
     @Test

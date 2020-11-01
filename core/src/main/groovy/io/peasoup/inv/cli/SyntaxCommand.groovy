@@ -29,7 +29,7 @@ class SyntaxCommand implements CliCommand {
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.parseClassFile(it) // TODO Should use its own classloader
+                def result = commonLoader.parseClassFile(it, "empty.package") // TODO Should use its own classloader
                 if (result)
                     Logger.info("[SYNTAX] startup succeeded: ${it.absolutePath}")
                 else {

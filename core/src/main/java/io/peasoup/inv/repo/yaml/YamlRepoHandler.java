@@ -63,16 +63,12 @@ public class YamlRepoHandler {
         // Sets path
         if (StringUtils.isNotEmpty(descriptor.getPath()))
             repo.path(YamlLoader.interpolateString(descriptor.getPath(), interpolatable));
-        interpolatable.put("path", repo.getPath().getAbsolutePath());
+        interpolatable.put("path", repo.getPath());
 
         // Sets src
         if (StringUtils.isNotEmpty(descriptor.getSrc()))
             repo.src(YamlLoader.interpolateString(descriptor.getSrc(), interpolatable));
-        interpolatable.put("src", repo.getPath().getAbsolutePath());
-
-        // Sets entry
-        if (StringUtils.isNotEmpty(descriptor.getEntry()))
-            repo.entry(YamlLoader.interpolateString(descriptor.getEntry(), interpolatable));
+        interpolatable.put("src", repo.getSrc());
 
         parseAsk(descriptor, repo, interpolatable);
         parseHooks(descriptor, repo, interpolatable);

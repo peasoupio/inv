@@ -4,7 +4,6 @@ repo {
 
   path ".gitcache/githubHomepage/appA"
   src "https://github.com/peasoupio/inv.git"
-  entry 'examples/githubHomepage/appA.groovy'
   timeout 46000
 
   ask {
@@ -46,7 +45,6 @@ repo {
 
   path ".gitcache/githubHomepage/appB"
   src "https://github.com/peasoupio/inv.git"
-  entry 'examples/githubHomepage/appB.groovy'
   timeout 30000
 
   ask {

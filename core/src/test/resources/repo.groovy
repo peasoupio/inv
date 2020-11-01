@@ -2,9 +2,7 @@ repo {
 
   name "my-repository"
 
-  path "test-resources/${name}"
   src "https://github.com/spring-guides/gs-spring-boot.git"
-  entry new File("./src/test/resources/mainTestScript.groovy").absolutePath
   timeout 30000
 
   ask {
@@ -24,8 +22,7 @@ repo {
 
     init """
 echo 'init'
-pwd
-mkdir ${name}
+mkdir something
     """
 
     pull """

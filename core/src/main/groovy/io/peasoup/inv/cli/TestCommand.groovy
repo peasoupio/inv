@@ -23,7 +23,7 @@ class TestCommand implements CliCommand {
 
         def invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
 
-        def runner = new JunitRunner()
+        def runner = new JunitRunner("to.refactor")
 
         // Parse INV Groovy files
         invFiles.each {

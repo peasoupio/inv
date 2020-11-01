@@ -4,7 +4,6 @@ repo {
 
   path ".gitcache/githubHomepage/iis"
   src "https://github.com/peasoupio/inv.git"
-  entry 'examples/githubHomepage/iis.groovy'
   timeout 30000
 
   ask {
@@ -29,7 +28,6 @@ repo {
 
   path ".gitcache/githubHomepage/kubernetes"
   src "https://github.com/peasoupio/inv.git"
-  entry 'examples/githubHomepage/kubernetes.groovy'
   timeout 30000
 
   ask {

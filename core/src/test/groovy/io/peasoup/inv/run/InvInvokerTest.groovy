@@ -66,15 +66,15 @@ class InvInvokerTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(null, null, null, null)
+            InvInvoker.invoke(null, null, null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvExecutor(), null, null, null)
+            InvInvoker.invoke(new InvExecutor(), null, null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvExecutor(), null, 'pwd', null)
+            InvInvoker.invoke(new InvExecutor(), null, null, 'pwd', null)
         })
     }
 }

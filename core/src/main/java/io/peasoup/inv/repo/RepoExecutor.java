@@ -4,6 +4,7 @@ import io.peasoup.inv.run.Logger;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -77,14 +78,14 @@ public class RepoExecutor {
                 Logger.debug("[REPO] script: " + descriptor.getName() + ", parameter: " +
                         (descriptor.getParametersFile() != null ? descriptor.getParametersFile().getAbsolutePath() : "not defined"));
 
-                String[] pathFiles = descriptor.getPath().list();
-                boolean doesPathExistsAndNotEmpty = descriptor.getPath().exists() && pathFiles != null && pathFiles.length > 0;
+                String[] pathFiles = descriptor.getRepoPath().list();
+                boolean doesPathExistsAndNotEmpty = descriptor.getRepoPath().exists() && pathFiles != null && pathFiles.length > 0;
 
                 if (!doesPathExistsAndNotEmpty) {
 
                     // Make sure path is clean before init (if exists)
                     // NOTE: Do not delete, might be mounted on docker.
-                    ResourceGroovyMethods.deleteDir(descriptor.getPath());
+                    ResourceGroovyMethods.deleteDir(descriptor.getRepoPath());
 
                     // Execute hook
                     HookExecutor.init(report);

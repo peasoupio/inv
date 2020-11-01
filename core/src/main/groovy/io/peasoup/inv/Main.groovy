@@ -106,7 +106,7 @@ class Main extends Script {
                         repoFileLocation: arguments["<repoFile>"] as String,
                         list: arguments["--list"] as Boolean)
             if (arguments["create"]) {
-                //TODO do the implementation
+                return new RepoCreateCommand()
             }
         }
 
@@ -151,7 +151,8 @@ class Main extends Script {
 Usage:
   inv (run|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
   inv repo get [-d | -x] [-s] [-p] [-r] <repoUrl>
-  inv repo (run|create) [-d | -x] [-s] [-l] <repoFile>
+  inv repo run [-d | -x] [-s] [-l] <repoFile>
+  inv repo create
   inv composer [-d | -x] [-s]
   inv init [-d | -x] [-s] <repoFile>
   inv promote [<runIndex>] 

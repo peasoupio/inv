@@ -20,7 +20,7 @@ class InitCommand implements CliCommand {
         }
 
         // Change currentHome for current process (and others spawned by composer.Execution
-        Home.setCurrent(report.descriptor.path)
+        Home.setCurrent(report.descriptor.getRepoPath())
 
         def composerCommand = new ComposerCommand()
 

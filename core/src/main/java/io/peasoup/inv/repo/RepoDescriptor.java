@@ -10,6 +10,8 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +26,8 @@ public class RepoDescriptor {
             .map(e -> e.getKey() + ":" + e.getValue() )
             .collect(Collectors.toList());
 
+    public static final String DEFAULT_PATH = ".inv";
     public static final Integer DEFAULT_TIMEOUT = 30000;
-    public static final String DEFAULT_ENTRY = "inv.groovy";
 
     private final HookDescriptor hooks = new HookDescriptor();
     private final AskDescriptor ask = new AskDescriptor();
@@ -33,9 +35,8 @@ public class RepoDescriptor {
     private final Map<String, Object> parametersProperties;
 
     private String name;
-    private File path = Home.getCurrent();
+    private String path = DEFAULT_PATH;
     private String src;
-    private String[] entry = new String[]{DEFAULT_ENTRY};
     private Integer timeout = DEFAULT_TIMEOUT;
 
     public RepoDescriptor(File parametersFile) {
@@ -59,11 +60,7 @@ public class RepoDescriptor {
         if (StringUtils.isEmpty(value))
             throw new IllegalArgumentException("value");
 
-        File filePath = new File(value);
-        if (filePath.isAbsolute())
-            this.path = filePath;
-        else
-            this.path = new File(Home.getCurrent(), value);
+        this.path = value;
     }
 
     public void src(String value) {
@@ -71,15 +68,6 @@ public class RepoDescriptor {
             throw new IllegalArgumentException("value");
 
         this.src = value;
-    }
-
-    public void entry(String value) {
-        if (StringUtils.isEmpty(value))
-            throw new IllegalArgumentException("value");
-
-        this.entry = Arrays.stream(value.split("\\r?\\n"))
-                .filter(s -> (s != null && s.length() > 0))
-                .toArray(String[]::new);
     }
 
     public void timeout(int value) {
@@ -153,16 +141,6 @@ public class RepoDescriptor {
 
     }
 
-    public static Map<String, String> getEnv() {
-        return env;
-    }
-
-    public static List<String> getCurrentOSSet() {
-        return System.getProperty("os.name").startsWith("Windows")?
-                windowsSet:
-                unixSet;
-    }
-
     public File getParametersFile() {
         return parametersFile;
     }
@@ -179,7 +157,7 @@ public class RepoDescriptor {
         return name;
     }
 
-    public File getPath() {
+    public String getPath() {
         return path;
     }
 
@@ -187,12 +165,26 @@ public class RepoDescriptor {
         return src;
     }
 
-    public String[] getEntry() {
-        return entry;
-    }
-
     public Integer getTimeout() {
         return timeout;
+    }
+
+    public File getRepoPath() {
+        return new File(Home.getCurrent(), ".repo/" + name);
+    }
+
+    public File getRepoCompletePath() {
+        return new File(Home.getCurrent(), ".repo/" + name + "/" + path);
+    }
+
+    public static Map<String, String> getEnv() {
+        return env;
+    }
+
+    public static List<String> getCurrentOSSet() {
+        return System.getProperty("os.name").startsWith("Windows")?
+                windowsSet:
+                unixSet;
     }
 
     public static class HookDescriptor {

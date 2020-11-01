@@ -84,7 +84,6 @@ class RepoFile {
 
             if (filter.name && !descriptor.name.contains(filter.name as CharSequence)) return null
             if (filter.src && !descriptor.src.contains(filter.src as CharSequence)) return null
-            if (filter.entry && !descriptor.entry.contains(filter.entry as CharSequence)) return null
 
             Map externalProperties
             def lastModified = 0
@@ -148,7 +147,6 @@ class RepoFile {
                     selected    : false,
                     descriptor  : [
                             name         : descriptor.name,
-                            entry        : descriptor.entry,
                             hooks        : descriptor.hooks,
                             hasParameters: !descriptor.ask.parameters.isEmpty(),
                             src          : descriptor.src,
@@ -180,8 +178,8 @@ class RepoFile {
 
                 Collection<String> values = parameter.values ?: []
 
-                if (parameter.command && descriptor.path.exists()) {
-                    String stdout = parameter.command.execute(descriptor.currentOSSet, descriptor.path).in.text
+                if (parameter.command && descriptor.repoPath.exists()) {
+                    String stdout = parameter.command.execute(descriptor.currentOSSet, descriptor.repoPath).in.text
 
                     Logger.system "[PARAMETER] command: ${parameter.command}:${System.lineSeparator()}${stdout}"
 

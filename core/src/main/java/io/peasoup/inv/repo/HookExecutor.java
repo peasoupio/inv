@@ -8,10 +8,8 @@ import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
-import java.io.FilePermission;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,11 +114,14 @@ public class HookExecutor {
             program = DEFAULT_SHEBANG_WINDOW;
             extention = DEFAULT_WINDOWS_EXTENSION;
         } else {
-            String firstLine = currentCommands.substring(0, commands.indexOf('\n'));
-            Matcher shebangMatcher = SHEBANG_PATTERN.matcher(firstLine);
-            if (shebangMatcher.matches()) {
-                currentCommands = currentCommands.substring(commands.indexOf('\n')); // remove first line
-                program = shebangMatcher.group(1);
+            int indexOfFirstNewline = commands.indexOf('\n');
+            if (indexOfFirstNewline > -1) {
+                String firstLine = currentCommands.substring(0, indexOfFirstNewline);
+                Matcher shebangMatcher = SHEBANG_PATTERN.matcher(firstLine);
+                if (shebangMatcher.matches()) {
+                    currentCommands = currentCommands.substring(commands.indexOf('\n')); // remove first line
+                    program = shebangMatcher.group(1);
+                }
             }
         }
 

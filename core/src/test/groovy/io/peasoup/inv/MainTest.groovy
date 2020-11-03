@@ -25,6 +25,9 @@ class MainTest {
         for (i in 0..<options.length) {
             if (options[i].startsWith("file:/"))
                 options[i] = options[i].replace("file:/" ,resourceDir)
+
+            if (options[i].startsWith("url:/"))
+                options[i] = options[i].replace("url:/" ,"https://raw.githubusercontent.com/")
         }
     }
 

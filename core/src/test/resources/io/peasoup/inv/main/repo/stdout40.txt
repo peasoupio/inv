@@ -1,0 +1,20 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+---- [DIGEST] opened ----
+[REPO] script: io.peasoup.net.http, parameter: D:\workspace\inv\inv\core\.\scm.json
+[REPO] name: io.peasoup.net.http, path: .*\.repo\io.peasoup.net.http [INIT] start
+[REPO] cmd /c  .*
+[REPO] name: io.peasoup.net.http, path: .*\.repo\io.peasoup.net.http [INIT] done
+[STATEMENT] [Script5RPEJUYsU] => [BROADCAST] [HTTP] undefined [INIT]
+[io.peasoup.net.http] [.*\.repo\io.peasoup.net.http\net\http\vars\inv.groovy] [Script.*]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[Script.*] => [BROADCAST] [HTTP] undefined
+[POOL] available:0 , staged:1
+[POOL] inv: Script.* COMPLETED
+---- [DIGEST] completed ----
+Completed INV(s): 1
+Uncompleted INV(s): 0

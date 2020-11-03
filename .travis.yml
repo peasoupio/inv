@@ -19,7 +19,7 @@ jobs:
   include:
     # Do the actual build (and test reporting)
     - stage: package (maven)
-      script: mvn -B clean package -Pdistribute
+      script: mvn -B clean package -Pdistribute --settings ./ci/.travis-settings.xml
 
     - stage: report tests (sonarqube)
       if: branch =~ ^release\/.*$

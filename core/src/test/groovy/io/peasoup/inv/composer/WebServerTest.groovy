@@ -3,6 +3,8 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.TempHome
+import io.peasoup.inv.repo.RepoInvoker
+import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -13,7 +15,7 @@ import spark.Spark
 
 import java.nio.charset.Charset
 
-import static org.junit.Assert.assertFalse
+import static org.junit.Assert.*
 
 @RunWith(TempHome.class)
 class WebServerTest {
@@ -32,6 +34,9 @@ class WebServerTest {
     @BeforeClass
     static void setup() {
         clean()
+
+        InvInvoker.newCache()
+        RepoInvoker.newCache()
 
         def repo7 = new File(base + "repos/", "repo7.groovy")
 
@@ -64,34 +69,33 @@ repo {
 
     @Test
     void api() {
-        assert get("v1")
+        assertNotNull get("v1")
     }
 
     @Test
     void run() {
-        assert get("run")
+        assertNotNull get("run")
     }
 
     @Test
     void run_owners() {
-        assert post("run/owners")
+        assertNotNull post("run/owners")
     }
 
     @Test
     void run_names() {
-        assert get("run/names")
+        assertNotNull get("run/names")
     }
 
     @Test
     void run_search() {
         def response = postJson("run", [name: 'Kubernetes'])
-
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
 
-        assert json.count == 1
-        assert json.total == 8
+        assertEquals 1, json.count
+        assertEquals 8, json.total
     }
 
     @Test
@@ -99,24 +103,24 @@ repo {
         post("run/stage?id=[Kubernetes]%20undefined")
 
         def responseStage = get("run/requiredBy?id=[Server]%20[name:server-a]")
-        assert responseStage
+        assertNotNull responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
 
-        assert jsonStage
-        assert jsonStage.nodes
-        assert jsonStage.nodes.any { it.name == "Kubernetes"}
+        assertNotNull jsonStage
+        assertNotNull jsonStage.nodes
+        assertTrue jsonStage.nodes.any { it.name == "Kubernetes"}
 
         post("run/unstage?id=[Kubernetes]%20undefined")
 
         def responseUnstage = get("run/requiredBy?id=[Server]%20[name:server-a]")
-        assert responseUnstage
+        assertNotNull responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
 
-        assert jsonUnstage
-        assert jsonUnstage.nodes != null
-        assert jsonUnstage.nodes.isEmpty()
+        assertNotNull jsonUnstage
+        assertNotNull jsonUnstage.nodes
+        assertTrue jsonUnstage.nodes.isEmpty()
     }
 
     @Test
@@ -124,24 +128,24 @@ repo {
         post("run/stage?owner=Kubernetes")
 
         def responseStage = get("run/requiredBy?id=[Server]%20[name:server-a]")
-        assert responseStage
+        assertNotNull responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
 
-        assert jsonStage
-        assert jsonStage.nodes
-        assert jsonStage.nodes.any { it.name == "Kubernetes"}
+        assertNotNull jsonStage
+        assertNotNull jsonStage.nodes
+        assertTrue jsonStage.nodes.any { it.name == "Kubernetes"}
 
         post("run/unstage?owner=Kubernetes")
 
         def responseUnstage = get("run/requiredBy?id=[Server]%20[name:server-a]")
-        assert responseUnstage
+        assertNotNull responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
 
-        assert jsonUnstage
-        assert jsonUnstage.nodes != null
-        assert jsonUnstage.nodes.isEmpty()
+        assertNotNull jsonUnstage
+        assertNotNull jsonUnstage.nodes
+        assertTrue jsonUnstage.nodes.isEmpty()
     }
 
     @Test
@@ -149,73 +153,73 @@ repo {
         post("run/stageAll")
 
         def responseStage = post("run/selected")
-        assert responseStage
+        assertNotNull responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
 
-        assert jsonStage
-        assert jsonStage.nodes
-        assert jsonStage.nodes.any { it.name == "Kubernetes"}
+        assertNotNull jsonStage
+        assertNotNull jsonStage.nodes
+        assertTrue jsonStage.nodes.any { it.name == "Kubernetes"}
 
         post("run/unstageAll")
 
         def responseUnstage = post("run/selected")
-        assert responseUnstage
+        assertNotNull responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
 
-        assert jsonUnstage
-        assert jsonUnstage.nodes != null
-        assert jsonUnstage.nodes.isEmpty()
+        assertNotNull jsonUnstage
+        assertNotNull jsonUnstage.nodes
+        assertTrue jsonUnstage.nodes.isEmpty()
     }
 
     @Test
     void repos() {
         def response = get("repos")
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
 
-        assert json
-        assert json.total == 7
-        assert json.descriptors.size() == 7
-        assert json.descriptors.any { it.name == "repo1"}
+        assertNotNull json
+        assertEquals 7, json.total
+        assertEquals 7, json.descriptors.size()
+        assertTrue json.descriptors.any { it.name == "repo1"}
     }
 
     @Test
     void repos_search() {
         def response = postJson("repos", [name: "repo1"])
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
 
-        assert json
-        assert json.total == 7
-        assert json.count == 1
-        assert json.descriptors.size() == 1
-        assert json.descriptors.any { it.name == "repo1"}
+        assertNotNull json
+        assertEquals 7, json.total
+        assertEquals 1, json.count
+        assertFalse json.descriptors.isEmpty()
+        assertTrue json.descriptors.any { it.name == "repo1"}
     }
 
     @Test
     void repos_selected() {
 
         def responseBeforeStage = postJson ("repos", [selected: true, staged: false])
-        assert responseBeforeStage
+        assertNotNull responseBeforeStage
 
         def jsonBeforeStage = new JsonSlurper().parseText(responseBeforeStage)
 
-        assert jsonBeforeStage
-        assert jsonBeforeStage.descriptors.size() == 0
+        assertNotNull jsonBeforeStage
+        assertTrue jsonBeforeStage.descriptors.isEmpty()
 
         post("run/stage?id=[Kubernetes]%20undefined")
 
         def responseAfterStage = postJson ("repos", [selected: true, staged: false])
-        assert responseAfterStage
+        assertNotNull responseAfterStage
 
         def jsonAfterStage = new JsonSlurper().parseText(responseAfterStage)
 
-        assert jsonAfterStage
-        assert jsonAfterStage.descriptors.size() == 2
+        assertNotNull jsonAfterStage
+        assertEquals 2, jsonAfterStage.descriptors.size()
 
         post("run/unstage?id=[Kubernetes]%20undefined")
     }
@@ -223,12 +227,12 @@ repo {
     @Test
     void repo_view() {
         def response = get("repos/view?name=repo1")
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
 
-        assert json
-        assert json.name == "repo1"
+        assertNotNull json
+        assertEquals "repo1", json.name
     }
 
     @Test
@@ -245,13 +249,13 @@ repo {
         post("repos/source?name=repo7", sourceText)
 
         def response = get("repos/view?name=repo7")
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
 
-        assert json
-        assert json.name == "repo7"
-        assert json.script.text.contains("my-src")
+        assertNotNull json
+        assertEquals "repo7", json.name
+        assertTrue json.script.text.contains("my-src")
     }
 
     @Test
@@ -261,27 +265,27 @@ repo {
         post("repos/stage?name=${stageRepoName}")
 
         def responseStage = post("repos")
-        assert responseStage
+        assertNotNull responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
 
-        assert jsonStage
-        assert jsonStage.descriptors
+        assertNotNull jsonStage
+        assertNotNull jsonStage.descriptors
 
         def repoStaged = jsonStage.descriptors.find { it.staged }
-        assert repoStaged
-        assert repoStaged.name == stageRepoName
+        assertNotNull repoStaged
+        assertEquals stageRepoName, repoStaged.name
 
         post("repos/unstage?name=${stageRepoName}")
 
         def responseUnstage = post("repos")
-        assert responseUnstage
+        assertNotNull responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
 
-        assert jsonUnstage
-        assert jsonUnstage.descriptors != null
-        assert !jsonUnstage.descriptors.any { it.staged }
+        assertNotNull jsonUnstage
+        assertNotNull jsonUnstage.descriptors
+        assertFalse jsonUnstage.descriptors.any { it.staged }
     }
 
     @Test
@@ -289,24 +293,24 @@ repo {
         post("repos/stageAll")
 
         def responseStage = post("repos")
-        assert responseStage
+        assertNotNull responseStage
 
         def jsonStage = new JsonSlurper().parseText(responseStage)
 
-        assert jsonStage
-        assert jsonStage.descriptors != null
-        assert !jsonStage.descriptors.any { !it.staged }
+        assertNotNull jsonStage
+        assertNotNull jsonStage.descriptors
+        assertFalse jsonStage.descriptors.any { !it.staged }
 
         post("repos/unstageAll")
 
         def responseUnstage = post("repos")
-        assert responseUnstage
+        assertNotNull responseUnstage
 
         def jsonUnstage = new JsonSlurper().parseText(responseUnstage)
 
-        assert jsonUnstage
-        assert jsonUnstage.descriptors != null
-        assert !jsonUnstage.descriptors.any { it.staged }
+        assertNotNull jsonUnstage
+        assertNotNull jsonUnstage.descriptors
+        assertFalse jsonUnstage.descriptors.any { it.staged }
     }
 
     @Test
@@ -324,35 +328,35 @@ repo {
         assertFalse parametersFolder.listFiles().any { it.name.endsWith(".json")}
 
         def responseBeforeApply = get("repos/view?name=repo1")
-        assert responseBeforeApply
+        assertNotNull responseBeforeApply
 
         def jsonBeforeApply = new JsonSlurper().parseText(responseBeforeApply)
 
-        assert jsonBeforeApply
-        assert !jsonBeforeApply.parameters.any { it.value != null}
+        assertNotNull jsonBeforeApply
+        assertFalse jsonBeforeApply.parameters.any { it.value != null}
 
         post("repos/applyDefaultAll")
 
-        assert parametersFolder.listFiles().findAll { it.name.endsWith(".json")}.size() == 2 // Only 4 descriptors has parameters on 2 files
+        assertTrue parametersFolder.listFiles().findAll { it.name.endsWith(".json")}.size() == 2 // Only 4 descriptors has parameters on 2 files
 
         def responseAfterApply = get("repos/view?name=repo1")
-        assert responseAfterApply
+        assertNotNull responseAfterApply
 
         def jsonAfterApply = new JsonSlurper().parseText(responseAfterApply)
 
-        assert jsonAfterApply
-        assert !jsonAfterApply.parameters.any { it.value != it.defaultValue}
+        assertNotNull jsonAfterApply
+        assertFalse jsonAfterApply.parameters.any { it.value != it.defaultValue}
 
         //Reset
         post("repos/resetAll")
 
         def responseAfteReset = get("repos/view?name=repo1")
-        assert responseAfterApply
+        assertNotNull responseAfterApply
 
         def jsonAfterReset = new JsonSlurper().parseText(responseAfteReset)
 
-        assert jsonAfterReset
-        assert !jsonAfterReset.parameters.any { it.defaultValue && it.defaultValue == it.value}
+        assertNotNull jsonAfterReset
+        assertFalse jsonAfterReset.parameters.any { it.defaultValue && it.defaultValue == it.value}
 
         post("run/unstageAll")
     }
@@ -364,67 +368,65 @@ repo {
         postJson("repos/parameters?name=repo1&parameter=staticList", [parameterValue: parameterValue])
 
         def response = get("repos/view?name=repo1")
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
-
-        assert json
+        assertNotNull json
 
         def parameter = json.parameters.find {it.name == "staticList" }
 
-        assert parameter
-        assert parameter.value == parameterValue
+        assertNotNull parameter
+        assertEquals parameterValue, parameter.value
     }
 
     @Test
     void repo_parametersValues() {
         def response = get("repos/parametersValues?name=repo1")
-        assert response
+        assertNotNull response
 
         def json = new JsonSlurper().parseText(response)
-
-        assert json
+        assertNotNull json
 
         /*
         TODO Still won't work under Travis
-        assert json["command"]
-        assert json["command"].size() > 0
+        assertNotNull json["command"]
+        assertFalse json["command"].isEmpty()
 
-        assert json["commandFilter"]
-        assert json["commandFilter"].size() > 0
+        assertNotNull json["commandFilter"]
+        assertFalse json["commandFilter"].isEmpty()
          */
-        assert json["staticList"]
-        assert json["staticList"].size() == 2
-        assert json["staticList"].any { it == "my" }
+        assertNotNull json["staticList"]
+        assertEquals 2, json["staticList"].size()
+        assertTrue json["staticList"].any { it == "my" }
     }
 
     @Test
     void execution_start() {
         def responseBefore = get("execution")
-        assert responseBefore
+        assertNotNull responseBefore
 
         def jsonBefore = new JsonSlurper().parseText(responseBefore)
 
-        assert jsonBefore
-        assert jsonBefore.running == false
+        assertNotNull jsonBefore
+        assertFalse jsonBefore.running
 
         post("run/stage?id=[Kubernetes]%20undefined")
         def responseStart = post("execution/start")
-        assert responseStart
+        assertNotNull responseStart
 
         def jsonStart = new JsonSlurper().parseText(responseStart)
 
-        assert jsonStart
-        assert jsonStart.files
-        assert jsonStart.files.any { it.contains("repoB") }
+        assertNotNull jsonStart
+        assertNotNull jsonStart.files
+        assertTrue jsonStart.files.any { it.contains("repoB") }
 
         def responseAfter = get("execution")
-        assert responseAfter
+        assertNotNull responseAfter
 
         def jsonAfter = new JsonSlurper().parseText(responseAfter)
 
-        assert jsonAfter
-        assert jsonAfter.running == true
+        assertNotNull jsonAfter
+        assertTrue jsonAfter.running
 
         def jsonEnd
 
@@ -435,11 +437,10 @@ repo {
             sleep(500)
 
             def responseEnd = get("execution")
-            assert responseEnd
+            assertNotNull responseEnd
 
             jsonEnd = new JsonSlurper().parseText(responseEnd)
-
-            assert jsonEnd
+            assertNotNull jsonEnd
 
             if (!jsonEnd.running)
                 break
@@ -449,64 +450,64 @@ repo {
         sleep(500)
 
         def responseEnd = get("execution")
-        assert responseEnd
+        assertNotNull responseEnd
 
         jsonEnd = new JsonSlurper().parseText(responseEnd)
-
-        assert jsonEnd.running == false
+        assertFalse jsonEnd.running
 
         def responseReview = get("review")
-        assert responseReview
+        assertNotNull responseReview
 
         def jsonReview = new JsonSlurper().parseText(responseReview)
-        assert jsonReview
-        assert jsonReview.baseExecution != null
-        assert jsonReview.lastExecution != null
-        assert jsonReview.lines
-        assert jsonReview.stats
+
+        assertNotNull jsonReview
+        assertNotNull jsonReview.baseExecution
+        assertNotNull jsonReview.lastExecution
+        assertNotNull jsonReview.lines
+        assertNotNull jsonReview.stats
 
         def responsePromote = post("review/promote")
-        assert responsePromote
+        assertNotNull responsePromote
 
         def jsonPromote = new JsonSlurper().parseText(responsePromote)
-        assert jsonPromote
+        assertNotNull jsonPromote
 
-        assert jsonPromote.result == 'promoted'
+        assertEquals "promoted", jsonPromote.result
     }
 
     @Test
     @Ignore
     void execution_stop() {
         def responseBefore = get("execution")
-        assert responseBefore
+        assertNotNull responseBefore
 
         def jsonBefore = new JsonSlurper().parseText(responseBefore)
 
-        assert jsonBefore
-        assert jsonBefore.running == false
+        assertNotNull jsonBefore
+        assertFalse jsonBefore.running
 
         post("run/stage?id=[Kubernetes]%20undefined")
         post("execution/start")
 
         def responseMiddle = get("execution")
-        assert responseMiddle
+        assertNotNull responseMiddle
 
         def jsonMiddle = new JsonSlurper().parseText(responseMiddle)
 
-        assert jsonMiddle
-        assert jsonMiddle.running == true
+        assertNotNull jsonMiddle
+        assertTrue jsonMiddle.running
 
         sleep(50)
         post("execution/stop")
         sleep(500)
 
         def responseEnd = get("execution")
-        assert responseEnd
+        assertNotNull responseEnd
 
         def jsonEnd = new JsonSlurper().parseText(responseEnd)
 
-        assert jsonEnd
-        assert jsonEnd.running == false
+        assertNotNull jsonEnd
+        assertFalse jsonEnd.running
     }
 
     String get(String context) {

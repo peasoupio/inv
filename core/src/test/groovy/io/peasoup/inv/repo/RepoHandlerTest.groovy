@@ -1,11 +1,9 @@
 package io.peasoup.inv.repo
 
-
 import org.junit.Before
 import org.junit.Test
 
-import static junit.framework.Assert.assertEquals
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 class RepoHandlerTest {
 
@@ -24,14 +22,14 @@ class RepoHandlerTest {
         def testRepo = RepoHandlerTest.class.getResource("/repo.groovy")
         executor.parse(new File(testRepo.path))
 
-        assert executor.repos["my-repository"]
+        assertNotNull executor.repos["my-repository"]
 
         assertEquals "https://github.com/spring-guides/gs-spring-boot.git", executor.repos["my-repository"].src
         assertEquals 30000, executor.repos["my-repository"].timeout
 
-        assert executor.repos["my-repository"].hooks
-        assert executor.repos["my-repository"].hooks.init.contains("mkdir something")
-        assert executor.repos["my-repository"].hooks.pull.contains("echo 'pull'")
+        assertNotNull executor.repos["my-repository"].hooks
+        assertTrue executor.repos["my-repository"].hooks.init.contains("mkdir something")
+        assertTrue executor.repos["my-repository"].hooks.pull.contains("echo 'pull'")
     }
 
     @Test
@@ -46,9 +44,9 @@ class RepoHandlerTest {
 
             hooks {
 
-                assert notExisting == "\${notExisting}"
-                assert name == "test"
-                assert src == "my-src"
+                assertEquals "\${notExisting}", notExisting
+                assertEquals "test", name
+                assertEquals "my-src", src
 
             }
         }

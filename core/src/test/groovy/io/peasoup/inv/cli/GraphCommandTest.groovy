@@ -2,19 +2,18 @@ package io.peasoup.inv.cli
 
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
 
 class GraphCommandTest {
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
-            assert new GraphCommand().call()
-        })
+        assertEquals 1, new GraphCommand().call()
     }
 
     @Test
     void rolling() {
-        assert !new GraphCommand().rolling()
+        assertFalse new GraphCommand().rolling()
     }
 }

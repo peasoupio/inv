@@ -3,6 +3,9 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
+
 class BroadcastResponseTest {
 
     InvExecutor executor
@@ -51,7 +54,7 @@ class BroadcastResponseTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -92,7 +95,7 @@ class BroadcastResponseTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
 
@@ -127,7 +130,7 @@ class BroadcastResponseTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -162,7 +165,7 @@ class BroadcastResponseTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -196,7 +199,7 @@ class BroadcastResponseTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -220,7 +223,7 @@ class BroadcastResponseTest {
             require $inv.EndpointMapper using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
-                    assert respCls2.myCtx == myCtx
+                    assertEquals myCtx, respCls2.myCtx
 
                     respCls2.myCtx = myNewCtx
 
@@ -237,13 +240,13 @@ class BroadcastResponseTest {
             require $inv.EndpointMapper using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
-                    assert respCls2.myCtx == myNewCtx
+                    assertEquals myNewCtx, respCls2.myCtx
                 }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -280,13 +283,13 @@ class BroadcastResponseTest {
 
             require $inv.EndpointMapperProxy using {
                 resolved {
-                    assert response.defaultContext == myNewCtx
+                    assertEquals myNewCtx, response.defaultContext
                 }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     class MyResponseClass1 {

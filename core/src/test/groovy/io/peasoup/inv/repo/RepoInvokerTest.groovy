@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class RepoInvokerTest {
@@ -31,7 +31,7 @@ class RepoInvokerTest {
 
         RepoExecutor.RepoExecutionReport report = reports.find { it.name == "my-repository" }
 
-        assert report
+        assertNotNull report
     }
 
     @Test
@@ -60,9 +60,9 @@ class RepoInvokerTest {
 
         def reports = executor.execute()
 
-        assert reports.find { it.name == "my-first-repository" }
-        assert reports.find { it.name =="my-second-repository" }
-        assert reports.find { it.name =="my-third-repository" }
+        assertNotNull reports.find { it.name == "my-first-repository" }
+        assertNotNull reports.find { it.name =="my-second-repository" }
+        assertNotNull reports.find { it.name =="my-third-repository" }
     }
 
     @Test
@@ -73,7 +73,7 @@ class RepoInvokerTest {
         executor.parse(repoFile)
 
         def report = executor.execute()
-        assert !report.any { it.isOk }
+        assertFalse report.any { it.isOk }
     }
 
     @Test
@@ -85,7 +85,7 @@ class RepoInvokerTest {
 
         executor.parse(repoFile)
 
-        assert logs.any { it == "ok" }
+        assertTrue logs.any { it == "ok" }
 
         Logger.capture(null)
     }

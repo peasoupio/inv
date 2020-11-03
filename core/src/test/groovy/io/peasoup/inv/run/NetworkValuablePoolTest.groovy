@@ -3,7 +3,7 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 class NetworkValuablePoolTest {
 
@@ -21,26 +21,26 @@ class NetworkValuablePoolTest {
 
         def report = pool.digest()
 
-        assert report
-        assert !report.isOk()
+        assertNotNull report
+        assertFalse report.isOk()
     }
 
     @Test
     void startUnbloating() {
         pool.runningState = NetworkValuablePool.RUNNING
-        assert pool.startUnbloating()
+        assertTrue pool.startUnbloating()
 
         pool.runningState = NetworkValuablePool.HALTING
-        assert !pool.startUnbloating()
+        assertFalse pool.startUnbloating()
     }
 
     @Test
     void startHalting() {
         pool.runningState = NetworkValuablePool.UNBLOATING
-        assert pool.startHalting()
+        assertTrue pool.startHalting()
 
         pool.runningState = NetworkValuablePool.RUNNING
-        assert !pool.startHalting()
+        assertFalse pool.startHalting()
     }
 
     @Test
@@ -63,8 +63,8 @@ class NetworkValuablePoolTest {
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
 
-        assert pool.preventUnbloating(broadcastValuable)
-        assert pool.runningState == NetworkValuablePool.RUNNING
+        assertTrue pool.preventUnbloating(broadcastValuable)
+        assertEquals NetworkValuablePool.RUNNING, pool.runningState
     }
 
     @Test
@@ -88,7 +88,7 @@ class NetworkValuablePoolTest {
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
 
-        assert !pool.preventUnbloating(broadcastValuable)
+        assertFalse pool.preventUnbloating(broadcastValuable)
     }
 
     @Test
@@ -99,7 +99,7 @@ class NetworkValuablePoolTest {
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.FAILED
 
-        assert !pool.preventUnbloating(broadcastValuable)
+        assertFalse pool.preventUnbloating(broadcastValuable)
     }
 
     @Test
@@ -110,7 +110,7 @@ class NetworkValuablePoolTest {
         def requireValuable = new RequireStatement()
         requireValuable.state = StatementStatus.SUCCESSFUL
 
-        assert !pool.preventUnbloating(requireValuable)
+        assertFalse pool.preventUnbloating(requireValuable)
     }
 
     @Test
@@ -192,11 +192,11 @@ class NetworkValuablePoolTest {
 
         def sortedInvs = pool.sort()
 
-        assert sortedInvs[0].name == "0"
-        assert sortedInvs[1].name == "1"
-        assert sortedInvs[2].name == "2"
-        assert sortedInvs[3].name == "3"
-        assert sortedInvs[4].name == "4"
-        assert sortedInvs[5].name == "5"
+        assertEquals "0", sortedInvs[0].name
+        assertEquals "1", sortedInvs[1].name
+        assertEquals "2", sortedInvs[2].name
+        assertEquals "3", sortedInvs[3].name
+        assertEquals "4", sortedInvs[4].name
+        assertEquals "5", sortedInvs[5].name
     }
 }

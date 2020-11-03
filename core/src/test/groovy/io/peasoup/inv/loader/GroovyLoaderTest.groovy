@@ -6,8 +6,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertNotNull
-import static org.junit.jupiter.api.Assertions.assertNull
+import static org.junit.Assert.assertFalse
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class GroovyLoaderTest {
@@ -75,25 +75,25 @@ Eval.me('1+1')
     void cache() {
 
         def script = new File(TempHome.testResources, "/inv-invoker-script.groovy")
-        assert script.exists()
+        assertTrue script.exists()
 
         // Clean if already existing
         def scriptFolder = new File(RunsRoller.latest.folder(), "scripts/")
         scriptFolder.deleteDir()
 
-        assert !scriptFolder.exists()
+        assertFalse scriptFolder.exists()
 
         securedLoader.cache(script, "my-class")
 
-        assert scriptFolder.exists()
-        assert new File(scriptFolder, "my-class.groovy").exists()
+        assertTrue scriptFolder.exists()
+        assertTrue new File(scriptFolder, "my-class.groovy").exists()
     }
 
     @Test
     void normalize() {
-        assert securedLoader.normalizeGroovyFilename(new File("test.groovy")) == "test"
-        assert securedLoader.normalizeGroovyFilename(new File("parent", "inv")) == "parent"
-        assert securedLoader.normalizeGroovyFilename(new File("parent", "inv.groovy")) == "parent"
-        assert securedLoader.normalizeGroovyFilename(new File("parent" ,"inv.groovy")) == "parent"
+        assertEquals "test", securedLoader.normalizeGroovyFilename(new File("test.groovy"))
+        assertEquals "parent", securedLoader.normalizeGroovyFilename(new File("parent", "inv"))
+        assertEquals "parent", securedLoader.normalizeGroovyFilename(new File("parent", "inv.groovy"))
+        assertEquals "parent", securedLoader.normalizeGroovyFilename(new File("parent" ,"inv.groovy"))
     }
 }

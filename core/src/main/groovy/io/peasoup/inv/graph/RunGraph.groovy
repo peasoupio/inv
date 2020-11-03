@@ -1,6 +1,5 @@
 package io.peasoup.inv.graph
 
-
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import org.jgrapht.Graph
@@ -27,7 +26,7 @@ class RunGraph {
     RunGraph(BufferedReader logs) {
         assert logs, 'Logs are required'
 
-        g = new DefaultDirectedGraph<> (DefaultEdge.class)
+        g = new DefaultDirectedGraph<GraphNavigator.Linkable, DefaultEdge>(DefaultEdge.class)
         navigator = new GraphNavigator(g)
 
         long nodeCount = 0

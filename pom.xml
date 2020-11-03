@@ -19,12 +19,10 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
-        <properties>
-            <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-            <sonar.login>${env.SONARCLOUD}</sonar.login>
-            <sonar.organization>peasoupio</sonar.organization>
-            <sonar.projectKey>inv</sonar.projectKey>
-        </properties>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.login>${env.SONARCLOUD}</sonar.login>
+        <sonar.organization>peasoupio</sonar.organization>
+        <sonar.projectKey>inv</sonar.projectKey>
     </properties>
 
     <modules>

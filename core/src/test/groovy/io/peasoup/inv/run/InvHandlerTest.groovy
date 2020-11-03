@@ -7,7 +7,7 @@ import org.junit.runner.RunWith
 
 import java.util.stream.Stream
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @SuppressWarnings(["GroovyAssignabilityCheck", "GroovyMissingReturnStatement", "GrEqualsBetweenInconvertibleTypes"])
 @RunWith(TempHome.class)
@@ -67,12 +67,12 @@ class InvHandlerTest {
 
         def report = executor.execute()
 
-        assert report.isOk()
+        assertTrue report.isOk()
 
-        assert report.digested.size() == 3
-        assert report.digested[0].name == "my-server"
-        assert report.digested[1].name == "my-webservice"
-        assert report.digested[2].name == "my-app"
+        assertEquals 3, report.digested.size()
+        assertEquals "my-server", report.digested[0].name
+        assertEquals "my-webservice", report.digested[1].name
+        assertEquals "my-app", report.digested[2].name
     }
 
     @Test
@@ -99,7 +99,7 @@ class InvHandlerTest {
     @Test
     void call_broadcast_twice() {
         inv {
-            name "my-webservice-2"
+            name "my-webservice"
 
             require $inv.Server("my-server-id")
 
@@ -112,7 +112,7 @@ class InvHandlerTest {
         }
 
         inv {
-            name "my-webservice"
+            name "my-webservice-2"
 
             require $inv.Server("my-server-id")
 
@@ -147,11 +147,11 @@ class InvHandlerTest {
 
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
 
-        report.digested
+        assertTrue report.digested
                 .findAll { it.name.contains("my-webservice") }
-                .collect { it.totalStatements }
+                .collectMany { it.totalStatements }
                 .any {
                     it.state == StatementStatus.ALREADY_BROADCAST
                 }
@@ -200,7 +200,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -251,7 +251,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -312,7 +312,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -348,8 +348,8 @@ class InvHandlerTest {
 
         def report = executor.execute()
 
-        assert report.isOk()
-        assert report.cycleCount == 8
+        assertTrue report.isOk()
+        assertEquals 8, report.cycleCount
     }
 
     @Test
@@ -373,7 +373,7 @@ class InvHandlerTest {
             }
 
             ready {
-                assert value == 1
+                assertEquals 1, value
             }
         }
 
@@ -405,7 +405,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -439,7 +439,7 @@ class InvHandlerTest {
                 }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -508,12 +508,11 @@ class InvHandlerTest {
 
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert report.halted
-        assert report.digested.size() == 2
-        assert report.digested[0].name == "my-server"
-        assert report.digested[1].name == "my-webservice"
+        assertFalse report.isOk()
+        assertTrue report.halted
+        assertEquals 2, report.digested.size()
+        assertEquals "my-server", report.digested[0].name
+        assertEquals "my-webservice", report.digested[1].name
     }
 
     @Test
@@ -525,11 +524,10 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.inv.name == "my-exception" }
-        assert report.errors.find { it.throwable.message == "fail" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.inv.name == "my-exception" }
+        assertNotNull report.errors.find { it.throwable.message == "fail" }
     }
 
     @Test
@@ -545,10 +543,9 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.throwable.message == "fail-broadcast" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.throwable.message == "fail-broadcast" }
     }
 
     @Test
@@ -570,10 +567,9 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.throwable.message == "fail-require" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.throwable.message == "fail-require" }
     }
 
     @Test
@@ -590,15 +586,14 @@ class InvHandlerTest {
 
             require $inv.Something using {
                 resolved {
-                    assert 1 == 2, "Does not equal"
+                    assertTrue 1 == 2, "Does not equal"
                 }
             }
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
     }
 
     @Test
@@ -613,7 +608,7 @@ class InvHandlerTest {
 
             broadcast $inv.Something("3") using {
                 ready {
-                    assert index == 3
+                    assertEquals 3, index
                 }
             }
         }
@@ -627,7 +622,7 @@ class InvHandlerTest {
 
             broadcast $inv.Something("2") using {
                 ready {
-                    assert index == 2
+                    assertEquals 2, index
                     index++
                 }
             }
@@ -641,7 +636,7 @@ class InvHandlerTest {
 
             broadcast $inv.Something("1") using {
                 ready {
-                    assert index == 1
+                    assertEquals 1, index
                     index++
                 }
             }
@@ -655,7 +650,7 @@ class InvHandlerTest {
 
             broadcast $inv.Something("0") using {
                 ready {
-                    assert index == 0
+                    assertEquals 0, index
                     index++
                 }
             }
@@ -663,10 +658,10 @@ class InvHandlerTest {
 
         def remainingInvs = executor.pool.sort()
 
-        assert remainingInvs[0].name == "0"
-        assert remainingInvs[1].name == "1"
-        assert remainingInvs[2].name == "2"
-        assert remainingInvs[3].name == "3"
+        assertEquals "0", remainingInvs[0].name
+        assertEquals "1", remainingInvs[1].name
+        assertEquals "2", remainingInvs[2].name
+        assertEquals "3", remainingInvs[3].name
     }
 
     @Test
@@ -679,13 +674,13 @@ class InvHandlerTest {
             )
 
             step {
-                assert tags.my
-                assert tags.my == 'tag'
+                assertNotNull tags.my
+                assertEquals 'tag', tags.my
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -710,8 +705,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -737,8 +732,9 @@ class InvHandlerTest {
             }
         }
 
-        executor.execute()
-        assert reached
+        def report = executor.execute()
+        assertFalse report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -771,8 +767,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -797,8 +793,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !reached
+        assertFalse report.isOk()
+        assertFalse reached
     }
 
     @Test
@@ -823,8 +819,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -849,8 +845,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -875,8 +871,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !reached
+        assertFalse report.isOk()
+        assertFalse reached
     }
 
     @Test
@@ -915,7 +911,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -948,8 +944,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert raised
+        assertTrue report.isOk()
+        assertTrue raised
     }
 
     @Test
@@ -982,8 +978,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !raised
+        assertFalse report.isOk()
+        assertFalse raised
     }
 
     @Test
@@ -993,7 +989,7 @@ class InvHandlerTest {
         def steps = []
         1.upto(size, { final Number reference ->
             steps << {
-                assert reference == it + 1
+                assertEquals it + 1, reference
             }
         })
 
@@ -1006,7 +1002,7 @@ class InvHandlerTest {
             }
         }
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -1015,20 +1011,20 @@ class InvHandlerTest {
             name "step1"
 
             step {
-                assert it == 0
+                assertEquals 0, it
 
                 require $inv.Something
             }
 
             step {
-                assert it == 1
+                assertEquals 1, it
 
                 broadcast $inv.Else
                 require $inv.More
             }
 
             step {
-                assert it == 2
+                assertEquals 2, it
 
                 broadcast $inv.Final
             }
@@ -1038,27 +1034,27 @@ class InvHandlerTest {
             name "step2"
 
             step {
-                assert it == 0
+                assertEquals 0, it
 
                 broadcast $inv.Something
             }
 
             step {
-                assert it == 1
+                assertEquals 1, it
 
                 require $inv.Else
                 broadcast $inv.More
             }
 
             step {
-                assert it == 2
+                assertEquals 2, it
 
                 require $inv.Final
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -1090,10 +1086,10 @@ This is a sample description for **this** broadcast statement
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
 
         def reportFolder = new File(RunsRoller.latest.folder(), "reports")
-        assert reportFolder.exists()
-        assert new File(reportFolder, "doc.md").exists()
+        assertTrue reportFolder.exists()
+        assertTrue new File(reportFolder, "doc.md").exists()
     }
 }

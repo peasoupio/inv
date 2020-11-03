@@ -3,7 +3,7 @@ package io.peasoup.inv.run
 import io.peasoup.inv.utils.Stdout
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 class InvInvokerTest {
 
@@ -11,25 +11,25 @@ class InvInvokerTest {
     void invoke() {
 
         def script = InvInvokerTest.class.getResource("/inv-invoker-script.groovy")
-        assert script
+        assertNotNull script
 
         def scriptFile = new File(script.path)
 
         Stdout.capture ({ InvInvoker.invoke(new InvExecutor(), scriptFile) }, {
-            assert it.contains("inv-invoker-script.groovy")
+            assertTrue it.contains("inv-invoker-script.groovy")
         })
     }
 
     @Test
     void invoke_standalone() {
         def script = InvInvokerTest.class.getResource("/inv-invoker-standalone.groovy")
-        assert script
+        assertNotNull script
 
         def scriptFile = new File(script.path)
-        assert scriptFile.exists()
+        assertTrue scriptFile.exists()
 
         def scriptObj = (Script) new GroovyClassLoader().parseClass(scriptFile).getDeclaredConstructor().newInstance()
-        assert scriptObj
+        assertNotNull scriptObj
 
         scriptObj.run()
     }
@@ -41,13 +41,13 @@ class InvInvokerTest {
         def logs = Logger.capture(new LinkedList())
 
         def script = InvInvokerTest.class.getResource("/inv-invoker-script-with-debug.groovy")
-        assert script
+        assertNotNull script
 
         def scriptFile = new File(script.path)
 
         InvInvoker.invoke(new InvExecutor(), scriptFile)
 
-        assert logs.any { it == "ok" }
+        assertTrue logs.any { it == "ok" }
 
         Logger.capture(null)
     }

@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class RunFileTest {
@@ -55,12 +55,12 @@ class RunFileTest {
 
     @Test
     void stageWithoutPropagate() {
-        assert runFile.staged.isEmpty()
+        assertTrue runFile.staged.isEmpty()
 
         runFile.stageWithoutPropagate("my-id")
         runFile.stageWithoutPropagate("my-id") // can handle twice
 
-        assert runFile.staged.containsKey("my-id")
+        assertTrue runFile.staged.containsKey("my-id")
     }
 
     @Test
@@ -68,18 +68,18 @@ class RunFileTest {
         String myId = "my-id"
 
         runFile.stageWithoutPropagate(myId)
-        assert runFile.staged.containsKey(myId)
+        assertTrue runFile.staged.containsKey(myId)
 
         runFile.unstage(myId)
         runFile.unstage(myId) // can handle twice
 
-        assert !runFile.staged.containsKey(myId)
+        assertFalse runFile.staged.containsKey(myId)
     }
 
     @Test
     void propagate() {
         runFile.stageWithoutPropagate(runFile.nodes[3].value)
-        assert runFile.propagate().added > 0
+        assertTrue runFile.propagate().added > 0
     }
 
     @Test
@@ -88,7 +88,7 @@ class RunFileTest {
             runFile.stageWithoutPropagate(it.value)
         }
 
-        assert runFile.propagate().added == 1
+        assertEquals 1, runFile.propagate().added
     }
 
     @Test
@@ -99,9 +99,9 @@ class RunFileTest {
 
         def output = runFile.propagate()
 
-        assert output.all
-        assert output.checked == runFile.nodes.size()
-        assert output.added == 0
+        assertNotNull output.all
+        assertEquals  runFile.nodes.size(), output.checked
+        assertEquals 0, output.added
     }
 
     @Test
@@ -111,7 +111,7 @@ class RunFileTest {
         runFile.stageWithoutPropagate(id)
 
         Stdout.capture ({ runFile.propagate() }, {
-            assert it.contains("${id} is not a valid id")
+            assertTrue it.contains("${id} is not a valid id")
         })
     }
 
@@ -122,7 +122,7 @@ class RunFileTest {
             runFile.stageWithoutPropagate(it.value)
         }
 
-        assert runFile.propagate().skipped > 0
+        assertTrue runFile.propagate().skipped > 0
     }
      */
 
@@ -130,8 +130,8 @@ class RunFileTest {
     void isSelected() {
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assert runFile.isSelected("repo4")
-        assert !runFile.isSelected("repo3")
+        assertTrue runFile.isSelected("repo4")
+        assertFalse runFile.isSelected("repo3")
     }
 
     @Test
@@ -141,18 +141,18 @@ class RunFileTest {
         runFile.stageWithoutPropagate("[Artifact] com.mycompany.app:my-app-1") // undefined repo
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assert runFile.selectedRepos()
-        assert runFile.selectedRepos().size() == 2
-        assert runFile.selectedRepos().find { it == "repo4" } // from Kubernetes
-        assert runFile.selectedRepos().find { it == "undefined" } // from Artifact
+        assertNotNull runFile.selectedRepos()
+        assertEquals 2, runFile.selectedRepos().size()
+        assertNotNull runFile.selectedRepos().find { it == "repo4" } // from Kubernetes
+        assertNotNull runFile.selectedRepos().find { it == "undefined" } // from Artifact
     }
 
     @Test
     void isSelected_not_ok() {
-        assert !runFile.isSelected("not_existing")
+        assertFalse runFile.isSelected("not_existing")
 
         runFile.ownerOfRepo.put("exists", ["not-exists"])
 
-        assert !runFile.isSelected("exists")
+        assertFalse runFile.isSelected("exists")
     }
 }

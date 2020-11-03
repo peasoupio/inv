@@ -12,9 +12,11 @@ class RunCommand implements CliCommand {
     String exclude
 
     int call() {
-        assert patterns != null, 'A valid value is required for patterns'
-        if (patterns.isEmpty())
+        if (patterns == null)
             return 1
+
+        if (patterns.isEmpty())
+            return 2
 
         // Handle excluding patterns
         def excludePatterns = [".runs/*"]
@@ -32,7 +34,7 @@ class RunCommand implements CliCommand {
 
         // Do the actual execution
         if (!invExecutor.execute().isOk())
-            return 2
+            return 3
 
         return 0
     }

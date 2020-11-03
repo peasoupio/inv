@@ -1,8 +1,8 @@
 package io.peasoup.inv.graph
 
-
 import org.junit.Test
 
+import static org.junit.jupiter.api.Assertions.assertNotNull
 import static org.junit.jupiter.api.Assertions.assertThrows
 
 class DeltaGraphTest {
@@ -15,8 +15,8 @@ class DeltaGraphTest {
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
         deltaGraph.resolve()
 
-        assert deltaGraph.deltaLines
-        assert deltaGraph.echo()
+        assertNotNull deltaGraph.deltaLines
+        assertNotNull deltaGraph.echo()
     }
 
     @Test
@@ -27,11 +27,11 @@ class DeltaGraphTest {
         def deltaGraph = new DeltaGraph(logOutput1Txt.newReader(), logAfterOutput1Txt.newReader())
         deltaGraph.resolve()
 
-        assert deltaGraph.deltaLines
-        assert deltaGraph.html("my_previous_filename")
+        assertNotNull deltaGraph.deltaLines
+        assertNotNull deltaGraph.html("my_previous_filename")
 
         //TODO Randomly crash on Travis
-        //assert new File(RunsRoller.latest.folder(), "./reports/my_previous_filename.html").exists()
+        //assertTrue new File(RunsRoller.latest.folder(), "./reports/my_previous_filename.html").exists()
     }
 
     @Test

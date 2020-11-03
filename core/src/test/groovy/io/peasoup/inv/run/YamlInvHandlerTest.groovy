@@ -4,6 +4,8 @@ import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.assertTrue
+
 @RunWith(TempHome.class)
 class YamlInvHandlerTest {
 
@@ -15,7 +17,7 @@ class YamlInvHandlerTest {
         InvInvoker.invoke(executor, yamlFile)
 
         def report = executor.execute()
-        assert report.isOk();
+        assertTrue report.isOk();
     }
 
 }

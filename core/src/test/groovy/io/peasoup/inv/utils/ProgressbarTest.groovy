@@ -2,6 +2,9 @@ package io.peasoup.inv.utils
 
 import org.junit.Test
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+
 class ProgressbarTest {
 
 
@@ -22,7 +25,7 @@ class ProgressbarTest {
             }
         }
 
-        assert !bar.isRunning()
-        assert bar.index.get() == limit
+        assertFalse bar.isRunning()
+        assertEquals limit, bar.index.get()
     }
 }

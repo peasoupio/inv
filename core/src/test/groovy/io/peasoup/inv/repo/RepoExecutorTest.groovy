@@ -3,6 +3,9 @@ package io.peasoup.inv.repo
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNotNull
+
 class RepoExecutorTest {
 
     RepoExecutor repoExecutor
@@ -25,9 +28,9 @@ class RepoExecutorTest {
         repoExecutor.add(desc)
         def report = repoExecutor.execute()
 
-        assert report
-        assert report.size() == 1
-        assert !report[0].isOk
+        assertNotNull report
+        assertFalse report.isEmpty()
+        assertFalse report[0].isOk
     }
 
     @Test
@@ -43,9 +46,9 @@ class RepoExecutorTest {
         repoExecutor.add(desc)
         def report = repoExecutor.execute()
 
-        assert report
-        assert report.size() == 1
-        assert !report[0].isOk
+        assertNotNull report
+        assertFalse report.isEmpty()
+        assertFalse report[0].isOk
     }
 
     @Test
@@ -62,8 +65,8 @@ class RepoExecutorTest {
         repoExecutor.add(desc)
         def report = repoExecutor.execute()
 
-        assert report
-        assert report.size() == 1
-        assert !report[0].isOk
+        assertNotNull report
+        assertFalse report.isEmpty()
+        assertFalse report[0].isOk
     }
 }

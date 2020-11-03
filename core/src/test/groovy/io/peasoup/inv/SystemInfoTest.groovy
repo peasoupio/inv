@@ -1,25 +1,26 @@
 package io.peasoup.inv
 
-
 import org.junit.Test
+
+import static org.junit.Assert.*
 
 class SystemInfoTest {
 
     @Test
     void consistencyFails() {
         // This test also means, by default, any environment should be working
-        assert !SystemInfo.consistencyFails()
+        assertFalse SystemInfo.consistencyFails()
     }
 
     @Test
     void check_invhome() {
-        assert SystemInfo.checkInvHome(null)
-        assert SystemInfo.checkInvHome(new File("./does-not-exists/"))
-        assert SystemInfo.checkInvHome(new File("./pom.xml")) // MUST exists, so using pom.xml of inv
+        assertTrue SystemInfo.checkInvHome(null)
+        assertTrue SystemInfo.checkInvHome(new File("./does-not-exists/"))
+        assertTrue SystemInfo.checkInvHome(new File("./pom.xml")) // MUST exists, so using pom.xml of inv
     }
 
     @Test
     void check_version() {
-        assert SystemInfo.version()
+        assertNotNull SystemInfo.version()
     }
 }

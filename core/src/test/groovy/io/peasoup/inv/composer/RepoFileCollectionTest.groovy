@@ -1,11 +1,12 @@
 package io.peasoup.inv.composer
 
 import io.peasoup.inv.TempHome
+import io.peasoup.inv.repo.RepoInvoker
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class RepoFileCollectionTest {
@@ -15,6 +16,8 @@ class RepoFileCollectionTest {
 
     @Before
     void setup() {
+        RepoInvoker.newCache()
+
         def repoFolder = new File(base)
         repoFileCollection = new RepoFileCollection(repoFolder)
 
@@ -43,7 +46,7 @@ class RepoFileCollectionTest {
     @Test
     void load_ok() {
         def file = new File(base, "repoA.groovy")
-        assert file.exists()
+        assertTrue file.exists()
 
         repoFileCollection.load(file)
     }
@@ -61,9 +64,8 @@ class RepoFileCollectionTest {
 
     @Test
     void toFiles() {
-
-        assert repoFileCollection.toFiles()
-        assert repoFileCollection.toFiles(["undefined"]).isEmpty()
-        assert repoFileCollection.toFiles(["repo1"]).size() == 1
+        assertNotNull repoFileCollection.toFiles()
+        assertTrue repoFileCollection.toFiles(["undefined"]).isEmpty()
+        assertFalse repoFileCollection.toFiles(["repo1"]).isEmpty()
     }
 }

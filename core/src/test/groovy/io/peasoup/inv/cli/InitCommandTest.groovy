@@ -5,7 +5,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class InitCommandTest {
@@ -15,15 +15,15 @@ class InitCommandTest {
     void ok() {
 
         def file = new File("../examples/init/init.groovy")
-        assert file.exists()
+        assertTrue file.exists()
 
         file.deleteDir()
 
         def report = new InitCommand(initRepoFileLocation: file.absolutePath).processREPO()
 
-        assert report
-        assert report.name.toLowerCase() == "main"
-        assert report.isOk()
+        assertNotNull report
+        assertEquals "main", report.name.toLowerCase()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -31,20 +31,18 @@ class InitCommandTest {
     void ok_url() {
         def report = new InitCommand(initRepoFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processREPO()
 
-        assert report
-        assert report.name.toLowerCase() == "main"
-        assert report.isOk()
+        assertNotNull report
+        assertEquals "main", report.name.toLowerCase()
+        assertTrue report.isOk()
     }
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
-            assert new InitCommand().call()
-        })
+        assertEquals 1, new InitCommand().call()
     }
 
     @Test
     void rolling() {
-        assert !new InitCommand().rolling()
+        assertFalse new InitCommand().rolling()
     }
 }

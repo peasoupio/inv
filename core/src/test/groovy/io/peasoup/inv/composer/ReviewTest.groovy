@@ -8,6 +8,8 @@ import io.peasoup.inv.run.RunsRoller
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.*
+
 @RunWith(TempHome.class)
 class ReviewTest {
 
@@ -18,7 +20,7 @@ class ReviewTest {
 
         def review = new Review(base, other)
 
-        assert review.compare().lines
+        assertNotNull review.compare().lines
     }
 
     @Test
@@ -36,7 +38,7 @@ class ReviewTest {
 
         new Review(baseRun, runFile).promote()
 
-        assert baseRun.text == testContent
+        assertEquals testContent, baseRun.text
     }
 
     @Test
@@ -58,12 +60,12 @@ class ReviewTest {
         def removed = deltaGraph.deltaLines.findAll { it.state == 'x' }
 
         new Review(baseRun, subsetFile).merge()
-        assert subsetFile.exists()
+        assertTrue subsetFile.exists()
         def newBaseFileGraph = new RunGraph(subsetFile.newReader())
 
-        assert removed.size() > 0
+        assertFalse removed.isEmpty()
         removed.each {
-            assert !newBaseFileGraph.navigator.contains(it.link)
+            assertFalse newBaseFileGraph.navigator.contains(it.link)
         }
     }
 }

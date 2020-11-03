@@ -10,7 +10,8 @@ class GraphCommand implements CliCommand {
     Map arguments
 
     int call() {
-        assert arguments != null, 'A valid value is required for args'
+        if (arguments == null)
+            return 1
 
         String base = arguments["<base>"] as String
         def run = new RunGraph(new File(base).newReader())

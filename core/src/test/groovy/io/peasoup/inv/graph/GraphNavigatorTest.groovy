@@ -1,12 +1,11 @@
 package io.peasoup.inv.graph
 
-
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 class GraphNavigatorTest {
 
@@ -45,17 +44,17 @@ class GraphNavigatorTest {
         graph.addBroadcastNode(new TestNode(owner: "AA", id: "id4"))
 
         def requiredBy = graph.requiredByAll(new GraphNavigator.Owner (value: "A"))
-        assert requiredBy.containsKey(new GraphNavigator.Id(value: "id1"))
-        assert requiredBy.containsKey(new GraphNavigator.Id(value: "id2"))
-        assert requiredBy.containsKey(new GraphNavigator.Owner(value: "A"))
-        assert requiredBy.containsKey(new GraphNavigator.Owner(value: "B"))
+        assertTrue requiredBy.containsKey(new GraphNavigator.Id(value: "id1"))
+        assertTrue requiredBy.containsKey(new GraphNavigator.Id(value: "id2"))
+        assertTrue requiredBy.containsKey(new GraphNavigator.Owner(value: "A"))
+        assertTrue requiredBy.containsKey(new GraphNavigator.Owner(value: "B"))
 
         def requires = graph.requiresAll(new GraphNavigator.Owner (value: "A"))
 
-        assert requires.containsKey(new GraphNavigator.Id(value: "id1"))
-        assert requires.containsKey(new GraphNavigator.Id(value: "id3"))
-        assert requires.containsKey(new GraphNavigator.Owner(value: "A"))
-        assert requires.containsKey(new GraphNavigator.Owner(value: "B"))
+        assertTrue requires.containsKey(new GraphNavigator.Id(value: "id1"))
+        assertTrue requires.containsKey(new GraphNavigator.Id(value: "id3"))
+        assertTrue requires.containsKey(new GraphNavigator.Owner(value: "A"))
+        assertTrue requires.containsKey(new GraphNavigator.Owner(value: "B"))
 
     }
 
@@ -63,8 +62,8 @@ class GraphNavigatorTest {
     void linkable_toString() {
         def value = "value1"
 
-        assert new GraphNavigator.Id(value:value).toString() == "ID=${value}"
-        assert new GraphNavigator.Owner(value:value).toString() == "Owner=${value}"
+        assertEquals "ID=${value}".toString(), new GraphNavigator.Id(value:value).toString()
+        assertEquals "Owner=${value}".toString(), new GraphNavigator.Owner(value:value).toString()
     }
 
     @Test
@@ -101,10 +100,8 @@ class GraphNavigatorTest {
 
     @Test
     void requiredByAll_not_existing() {
-
         def notExisting = graph.requiredByAll(new GraphNavigator.Id(value: "notexisting"))
-
-        assert notExisting == null
+        assertNull notExisting
     }
 
     @Test
@@ -112,16 +109,13 @@ class GraphNavigatorTest {
         graph.addBroadcastNode(new TestNode(owner: "owner", id: "id"))
 
         def empty = graph.requiredByAll(new GraphNavigator.Id(value: "id"))
-
-        assert empty.isEmpty()
+        assertTrue empty.isEmpty()
     }
 
     @Test
     void requiresAll_not_existing() {
-
         def notExisting = graph.requiresAll(new GraphNavigator.Id(value: "notexisting"))
-
-        assert notExisting == null
+        assertNull notExisting
     }
 
     @Test
@@ -129,35 +123,34 @@ class GraphNavigatorTest {
         graph.addBroadcastNode(new TestNode(owner: "owner", id: "id"))
 
         def notEmpty = graph.requiresAll(new GraphNavigator.Id(value: "id"))
-        assert !notEmpty.isEmpty()
+        assertFalse notEmpty.isEmpty()
 
         def empty = graph.requiresAll(new GraphNavigator.Owner(value: "owner"))
-        assert empty.isEmpty()
+        assertTrue empty.isEmpty()
     }
 
 
     @Test
     void id_notEqual() {
-
-        assert !new GraphNavigator.Id().equals("something")
+        assertFalse new GraphNavigator.Id().equals("something")
 
         def id = new GraphNavigator.Id(value: "1")
 
-        assert !id.equals(null)
-        assert !id.equals([:])
-        assert !id.equals(new GraphNavigator.Id(value: "2"))
+        assertFalse id.equals(null)
+        assertFalse id.equals([:])
+        assertFalse id.equals(new GraphNavigator.Id(value: "2"))
     }
 
     @Test
     void owner_notEqual() {
 
-        assert !new GraphNavigator.Owner().equals("something")
+        assertFalse new GraphNavigator.Owner().equals("something")
 
         def owner = new GraphNavigator.Owner(value: "1")
 
-        assert !owner.equals(null)
-        assert !owner.equals([:])
-        assert !owner.equals(new GraphNavigator.Owner(value: "2"))
+        assertFalse owner.equals(null)
+        assertFalse owner.equals([:])
+        assertFalse owner.equals(new GraphNavigator.Owner(value: "2"))
     }
 
     class TestNode implements GraphNavigator.Node {

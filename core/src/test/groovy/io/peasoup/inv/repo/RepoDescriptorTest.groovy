@@ -5,8 +5,8 @@ import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertEquals
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.Assert.assertTrue
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class RepoDescriptorTest {
@@ -21,9 +21,9 @@ class RepoDescriptorTest {
         repoDesc.name = "repo1"
         repoDesc.loadParametersProperties()
 
-        assert repoDesc.parametersProperties
-        assert repoDesc.parametersProperties["branch"]
-        assert repoDesc.parametersProperties["branch"] == "master"
+        assertNotNull repoDesc.parametersProperties
+        assertNotNull repoDesc.parametersProperties["branch"]
+        assertEquals "master", repoDesc.parametersProperties["branch"]
     }
 
     @Test
@@ -44,29 +44,29 @@ class RepoDescriptorTest {
     @Test
     void properties_file_ok() {
         def parameterFile = new File(Home.getCurrent(), "/test-resources/repo-parameter.json")
-        assert parameterFile.exists()
+        assertTrue parameterFile.exists()
 
         def descriptor = new RepoDescriptor(parameterFile)
         descriptor.name("repo1")
 
-        assert descriptor.propertyMissing("branch") == "my-branch"
+        assertEquals "my-branch", descriptor.propertyMissing("branch")
     }
 
     @Test
     void properties_file_not_ok() {
         def descriptor = new RepoDescriptor()
-        assert descriptor.propertyMissing("branch") == "\${branch}"
+        assertEquals "\${branch}", descriptor.propertyMissing("branch")
     }
 
     @Test
     void properties_file_not_ok_2() {
         def parameterFile = new File(Home.getCurrent(), "/test-resources/repo-parameter.json")
-        assert parameterFile.exists()
+        assertTrue parameterFile.exists()
 
         def descriptor = new RepoDescriptor(parameterFile)
         descriptor.name("not-there")
 
-        assert descriptor.propertyMissing("branch") == "\${branch}"
+        assertEquals "\${branch}", descriptor.propertyMissing("branch")
     }
 
     @Test

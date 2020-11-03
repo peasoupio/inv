@@ -5,6 +5,7 @@ import io.peasoup.inv.Home
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.run.Logger
 import org.apache.commons.validator.routines.UrlValidator
+import spark.utils.StringUtils
 
 @CompileStatic
 class InitCommand implements CliCommand {
@@ -12,11 +13,12 @@ class InitCommand implements CliCommand {
     String initRepoFileLocation
 
     int call() {
-        assert initRepoFileLocation, 'REPO file path is required'
+        if (StringUtils.isEmpty(initRepoFileLocation))
+            return 1
 
         RepoExecutor.RepoExecutionReport report = processREPO()
         if (!report) {
-            return 1
+            return 2
         }
 
         // Change currentHome for current process (and others spawned by composer.Execution

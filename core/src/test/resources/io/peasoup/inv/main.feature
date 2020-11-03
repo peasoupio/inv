@@ -14,7 +14,7 @@ Feature: What is the stdout of my cli options ?
       | run file:/run/main1.groovy file:/run/main2.groovy | 0        | /io/peasoup/inv/main/run/stdout3.txt     |
       | run /run/main*.groovy                             | 0        | /io/peasoup/inv/main/run/stdout4.txt     |
       | run /run/pattern/*.groovy                         | 0        | /io/peasoup/inv/main/run/stdout5.txt     |
-      | run file:/run/main2.groovy                        | 2        | /io/peasoup/inv/main/run/stdout6.txt     |
+      | run file:/run/main2.groovy                        | 3        | /io/peasoup/inv/main/run/stdout6.txt     |
       # GRAPH
       | graph dot file:/graph/run1.txt                    | 0        | /io/peasoup/inv/main/graph/stdout10.txt  |
       # Syntax

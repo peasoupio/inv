@@ -4,6 +4,7 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class BroadcastStatement implements Statement {
@@ -74,6 +75,9 @@ public class BroadcastStatement implements Statement {
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
+
+        private final ReentrantLock lock = new ReentrantLock();
+
         public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastStatement) {
             if (pool == null || broadcastStatement == null)
                 return;
@@ -84,21 +88,27 @@ public class BroadcastStatement implements Statement {
             if (pool.isHalting()) // Do nothing if halting
                 return;
 
+
             Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastStatement.getName());
             if (alreadyBroadcast(channel, broadcastStatement))
                 return;
 
-            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
-            if (alreadyBroadcast(staging, broadcastStatement))
-                return;
+            // Synchronize this part since another thread at the same time
+            // could add the exact same broadcast statement.
+            synchronized (this) {
 
-            broadcastStatement.state = StatementStatus.SUCCESSFUL;
+                Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
+                if (alreadyBroadcast(staging, broadcastStatement))
+                    return;
 
-            Logger.info(broadcastStatement);
+                broadcastStatement.state = StatementStatus.SUCCESSFUL;
 
-            // Staging response
-            BroadcastResponse response = createResponse(broadcastStatement);
-            staging.putIfAbsent(broadcastStatement.getId(), response);
+                Logger.info(broadcastStatement);
+
+                // Staging response
+                BroadcastResponse response = createResponse(broadcastStatement);
+                staging.putIfAbsent(broadcastStatement.getId(), response);
+            }
         }
 
         @SuppressWarnings("unchecked")

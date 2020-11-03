@@ -25,12 +25,11 @@ public class JunitRunner {
         this.newPackage = newPackage;
 
         junit = new JUnitCore();
-        junit.addListener(new TextListener(System.out));
+        junit.addListener(new InvTextListener());
 
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStarImports("org.junit");
         importCustomizer.addStaticStars("org.junit.Assert");
-
 
         groovyLoader = new GroovyLoader(false, "io.peasoup.inv.testing.JunitScriptBase", importCustomizer);
     }
@@ -60,13 +59,6 @@ public class JunitRunner {
 
         Result result = junit.run(classes.toArray(new Class[0]));
 
-        System.out.println("Finished. Result: Failures: " + result.getFailureCount() +
-                ". Ignored: " + result.getIgnoreCount() +
-                ". Tests run: " + result.getRunCount() +
-                ". Time: " + result.getRunTime() + "ms.");
-
         return result.getFailureCount() == 0;
     }
-
-
 }

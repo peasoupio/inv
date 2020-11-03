@@ -16,24 +16,31 @@ import java.util.Map;
 public class YamlRepoHandler {
 
     private final RepoExecutor repoExecutor;
+    private final YamlLoader yamlLoader;
+    private final File yamlFile;
     private final File parametersFile;
 
-    public YamlRepoHandler(RepoExecutor repoExecutor, File parametersFile) {
+    public YamlRepoHandler(RepoExecutor repoExecutor, YamlLoader yamlLoader, File yamlFile, File parametersFile) {
         if (repoExecutor == null) throw new IllegalArgumentException("repoExecutor");
+        if (yamlLoader == null) throw new IllegalArgumentException("yamlLoader");
+        if (yamlFile == null) throw new IllegalArgumentException("yamlFile");
 
         this.repoExecutor = repoExecutor;
+        this.yamlLoader = yamlLoader;
+        this.yamlFile = yamlFile;
         this.parametersFile = parametersFile;
     }
 
-    public void call(YamlLoader.Descriptor yamlLoader) {
+    public void call() throws IOException {
+        YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
-        if (yamlLoader == null ||
-                yamlLoader.getRepo() == null ||
-                yamlLoader.getRepo().isEmpty())
+        if (descriptor == null ||
+                descriptor.getRepo() == null ||
+                descriptor.getRepo().isEmpty())
             return;
 
-        for (YamlRepoDescriptor yamlRepoDescriptor : yamlLoader.getRepo()) {
+        for (YamlRepoDescriptor yamlRepoDescriptor : descriptor.getRepo()) {
 
             final RepoDescriptor repo = new RepoDescriptor(parametersFile);
 
@@ -57,17 +64,17 @@ public class YamlRepoHandler {
 
         // Sets name
         if (StringUtils.isNotEmpty(descriptor.getName()))
-            repo.name(YamlLoader.interpolateString(descriptor.getName(), interpolatable));
+            repo.name(yamlLoader.interpolateString(descriptor.getName(), interpolatable));
         interpolatable.put("name", repo.getName());
 
         // Sets path
         if (StringUtils.isNotEmpty(descriptor.getPath()))
-            repo.path(YamlLoader.interpolateString(descriptor.getPath(), interpolatable));
+            repo.path(yamlLoader.interpolateString(descriptor.getPath(), interpolatable));
         interpolatable.put("path", repo.getPath());
 
         // Sets src
         if (StringUtils.isNotEmpty(descriptor.getSrc()))
-            repo.src(YamlLoader.interpolateString(descriptor.getSrc(), interpolatable));
+            repo.src(yamlLoader.interpolateString(descriptor.getSrc(), interpolatable));
         interpolatable.put("src", repo.getSrc());
 
         parseAsk(descriptor, repo, interpolatable);
@@ -85,13 +92,13 @@ public class YamlRepoHandler {
                 Map<String, Object> options = new HashMap<>();
 
                 if (StringUtils.isNotEmpty(parameter.getDefaultValue()))
-                    options.put("defaultValue", YamlLoader.interpolateString(parameter.getDefaultValue(), interpolatable));
+                    options.put("defaultValue", yamlLoader.interpolateString(parameter.getDefaultValue(), interpolatable));
 
                 if (StringUtils.isNotEmpty(parameter.getCommand()))
-                    options.put("command", YamlLoader.interpolateString(parameter.getCommand(), interpolatable));
+                    options.put("command", yamlLoader.interpolateString(parameter.getCommand(), interpolatable));
 
                 if (parameter.getValues() != null)
-                    options.put("values", YamlLoader.interpolateList(parameter.getValues(), interpolatable));
+                    options.put("values", yamlLoader.interpolateList(parameter.getValues(), interpolatable));
 
                 if (StringUtils.isNotEmpty(parameter.getFilterRegex()))
                     options.put("filterRegex", parameter.getFilterRegex());
@@ -110,16 +117,16 @@ public class YamlRepoHandler {
         if (descriptor.getHooks() != null) {
 
             if (StringUtils.isNotEmpty(descriptor.getHooks().getInit()))
-                repo.getHooks().init(YamlLoader.interpolateString(descriptor.getHooks().getInit(), interpolatable));
+                repo.getHooks().init(yamlLoader.interpolateString(descriptor.getHooks().getInit(), interpolatable));
 
             if (StringUtils.isNotEmpty(descriptor.getHooks().getPull()))
-                repo.getHooks().pull(YamlLoader.interpolateString(descriptor.getHooks().getPull(), interpolatable));
+                repo.getHooks().pull(yamlLoader.interpolateString(descriptor.getHooks().getPull(), interpolatable));
 
             if (StringUtils.isNotEmpty(descriptor.getHooks().getPush()))
-                repo.getHooks().push(YamlLoader.interpolateString(descriptor.getHooks().getPush(), interpolatable));
+                repo.getHooks().push(yamlLoader.interpolateString(descriptor.getHooks().getPush(), interpolatable));
 
             if (StringUtils.isNotEmpty(descriptor.getHooks().getVersion()))
-                repo.getHooks().version(YamlLoader.interpolateString(descriptor.getHooks().getVersion(), interpolatable));
+                repo.getHooks().version(yamlLoader.interpolateString(descriptor.getHooks().getVersion(), interpolatable));
         }
     }
 

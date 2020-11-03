@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NetworkValuablePoolExecutor {
 
     private static final int THREAD_COUNT = 4;
-    private static int count = 0;
 
     private final NetworkValuablePoolEater eater;
     private final Queue<Inv> stack;
@@ -20,6 +19,8 @@ public class NetworkValuablePoolExecutor {
     private final CompletionService<Object> invCompletionService;
 
     private final AtomicInteger working = new AtomicInteger(0);
+
+    private int count = 0;
 
     public NetworkValuablePoolExecutor(NetworkValuablePoolEater eater, List<Inv> invs, Inv.Digestion cycleDigestion, BlockingDeque<PoolReport.PoolError> poolErrors) {
         this.eater = eater;

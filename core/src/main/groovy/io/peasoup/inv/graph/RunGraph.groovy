@@ -85,12 +85,6 @@ class RunGraph {
         logs.close()
     }
 
-    String toPlainList() {
-        return navigator.links().collect {
-            it.value
-        }.join(lf)
-    }
-
     String toDotGraph() {
         StringWriter writer = new StringWriter()
 

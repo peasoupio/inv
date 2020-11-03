@@ -22,7 +22,7 @@ class RepoRunCommand implements CliCommand {
 
     int call() {
         if (!repoFileLocation)
-            return -1
+            return 1
 
         def invExecutor = new InvExecutor()
 
@@ -30,15 +30,15 @@ class RepoRunCommand implements CliCommand {
         if (list) {
             boolean listResult = readListJsonfile(invExecutor)
             if (!listResult)
-                return -1
+                return 2
         } else {
             boolean singleResult = readSinglefile(invExecutor)
             if (!singleResult)
-                return -2
+                return 3
         }
 
         if (!invExecutor.execute().isOk())
-            return -1
+            return 4
 
         return 0
     }

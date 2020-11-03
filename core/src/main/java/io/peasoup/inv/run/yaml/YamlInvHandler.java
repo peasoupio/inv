@@ -5,6 +5,7 @@ import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.*;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,28 +15,32 @@ import java.util.Queue;
 public class YamlInvHandler {
 
     private final InvExecutor invExecutor;
-    private final String yamlPath;
+    private final YamlLoader yamlLoader;
+    private final File yamlFile;
     private final String pwd;
     private final String repo;
 
-    public YamlInvHandler(InvExecutor invExecutor, String yamlPath, String pwd, String repo) {
+    public YamlInvHandler(InvExecutor invExecutor, YamlLoader yamlLoader, File yamlFile, String pwd, String repo) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
-        if (StringUtils.isEmpty(yamlPath)) throw new IllegalArgumentException("scriptPath");
+        if (yamlLoader == null) throw new IllegalArgumentException("yamlLoader");
+        if (yamlFile == null) throw new IllegalArgumentException("yamlFile");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
         this.invExecutor = invExecutor;
-        this.yamlPath = yamlPath;
+        this.yamlLoader = yamlLoader;
+        this.yamlFile = yamlFile;
         this.pwd = pwd;
         this.repo = repo;
     }
 
-    public void call(YamlLoader.Descriptor yamlLoader) throws InvHandler.INVOptionRequiredException {
+    public void call() throws InvHandler.INVOptionRequiredException, IOException {
+        YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
-        if (yamlLoader == null ||
-                yamlLoader.getInv() == null ||
-                yamlLoader.getInv().isEmpty())
+        if (descriptor == null ||
+                descriptor.getInv() == null ||
+                descriptor.getInv().isEmpty())
             return;
 
         Inv.Context context = new Inv.Context(invExecutor.getPool());
@@ -47,9 +52,9 @@ public class YamlInvHandler {
         context.setRepo(repo);
 
         // Set Script filename
-        context.setBaseFilename(yamlPath);
+        context.setBaseFilename(yamlFile.getAbsolutePath());
 
-        for (YamlInvDescriptor yamlInvDescriptor : yamlLoader.getInv()) {
+        for (YamlInvDescriptor yamlInvDescriptor : descriptor.getInv()) {
 
             final Inv inv = context.build();
 
@@ -94,8 +99,9 @@ public class YamlInvHandler {
 
         // Sets tags
         if (descriptor.getTags() != null) {
+
             // Interpolate tags
-            Map interpolated = YamlLoader.interpolateMap(descriptor.getTags(), interpolatable);
+            Map interpolated = yamlLoader.interpolateMap(descriptor.getTags(), interpolatable);
 
             // Sets and add interpolated tags as interpolatable
             delegate.tags(interpolated);
@@ -130,10 +136,10 @@ public class YamlInvHandler {
         BroadcastUsingDescriptor broadcastUsingDescriptor = new BroadcastUsingDescriptor();
 
         if (descriptor.getId() != null)
-            broadcastUsingDescriptor.id(YamlLoader.interpolate(descriptor.getId(), interpolatable));
+            broadcastUsingDescriptor.id(yamlLoader.interpolate(descriptor.getId(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
-            broadcastUsingDescriptor.markdown((String)YamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
+            broadcastUsingDescriptor.markdown((String)yamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getReady()))
             broadcastUsingDescriptor.ready(new LazyYamlClosure(inv, descriptor.getReady()));
@@ -147,10 +153,10 @@ public class YamlInvHandler {
         RequireUsingDescriptor requireUsingDescriptor = new RequireUsingDescriptor();
 
         if (descriptor.getId() != null)
-            requireUsingDescriptor.id(YamlLoader.interpolate(descriptor.getId(), interpolatable));
+            requireUsingDescriptor.id(yamlLoader.interpolate(descriptor.getId(), interpolatable));
 
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
-            requireUsingDescriptor.markdown((String) YamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
+            requireUsingDescriptor.markdown((String) yamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
         if (descriptor.getUnbloatable() != null)
             requireUsingDescriptor.unbloatable(descriptor.getUnbloatable());

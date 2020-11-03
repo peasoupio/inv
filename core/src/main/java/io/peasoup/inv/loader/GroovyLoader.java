@@ -32,16 +32,38 @@ public class GroovyLoader {
      * Some API might be disabled, or key features, such as "packages" might be disabled also.
      */
     public static void enableSecureMode() {
+        Logger.system("[GROOVYLOADER] secure: true");
         systemSecureModeEnabled = true;
     }
+
+    /**
+     * Disables system-wide secure mode.
+     * Some API might be disabled, or key features, such as "packages" might be disabled also.
+     */
+    public static void disableSecureMode() {
+        Logger.system("[GROOVYLOADER] secure: false");
+        systemSecureModeEnabled = false;
+    }
+
     private static boolean systemSecureModeEnabled = false;
 
     /**
      * Enables SystemClassloader.
      * It allows GrabConfig(systemClassLoader=true).
      */
-    public static void enableSystemClassloader() { systemClassloaderEnabled = true; }
+    public static void enableSystemClassloader() {
+        Logger.system("[GROOVYLOADER] system: true");
+        systemClassloaderEnabled = true; }
+
+    /**
+     * Disables SystemClassloader.
+     * It allows GrabConfig(systemClassLoader=true).
+     */
+    public static void disableSystemClassloader() {
+        Logger.system("[GROOVYLOADER] system: false");
+        systemClassloaderEnabled = false; }
     private static boolean systemClassloaderEnabled = false;
+
 
     private final boolean secureMode;
     private final boolean systemClassloader;
@@ -95,12 +117,9 @@ public class GroovyLoader {
         compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
 
         ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
-        if (systemClassloader) {
+        if (systemClassloader)
             loaderToUse = ClassLoader.getSystemClassLoader();
-            Logger.system("[CLASSLOADER] system: true");
-        } else {
-            Logger.system("[CLASSLOADER] system: false");
-        }
+
 
         // Apply SecureAST to all (de)compilers
         applySecureASTConfigs(securedCompilerConfiguration);

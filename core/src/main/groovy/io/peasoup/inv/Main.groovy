@@ -3,6 +3,8 @@ package io.peasoup.inv
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
 import io.peasoup.inv.loader.GroovyLoader
+import io.peasoup.inv.repo.RepoInvoker
+import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
@@ -61,10 +63,18 @@ class Main extends Script {
         // Enable secure mode
         if (arguments["--secure"])
             GroovyLoader.enableSecureMode()
+        else
+            GroovyLoader.disableSecureMode()
 
         // Enable SystemClassLoader
         if (System.getProperty("java.system.class.loader"))
             GroovyLoader.enableSystemClassloader()
+        else
+            GroovyLoader.disableSystemClassloader()
+
+        // Create caches for invokers
+        InvInvoker.newCache()
+        RepoInvoker.newCache()
 
         // Do system checks
         if (SystemInfo.consistencyFails()) {
@@ -157,7 +167,7 @@ Usage:
   inv init [-d | -x] [-s] <repoFile>
   inv promote [<runIndex>] 
   inv delta <base> <other>
-  inv graph (plain|dot) <base>
+  inv graph (dot) <base>
   
 Options:
   run          Load and execute INV files.
@@ -202,7 +212,6 @@ Parameters:
                location.
   <base>       Base file location
   <other>      Other file location
-  plain        No specific output structure
   dot          Graph Description Language (DOT) output structure
 """
     }

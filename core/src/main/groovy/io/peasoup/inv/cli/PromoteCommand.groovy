@@ -23,14 +23,14 @@ class PromoteCommand implements CliCommand {
 
         if (!toPromote.exists()) {
             Logger.warn "You attempt to promote a non-existing run"
-            return -1
+            return 1
         }
 
         def runFile = new File(toPromote, "run.txt")
 
         if (!runFile.exists()) {
             Logger.warn "run.txt does not exist in the run folder to promote"
-            return -2
+            return 2
         }
 
         Files.copy(runFile.toPath(), new File(Home.getCurrent(), "run.txt").toPath(), StandardCopyOption.REPLACE_EXISTING)

@@ -1,0 +1,47 @@
+GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+strict digraph G {
+  1 [ label="ServerA" ];
+  2 [ label="[Server] [name:server-a]" ];
+  3 [ label="ServerB" ];
+  4 [ label="[Server] [name:server-b]" ];
+  5 [ label="IIS" ];
+  6 [ label="[IIS] undefined" ];
+  7 [ label="Kubernetes" ];
+  8 [ label="[Kubernetes] undefined" ];
+  9 [ label="appA" ];
+  10 [ label="appB" ];
+  11 [ label="[App] [id=AppA]" ];
+  12 [ label="[App] [id=AppB]" ];
+  13 [ label="files" ];
+  14 [ label="[Files] undefined" ];
+  15 [ label="maven" ];
+  16 [ label="[Maven] undefined" ];
+  17 [ label="my-app-1" ];
+  18 [ label="my-app-2" ];
+  19 [ label="[Artifact] com.mycompany.app:my-app-1" ];
+  20 [ label="[Artifact] com.mycompany.app:my-app-2" ];
+  21 [ label="removed" ];
+  22 [ label="[Artifact] com.mycompany.app:my-app-3" ];
+  2 -> 1;
+  4 -> 3;
+  5 -> 2;
+  6 -> 5;
+  7 -> 2;
+  8 -> 7;
+  9 -> 8;
+  10 -> 6;
+  11 -> 9;
+  12 -> 10;
+  14 -> 13;
+  15 -> 14;
+  16 -> 15;
+  17 -> 16;
+  18 -> 16;
+  19 -> 17;
+  20 -> 18;
+  18 -> 19;
+  22 -> 21;
+}

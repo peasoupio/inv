@@ -84,8 +84,14 @@ public final class Logger {
         StackTraceUtils.sanitize(throwable).printStackTrace();
     }
 
+    public static void trace(String s) {
+        send(s);
+
+        System.out.print(s);
+    }
+
     @SuppressWarnings("unchecked")
-    public static Object capture(Object value) {
+    public static <T> T capture(T value) {
 
         // Reset both so only one works at the time
         captureClosure = null;
@@ -110,4 +116,6 @@ public final class Logger {
         captureQueue = null;
         captureClosure = null;
     }
+
+
 }

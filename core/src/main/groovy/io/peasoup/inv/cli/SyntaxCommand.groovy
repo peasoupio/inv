@@ -16,7 +16,7 @@ class SyntaxCommand implements CliCommand {
     int call() {
         assert patterns != null, 'A valid value is required for patterns'
         if (patterns.isEmpty())
-            return -1
+            return 1
 
         // Handle excluding patterns
         def excludePatterns = [".runs/*"]
@@ -42,7 +42,7 @@ class SyntaxCommand implements CliCommand {
             }
         }
 
-        return succeeded? 0 : -2
+        return succeeded? 0 : 2
     }
 
     boolean rolling() {

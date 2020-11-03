@@ -17,14 +17,14 @@ class RepoGetCommand implements CliCommand {
 
     int call() {
         if (!repoUrl)
-            return -1
+            return 1
 
         if (!UrlValidator.instance.isValid(repoUrl))
-            return -2
+            return 2
 
         HttpURLConnection repoConn = (HttpURLConnection)new URL(repoUrl).openConnection()
         if (!HttpURLConnection.HTTP_OK.equals(repoConn.getResponseCode()))
-            return -3
+            return 3
 
         String repoFileContent = repoConn.inputStream.text
 

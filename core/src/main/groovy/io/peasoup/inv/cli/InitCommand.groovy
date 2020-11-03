@@ -16,7 +16,7 @@ class InitCommand implements CliCommand {
 
         RepoExecutor.RepoExecutionReport report = processREPO()
         if (!report) {
-            return -1
+            return 1
         }
 
         // Change currentHome for current process (and others spawned by composer.Execution

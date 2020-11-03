@@ -17,9 +17,19 @@ public class RepoInvoker {
 
     public static final List<String> DEFAULT_EXCLUDED = Collections.unmodifiableList(Arrays.asList(".runs/*", "*.json" ));
 
-    private static final GroovyLoader loader = new GroovyLoader();
+    private static GroovyLoader groovyLoader;
+    private static YamlLoader yamlLoader;
 
     private RepoInvoker() {
+        // empty ctor
+    }
+
+    /**
+     * Clear existing loader and create a new instance.
+     */
+    public static void newCache() {
+        groovyLoader = new GroovyLoader();
+        yamlLoader = new YamlLoader();
     }
 
     /**
@@ -38,6 +48,9 @@ public class RepoInvoker {
      * @param parametersFile Parameters file to load with the REPO
      */
     public static void invoke(RepoExecutor repoExecutor, File scriptFile, File parametersFile) {
+        if (groovyLoader == null || yamlLoader == null)
+            throw new IllegalStateException("loader has no cache");
+
         if (repoExecutor == null) {
             throw new IllegalArgumentException("repoExecutor");
         }
@@ -71,10 +84,12 @@ public class RepoInvoker {
         // Create YAML handler
         YamlRepoHandler yamlInvHandler = new YamlRepoHandler(
                 repoExecutor,
+                yamlLoader,
+                scriptFile,
                 parametersFile);
 
         try {
-            yamlInvHandler.call(YamlLoader.parseYaml(scriptFile));
+            yamlInvHandler.call();
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -102,7 +117,7 @@ public class RepoInvoker {
         // Parse new class
         Script myNewScript = null;
         try {
-            myNewScript = loader.parseScriptFile(repoFile);
+            myNewScript = groovyLoader.parseScriptFile(repoFile);
         } catch (Exception ex) {
             Logger.error(ex);
         }

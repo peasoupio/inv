@@ -2,6 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.graph.DeltaGraph
+import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class DeltaCommand implements CliCommand {
@@ -18,13 +19,7 @@ class DeltaCommand implements CliCommand {
                 new File(other).newReader())
         delta.resolve()
 
-        /*
-        if (args.hasHtml)
-            print(delta.html(arg1.name))
-        else
-        */
-
-        print(delta.echo())
+        Logger.trace(delta.echo())
 
         return 0
     }

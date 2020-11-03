@@ -15,13 +15,13 @@ import java.util.*;
 
 public class YamlLoader {
 
-    private static final TemplateEngine engine = new GStringTemplateEngine();
-    private static final Yaml yaml = new Yaml(new Constructor(YamlLoader.Descriptor.class));
+    private final TemplateEngine engine;
+    private final Yaml yaml;
 
-    private YamlLoader() {
-        // private ctor
+    public YamlLoader() {
+        this.engine = new GStringTemplateEngine();
+        this.yaml = new Yaml(new Constructor(YamlLoader.Descriptor.class));
     }
-
 
     /**
      * Parse a Yaml script file
@@ -29,11 +29,11 @@ public class YamlLoader {
      * @return A new YamlLoader.Descriptor instance
      * @throws IOException
      */
-    public static YamlLoader.Descriptor parseYaml(File scriptFile) throws IOException {
+    public YamlLoader.Descriptor parseYaml(File scriptFile) throws IOException {
         return yaml.load(ResourceGroovyMethods.newReader(scriptFile));
     }
 
-    public static Object interpolate(Object receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
+    public Object interpolate(Object receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
         if (receiver instanceof String)
             return interpolateString((String)receiver, data);
 
@@ -43,7 +43,7 @@ public class YamlLoader {
         return receiver;
     }
 
-    public static Map<String, String> interpolateMap(Map receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
+    public Map<String, String> interpolateMap(Map receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
         if (receiver.isEmpty())
             return new HashMap<>();
 
@@ -67,7 +67,7 @@ public class YamlLoader {
         return interpolated;
     }
 
-    public static List interpolateList(List receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
+    public List interpolateList(List receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
         List interpolatedValues = new ArrayList<>();
 
         // Iterate through elements
@@ -78,7 +78,7 @@ public class YamlLoader {
         return interpolatedValues;
     }
 
-    public static String interpolateString(String receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
+    public String interpolateString(String receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
         if (StringUtils.isEmpty(receiver))
             return receiver;
 

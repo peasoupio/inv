@@ -1,5 +1,5 @@
 inv {
-    name "inv1"
+    name "consumer"
 
     require $inv.Element
 }

@@ -26,8 +26,8 @@ public class RunsRoller {
      */
     public static RunsRoller getLatest() {
         // Make sure .runs/ exists
-        if (runsFolder().mkdirs())
-            Logger.system("Created runs (./runs) folder");
+        if (!runsFolder().mkdirs() && !runsFolder().exists())
+            Logger.warn("Could not create runs (./runs) folder");
 
         return latest;
     }

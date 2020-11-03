@@ -1,0 +1,48 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+Test  : ok(to.refactor.to_refactor)
+Run:
+---- [DIGEST] opened ----
+[STATEMENT] [provider] => [BROADCAST] [Element] undefined [INIT]
+[undefined] [.*\testing\inv1.groovy] [provider]
+[STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
+[undefined] [.*\testing\inv2.groovy] [consumer]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[EXECUTOR] scheduling: #2
+[provider] => [BROADCAST] [Element] undefined
+[POOL] available:0 , staged:1
+[POOL] inv: provider COMPLETED
+---- [DIGEST] #2 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[consumer] => [REQUIRE] [Element] undefined
+[POOL] inv: consumer COMPLETED
+---- [DIGEST] completed ----
+Completed INV(s): 2
+Uncompleted INV(s): 0
+Test  : missing_element(to.refactor.to_refactor)
+Run:
+---- [DIGEST] opened ----
+[STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
+[undefined] [.*\testing\inv2.groovy] [consumer]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+nothing done
+---- [DIGEST] #2 (state=UNBLOATING) ----
+nothing unbloated
+---- [DIGEST] completed ----
+Completed INV(s): 0
+Uncompleted INV(s): 1
+Incompleted INV(s):
+- [consumer] has 1 statement(s) and has 0 when criteria(s) left:
+	1 requirement(s):
+		[NOT MATCHED] [consumer] => [REQUIRE] [Element] undefined
+Finished. Result:
+. Failures: 1
+. Ignored: 0
+. Tests run: 2
+. Time: .*ms

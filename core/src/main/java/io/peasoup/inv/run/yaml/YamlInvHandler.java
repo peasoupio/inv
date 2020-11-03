@@ -45,6 +45,9 @@ public class YamlInvHandler {
 
         Inv.Context context = new Inv.Context(invExecutor.getPool());
 
+        // Set default name
+        context.setDefaultName(yamlFile.getName().split("\\.")[0]);
+
         // Set default path
         context.setDefaultPath(pwd);
 

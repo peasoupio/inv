@@ -15,6 +15,7 @@ Feature: What is the stdout of my cli options ?
       | run /run/main*.groovy                                          | 0        | /io/peasoup/inv/main/run/stdout4.txt     |
       | run /run/pattern/*.groovy                                      | 0        | /io/peasoup/inv/main/run/stdout5.txt     |
       | run file:/run/main2.groovy                                     | 3        | /io/peasoup/inv/main/run/stdout6.txt     |
+      | run file:/run/main3.yml                                        | 0        | /io/peasoup/inv/main/run/stdout7.txt     |
       # GRAPH
       | graph dot file:/graph/run1.txt                                 | 0        | /io/peasoup/inv/main/graph/stdout10.txt  |
       # Syntax
@@ -26,4 +27,4 @@ Feature: What is the stdout of my cli options ?
       | test file:/test/success.groovy                                 | 0        | /io/peasoup/inv/main/test/stdout30.txt   |
       | test file:/test/failed.groovy                                  | 2        | /io/peasoup/inv/main/test/stdout31.txt   |
       # Repo
-      | repo get -r url:/peasoupio/inv-repo/master/net/http/scm.groovy | 0        | /io/peasoup/inv/main/repo/stdout40.txt   |
+      | repo get -r url:/peasoupio/inv-repo/master/net/http/scm.yml | 0        | /io/peasoup/inv/main/repo/stdout40.txt   |

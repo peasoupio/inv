@@ -1,0 +1,6 @@
+inv:
+  - workflow:
+      - broadcast:
+            name: Provider
+      - require:
+            name: Provider

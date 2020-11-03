@@ -3,12 +3,12 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[REPO] script: io.peasoup.net.http, parameter: D:\workspace\inv\inv\core\.\scm.json
-[REPO] name: io.peasoup.net.http, path: .*\.repo\io.peasoup.net.http [INIT] start
+[REPO] script: io.peasoup.public.net.http, parameter: D:\workspace\inv\inv\core\.\scm.json
+[REPO] name: io.peasoup.public.net.http, path: .*\.repo\io.peasoup.public.net.http [INIT] start
 [REPO] cmd /c  .*
-[REPO] name: io.peasoup.net.http, path: .*\.repo\io.peasoup.net.http [INIT] done
+[REPO] name: io.peasoup.public.net.http, path: .*\.repo\io.peasoup.net.http [INIT] done
 [STATEMENT] [Script5RPEJUYsU] => [BROADCAST] [HTTP] undefined [INIT]
-[io.peasoup.net.http] [.*\.repo\io.peasoup.net.http\net\http\vars\inv.groovy] [Script.*]
+[io.peasoup.net.http] [.*\.repo\io.peasoup.public.net.http\net\http\vars\inv.groovy] [Script.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1

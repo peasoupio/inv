@@ -27,6 +27,6 @@ class ComposerCommand implements CliCommand {
     }
 
     boolean rolling() {
-        return false
+        return true
     }
 }

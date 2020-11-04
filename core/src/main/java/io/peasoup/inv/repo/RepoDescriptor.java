@@ -3,16 +3,14 @@ package io.peasoup.inv.repo;
 import groovy.json.JsonSlurper;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import io.peasoup.inv.Home;
 import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
@@ -29,38 +27,61 @@ public class RepoDescriptor {
     public static final String DEFAULT_PATH = ".inv";
     public static final Integer DEFAULT_TIMEOUT = 30000;
 
-    private final HookDescriptor hooks = new HookDescriptor();
-    private final AskDescriptor ask = new AskDescriptor();
+    private static final String NAME_REGEX = "^[\\w-\\.]*$";
+    private static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEX);
+
+    private final File scriptFile;
     private final File parametersFile;
     private final Map<String, Object> parametersProperties;
+    private final HookDescriptor hooks;
+    private final AskDescriptor ask;
 
     private String name;
     private String path = DEFAULT_PATH;
     private String src;
     private Integer timeout = DEFAULT_TIMEOUT;
 
-    public RepoDescriptor(File parametersFile) {
-        this.parametersProperties = new LinkedHashMap<>();
+    private File repoPath;
+    private File completeRepoPath;
 
+
+    public RepoDescriptor(File scriptFile, File parametersFile) {
+        if (scriptFile == null)
+            throw new IllegalArgumentException("scriptFile");
+
+        this.scriptFile = scriptFile;
         this.parametersFile = parametersFile;
+        this.parametersProperties = new LinkedHashMap<>();
+        this.hooks = new HookDescriptor();
+        this.ask = new AskDescriptor();
     }
 
-    public RepoDescriptor() {
-        this(null);
+    public RepoDescriptor(File scriptFile) {
+        this(scriptFile,null);
     }
 
     public void name(String value) {
         if (StringUtils.isEmpty(value))
             throw new IllegalArgumentException("value");
 
+        if (!NAME_PATTERN.matcher(value).matches())
+            throw new IllegalArgumentException("value must match the following regex: " + NAME_REGEX);
+
         this.name = value;
+
+        generateRepoPaths();
     }
 
     public void path(String value) {
         if (StringUtils.isEmpty(value))
             throw new IllegalArgumentException("value");
 
+        if (new File(value).isAbsolute())
+            throw new IllegalArgumentException("path cannot be absolute");
+
         this.path = value;
+
+        generateRepoPaths();
     }
 
     public void src(String value) {
@@ -170,12 +191,27 @@ public class RepoDescriptor {
     }
 
     public File getRepoPath() {
-        return new File(Home.getCurrent(), ".repo/" + name);
+        return this.repoPath;
     }
 
     public File getRepoCompletePath() {
-        return new File(Home.getCurrent(), ".repo/" + name + "/" + path);
+        return this.completeRepoPath;
     }
+
+    private void generateRepoPaths() {
+        this.repoPath = new File(
+            scriptFile.getParentFile(),
+            //".repos" +
+            //File.separator +
+            scriptFile.getName().split("\\.")[0] +
+            "@" +
+            name
+        );
+
+        this.completeRepoPath = new File(this.repoPath,
+                path);
+    }
+
 
     public static Map<String, String> getEnv() {
         return env;

@@ -3,6 +3,7 @@ package io.peasoup.inv.repo
 import io.peasoup.inv.TempHome
 import io.peasoup.inv.run.Logger
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -12,12 +13,15 @@ import static org.junit.jupiter.api.Assertions.*
 class RepoInvokerTest {
 
     RepoExecutor repoExecutor
-    RepoHandler repoHandler
+
+    @BeforeClass
+    static void init() {
+        RepoInvoker.newCache()
+    }
 
     @Before
     void setup() {
         repoExecutor = new RepoExecutor()
-        repoHandler = new RepoHandler(repoExecutor)
     }
 
     @Test

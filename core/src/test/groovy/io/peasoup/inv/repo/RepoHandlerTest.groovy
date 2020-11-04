@@ -1,19 +1,27 @@
 package io.peasoup.inv.repo
 
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.*
 
 class RepoHandlerTest {
 
+    File scriptFile
     RepoExecutor executor
     RepoHandler repo
 
+    @BeforeClass
+    static void init() {
+        RepoInvoker.newCache()
+    }
+
     @Before
     void setup() {
+        scriptFile = new File("dummy-repo.yml")
         executor = new RepoExecutor()
-        repo = new RepoHandler(executor)
+        repo = new RepoHandler(executor, scriptFile)
     }
 
     @Test
@@ -55,7 +63,11 @@ class RepoHandlerTest {
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            new RepoHandler(null)
+            new RepoHandler(null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new RepoHandler(null, new File("dummy-repo.yml"))
         })
     }
 

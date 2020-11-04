@@ -3,28 +3,27 @@ Feature: What is the stdout of my cli options ?
 
   Scenario Outline: Options are valid
     Given cli options "<cliOptions>"
-    When I execute the cli options
+    When I execute the cli options upon the working directory "<workingDir>"
     Then I should be told the exitCode "<exitCode>" AND stdout log file "<stdoutLogFile>"
 
     Examples:
-      | cliOptions                                                     | exitCode | stdoutLogFile                            |
+      | cliOptions                                                   | workingDir             | exitCode | stdoutLogFile                                      |
       # RUN OPTION
-      | run file:/run/main1.groovy                                     | 0        | /io/peasoup/inv/main/run/stdout1.txt     |
-      | run -s file:/run/main1.groovy                                  | 0        | /io/peasoup/inv/main/run/stdout2.txt     |
-      | run file:/run/main1.groovy file:/run/main2.groovy              | 0        | /io/peasoup/inv/main/run/stdout3.txt     |
-      | run /run/main*.groovy                                          | 0        | /io/peasoup/inv/main/run/stdout4.txt     |
-      | run /run/pattern/*.groovy                                      | 0        | /io/peasoup/inv/main/run/stdout5.txt     |
-      | run file:/run/main2.groovy                                     | 3        | /io/peasoup/inv/main/run/stdout6.txt     |
-      | run file:/run/main3.yml                                        | 0        | /io/peasoup/inv/main/run/stdout7.txt     |
+      | run main1.groovy                                             | file:/run              | 0        | /io/peasoup/inv/main/run/stdout1.txt               |
+      | run -s main1.groovy                                          | file:/run              | 0        | /io/peasoup/inv/main/run/stdout2.txt               |
+      | run main1.groovy main2.groovy                                | file:/run              | 0        | /io/peasoup/inv/main/run/stdout3.txt               |
+      | run main*.groovy                                             | file:/run              | 0        | /io/peasoup/inv/main/run/stdout4.txt               |
+      | run pattern/*.groovy                                         | file:/run              | 0        | /io/peasoup/inv/main/run/stdout5.txt               |
+      | run main2.groovy                                             | file:/run              | 3        | /io/peasoup/inv/main/run/stdout6.txt               |
+      | run main3.yml                                                | file:/run              | 0        | /io/peasoup/inv/main/run/stdout7.txt               |
       # GRAPH
-      | graph dot file:/graph/run1.txt                                 | 0        | /io/peasoup/inv/main/graph/stdout10.txt  |
+      | graph file:/graph/run1.txt                                   |                        | 0        | /io/peasoup/inv/main/graph/stdout10.txt            |
       # Syntax
-      | syntax file:/syntax/valid.groovy                               | 0        | /io/peasoup/inv/main/syntax/stdout15.txt |
-      | syntax file:/syntax/invalid.groovy                             | 2        | /io/peasoup/inv/main/syntax/stdout16.txt |
+      | syntax file:/syntax/valid.groovy                             |                        | 0        | /io/peasoup/inv/main/syntax/stdout15.txt           |
+      | syntax file:/syntax/invalid.groovy                           |                        | 2        | /io/peasoup/inv/main/syntax/stdout16.txt           |
       # Delta
-      | delta file:/delta/run1.txt file:/delta/run1.txt                | 0        | /io/peasoup/inv/main/delta/stdout20.txt  |
-      # Test
-      | test file:/test/success.groovy                                 | 0        | /io/peasoup/inv/main/test/stdout30.txt   |
-      | test file:/test/failed.groovy                                  | 2        | /io/peasoup/inv/main/test/stdout31.txt   |
+      | delta file:/delta/run1.txt file:/delta/run1.txt              |                        | 0        | /io/peasoup/inv/main/delta/stdout20.txt            |
       # Repo
-      | repo get -r url:/peasoupio/inv-repo/master/net/http/scm.yml | 0        | /io/peasoup/inv/main/repo/stdout40.txt   |
+      | repo get -r url:/peasoupio/inv-repo/master/net/http/repo.yml |                        | 0        | /io/peasoup/inv/main/repo/stdout40.txt             |
+      | repo test                                                    | file:/repo/testsuccess | 0        | /io/peasoup/inv/main/repo/testsuccess/stdout30.txt |
+      | repo test                                                    | file:/repo/testfailed  | 2        | /io/peasoup/inv/main/repo/testfailed/stdout31.txt  |

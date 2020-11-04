@@ -4,6 +4,7 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import io.peasoup.inv.run.Logger
+import spark.utils.StringUtils
 
 import static org.junit.Assert.assertEquals
 
@@ -23,17 +24,18 @@ class MainTest {
 
         options = cliOptions.split(" ")
         for (i in 0..<options.length) {
-            if (options[i].startsWith("file:/"))
-                options[i] = options[i].replace("file:/" ,resourceDir)
-
-            if (options[i].startsWith("url:/"))
-                options[i] = options[i].replace("url:/" ,"https://raw.githubusercontent.com/")
+            options[i] = interpolate(options[i])
         }
     }
 
-    @When("I execute the cli options")
-    void i_execute_the_cli_options() {
+    @When("I execute the cli options upon the working directory {string}")
+    void i_execute_the_cli_options(String workingDir) {
         logs = Logger.capture(new LinkedList())
+
+        // Set current home if not empty (otherwise use default)
+        if (StringUtils.isNotEmpty(workingDir))
+            Home.setCurrent(new File(interpolate(workingDir)))
+
         Main.start(options)
     }
     @Then("I should be told the exitCode {string} AND stdout log file {string}")
@@ -61,4 +63,16 @@ class MainTest {
 
         }
     }
+
+    private String interpolate(String value) {
+        if (value.startsWith("file:/"))
+            value = value.replace("file:/" ,resourceDir)
+
+        if (value.startsWith("url:/"))
+            value = value.replace("url:/" ,"https://raw.githubusercontent.com/")
+
+        return value
+    }
+
+
 }

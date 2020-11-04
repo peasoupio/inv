@@ -42,7 +42,7 @@ public class YamlRepoHandler {
 
         for (YamlRepoDescriptor yamlRepoDescriptor : descriptor.getRepo()) {
 
-            final RepoDescriptor repo = new RepoDescriptor(parametersFile);
+            final RepoDescriptor repo = new RepoDescriptor(yamlFile, parametersFile);
 
             try {
                 // Parse descriptor into inv object

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*
 @RunWith(TempHome.class)
 class RepoFileCollectionTest {
 
-    String base = "../examples/composer/repos/"
+    String base = "../examples/composer/.repos/"
     RepoFileCollection repoFileCollection
 
     @Before

@@ -3,7 +3,7 @@ package io.peasoup.inv.composer.api
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.SystemInfo
-import io.peasoup.inv.cli.InitCommand
+import io.peasoup.inv.cli.InitRunCommand
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.repo.HookExecutor
@@ -154,8 +154,8 @@ class SystemAPI {
             if (!(webServer.webServerConfigs.initFile instanceof String))
                 return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
 
-            // Reuse InitCommand to pull init file
-            InitCommand initCommand = new InitCommand(initRepoFileLocation: webServer.webServerConfigs.initFile as String)
+            // Reuse InitRunCommand to pull init file
+            InitRunCommand initCommand = new InitRunCommand(initRepoFileLocation: webServer.webServerConfigs.initFile as String)
             def report = initCommand.processREPO()
 
             if (!report)

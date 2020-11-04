@@ -1,8 +1,9 @@
 @Test
 void ok() {
+
     simulate(
-        "/testing/inv1.groovy",
-        "/testing/inv2.groovy"
+        "/resources/test/inv1.groovy",
+        "/resources/test/inv2.groovy"
     )
 
     assertTrue isOk
@@ -12,7 +13,7 @@ void ok() {
 @Test
 void missing_element() {
     simulate(
-        "/testing/inv2.groovy"
+        "/resources/test/inv2.groovy"
     )
 
     assertFalse isOk

@@ -2,14 +2,10 @@ package io.peasoup.inv.loader;
 
 import io.peasoup.fgroup.FileMatches;
 import io.peasoup.fgroup.FileSeeker;
-import io.peasoup.inv.run.InvInvoker;
-import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,9 +49,9 @@ public class FgroupLoader {
             invMatches.getInvFiles().add(match.getCurrent());
         }
 
-        // Add scm file
-        for(FileMatches.FileMatchRecord match : fileMatches.get("scmFile")) {
-            invMatches.setScmFile(match.getCurrent());
+        // Add repo file
+        for(FileMatches.FileMatchRecord match : fileMatches.get("repoFile")) {
+            invMatches.setRepoFile(match.getCurrent());
         }
 
         return invMatches;
@@ -66,7 +62,7 @@ public class FgroupLoader {
         private final List<Path> groovyFiles;
         private final List<Path> groovyTestFiles;
         private final List<Path> invFiles;
-        private Path scmFile;
+        private Path repoFile;
 
         public InvMatches(String rootPath) {
             if (StringUtils.isEmpty(rootPath))
@@ -94,12 +90,12 @@ public class FgroupLoader {
             return invFiles;
         }
 
-        public void setScmFile(Path scmFile) {
-            this.scmFile = scmFile;
+        public void setRepoFile(Path repoFile) {
+            this.repoFile = repoFile;
         }
 
-        public Path getScmFile() {
-            return scmFile;
+        public Path getRepoFile() {
+            return repoFile;
         }
     }
 }

@@ -2,6 +2,7 @@ package io.peasoup.inv.testing;
 
 import groovy.lang.Closure;
 import groovy.lang.Script;
+import io.peasoup.inv.Home;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
 import io.peasoup.inv.run.InvInvoker;
@@ -55,7 +56,7 @@ public abstract class JunitScriptBase extends Script {
     private void loadInvScriptfile(String invScriptfile) {
         if (StringUtils.isEmpty(invScriptfile)) throw new IllegalArgumentException("Inv must be a valid non-null, non-empty value");
 
-        File invFile = new File(invScriptfile);
+        File invFile = new File(Home.getCurrent(), invScriptfile);
 
         if (!invFile.exists()) {
             String testClassLocation = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();

@@ -361,7 +361,6 @@ public class GroovyLoader {
 
     private CompilerConfiguration applySecureASTConfigs(CompilerConfiguration compilerConfiguration) {
         SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
-        secureASTCustomizer.setPackageAllowed(false);
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
 
         compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);

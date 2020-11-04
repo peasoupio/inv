@@ -1,7 +1,6 @@
 repo {
     name "main" // The name 'main' is mandatory.
 
-    path "${env.TEMP ?: '/tmp'}/inv/init" // Change for your need
     src "https://github.com/peasoupio/inv.git"
 
     hooks {

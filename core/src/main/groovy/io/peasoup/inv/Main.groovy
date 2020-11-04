@@ -115,18 +115,22 @@ class Main extends Script {
                 return new RepoRunCommand(
                         repoFileLocation: arguments["<repoFile>"] as String,
                         list: arguments["--list"] as Boolean)
+            if (arguments["test"])
+                return new RepoTestCommand()
             if (arguments["create"]) {
                 return new RepoCreateCommand()
             }
         }
 
+        if (arguments["init"]) {
+            if (arguments["run"])
+                return new InitRunCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
+            if (arguments["create"])
+                return new InitCreateCommand()
+        }
+
         if (arguments["run"])
             return new RunCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["test"])
-            return new TestCommand(
                     patterns: arguments["<include>"] as List<String>,
                     exclude: arguments["--exclude"] as String ?: "")
 
@@ -146,9 +150,6 @@ class Main extends Script {
         if (arguments["composer"])
             return new ComposerCommand()
 
-        if (arguments["init"])
-            return new InitCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
-
         if (arguments["promote"])
             return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
 
@@ -159,23 +160,25 @@ class Main extends Script {
         return """Inv, version: ${SystemInfo.version()}.
 
 Usage:
-  inv (run|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv (run|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
   inv repo get [-d | -x] [-s] [-p] [-r] <repoUrl>
   inv repo run [-d | -x] [-s] [-l] <repoFile>
+  inv repo test [-d | -x] [-s]
   inv repo create
   inv composer [-d | -x] [-s]
-  inv init [-d | -x] [-s] <repoFile>
+  inv init run [-d | -x] [-s] <repoFile>
+  inv init create
   inv promote [<runIndex>] 
   inv delta <base> <other>
-  inv graph (dot) <base>
+  inv graph <base>
   
 Options:
   run          Load and execute INV files.
-  test         Load and execute a unit test script
   syntax       Test the syntax of an INV or REPO file.
-  repo         Get, run or create a REPO folder.
+  repo         Create, get, run or test a REPO folder.
   composer     Start Composer dashboard
-  init         Start Composer dashboard from an REPO file.
+  init         Start Composer dashboard from an REPO file
+               or create an empty Git init repository.
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
@@ -212,7 +215,6 @@ Parameters:
                location.
   <base>       Base file location
   <other>      Other file location
-  dot          Graph Description Language (DOT) output structure
 """
     }
 

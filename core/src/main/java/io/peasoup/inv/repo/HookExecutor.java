@@ -106,13 +106,13 @@ public class HookExecutor {
         // #!/bin/bash
         String currentCommands = commands;
         String program = DEFAULT_SHEBANG_UNIX;
-        String extention = DEFAULT_UNIX_EXTENSION;
+        String extension = DEFAULT_UNIX_EXTENSION;
         List<String> envs = RepoDescriptor.getCurrentOSSet();
 
         if (System.getProperty("os.name").startsWith("Windows")) {
             currentCommands = "@ECHO OFF" + System.lineSeparator() + currentCommands;
             program = DEFAULT_SHEBANG_WINDOW;
-            extention = DEFAULT_WINDOWS_EXTENSION;
+            extension = DEFAULT_WINDOWS_EXTENSION;
         } else {
             int indexOfFirstNewline = commands.indexOf('\n');
             if (indexOfFirstNewline > -1) {
@@ -126,7 +126,7 @@ public class HookExecutor {
         }
 
         // Create file and dirs for the SH file
-        File shFile = new File(repository.getRepoPath().getParentFile(), randomSuffix() + extention);
+        File shFile = new File(repository.getRepoPath().getParentFile(), randomSuffix() + extension);
 
         // Write the commands into the script file
         try {

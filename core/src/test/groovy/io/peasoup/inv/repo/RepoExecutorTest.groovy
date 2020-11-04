@@ -1,25 +1,27 @@
 package io.peasoup.inv.repo
 
+import io.peasoup.inv.Home
+import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertNotNull
 
+@RunWith(TempHome.class)
 class RepoExecutorTest {
 
     RepoExecutor repoExecutor
-    RepoHandler repoHandler
 
     @Before
     void setup() {
         repoExecutor = new RepoExecutor()
-        repoHandler = new RepoHandler(repoExecutor)
     }
 
     @Test
     void hooks_undefined() {
-        RepoDescriptor desc = new RepoDescriptor()
+        RepoDescriptor desc = new RepoDescriptor(new File(Home.getCurrent(), "dummy-script.yml"))
         desc.with {
             name("my-name")
             path("./target/test-classes/exitValue")
@@ -30,12 +32,12 @@ class RepoExecutorTest {
 
         assertNotNull report
         assertFalse report.isEmpty()
-        assertFalse report[0].isOk
+        assertFalse report[0].isOk()
     }
 
     @Test
     void hooks_empty() {
-        RepoDescriptor desc = new RepoDescriptor()
+        RepoDescriptor desc = new RepoDescriptor(new File(Home.getCurrent(), "dummy-script.yml"))
         desc.with {
             name("my-name")
             path("./target/test-classes/exitValue")
@@ -48,12 +50,12 @@ class RepoExecutorTest {
 
         assertNotNull report
         assertFalse report.isEmpty()
-        assertFalse report[0].isOk
+        assertFalse report[0].isOk()
     }
 
     @Test
     void hook_exitValue() {
-        RepoDescriptor desc = new RepoDescriptor()
+        RepoDescriptor desc = new RepoDescriptor(new File(Home.getCurrent(), "dummy-script.yml"))
         desc.with {
             name("my-name")
             path("./target/test-classes/exitValue")
@@ -67,6 +69,6 @@ class RepoExecutorTest {
 
         assertNotNull report
         assertFalse report.isEmpty()
-        assertFalse report[0].isOk
+        assertFalse report[0].isOk()
     }
 }

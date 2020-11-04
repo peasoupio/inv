@@ -1,10 +1,6 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Home
-import io.peasoup.inv.repo.RepoExecutor
-import io.peasoup.inv.run.Logger
-import org.apache.commons.validator.routines.UrlValidator
 
 @CompileStatic
 class RepoCreateCommand implements CliCommand {
@@ -23,8 +19,9 @@ class RepoCreateCommand implements CliCommand {
         def varsFiles = new File(invDir, "vars/")
         varsFiles.mkdirs()
 
-        def scmFile = new File(invDir,"scm.yml")
-        scmFile << "# Newly created scm file"
+        def repoFile = new File(invDir,"repo.yml")
+        if (!repoFile.exists())
+            repoFile << "# Newly created repo file"
 
         return 0
     }

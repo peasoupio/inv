@@ -16,8 +16,19 @@ class GraphCommand implements CliCommand {
         String base = arguments["<base>"] as String
         def run = new RunGraph(new File(base).newReader())
 
+        String graphType = null
+
+        // For future uses
         if (arguments["dot"])
-            Logger.trace(run.toDotGraph())
+            graphType = "dot"
+
+        switch (graphType) {
+            case "dot":
+                Logger.trace(run.toDotGraph())
+                break
+            default:
+                Logger.trace(run.toDotGraph())
+        }
 
         return 0
     }

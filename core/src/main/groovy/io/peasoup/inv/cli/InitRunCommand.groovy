@@ -8,7 +8,7 @@ import org.apache.commons.validator.routines.UrlValidator
 import spark.utils.StringUtils
 
 @CompileStatic
-class InitCommand implements CliCommand {
+class InitRunCommand implements CliCommand {
 
     String initRepoFileLocation
 
@@ -38,7 +38,7 @@ class InitCommand implements CliCommand {
         return false
     }
 
-    RepoExecutor.RepoExecutionReport processREPO() {
+    private RepoExecutor.RepoExecutionReport processREPO() {
         String actualFileLocation = initRepoFileLocation
         File repoFile
 

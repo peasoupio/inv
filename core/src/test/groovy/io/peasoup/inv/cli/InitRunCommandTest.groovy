@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
-class InitCommandTest {
+class InitRunCommandTest {
 
     @Test
     @Ignore
@@ -19,7 +19,7 @@ class InitCommandTest {
 
         file.deleteDir()
 
-        def report = new InitCommand(initRepoFileLocation: file.absolutePath).processREPO()
+        def report = new InitRunCommand(initRepoFileLocation: file.absolutePath).processREPO()
 
         assertNotNull report
         assertEquals "main", report.name.toLowerCase()
@@ -29,7 +29,7 @@ class InitCommandTest {
     @Test
     @Ignore
     void ok_url() {
-        def report = new InitCommand(initRepoFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processREPO()
+        def report = new InitRunCommand(initRepoFileLocation: 'https://raw.githubusercontent.com/peasoupio/inv/master/examples/init/init.groovy').processREPO()
 
         assertNotNull report
         assertEquals "main", report.name.toLowerCase()
@@ -38,11 +38,11 @@ class InitCommandTest {
 
     @Test
     void not_ok() {
-        assertEquals 1, new InitCommand().call()
+        assertEquals 1, new InitRunCommand().call()
     }
 
     @Test
     void rolling() {
-        assertFalse new InitCommand().rolling()
+        assertFalse new InitRunCommand().rolling()
     }
 }

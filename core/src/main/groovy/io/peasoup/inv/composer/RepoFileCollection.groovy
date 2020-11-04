@@ -8,19 +8,28 @@ class RepoFileCollection {
     private final List<RepoFile> repos = [].asSynchronized() as List<RepoFile>
 
     final File repoFolder
+    final File hrefFolder
     final Map<String, RepoFile.SourceFileElement> elements = [:]
     final Set<String> staged = new HashSet<>()
 
-    RepoFileCollection(File repoFolder) {
-        assert repoFolder != null, 'REPO folder is required'
-        assert repoFolder.exists(), "REPO folder must exist on filesystem"
+    RepoFileCollection(File repoFolder, File hrefsFolder) {
+        if (repoFolder == null || !repoFolder.exists())
+            throw new IllegalArgumentException("repoFolder is required and must exist on the current filesystem.")
+
+        if (hrefsFolder == null || !hrefsFolder.exists())
+            throw new IllegalArgumentException("hrefsFolder is required and must exist on the current filesystem.")
 
         this.repoFolder = repoFolder
+        this.hrefFolder = hrefsFolder
     }
 
     void load(File file) {
         assert file != null, 'File is required'
         assert file.exists(), 'File must exist on filesystem'
+
+        // Check if its a valid files
+        if (file.isDirectory())
+            return
 
         // Check for duplicates
         repos.removeAll {

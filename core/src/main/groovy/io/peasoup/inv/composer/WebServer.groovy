@@ -14,6 +14,7 @@ class WebServer {
     final Map webServerConfigs
     final String runLocation
     final String reposLocation
+    final String hrefsLocation
 
     final Boot boot
     final Pagination pagination
@@ -35,7 +36,8 @@ class WebServer {
         ] + args
 
         runLocation = webServerConfigs.workspace as String
-        reposLocation = webServerConfigs.workspace + "/repos" as String
+        reposLocation = webServerConfigs.workspace + "/.repos" as String
+        hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
         // Browser configs
         port(webServerConfigs.port as int)
@@ -56,9 +58,13 @@ class WebServer {
         if (!reposLocationFolder.exists())
             reposLocationFolder.mkdirs()
 
+        def hrefsLocationFolder = new File(hrefsLocation)
+        if (!hrefsLocationFolder.exists())
+            hrefsLocationFolder.mkdirs()
+
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        repos = new RepoFileCollection(reposLocationFolder)
+        repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
         exec = new Execution(webServerConfigs.appLauncher as String, reposLocationFolder)
 
         boot = new Boot(this)

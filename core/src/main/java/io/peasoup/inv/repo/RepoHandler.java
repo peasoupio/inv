@@ -9,17 +9,22 @@ import java.io.File;
 import java.util.Arrays;
 
 public class RepoHandler {
-    public RepoHandler(RepoExecutor executor, File parametersFile) {
-        if (executor == null) {
+
+    private final File scriptFile;
+
+    public RepoHandler(RepoExecutor executor, File scriptFile, File parametersFile) {
+        if (executor == null)
             throw new IllegalArgumentException("executor");
-        }
+        if (scriptFile == null)
+            throw new IllegalArgumentException("scriptFile");
 
         this.executor = executor;
+        this.scriptFile = scriptFile;
         this.parametersFile = parametersFile;
     }
 
-    public RepoHandler(RepoExecutor executor) {
-        this(executor, null);
+    public RepoHandler(RepoExecutor executor, File scriptFile) {
+        this(executor, scriptFile, null);
     }
 
     @SuppressWarnings("rawtypes")
@@ -28,7 +33,7 @@ public class RepoHandler {
             throw new IllegalArgumentException("body");
         }
 
-        RepoDescriptor repoDescriptor = new RepoDescriptor(parametersFile);
+        RepoDescriptor repoDescriptor = new RepoDescriptor(scriptFile, parametersFile);
 
         body.setResolveStrategy(Closure.DELEGATE_ONLY);
         body.setDelegate(repoDescriptor);

@@ -10,6 +10,6 @@
         (*.yml as 'invFiles')
         (*.yaml as 'invFiles')
 ./
-    (scm.groovy as 'scmFile')
-    (scm.yml as 'scmFile')
-    (scm.yaml as 'scmFile')
+    (repo.groovy as 'repoFile')
+    (repo.yml as 'repoFile')
+    (repo.yaml as 'repoFile')

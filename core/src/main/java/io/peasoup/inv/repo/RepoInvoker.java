@@ -124,10 +124,14 @@ public class RepoInvoker {
         if (myNewScript == null)
             return;
 
+        RepoHandler repoHandler = new RepoHandler(
+                repoExecutor,
+                repoFile,
+                parametersFile);
+
         // Run new script
-        myNewScript.getBinding().setProperty("repo", new RepoHandler(repoExecutor, parametersFile));
-        // @Deprecated
-        myNewScript.getBinding().setProperty("scm", new RepoHandler(repoExecutor, parametersFile));
+        myNewScript.getBinding().setProperty("repo", repoHandler);
+        myNewScript.getBinding().setProperty("scm", repoHandler); // @Deprecated
         myNewScript.getBinding().setProperty("debug", DebugLogger.Instance);
         myNewScript.run();
     }
@@ -142,6 +146,6 @@ public class RepoInvoker {
         if (repoFile == null) throw new IllegalArgumentException("repoFile");
 
         String simpleName = repoFile.getName().split("\\.")[0];
-        return new File(repoFile.getParentFile(), simpleName + ".json");
+        return new File(repoFile.getParentFile(), simpleName + "-values.json");
     }
 }

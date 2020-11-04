@@ -17,7 +17,7 @@ class RepoDescriptorTest {
         def repoParams = RepoHandlerTest.class.getResource("/repo-parameters.json")
         def repoParamsFile = new File(repoParams.path)
 
-        def repoDesc =  new RepoDescriptor(repoParamsFile)
+        def repoDesc =  new RepoDescriptor(new File("dummy-script.yml"), repoParamsFile)
         repoDesc.name = "repo1"
         repoDesc.loadParametersProperties()
 
@@ -30,15 +30,18 @@ class RepoDescriptorTest {
     void path_ok() {
         String name = "my.name"
         String path = "my.path"
+        File scriptFile = new File(Home.getCurrent(), ".repos/repo.groovy")
 
-        def descriptor = new RepoDescriptor()
+        def descriptor = new RepoDescriptor(scriptFile)
         descriptor.name(name)
 
+        File expectedRepopath = new File(scriptFile.getParentFile(), scriptFile.name.split("\\.")[0] + "@" + name)
+
         assertEquals(RepoDescriptor.DEFAULT_PATH, descriptor.path)
-        assertEquals(new File(Home.getCurrent(), ".repo/" + name), descriptor.repoPath)
+        assertEquals(expectedRepopath, descriptor.repoPath)
 
         descriptor.path(path)
-        assertEquals(new File(Home.getCurrent(), ".repo/" + name + "/" + path), descriptor.repoCompletePath)
+        assertEquals(new File(expectedRepopath, path), descriptor.repoCompletePath)
     }
     
     @Test
@@ -46,7 +49,7 @@ class RepoDescriptorTest {
         def parameterFile = new File(Home.getCurrent(), "/test-resources/repo-parameter.json")
         assertTrue parameterFile.exists()
 
-        def descriptor = new RepoDescriptor(parameterFile)
+        def descriptor = new RepoDescriptor(new File("dummy-repo.yml"), parameterFile)
         descriptor.name("repo1")
 
         assertEquals "my-branch", descriptor.propertyMissing("branch")
@@ -54,7 +57,7 @@ class RepoDescriptorTest {
 
     @Test
     void properties_file_not_ok() {
-        def descriptor = new RepoDescriptor()
+        def descriptor = new RepoDescriptor(new File("dummy-repo.yml"))
         assertEquals "\${branch}", descriptor.propertyMissing("branch")
     }
 
@@ -63,7 +66,7 @@ class RepoDescriptorTest {
         def parameterFile = new File(Home.getCurrent(), "/test-resources/repo-parameter.json")
         assertTrue parameterFile.exists()
 
-        def descriptor = new RepoDescriptor(parameterFile)
+        def descriptor = new RepoDescriptor(new File("dummy-repo.yml"), parameterFile)
         descriptor.name("not-there")
 
         assertEquals "\${branch}", descriptor.propertyMissing("branch")

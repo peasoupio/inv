@@ -1,5 +1,6 @@
 package io.peasoup.inv.cli
 
+
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.loader.FgroupLoader
@@ -62,7 +63,7 @@ class RepoRunCommand implements CliCommand {
 
         RepoExecutor repoExecutor = new RepoExecutor()
 
-        // Parse and incoke REPO file from JSON list file
+        // Parse and invoke REPO file from JSON list file
         repoListJson.each { String name, Map repo ->
             String script = "", expectedParameter = ""
 
@@ -110,10 +111,10 @@ class RepoRunCommand implements CliCommand {
             // Otherwise, expect a repo folder
             def matches = FgroupLoader.findMatches(repoFileLocation)
 
-            if (matches.scmFile == null)
+            if (matches.repoFile == null)
                 return false
 
-            parseRepofile(repoExecutor, matches.scmFile.toString())
+            parseRepofile(repoExecutor, matches.repoFile.toString())
             RepoDescriptor repoDescriptor = repoExecutor.getRepos().values().first()
 
             parseDescriptorfiles(invExecutor, repoDescriptor, matches)
@@ -147,14 +148,14 @@ class RepoRunCommand implements CliCommand {
         def newPackage = name
 
         // Invoke groovy files
-        invokegroovyfiles(matches, newPackage)
+        invokeGroovyfiles(matches, newPackage)
 
         // Invoke inv files
         invokeInvfiles(matches, invExecutor, newPackage, path, name)
     }
 
-    private void invokegroovyfiles(FgroupLoader.InvMatches matches, String newPackage) {
-        // Parse inv files.
+    private void invokeGroovyfiles(FgroupLoader.InvMatches matches, String newPackage) {
+        // Parse groovy classes
         for(Path groovyFile : matches.groovyFiles) {
             InvInvoker.addClass(groovyFile.toFile(), newPackage)
         }

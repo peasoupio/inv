@@ -14,13 +14,11 @@ buildNumber.properties
 .idea
 *.iml
 
-# Application specific
-/src/main/example/spring-boot/app1/
-/src/main/example/spring-boot/app2/
-/src/main/example/composer/executions/
-reports/
-.cache/
-.runs/
-*.repo-sh
-.gitcache/
+# Ignore node modules
 node_modules/
+
+# Application specific
+reports/
+.runs/
+.repos/
+

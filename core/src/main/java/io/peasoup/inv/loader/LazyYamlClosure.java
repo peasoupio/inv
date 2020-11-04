@@ -93,7 +93,6 @@ public class LazyYamlClosure extends Closure {
     }
 
     @Override
-    @SuppressWarnings("squid:S1182")
     public Object clone() {
         return getCodeClosure().clone();
     }

@@ -56,6 +56,7 @@ public class InvExecutor {
             Thread.sleep(100);
         } catch (InterruptedException e) {
             Logger.error(e);
+            Thread.currentThread().interrupt();
         }
 
         new PoolReportTrace(pool, report).printPoolTrace();

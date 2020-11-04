@@ -11,41 +11,46 @@ import static org.junit.jupiter.api.Assertions.*
 @RunWith(TempHome.class)
 class RepoFileCollectionTest {
 
-    String base = "../examples/composer/.repos/"
+    String repos = "../examples/composer/.repos/"
+    String hrefs = "../examples/composer/.repos/"
     RepoFileCollection repoFileCollection
 
     @Before
     void setup() {
         RepoInvoker.newCache()
 
-        def repoFolder = new File(base)
-        repoFileCollection = new RepoFileCollection(repoFolder)
+        def repoFolder = new File(repos)
+        def hrefsFolder = new File(hrefs)
+        repoFileCollection = new RepoFileCollection(repoFolder, hrefsFolder)
 
         // Load repo files
         repoFolder.listFiles().each {
+            if (!it.name.endsWith(".groovy"))
+                return
+
             repoFileCollection.load(it)
         }
     }
 
     @Test
     void ok() {
-        new RepoFileCollection(new File(base))
+        new RepoFileCollection(new File(repos), new File(hrefs))
     }
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
-            new RepoFileCollection(null)
+        assertThrows(IllegalArgumentException.class, {
+            new RepoFileCollection(null, null)
         })
 
-        assertThrows(AssertionError.class, {
-            new RepoFileCollection(new File("not-existing"))
+        assertThrows(IllegalArgumentException.class, {
+            new RepoFileCollection(new File("not-existing"), null)
         })
     }
 
     @Test
     void load_ok() {
-        def file = new File(base, "repoA.groovy")
+        def file = new File(repos, "repoA.groovy")
         assertTrue file.exists()
 
         repoFileCollection.load(file)

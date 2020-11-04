@@ -4,7 +4,6 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class BroadcastStatement implements Statement {
@@ -75,8 +74,6 @@ public class BroadcastStatement implements Statement {
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
-
-        private final ReentrantLock lock = new ReentrantLock();
 
         public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastStatement) {
             if (pool == null || broadcastStatement == null)

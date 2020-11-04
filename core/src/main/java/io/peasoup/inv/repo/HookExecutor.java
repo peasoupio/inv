@@ -95,9 +95,10 @@ public class HookExecutor {
         // Make sure cache is available with minimal accesses
         if (!repository.getRepoPath().exists()) {
             repository.getRepoPath().mkdirs();
-            repository.getRepoPath().setExecutable(true);
-            repository.getRepoPath().setWritable(true);
-            repository.getRepoPath().setReadable(true);
+            if (!repository.getRepoPath().setExecutable(true) ||
+                !repository.getRepoPath().setWritable(true) ||
+                !repository.getRepoPath().setReadable(true))
+                Logger.warn("Failed to set path permissions");
 
             shouldDeleteUponFailure = true;
         }

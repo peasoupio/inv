@@ -5,7 +5,6 @@ import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovy.transform.TypeChecked;
 import io.peasoup.inv.run.Logger;
-import io.peasoup.inv.run.RunsRoller;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ASTNode;
@@ -21,8 +20,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 
 public class GroovyLoader {
@@ -66,7 +63,6 @@ public class GroovyLoader {
 
 
     private final boolean secureMode;
-    private final boolean systemClassloader;
     private final GroovyClassLoader generalClassLoader;
     private final GroovyClassLoader securedClassLoader;
 
@@ -99,7 +95,6 @@ public class GroovyLoader {
      */
     public GroovyLoader(boolean secureMode, boolean systemClassloader, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
-        this.systemClassloader = systemClassloader;
 
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
         CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
@@ -136,13 +131,8 @@ public class GroovyLoader {
      *
      * @param text Groovy text
      * @return Compiled Object
-     *
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
      */
-    public Class<?> parseClassText(String text) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, IOException {
+    public Class<?> parseClassText(String text)  {
         return parseGroovyCodeSource(new GroovyCodeSource(
                 text,
                 "Script" + checksum(),
@@ -153,14 +143,10 @@ public class GroovyLoader {
      * Parse class from a Groovy script file, with a predefined package.
      * @param groovyFile Groovy file
      * @param newPackage Defines package for groovy file classes (nullable)
-     * @return
+     * @return A new class object
      * @throws IOException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
      */
-    public Class<?> parseClassFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public Class<?> parseClassFile(File groovyFile, String newPackage) throws IOException {
         if (StringUtils.isEmpty(newPackage))
             throw new IllegalArgumentException("newPackage");
 
@@ -175,7 +161,7 @@ public class GroovyLoader {
     /**
      * Parse and raise new instance of Groovy (script) file
      * @param groovyFile Groovy file
-     * @return
+     * @return A new Script instance
      * @throws IOException
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
@@ -213,31 +199,23 @@ public class GroovyLoader {
     /**
      * Create a new instance of a Script Groovy code source
      * @param groovyCodeSource Groovy code source
-     * @return
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IOException
+     * @return A new Script instance
      */
-    private Script createScript(GroovyCodeSource groovyCodeSource) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, IOException {
-        // Otherwise, use general classloader
-        Class<?> cls = parseGroovyCodeSource(groovyCodeSource);
+    private Script createScript(GroovyCodeSource groovyCodeSource) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
-        return (Script)cls.getDeclaredConstructor().newInstance();
+        Class<?> cls = parseGroovyCodeSource(groovyCodeSource);
+        if (cls == null)
+            return null;
+
+        return (Script) cls.getDeclaredConstructor().newInstance();
     }
 
     /**
      * Parse and raise new instance of Groovy (script) file
      * @param groovyCodeSource Groovy code source
-     * @return
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IOException
+     * @return A new class object
      */
-    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, IOException {
+    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource) {
 
         // If secure is enabled, use secure classloader
         if (secureMode) {
@@ -286,52 +264,6 @@ public class GroovyLoader {
         }
 
         return false;
-    }
-
-    private File cache(File scriptFile, final String classname) throws IOException {
-        if (scriptFile == null) {
-            throw new IllegalArgumentException("Script file is required");
-        }
-        if (!scriptFile.exists()) {
-            throw new IllegalArgumentException("Script file must exists");
-        }
-        if (StringUtils.isEmpty(classname)) {
-            throw new IllegalArgumentException("Classname is required");
-        }
-
-        File cache = new File(RunsRoller.getLatest().folder(), "scripts/");
-
-        // Make sure cache is available with minimal accesses
-        if (!cache.exists()) {
-            Logger.system("[CACHE] folder: " + cache.getAbsolutePath() + ", created: " + cache.mkdirs());
-
-            // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
-            if (!cache.setExecutable(true)) {
-                throw new IllegalArgumentException("Could not set executable");
-            }
-
-            boolean writabledSet = cache.setWritable(true, false);
-            Logger.system("[SECURITY] writable: " + writabledSet);
-
-            if (!cache.setReadable(true, false)) {
-                throw new IllegalArgumentException("Could not set readable");
-            }
-        }
-
-        final File cacheFile = new File(cache, classname + ".groovy");
-        Logger.system("[CACHE] folder: " + classname + ", created: " + cacheFile.getParentFile().mkdirs());
-
-        // Make sure we got latest
-        if (cacheFile.exists())
-            Files.delete(Paths.get(cacheFile.getAbsolutePath()));
-
-        // Create a symlink to have dynamic updates adn save space
-        //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
-        Files.copy(Paths.get(scriptFile.getAbsolutePath()), Paths.get(cacheFile.getAbsolutePath()));
-
-        Logger.system("[CACHE] file: " + cacheFile.getName());
-
-        return cacheFile;
     }
 
     private String normalizeGroovyFilename(File script) {

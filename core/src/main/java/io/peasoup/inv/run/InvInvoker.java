@@ -108,12 +108,12 @@ public class InvInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(invExecutor, scriptFile,pwd, repo, scriptPath);
+            parseYaml(invExecutor, scriptFile,pwd, repo);
         else
             runScript(invExecutor, scriptFile, newPackage, pwd, repo, scriptPath);
     }
 
-    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo, String scriptPath) {
+    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
 
         // Create YAML handler
         YamlInvHandler yamlInvHandler = new YamlInvHandler(

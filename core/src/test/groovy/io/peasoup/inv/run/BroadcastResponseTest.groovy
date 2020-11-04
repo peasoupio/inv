@@ -314,7 +314,7 @@ class BroadcastResponseTest {
         }
 
         void withContext2(InvDescriptor myself, String ctx) {
-            myself.broadcast(myself.inv.Endpoint(context: ctx))
+            myself.broadcast(myself.$inv.Endpoint(context: ctx))
         }
     }
 }

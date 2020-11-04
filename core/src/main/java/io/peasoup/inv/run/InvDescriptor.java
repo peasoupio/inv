@@ -264,15 +264,6 @@ public class InvDescriptor {
         return this.properties.tags;
     }
 
-
-    /**
-     * @deprecated Check get$() instead. Will be removed in 2021.
-     */
-    @Deprecated
-    public final InvNames getInv() {
-        return InvNames.Instance;
-    }
-
     /**
      * Create a new generic StatementDescriptor.
      * <p>

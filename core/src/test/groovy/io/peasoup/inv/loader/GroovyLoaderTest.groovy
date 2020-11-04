@@ -1,12 +1,10 @@
 package io.peasoup.inv.loader
 
 import io.peasoup.inv.TempHome
-import io.peasoup.inv.run.RunsRoller
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.Assert.assertFalse
 import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
@@ -25,13 +23,6 @@ class GroovyLoaderTest {
     void ok() {
         assertNotNull securedLoader.parseClassText('''
 println "Hello world!"
-''')
-    }
-
-    @Test
-    void insecure_package() {
-        assertNull securedLoader.parseClassText('''
-package io.peasoup.inv
 ''')
     }
 
@@ -69,24 +60,6 @@ Eval.me('1+1')
 
         loader.parseScriptFile(script1, "org.test.classes").run()
         loader.parseScriptFile(script2, "org.test.other.classes").run() // requires an "import"
-    }
-
-    @Test
-    void cache() {
-
-        def script = new File(TempHome.testResources, "/inv-invoker-script.groovy")
-        assertTrue script.exists()
-
-        // Clean if already existing
-        def scriptFolder = new File(RunsRoller.latest.folder(), "scripts/")
-        scriptFolder.deleteDir()
-
-        assertFalse scriptFolder.exists()
-
-        securedLoader.cache(script, "my-class")
-
-        assertTrue scriptFolder.exists()
-        assertTrue new File(scriptFolder, "my-class.groovy").exists()
     }
 
     @Test

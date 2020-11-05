@@ -25,7 +25,13 @@ class RunCommand implements CliCommand {
 
         def invExecutor = new InvExecutor()
 
-        def invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+        List<File> invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+        invFiles.sort(new Comparator<File>() {
+            @Override
+            int compare(File o1, File o2) {
+                return o1.getAbsolutePath() <=> o2.getAbsolutePath()
+            }
+        })
 
         // Parse INV Groovy files
         invFiles.each {

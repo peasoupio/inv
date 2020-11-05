@@ -23,6 +23,11 @@ public class HookExecutor {
     private static final String DEFAULT_SHEBANG_WINDOW = "cmd /c ";
     private static final String DEFAULT_WINDOWS_EXTENSION = ".cmd";
 
+    private static final String MESSAGE_REPO_START = "[REPO] name: %s, path: %s [%s] start";
+    private static final String MESSAGE_REPO_DONE = "[REPO] name: %s, path: %s [%s] done";
+
+    private static final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+
     private HookExecutor() {
 
     }
@@ -37,9 +42,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [INIT] start");
+        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "INIT");
         executeCommands(report, report.getDescriptor().getHooks().getInit());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [INIT] done");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "INIT");
     }
 
     public static void pull(final RepoExecutor.RepoExecutionReport report) {
@@ -52,9 +57,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PULL] start");
+        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PULL");
         executeCommands(report, report.getDescriptor().getHooks().getPull());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PULL] done");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PULL");
     }
 
     public static void push(final RepoExecutor.RepoExecutionReport report) {
@@ -67,9 +72,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PUSH] start");
+        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PUSH");
         executeCommands(report, report.getDescriptor().getHooks().getPush());
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [PUSH] done");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PUSH");
     }
 
     public static void version(final RepoExecutor.RepoExecutionReport report) {
@@ -82,9 +87,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [VERSION] start");
+        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "VERSION");
         executeCommands(report, report.getDescriptor().getHooks().getVersion(), true);
-        Logger.info("[REPO] name: " + report.getName() + ", path: " + report.getDescriptor().getRepoPath().getAbsolutePath() + " [VERSIOn] done");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "VERSION");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -96,7 +101,8 @@ public class HookExecutor {
         if (!repository.getRepoPath().exists()) {
             repository.getRepoPath().mkdirs();
             if (!repository.getRepoPath().setExecutable(true) ||
-                !repository.getRepoPath().setWritable(true) ||
+                // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6728842
+                !isWindows && !repository.getRepoPath().setWritable(true) ||
                 !repository.getRepoPath().setReadable(true))
                 Logger.warn("Failed to set path permissions");
 
@@ -110,7 +116,7 @@ public class HookExecutor {
         String extension = DEFAULT_UNIX_EXTENSION;
         List<String> envs = RepoDescriptor.getCurrentOSSet();
 
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (isWindows) {
             currentCommands = "@ECHO OFF" + System.lineSeparator() + currentCommands;
             program = DEFAULT_SHEBANG_WINDOW;
             extension = DEFAULT_WINDOWS_EXTENSION;

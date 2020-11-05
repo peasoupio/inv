@@ -2,13 +2,13 @@
 [GROOVYLOADER] system: false
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
-Test  : ok(to.refactor.to_refactor)
+Test  : ok(.*)
 Run:
 ---- [DIGEST] opened ----
 [STATEMENT] [provider] => [BROADCAST] [Element] undefined [INIT]
-[undefined] [.*\testing\inv1.groovy] [provider]
+[undefined] [.*\testsuccess\resources\test\inv1.groovy] [provider]
 [STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
-[undefined] [.*\testing\inv2.groovy] [consumer]
+[undefined] [.*\testsuccess\resources\test\inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
@@ -23,11 +23,11 @@ Run:
 ---- [DIGEST] completed ----
 Completed INV(s): 2
 Uncompleted INV(s): 0
-Test  : missing_element(to.refactor.to_refactor)
+Test  : missing_element(.*)
 Run:
 ---- [DIGEST] opened ----
 [STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
-[undefined] [.*\testing\inv2.groovy] [consumer]
+[undefined] [.*\testsuccess\resources\test\inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1

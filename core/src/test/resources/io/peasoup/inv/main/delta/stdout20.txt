@@ -1,7 +1,7 @@
 [GROOVYLOADER] secure: false
 [GROOVYLOADER] system: false
-[VARS] INV_HOME: D:\workspace\inv\inv\core\target\test-classes\io\peasoup\inv\main
-[VARS] VERSION: 0.7-beta-SNAPSHOT-202011012325
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
 = ServerA
 = [Server] [name:server-a]
 = ServerB

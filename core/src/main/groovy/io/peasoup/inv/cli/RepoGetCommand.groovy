@@ -2,6 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
@@ -28,7 +29,7 @@ class RepoGetCommand implements CliCommand {
 
         String repoFileContent = repoConn.inputStream.text
 
-        File localRepofile = new File("./" + FilenameUtils.getName(repoUrl))
+        File localRepofile = new File(Home.getCurrent(), FilenameUtils.getName(repoUrl))
         if (localRepofile.exists())
             localRepofile.delete()
 

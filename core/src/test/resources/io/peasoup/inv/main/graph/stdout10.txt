@@ -1,4 +1,4 @@
-GROOVYLOADER] secure: false
+[GROOVYLOADER] secure: false
 [GROOVYLOADER] system: false
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*

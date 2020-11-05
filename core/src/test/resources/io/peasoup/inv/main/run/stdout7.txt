@@ -3,18 +3,18 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[STATEMENT] [main1] => [BROADCAST] [Something] undefined [INIT]
-[undefined] [.*] [main1]
+[STATEMENT] [main3] => [BROADCAST] [Provider] undefined [INIT]
+[STATEMENT] [main3] => [REQUIRE] [Provider] undefined [INIT]
+[undefined] [.*\run\main3.yml] [main3]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
-[main1] => [BROADCAST] [Something] undefined
+[main3] => [BROADCAST] [Provider] undefined
 [POOL] available:0 , staged:1
-[POOL] inv: main1 COMPLETED
+---- [DIGEST] #2 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[main3] => [REQUIRE] [Provider] undefined
+[POOL] inv: main3 COMPLETED
 ---- [DIGEST] completed ----
-[INV] Completed INV(s): 0
-[INV] Uncompleted INV(s): 1
-[WARN] Incompleted INV(s):
-- [main2] has 1 statement(s) and has 0 when criteria(s) left:
-	1 requirement(s):
-		[NOT MATCHED] [main2] => [REQUIRE] [Something] undefined
+Completed INV(s): 1
+Uncompleted INV(s): 0

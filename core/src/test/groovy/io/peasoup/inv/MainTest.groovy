@@ -7,17 +7,22 @@ import io.peasoup.inv.run.Logger
 import spark.utils.StringUtils
 
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 class MainTest {
 
-    private String resourceDir
-    private String[] options
-    private List logs
+    private static String resourceDir
+    private static String[] options
 
-    MainTest() {
-        this.resourceDir = MainTest.getResource("/io/peasoup/inv/main/").path
-        Home.setCurrent(new File(this.resourceDir))
+
+    static {
+        resourceDir = MainTest.getResource("/io/peasoup/inv/main/").path
+        Home.setCurrent(new File(resourceDir))
+
+        new File(resourceDir, "repo/get").deleteDir()
     }
+
+    private List logs
 
     @Given("cli options {string}")
     void cli_options(String cliOptions) {
@@ -38,41 +43,49 @@ class MainTest {
 
         Main.start(options)
     }
+
     @Then("I should be told the exitCode {string} AND stdout log file {string}")
     void i_should_be_told_the_stdout_log_file(String exitCode, String stdoutLogFile) {
         assertEquals Integer.parseInt(exitCode), Main.exitCode
 
         def expected = new File(MainTest.getResource(stdoutLogFile).path).readLines()
-        def actual = new ArrayList<>()
+        def actual = new ArrayList<String>()
 
         // Make sure every line seperator are counted as a single line
-        for(String log : logs) {
+        for (String log : logs) {
             actual.addAll(log.split(System.lineSeparator()))
         }
 
         assertEquals String.join(System.lineSeparator(), actual), expected.size(), actual.size()
 
         for (i in 0..<expected.size()) {
-            String actualStr = actual.get(i)
-            String expectedStr = expected.get(i)
-                .replace("[", "\\[")
-                .replace("]", "\\]")
-                .replace("(", "\\(")
-                .replace(")", "\\)")
+            String actualStr = actual.get(i).trim()
+            String expectedStr = expected.get(i).trim()
+                    .replace("\\", "\\\\")
+                    .replace("[", "\\[")
+                    .replace("]", "\\]")
+                    .replace("(", "\\(")
+                    .replace(")", "\\)")
+                    .replace("{", "\\{")
+                    .replace("}", "\\}")
+                    .replace("^", "\\^")
+                    .replace(".", "\\.")
+                    .replace("\\.*", ".*")
 
 
+            assertTrue(
+                    (i + 1) + ": " + actualStr + " != " + expectedStr, // echo what's wrong
+                    actualStr ==~ expectedStr)
         }
     }
 
     private String interpolate(String value) {
         if (value.startsWith("file:/"))
-            value = value.replace("file:/" ,resourceDir)
+            value = value.replace("file:/", resourceDir)
 
         if (value.startsWith("url:/"))
-            value = value.replace("url:/" ,"https://raw.githubusercontent.com/")
+            value = value.replace("url:/", "https://raw.githubusercontent.com/")
 
         return value
     }
-
-
 }

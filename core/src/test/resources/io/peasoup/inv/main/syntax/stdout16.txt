@@ -3,8 +3,8 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 [SYNTAX] startup failed:
-empty.package.invalid: 1: Unexpected input: '{'; Expecting <EOF> @ line 1, column 6.
+empty.package.invalid: 1: Unexpected input: '{' @ line 1, column 6.
    repo {
         ^
 
-
+1 error

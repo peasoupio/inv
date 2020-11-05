@@ -3,18 +3,18 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[STATEMENT] [main1] => [BROADCAST] [Something] undefined [INIT]
-[undefined] [.*] [main1]
+[STATEMENT] [main2] => [REQUIRE] [Something] undefined [INIT]
+[undefined] [.*\main\run\main2.groovy] [main2]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
-[main1] => [BROADCAST] [Something] undefined
-[POOL] available:0 , staged:1
-[POOL] inv: main1 COMPLETED
+nothing done
+---- [DIGEST] #2 (state=UNBLOATING) ----
+nothing unbloated
 ---- [DIGEST] completed ----
-[INV] Completed INV(s): 0
-[INV] Uncompleted INV(s): 1
-[WARN] Incompleted INV(s):
+Completed INV(s): 0
+Uncompleted INV(s): 1
+Incompleted INV(s):
 - [main2] has 1 statement(s) and has 0 when criteria(s) left:
 	1 requirement(s):
 		[NOT MATCHED] [main2] => [REQUIRE] [Something] undefined

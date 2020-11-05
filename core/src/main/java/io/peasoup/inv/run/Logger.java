@@ -59,6 +59,15 @@ public final class Logger {
         System.out.append("[INV] ").append(message).append(System.lineSeparator());
     }
 
+    public static void info(Object arg, Object ...args) {
+        String message = arg.toString();
+        message = String.format(message, args);
+
+        send(message);
+
+        System.out.append("[INV] ").append(message).append(System.lineSeparator());
+    }
+
     public static void warn(Object arg) {
         String message = arg.toString();
         send(message);

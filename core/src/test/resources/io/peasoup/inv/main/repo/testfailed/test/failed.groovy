@@ -1,3 +1,5 @@
+import org.junit.Test
+
 @Test
 void ok() {
     simulate(

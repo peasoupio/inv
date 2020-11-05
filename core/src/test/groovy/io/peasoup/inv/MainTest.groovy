@@ -56,6 +56,10 @@ class MainTest {
             actual.addAll(log.split(System.lineSeparator()))
         }
 
+        String actualTotal = String.join(System.lineSeparator(), logs)
+        println "Actual: "
+        println actualTotal
+
         assertEquals String.join(System.lineSeparator(), actual), expected.size(), actual.size()
 
         for (i in 0..<expected.size()) {

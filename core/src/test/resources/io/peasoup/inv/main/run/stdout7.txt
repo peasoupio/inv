@@ -5,7 +5,7 @@
 ---- [DIGEST] opened ----
 [STATEMENT] [main3] => [BROADCAST] [Provider] undefined [INIT]
 [STATEMENT] [main3] => [REQUIRE] [Provider] undefined [INIT]
-[undefined] [.*\run\main3.yml] [main3]
+[undefined] [.*/run/main3.yml] [main3]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1

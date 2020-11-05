@@ -25,13 +25,22 @@ class RunCommand implements CliCommand {
 
         def invExecutor = new InvExecutor()
 
+        println "BEFORE SORT"
         List<File> invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+
+        println invFiles
+
         invFiles.sort(new Comparator<File>() {
             @Override
             int compare(File o1, File o2) {
                 return o1.getAbsolutePath() <=> o2.getAbsolutePath()
             }
         })
+
+        println "AFTER SORT"
+        println invFiles
+
+
 
         // Parse INV Groovy files
         invFiles.each {

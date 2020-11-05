@@ -2,6 +2,7 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
+import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
@@ -110,7 +111,7 @@ public class InvInvoker {
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
             parseYaml(invExecutor, scriptFile,pwd, repo);
         else
-            runScript(invExecutor, scriptFile, newPackage, pwd, repo, scriptPath);
+            runScript(invExecutor, scriptFile, newPackage, pwd, repo);
     }
 
     private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
@@ -120,7 +121,7 @@ public class InvInvoker {
                 invExecutor,
                 yamlLoader,
                 scriptFile,
-                checkSubordinateSlash(pwd),
+                FileUtils.addSubordinateSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         try {
@@ -130,7 +131,7 @@ public class InvInvoker {
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo, String scriptPath) {
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo) {
         Script myNewScript;
 
         try {
@@ -144,8 +145,8 @@ public class InvInvoker {
 
         InvHandler invHandler = new InvHandler(
                 invExecutor,
-                scriptPath,
-                checkSubordinateSlash(pwd),
+                scriptFile,
+                FileUtils.addSubordinateSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         Binding binding = myNewScript.getBinding();
@@ -159,13 +160,7 @@ public class InvInvoker {
         }
     }
 
-    private static String checkSubordinateSlash(String path) {
-        assert StringUtils.isNotEmpty(path);
 
-        if (path.charAt(path.length() - 1) == '/') return path;
-
-        return path + "/";
-    }
 
 
 

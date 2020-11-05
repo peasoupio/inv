@@ -35,7 +35,13 @@ public class NetworkValuablePoolExecutor {
     }
 
     public void start() {
-        // Register threads
+
+        // Print info outside the register loop to make sure it's print before any statement is processed
+        for(int i=0;i<threadCount;i++) {
+            Logger.system("[EXECUTOR] scheduling: #" + ++count);
+        }
+
+        // Register and start workers
         for(int i=0;i<threadCount;i++) {
             schedule();
         }
@@ -53,8 +59,6 @@ public class NetworkValuablePoolExecutor {
     }
 
     private void schedule() {
-        Logger.system("[EXECUTOR] scheduling: #" + ++count);
-
         working.incrementAndGet();
         invCompletionService.submit(createWorker());
     }

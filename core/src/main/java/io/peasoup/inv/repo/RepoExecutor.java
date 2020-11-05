@@ -1,5 +1,6 @@
 package io.peasoup.inv.repo;
 
+import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.run.Logger;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
@@ -75,7 +76,9 @@ public class RepoExecutor {
 
                 RepoExecutionReport report = new RepoExecutionReport(name, descriptor);
                 Logger.debug("[REPO] script: " + descriptor.getName() + ", parameter: " +
-                        (descriptor.getParametersFile() != null ? descriptor.getParametersFile().getAbsolutePath() : "not defined"));
+                        (descriptor.getParametersFile() != null ?
+                                FileUtils.convertUnixPath(descriptor.getParametersFile().getAbsolutePath()) :
+                                "not defined"));
 
                 String[] pathFiles = descriptor.getRepoPath().list();
                 boolean doesPathExistsAndNotEmpty = descriptor.getRepoPath().exists() && pathFiles != null && pathFiles.length > 0;

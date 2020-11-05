@@ -5,11 +5,13 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.Script;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
+
 @SuppressWarnings("rawtypes")
 public class InvHandler {
     private final InvExecutor invExecutor;
 
-    private String scriptPath;
+    private File scriptFile;
     private String pwd;
     private String repo;
 
@@ -19,14 +21,14 @@ public class InvHandler {
         this.invExecutor = invExecutor;
     }
 
-    public InvHandler(InvExecutor invExecutor, String scriptPath, String pwd, String repo) {
+    public InvHandler(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
-        if (scriptPath == null) throw new IllegalArgumentException("scriptPath");
+        if (scriptFile == null) throw new IllegalArgumentException("scriptFile");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
         this.invExecutor = invExecutor;
-        this.scriptPath = scriptPath;
+        this.scriptFile = scriptFile;
         this.pwd = pwd;
         this.repo = repo;
     }
@@ -61,8 +63,7 @@ public class InvHandler {
                 context.setRepo(repo);
 
             // Set Script filename
-            if (StringUtils.isNotEmpty(scriptPath))
-                context.setBaseFilename(scriptPath);
+            context.setBaseFilename(scriptFile.getAbsolutePath());
         }
 
         final Inv inv = context.build();

@@ -2,4 +2,4 @@
 [GROOVYLOADER] system: false
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
-[SYNTAX] startup succeeded: .*\syntax\valid.groovy
+[SYNTAX] startup succeeded: .*/syntax/valid.groovy

@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import io.peasoup.inv.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.HandleMetaClass;
@@ -386,7 +387,7 @@ public class Inv {
             if (StringUtils.isEmpty(scriptFilename))
                 return;
 
-            this.baseFilename = scriptFilename;
+            this.baseFilename = FileUtils.convertUnixPath(scriptFilename);
         }
 
         public Inv build() {

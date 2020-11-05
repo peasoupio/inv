@@ -1,6 +1,7 @@
 package io.peasoup.inv.fs
 
 import groovy.io.FileType
+import io.peasoup.inv.io.FileUtils
 
 class Pattern {
 
@@ -13,7 +14,7 @@ class Pattern {
         assert excludes != null, 'Exclude is required. Can be empty'
 
         def excludePatterns = excludes.collect {
-            it.replace("\\", "/")
+            FileUtils.convertUnixPath(it)
                     .replace("/", "\\/")
                     .replace(".", "\\.")
                     .replace("*", ".*")
@@ -38,8 +39,7 @@ class Pattern {
                 return [lookupFileRoot]
 
             // Convert Ant pattern to regex
-            def includePattern = lookupPattern
-                    .replace("\\", "/")
+            def includePattern = FileUtils.convertUnixPath(lookupPattern)
                     .replace("/", "\\/")
                     .replace(".", "\\.")
                     .replace("*", ".*")
@@ -48,8 +48,7 @@ class Pattern {
             List<File> included = []
             def walker = { File found ->
                 // Make sure path is using the *nix slash for folders
-                def relativizedFile = root.relativePath(found)
-                        .replace("\\", "/")
+                def relativizedFile = FileUtils.convertUnixPath(root.relativePath(found))
 
                 // Check if file should be excluded
                 if (excludePatterns) {

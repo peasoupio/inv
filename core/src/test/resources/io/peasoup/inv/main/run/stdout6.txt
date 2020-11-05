@@ -4,7 +4,7 @@
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
 [STATEMENT] [main2] => [REQUIRE] [Something] undefined [INIT]
-[undefined] [.*\main\run\main2.groovy] [main2]
+[undefined] [.*/main/run/main2.groovy] [main2]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1

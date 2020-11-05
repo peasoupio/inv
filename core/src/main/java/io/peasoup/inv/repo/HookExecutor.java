@@ -1,6 +1,7 @@
 package io.peasoup.inv.repo;
 
 import groovy.lang.GroovyRuntimeException;
+import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,9 +43,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "INIT");
+        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "INIT");
         executeCommands(report, report.getDescriptor().getHooks().getInit());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "INIT");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "INIT");
     }
 
     public static void pull(final RepoExecutor.RepoExecutionReport report) {
@@ -57,9 +58,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PULL");
+        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PULL");
         executeCommands(report, report.getDescriptor().getHooks().getPull());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PULL");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PULL");
     }
 
     public static void push(final RepoExecutor.RepoExecutionReport report) {
@@ -72,9 +73,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PUSH");
+        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PUSH");
         executeCommands(report, report.getDescriptor().getHooks().getPush());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "PUSH");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PUSH");
     }
 
     public static void version(final RepoExecutor.RepoExecutionReport report) {
@@ -87,9 +88,9 @@ public class HookExecutor {
             return;
         }
 
-        Logger.info(MESSAGE_REPO_START, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "VERSION");
+        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "VERSION");
         executeCommands(report, report.getDescriptor().getHooks().getVersion(), true);
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), report.getDescriptor().getRepoPath().getAbsolutePath(), "VERSION");
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "VERSION");
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

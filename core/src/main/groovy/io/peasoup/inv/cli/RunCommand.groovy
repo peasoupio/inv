@@ -24,11 +24,7 @@ class RunCommand implements CliCommand {
             excludePatterns.add(exclude)
 
         def invExecutor = new InvExecutor()
-
-        println "BEFORE SORT"
         List<File> invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
-
-        println invFiles
 
         invFiles.sort(new Comparator<File>() {
             @Override
@@ -36,11 +32,6 @@ class RunCommand implements CliCommand {
                 return o1.getAbsolutePath() <=> o2.getAbsolutePath()
             }
         })
-
-        println "AFTER SORT"
-        println invFiles
-
-
 
         // Parse INV Groovy files
         invFiles.each {

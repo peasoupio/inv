@@ -4,6 +4,7 @@ import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThrows
 
 class BroadcastUsingDescriptorTest {
 
@@ -39,5 +40,12 @@ class BroadcastUsingDescriptorTest {
         myself.ready(ready)
 
         assertEquals ready, myself.ready
+    }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            new BroadcastUsingDescriptor().markdown("")
+        })
     }
 }

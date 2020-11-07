@@ -4,16 +4,16 @@
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
 [REPO] script: io.peasoup.public.net.http, parameter: .*/repo/get/repo-values.json
-[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [PULL] start
+[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [INIT] start
 [REPO] .*
-[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [PULL] done
+[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [INIT] done
 [STATEMENT] [Script.*] => [BROADCAST] [HTTP] undefined [INIT]
 [io.peasoup.public.net.http] [.*/repo/get/repo@io.peasoup.public.net.http/net/http/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [Script.*] => [BROADCAST] [HTTP] undefined
-[POOL] available:0 , staged:1
+[POOL] available:1 , staged:1
 [POOL] inv: Script.* COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 1

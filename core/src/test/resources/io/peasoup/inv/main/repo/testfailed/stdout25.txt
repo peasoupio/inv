@@ -6,19 +6,20 @@ Test  : ok(.*)
 Run:
 ---- [DIGEST] opened ----
 [STATEMENT] [provider] => [BROADCAST] [Element] undefined [INIT]
-[undefined] [.*/testsuccess/resources/test/inv1.groovy] [provider]
+[undefined] [.*/testfailed/resources/test/inv1.groovy] [provider]
 [STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
-[undefined] [.*/testsuccess/resources/test/inv2.groovy] [consumer]
+[undefined] [.*/testfailed/resources/test/inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
 [provider] => [BROADCAST] [Element] undefined
-[POOL] available:0 , staged:1
+[POOL] available:1 , staged:1
 [POOL] inv: provider COMPLETED
 ---- [DIGEST] #2 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [consumer] => [REQUIRE] [Element] undefined
+[POOL] available:1 , staged:0
 [POOL] inv: consumer COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 2
@@ -27,12 +28,14 @@ Test  : missing_element(.*)
 Run:
 ---- [DIGEST] opened ----
 [STATEMENT] [consumer] => [REQUIRE] [Element] undefined [INIT]
-[undefined] [.*/testsuccess/resources/test/inv2.groovy] [consumer]
+[undefined] [.*/testfailed/resources/test/inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
+[POOL] available:0 , staged:0
 nothing done
 ---- [DIGEST] #2 (state=UNBLOATING) ----
+[POOL] available:0 , staged:0
 nothing unbloated
 ---- [DIGEST] completed ----
 Completed INV(s): 0
@@ -42,7 +45,7 @@ Incompleted INV(s):
 	1 requirement(s):
 		[NOT MATCHED] [consumer] => [REQUIRE] [Element] undefined
 Finished. Result:
-. Failures: 0
+. Failures: 1
 . Ignored: 0
 . Tests run: 2
 . Time: .*ms

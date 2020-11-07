@@ -55,6 +55,7 @@ public class NetworkValuablePoolExecutor {
             }
         }
 
+        // Close pool
         this.invExecutor.shutdownNow();
     }
 

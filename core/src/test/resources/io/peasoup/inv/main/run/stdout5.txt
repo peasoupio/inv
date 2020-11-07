@@ -5,23 +5,24 @@
 ---- [DIGEST] opened ----
 [STATEMENT] [main1] => [BROADCAST] [Something] undefined [INIT]
 [undefined] [.*] [main1]
-[STATEMENT] [main2] => [REQUIRE] [Something] undefined [INIT]
-[undefined] [.*] [main2]
-[STATEMENT] [main3] => [REQUIRE] [Something] undefined [INIT]
-[undefined] [.*] [main3]
+[STATEMENT] [main.*] => [REQUIRE] [Something] undefined [INIT]
+[undefined] [.*] [main.*]
+[STATEMENT] [main.*] => [REQUIRE] [Something] undefined [INIT]
+[undefined] [.*] [main.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
 [EXECUTOR] scheduling: #3
 [main1] => [BROADCAST] [Something] undefined
-[POOL] available:0 , staged:1
+[POOL] available:1 , staged:1
 [POOL] inv: main1 COMPLETED
 ---- [DIGEST] #2 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
 [main2] => [REQUIRE] [Something] undefined
 [main3] => [REQUIRE] [Something] undefined
+[POOL] available:1 , staged:0
 [POOL] inv: main2 COMPLETED
 [POOL] inv: main3 COMPLETED
 ---- [DIGEST] completed ----

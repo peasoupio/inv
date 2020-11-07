@@ -1,5 +1,6 @@
 package io.peasoup.inv.run.yaml;
 
+import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.*;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Queue;
 
 public class YamlInvHandler {
+
+    private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-yaml-Syntax";
 
     private final InvExecutor invExecutor;
     private final YamlLoader yamlLoader;
@@ -34,7 +37,7 @@ public class YamlInvHandler {
         this.repo = repo;
     }
 
-    public void call() throws InvHandler.INVOptionRequiredException, IOException {
+    public void call() throws MissingOptionException, IOException {
         YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
@@ -72,7 +75,7 @@ public class YamlInvHandler {
 
             // Make sure, at any cost, delegate.name is not empty before dumping for the first time
             if (StringUtils.isEmpty(inv.getDelegate().getName()))
-                throw new InvHandler.INVOptionRequiredException("name");
+                throw new MissingOptionException("inv.name", HELP_LINK);
 
             // Attempt to dump delegate to insert it into pool
             inv.dumpDelegate();

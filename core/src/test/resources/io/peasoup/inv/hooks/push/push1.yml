@@ -1,0 +1,5 @@
+repo:
+    - name: push1
+      hooks:
+        push: |
+          echo 'ok'

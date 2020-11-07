@@ -3,6 +3,7 @@ package io.peasoup.inv.repo;
 import groovy.json.JsonSlurper;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -302,18 +303,20 @@ public class RepoDescriptor {
 
     public static class AskDescriptor {
 
+        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-groovy-Syntax";
+
         private final List<AskParameter> parameters;
 
         public AskDescriptor() {
             parameters = new ArrayList<>();
         }
 
-        public void parameter(String name, String usage, Map options) throws RepoHandler.RepoOptionRequiredException {
+        public void parameter(String name, String usage, Map options) throws MissingOptionException {
             if (StringUtils.isEmpty(name))
-                throw new RepoHandler.RepoOptionRequiredException("ask/parameter/name");
+                throw new MissingOptionException("ask/parameter/name", HELP_LINK);
 
             if (StringUtils.isEmpty(usage))
-                throw new RepoHandler.RepoOptionRequiredException("ask/parameter/usage");
+                throw new MissingOptionException("ask/parameter/usage", HELP_LINK);
 
             AskParameter parameter = new AskParameter(name, usage);
 
@@ -343,7 +346,7 @@ public class RepoDescriptor {
             parameters.add(parameter);
         }
 
-        public void parameter(String name, String usage) throws RepoHandler.RepoOptionRequiredException {
+        public void parameter(String name, String usage) throws MissingOptionException {
             parameter(name, usage, null);
         }
 

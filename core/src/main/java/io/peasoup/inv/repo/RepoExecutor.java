@@ -61,20 +61,20 @@ public class RepoExecutor {
      * It raises automatically, if available, the "init" and "pull" hooks.
      * "init" is raised when the computed or user-defined path is not existing. Upon failure, it is automatically deleted.
      * "pull" is raised when the computed or user-defined path is existing. Upoen failure, nothing is deleted.
-     * @return List of RepoExecutionReport
+     * @return List of RepoHookExecutionReport
      */
-    public List<RepoExecutionReport> execute() {
+    public List<RepoHookExecutionReport> execute() {
 
         final ExecutorService pool = Executors.newFixedThreadPool(4);
-        final List<Future<RepoExecutionReport>> futures = new ArrayList<>();
-        final List<RepoExecutionReport> reports = new ArrayList<>();
+        final List<Future<RepoHookExecutionReport>> futures = new ArrayList<>();
+        final List<RepoHookExecutionReport> reports = new ArrayList<>();
 
         for(Map.Entry<String, RepoDescriptor> kpv : repos.entrySet()) {
             futures.add(pool.submit(() -> {
                 String name = kpv.getKey();
                 RepoDescriptor descriptor = kpv.getValue();
 
-                RepoExecutionReport report = new RepoExecutionReport(name, descriptor);
+                RepoHookExecutionReport report = new RepoHookExecutionReport(name, descriptor);
                 Logger.debug("[REPO] script: " + descriptor.getName() + ", parameter: " +
                         (descriptor.getParametersFile() != null ?
                                 FileUtils.convertUnixPath(descriptor.getParametersFile().getAbsolutePath()) :
@@ -103,7 +103,7 @@ public class RepoExecutor {
 
         // Wait for all REPO to process.
         try {
-            for(Future<RepoExecutionReport> future : futures) {
+            for(Future<RepoHookExecutionReport> future : futures) {
                 reports.add(future.get());
             }
         } catch(Exception ex) {
@@ -123,21 +123,21 @@ public class RepoExecutor {
         return repos;
     }
 
-    public static class RepoExecutionReport {
+    public static class RepoHookExecutionReport {
         private final String name;
         private final RepoDescriptor descriptor;
 
-        private boolean isOk = true;
+        private int exitCode = -1;
         private String stdout;
 
         /**
-         * Creates a new RepoExecutionReport.
+         * Creates a new RepoHookExecutionReport.
          * It is usally available upon executing an RepoDescriptor through RepoExecutor.executor() or HookExecutor's methods.
          *
          * @param name String representation of the name of the RepoDescriptor
          * @param descriptor RepoDescriptor instance
          */
-        public RepoExecutionReport(String name, RepoDescriptor descriptor) {
+        public RepoHookExecutionReport(String name, RepoDescriptor descriptor) {
             this.name = name;
             this.descriptor = descriptor;
         }
@@ -160,19 +160,27 @@ public class RepoExecutor {
         }
 
         /**
-         * Indicates whether or not the execution was completed successively.
-         * @return TRue if success, otherwise false.
+         * Gets the exit code of the hook's script
+         * @return Int value of the exit code
          */
-        public boolean isOk() {
-            return isOk;
+        public int getExitCode() {
+            return exitCode;
         }
 
         /**
-         * Sets whether or not the execution was completed successively.
-         * @param isOk True if success, otherwise false.
+         * Sets the exit code for a hook's script execution
+         * @param exitCode New int exit code
          */
-        protected void setIsOk(boolean isOk) {
-            this.isOk = isOk;
+        public void setExitCode(int exitCode) {
+            this.exitCode = exitCode;
+        }
+
+        /**
+         * Indicates whether or not the execution was completed successively.
+         * @return True if success, otherwise false.
+         */
+        public boolean isOk() {
+            return exitCode == 0;
         }
 
         /**
@@ -190,6 +198,7 @@ public class RepoExecutor {
         protected void setStdout(String stdout) {
             this.stdout = stdout;
         }
+
 
 
     }

@@ -30,7 +30,8 @@ public class InvInvoker {
 
     /**
      * Add a groovy class to the current loader
-     * @param classFile Classfile to load
+     *
+     * @param classFile   Classfile to load
      * @param packageName New package name assigned to the loaded classes
      */
     public static void addClass(File classFile, String packageName) {
@@ -46,8 +47,9 @@ public class InvInvoker {
 
     /**
      * Parse and invoke INV Groovy script file
+     *
      * @param invExecutor Executor instance
-     * @param scriptFile INV Groovy script file
+     * @param scriptFile  INV Groovy script file
      */
     public static void invoke(InvExecutor invExecutor, File scriptFile) {
         invoke(invExecutor, scriptFile, null);
@@ -55,9 +57,10 @@ public class InvInvoker {
 
     /**
      * Parse and invoke INV Groovy script file
+     *
      * @param invExecutor Executor instance
-     * @param scriptFile INV Groovy script file
-     * @param newPackage New package assigned to the script file
+     * @param scriptFile  INV Groovy script file
+     * @param newPackage  New package assigned to the script file
      */
     public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage) {
         if (invExecutor == null) {
@@ -73,11 +76,12 @@ public class InvInvoker {
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
      * Also, it allows to define the REPO associated to this INV
+     *
      * @param invExecutor Executor instance
-     * @param scriptFile INV Groovy script file
-     * @param newPackage New package assigned to the script file
-     * @param pwd Pwd "Print working directory", the working directory
-     * @param repo The associated REPO name
+     * @param scriptFile  INV Groovy script file
+     * @param newPackage  New package assigned to the script file
+     * @param pwd         Pwd "Print working directory", the working directory
+     * @param repo        The associated REPO name
      */
     public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo) {
         if (groovyLoader == null || yamlLoader == null)
@@ -109,7 +113,7 @@ public class InvInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(invExecutor, scriptFile,pwd, repo);
+            parseYaml(invExecutor, scriptFile, pwd, repo);
         else
             runScript(invExecutor, scriptFile, newPackage, pwd, repo);
     }
@@ -159,9 +163,6 @@ public class InvInvoker {
             Logger.error(ex);
         }
     }
-
-
-
 
 
 }

@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+import io.peasoup.inv.MissingOptionException
 import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
@@ -91,7 +92,7 @@ class InvHandlerTest {
 
     @Test
     void call_without_name() {
-        assertThrows(InvHandler.INVOptionRequiredException.class, {
+        assertThrows(MissingOptionException.class, {
             inv.call({}, '')
         })
     }

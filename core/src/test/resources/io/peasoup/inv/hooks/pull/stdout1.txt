@@ -1,0 +1,3 @@
+[REPO] name: pull1, path: .*/hooks/pull/pull1@pull1 [PULL] start
+[REPO] .* .*/hooks/pull/.*
+[REPO] name: pull1, path: .*/hooks/pull/pull1@pull1 [PULL] done

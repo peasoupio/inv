@@ -33,13 +33,12 @@ public class HookExecutor {
 
     }
 
-    public static void init(final RepoExecutor.RepoExecutionReport report) {
+    public static void init(final RepoExecutor.RepoHookExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
         if (StringUtils.isEmpty(report.getDescriptor().getHooks().getInit())) {
             Logger.warn("hook 'init' not defined for " + report.getName());
-            report.setIsOk(false);
             return;
         }
 
@@ -48,13 +47,12 @@ public class HookExecutor {
         Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "INIT");
     }
 
-    public static void pull(final RepoExecutor.RepoExecutionReport report) {
+    public static void pull(final RepoExecutor.RepoHookExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
         if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPull())) {
             Logger.warn("hook 'pull' not defined for " + report.getName());
-            report.setIsOk(false);
             return;
         }
 
@@ -63,13 +61,12 @@ public class HookExecutor {
         Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PULL");
     }
 
-    public static void push(final RepoExecutor.RepoExecutionReport report) {
+    public static void push(final RepoExecutor.RepoHookExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
         if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPush())) {
             Logger.warn("hook 'push' not defined for " + report.getName());
-            report.setIsOk(false);
             return;
         }
 
@@ -78,13 +75,12 @@ public class HookExecutor {
         Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PUSH");
     }
 
-    public static void version(final RepoExecutor.RepoExecutionReport report) {
+    public static void version(final RepoExecutor.RepoHookExecutionReport report) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
         if (StringUtils.isEmpty(report.getDescriptor().getHooks().getVersion())) {
             Logger.warn("hook 'version' not defined for " + report.getName());
-            report.setIsOk(false);
             return;
         }
 
@@ -94,7 +90,7 @@ public class HookExecutor {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void executeCommands(RepoExecutor.RepoExecutionReport report, String commands, boolean returnStdout) {
+    private static void executeCommands(RepoExecutor.RepoHookExecutionReport report, String commands, boolean returnStdout) {
         RepoDescriptor repository = report.getDescriptor();
         boolean shouldDeleteUponFailure = false;
 
@@ -150,7 +146,7 @@ public class HookExecutor {
 
         // Calling the SH file with the commands in it
         // We can't let the runtime decide of the executing folder, so we're using the parent folder of the SH File
-        String cmd = program + " " + shFile.getAbsolutePath();
+        String cmd = program + " " + FileUtils.convertUnixPath(shFile.getAbsolutePath());
         Logger.system("[REPO] " + cmd);
 
 
@@ -189,22 +185,19 @@ public class HookExecutor {
             Logger.error(e);
         }
 
-        if (process.exitValue() != 0) {
+        report.setExitCode(process.exitValue());
+
+        if (report.getExitCode() != 0) {
 
             // Delete folder ONLY if this hook brought it
             if (shouldDeleteUponFailure) {
-                Logger.warn("REPO path " + repository.getRepoPath().toString() + " was deleted since hook returned " + process.exitValue());
+                Logger.warn("Repository for location '" + FileUtils.convertUnixPath(repository.getRepoPath().toString()) + "' was deleted since hook returned " + process.exitValue());
                 ResourceGroovyMethods.deleteDir(repository.getRepoPath());
             }
-
-            report.setIsOk(false);
-            return;
         }
-
-        report.setIsOk(true);
     }
 
-    private static void executeCommands(RepoExecutor.RepoExecutionReport report, String commands) {
+    private static void executeCommands(RepoExecutor.RepoHookExecutionReport report, String commands) {
         HookExecutor.executeCommands(report, commands, false);
     }
 
@@ -217,20 +210,18 @@ public class HookExecutor {
 
         @Override
         public Appendable append(CharSequence csq) {
-            output.append(csq);
-            return System.out.append(csq);
+            Logger.trace(String.valueOf(csq));
+            return output.append(csq);
         }
 
         @Override
         public Appendable append(CharSequence csq, int start, int end) {
-            output.append(csq, start, end);
-            return System.out.append(csq, start, end);
+            return output.append(csq, start, end);
         }
 
         @Override
         public Appendable append(char c) {
-            output.append(c);
-            return System.out.append(c);
+            return output.append(c);
         }
 
         public final StringBuilder getOutput() {

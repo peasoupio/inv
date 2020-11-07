@@ -12,11 +12,12 @@
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
 [main1] => [BROADCAST] [Something] undefined
-[POOL] available:0 , staged:1
+[POOL] available:1 , staged:1
 [POOL] inv: main1 COMPLETED
 ---- [DIGEST] #2 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [main2] => [REQUIRE] [Something] undefined
+[POOL] available:1 , staged:0
 [POOL] inv: main2 COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 2

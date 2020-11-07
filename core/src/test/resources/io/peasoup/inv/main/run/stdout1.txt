@@ -9,7 +9,7 @@
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [main1] => [BROADCAST] [Something] undefined
-[POOL] available:0 , staged:1
+[POOL] available:1 , staged:1
 [POOL] inv: main1 COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 1

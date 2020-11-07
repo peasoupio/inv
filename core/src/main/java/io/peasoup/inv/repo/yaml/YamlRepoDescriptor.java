@@ -10,8 +10,6 @@ public class YamlRepoDescriptor {
 
     private String src;
 
-    private String entry;
-
     private Integer timeout;
 
     private List<YamlAskDescriptor> ask;
@@ -40,14 +38,6 @@ public class YamlRepoDescriptor {
 
     public void setSrc(String src) {
         this.src = src;
-    }
-
-    public String getEntry() {
-        return entry;
-    }
-
-    public void setEntry(String entry) {
-        this.entry = entry;
     }
 
     public Integer getTimeout() {

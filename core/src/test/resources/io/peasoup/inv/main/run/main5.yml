@@ -1,0 +1,7 @@
+inv:
+  - workflow:
+      - require:
+          # Groovy
+          name: Something
+      - require:
+          name: SomethingYaml

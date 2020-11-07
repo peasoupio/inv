@@ -82,7 +82,7 @@ class RepoRunCommand implements CliCommand {
         }
 
         // Extracted INVs file
-        for(RepoExecutor.RepoExecutionReport report : repoExecutor.execute()) {
+        for(RepoExecutor.RepoHookExecutionReport report : repoExecutor.execute()) {
             parseDescriptorfiles(invExecutor, report.descriptor)
         }
 
@@ -101,7 +101,7 @@ class RepoRunCommand implements CliCommand {
             def reports = repoExecutor.execute()
 
             // Extracted INVs file
-            for (RepoExecutor.RepoExecutionReport report : reports) {
+            for (RepoExecutor.RepoHookExecutionReport report : reports) {
                 if (!report.isOk())
                     continue
 

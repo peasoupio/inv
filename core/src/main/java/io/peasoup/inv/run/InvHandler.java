@@ -3,12 +3,16 @@ package io.peasoup.inv.run;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.Script;
+import io.peasoup.inv.MissingOptionException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
 @SuppressWarnings("rawtypes")
 public class InvHandler {
+
+    private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-groovy-Syntax";
+
     private final InvExecutor invExecutor;
 
     private File scriptFile;
@@ -33,7 +37,7 @@ public class InvHandler {
         this.repo = repo;
     }
 
-    public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws INVOptionRequiredException {
+    public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws MissingOptionException {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }
@@ -41,7 +45,7 @@ public class InvHandler {
         this.call(body, body.getOwner().getClass().getSimpleName());
     }
 
-    public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws INVOptionRequiredException {
+    public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws MissingOptionException {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }
@@ -78,7 +82,7 @@ public class InvHandler {
 
         // Make sure, at any cost, delegate.name is not empty before dumping for the first time
         if (StringUtils.isEmpty(inv.getDelegate().getName()))
-            throw new INVOptionRequiredException("name");
+            throw new MissingOptionException("inv.name", HELP_LINK);
 
         // Attempt to dump delegate to insert it into pool
         inv.dumpDelegate();
@@ -86,14 +90,6 @@ public class InvHandler {
         // Print REPO reference
         if (script != null) {
             Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
-        }
-    }
-
-    public static class INVOptionRequiredException extends Exception {
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-groovy-Syntax";
-
-        public INVOptionRequiredException(final String option) {
-            super("Option " + option + " is not valid. Please visit " + HELP_LINK + " for more information");
         }
     }
 }

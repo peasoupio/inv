@@ -135,6 +135,9 @@ public class NetworkValuablePool {
         // Check for broadcasts
         eater.stageBroadcasts();
 
+        // Print broadcasts
+        eater.printStagedBroadcasts();
+
         return poolErrors;
     }
 
@@ -149,6 +152,9 @@ public class NetworkValuablePool {
 
         // Execute INVs
         new NetworkValuablePoolExecutor(eater, invs, cycleDigestion, poolErrors).start();
+
+        // Print broadcasts
+        eater.printStagedBroadcasts();
 
         return poolErrors;
     }

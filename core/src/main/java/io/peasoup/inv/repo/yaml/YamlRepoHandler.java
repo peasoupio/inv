@@ -1,10 +1,10 @@
 package io.peasoup.inv.repo.yaml;
 
 
+import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.repo.RepoDescriptor;
 import io.peasoup.inv.repo.RepoExecutor;
-import io.peasoup.inv.repo.RepoHandler;
 import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.StringUtils;
 
@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class YamlRepoHandler {
+
+    private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-yaml-Syntax";
 
     private final RepoExecutor repoExecutor;
     private final YamlLoader yamlLoader;
@@ -31,7 +33,7 @@ public class YamlRepoHandler {
         this.parametersFile = parametersFile;
     }
 
-    public void call() throws IOException {
+    public void call() throws IOException, MissingOptionException {
         YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
@@ -47,18 +49,23 @@ public class YamlRepoHandler {
             try {
                 // Parse descriptor into inv object
                 parseDescriptor(yamlRepoDescriptor, repo);
-
-                // Add resolved REPO to the executor
-                repoExecutor.add(repo);
-
             } catch (Exception ex) {
                 Logger.error(ex);
                 return;
             }
+
+            if (StringUtils.isEmpty(repo.getName()))
+                throw new MissingOptionException("repo.name", HELP_LINK);
+
+            if (repo.getPath() == null)
+                throw new MissingOptionException("repo.path", HELP_LINK);
+
+            // Add resolved REPO to the executor
+            repoExecutor.add(repo);
         }
     }
 
-    private void parseDescriptor(YamlRepoDescriptor descriptor, RepoDescriptor repo) throws IOException, ClassNotFoundException, RepoHandler.RepoOptionRequiredException {
+    private void parseDescriptor(YamlRepoDescriptor descriptor, RepoDescriptor repo) throws IOException, ClassNotFoundException, MissingOptionException {
 
         Map<String, String> interpolatable = new HashMap<>(RepoDescriptor.getEnv());
 
@@ -82,7 +89,7 @@ public class YamlRepoHandler {
 
     }
 
-    private void parseAsk(YamlRepoDescriptor descriptor, RepoDescriptor repo, Map<String, String> interpolatable) throws IOException, ClassNotFoundException, RepoHandler.RepoOptionRequiredException {
+    private void parseAsk(YamlRepoDescriptor descriptor, RepoDescriptor repo, Map<String, String> interpolatable) throws IOException, ClassNotFoundException, MissingOptionException {
         // Sets ask parameters
         if (descriptor.getAsk() != null) {
 
@@ -129,7 +136,5 @@ public class YamlRepoHandler {
                 repo.getHooks().version(yamlLoader.interpolateString(descriptor.getHooks().getVersion(), interpolatable));
         }
     }
-
-
 }
 

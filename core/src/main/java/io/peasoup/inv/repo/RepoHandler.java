@@ -3,12 +3,15 @@ package io.peasoup.inv.repo;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingMethodException;
+import io.peasoup.inv.MissingOptionException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.Arrays;
 
 public class RepoHandler {
+
+    private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-groovy-Syntax";
 
     private final File scriptFile;
 
@@ -28,7 +31,7 @@ public class RepoHandler {
     }
 
     @SuppressWarnings("rawtypes")
-    public void call(@DelegatesTo(RepoDescriptor.class) Closure body) throws IllegalAccessException, RepoOptionRequiredException {
+    public void call(@DelegatesTo(RepoDescriptor.class) Closure body) throws IllegalAccessException, MissingOptionException {
         if (body == null) {
             throw new IllegalArgumentException("body");
         }
@@ -45,10 +48,10 @@ public class RepoHandler {
         }
 
         if (StringUtils.isEmpty(repoDescriptor.getName()))
-            throw new RepoOptionRequiredException("path");
+            throw new MissingOptionException("name", HELP_LINK);
 
         if (repoDescriptor.getPath() == null)
-            throw new RepoOptionRequiredException("path");
+            throw new MissingOptionException("repo.path", HELP_LINK);
 
         executor.add(repoDescriptor);
     }
@@ -56,11 +59,5 @@ public class RepoHandler {
     private final RepoExecutor executor;
     private final File parametersFile;
 
-    public static class RepoOptionRequiredException extends Exception {
-        public RepoOptionRequiredException(final String option) {
-            super("Option " + option + " is not valid. Please visit " + HELP_LINK + " for more information");
-        }
 
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-groovy-Syntax";
-    }
 }

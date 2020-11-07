@@ -94,9 +94,10 @@ public final class Logger {
     }
 
     public static void trace(String s) {
+        // Only sends when it is not a newline
         send(s);
 
-        System.out.print(s);
+        System.out.append(s);
     }
 
     @SuppressWarnings("unchecked")
@@ -114,7 +115,19 @@ public final class Logger {
     }
 
     private static void send(String message) {
+        // In real life scenario, this method would be useless
+        // By putting this validation before the rest, it should
+        // always indicate to the JVM to quit this method right away
+        // It's only a guess to assume it would be improve logging performances.
+        if (captureQueue == null &&
+            captureClosure == null)
+            return;
+
         if (StringUtils.isEmpty(message))
+            return;
+
+        // Do not send only newline messages. it is useless here.
+        if ("\n".equals(message) || System.lineSeparator().equals(message))
             return;
 
         if (captureQueue != null) captureQueue.add(message);
@@ -125,6 +138,4 @@ public final class Logger {
         captureQueue = null;
         captureClosure = null;
     }
-
-
 }

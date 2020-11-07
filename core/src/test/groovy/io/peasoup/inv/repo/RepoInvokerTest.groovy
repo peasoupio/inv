@@ -26,33 +26,33 @@ class RepoInvokerTest {
 
     @Test
     void ok() {
-
         def repoFile =  new File(TempHome.testResources,  '/repo.groovy')
         def executor = new RepoExecutor()
         executor.parse(repoFile)
 
         def reports = executor.execute()
 
-        RepoExecutor.RepoExecutionReport report = reports.find { it.name == "my-repository" }
+        RepoExecutor.RepoHookExecutionReport report = reports.find { it.name == "my-repository" }
 
         assertNotNull report
     }
 
     @Test
-    void not_ok() {
-
+    void parameters_can_be_null() {
         def repoFile =  new File(getClass().getResource('/repo-multiple.groovy').toURI())
-
-        assertThrows(IllegalArgumentException.class, {
-            RepoInvoker.invoke(null, repoFile)
-        })
-
-        assertThrows(IllegalArgumentException.class, {
-            RepoInvoker.invoke(new RepoExecutor(), null)
-        })
 
         // parametersFile is nullable
         RepoInvoker.invoke(new RepoExecutor(), repoFile, null)
+    }
+
+    @Test
+    void not_existing_script() {
+        def repoFile =  new File('/repo-does-not-exists.groovy')
+
+        def exec = new RepoExecutor()
+        RepoInvoker.invoke(exec, repoFile, null)
+
+        assertTrue exec.repos.isEmpty()
     }
 
     @Test
@@ -77,7 +77,7 @@ class RepoInvokerTest {
         executor.parse(repoFile)
 
         def report = executor.execute()
-        assertFalse report.any { it.isOk }
+        assertFalse report.any { it.isOk() }
     }
 
     @Test
@@ -92,5 +92,25 @@ class RepoInvokerTest {
         assertTrue logs.any { it == "ok" }
 
         Logger.capture(null)
+    }
+
+    @Test
+    void invoke_not_ok() {
+
+        // inv invoker is null
+        assertThrows(IllegalArgumentException.class, {
+            RepoInvoker.invoke(null, null)
+        })
+
+        // script file is null
+        assertThrows(IllegalArgumentException.class, {
+            RepoInvoker.invoke(new RepoExecutor(), null)
+        })
+
+        // parameters file is null
+        assertThrows(IllegalArgumentException.class, {
+            RepoInvoker.expectedParametersfileLocation(null)
+        })
+
     }
 }

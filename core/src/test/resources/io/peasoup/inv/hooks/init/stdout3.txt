@@ -1,0 +1,3 @@
+[REPO] name: initA, path: .*/hooks/init/init3@initA [INIT] start
+[REPO] .* .*/hooks/init/.*
+[REPO] name: initA, path: .*/hooks/init/init3@initA [INIT] done

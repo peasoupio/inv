@@ -218,7 +218,7 @@ class RepoAPI {
             def latestElement = webServer.repos.elements[name]
 
             // Make sure we at least try to get repository with default or no parameters
-            List<RepoExecutor.RepoExecutionReport> report = new RepoExecutor().with {
+            List<RepoExecutor.RepoHookExecutionReport> report = new RepoExecutor().with {
                 add(latestElement.descriptor)
                 return execute()
             }

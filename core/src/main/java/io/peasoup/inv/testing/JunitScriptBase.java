@@ -3,6 +3,7 @@ package io.peasoup.inv.testing;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.peasoup.inv.Home;
+import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
 import io.peasoup.inv.run.InvInvoker;
@@ -38,7 +39,7 @@ public abstract class JunitScriptBase extends Script {
         return report != null  && !report.getErrors().isEmpty();
     }
 
-    public void simulate(Object... invs) throws IllegalAccessException, InvHandler.INVOptionRequiredException {
+    public void simulate(Object... invs) throws IllegalAccessException, MissingOptionException {
         if (invs == null) throw new IllegalArgumentException("invs");
         if (invs.length == 0) return;
 

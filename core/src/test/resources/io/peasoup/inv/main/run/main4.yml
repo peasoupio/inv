@@ -1,0 +1,4 @@
+inv:
+  - workflow:
+      - require:
+          name: SomethingYaml

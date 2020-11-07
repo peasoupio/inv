@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+
 import io.peasoup.inv.utils.Stdout
 import org.junit.Before
 import org.junit.Test
@@ -58,29 +59,35 @@ class InvInvokerTest {
         Logger.capture(null)
     }
 
+    @Test
+    void not_existing_script() {
+        def repoFile =  new File('/repo-does-not-exists.groovy')
+
+        def exec = new InvExecutor()
+        InvInvoker.invoke(exec, repoFile)
+
+        assertTrue exec.pool.isEmpty()
+    }
 
 
     @Test
     void invoke_not_ok() {
 
+        // inv invoker is null
         assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(null, null)
         })
 
+        // script file is null
         assertThrows(IllegalArgumentException.class, {
             InvInvoker.invoke(new InvExecutor(), null)
         })
 
+        // pwd is null
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(null, null, null, null, null)
+            def script = InvInvokerTest.class.getResource("/inv-invoker-script-with-debug.groovy")
+            InvInvoker.invoke(new InvExecutor(), new File(script.path), null, null, null)
         })
 
-        assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvExecutor(), null, null, null, null)
-        })
-
-        assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvExecutor(), null, null, 'pwd', null)
-        })
     }
 }

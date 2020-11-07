@@ -3,17 +3,13 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[STATEMENT] [main3] => [BROADCAST] [Provider] undefined [INIT]
-[STATEMENT] [main3] => [REQUIRE] [Provider] undefined [INIT]
+[STATEMENT] [main3] => [BROADCAST] [SomethingYaml] undefined [INIT]
 [undefined] [.*/run/main3.yml] [main3]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
-[main3] => [BROADCAST] [Provider] undefined
-[POOL] available:0 , staged:1
----- [DIGEST] #2 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[main3] => [REQUIRE] [Provider] undefined
+[main3] => [BROADCAST] [SomethingYaml] undefined
+[POOL] available:1 , staged:1
 [POOL] inv: main3 COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 1

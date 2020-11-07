@@ -173,13 +173,13 @@ class SystemAPI {
 
             // Invoke push hook manually
             def initFile = new File(webServer.webServerConfigs.initFile as String)
-            RepoExecutor.RepoExecutionReport report = new RepoExecutor().with {
+            RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
                 parse(initFile)
 
                 if (!repos.containsKey("main"))
                     return null
 
-                def report = new RepoExecutor.RepoExecutionReport("main", repos.get("main"))
+                def report = new RepoExecutor.RepoHookExecutionReport("main", repos.get("main"))
                 HookExecutor.push(report)
 
                 return report
@@ -198,13 +198,13 @@ class SystemAPI {
             return [standalone: true]
 
         def initFile = new File(webServer.webServerConfigs.initFile as String)
-        RepoExecutor.RepoExecutionReport report = new RepoExecutor().with {
+        RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
             parse(initFile)
 
             if (!repos.containsKey("main"))
                 return null
 
-            def report = new RepoExecutor.RepoExecutionReport("main", repos.get("main"))
+            def report = new RepoExecutor.RepoHookExecutionReport("main", repos.get("main"))
             HookExecutor.version(report)
 
             return report

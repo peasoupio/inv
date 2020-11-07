@@ -1,6 +1,7 @@
 package io.peasoup.inv.repo
 
 import io.peasoup.inv.Home
+import io.peasoup.inv.MissingOptionException
 import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -74,14 +75,14 @@ class RepoDescriptorTest {
 
     @Test
     void missing_parameter_name() {
-        assertThrows(RepoHandler.RepoOptionRequiredException.class, {
+        assertThrows(MissingOptionException.class, {
             new RepoDescriptor.AskDescriptor().parameter("", "usage")
         })
     }
 
     @Test
     void missing_parameter_usage() {
-        assertThrows(RepoHandler.RepoOptionRequiredException.class, {
+        assertThrows(MissingOptionException.class, {
             new RepoDescriptor.AskDescriptor().parameter("name", "")
         })
     }

@@ -16,7 +16,7 @@ class InitRunCommand implements CliCommand {
         if (StringUtils.isEmpty(initRepoFileLocation))
             return 1
 
-        RepoExecutor.RepoExecutionReport report = processREPO()
+        RepoExecutor.RepoHookExecutionReport report = processREPO()
         if (!report) {
             return 2
         }
@@ -38,7 +38,7 @@ class InitRunCommand implements CliCommand {
         return false
     }
 
-    private RepoExecutor.RepoExecutionReport processREPO() {
+    private RepoExecutor.RepoHookExecutionReport processREPO() {
         String actualFileLocation = initRepoFileLocation
         File repoFile
 

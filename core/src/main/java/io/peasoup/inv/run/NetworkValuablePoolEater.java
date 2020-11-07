@@ -8,6 +8,8 @@ public class NetworkValuablePoolEater {
 
     private final NetworkValuablePool pool;
 
+    private volatile int latestStagedCount = 0;
+
     public NetworkValuablePoolEater(NetworkValuablePool pool) {
         this.pool = pool;
     }
@@ -48,10 +50,6 @@ public class NetworkValuablePoolEater {
             Map<Object, BroadcastResponse> inChannel = pool.getAvailableStatements().get(statements.getKey());
             Iterator<Map.Entry<Object, BroadcastResponse>> outChannel = statements.getValue().entrySet().iterator();
 
-            if (outChannel.hasNext()) {
-                Logger.system("[POOL] available:" + pool.getAvailableStatements().get(statements.getKey()).size() + " " + ", staged:" + statements.getValue().size());
-            }
-
             while(outChannel.hasNext()) {
 
                 Map.Entry<Object,BroadcastResponse> response = outChannel.next();
@@ -60,6 +58,19 @@ public class NetworkValuablePoolEater {
                 outChannel.remove();
             }
         }
+    }
+
+    public void printStagedBroadcasts() {
+        // Get the pool actual size
+        int actualSize = 0;
+        for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : pool.getStagingStatements().entrySet()) {
+            actualSize += pool.getAvailableStatements().get(statements.getKey()).size();
+        }
+
+        int stagedSize = actualSize - latestStagedCount;
+        Logger.system("[POOL] available:" + actualSize + " " + ", staged:" +  stagedSize);
+
+        latestStagedCount = actualSize;
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.peasoup.inv.repo
 
+import io.peasoup.inv.MissingOptionException
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
@@ -125,7 +126,7 @@ class RepoHandlerTest {
 
     @Test
     void missing_name() {
-        assertThrows(RepoHandler.RepoOptionRequiredException.class, {
+        assertThrows(MissingOptionException.class, {
             repo.call {
                 path "ok"
             }

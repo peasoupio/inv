@@ -17,11 +17,8 @@ public class InvDescriptor {
 
     private final Properties properties;
 
-    private final String baseFilename;
-
-    protected InvDescriptor(Properties properties, String baseFilename) {
+    protected InvDescriptor(Properties properties) {
         this.properties = properties;
-        this.baseFilename = baseFilename;
     }
 
     /**
@@ -30,7 +27,7 @@ public class InvDescriptor {
      */
     @SuppressWarnings("squid:S100")
     public String get$0() {
-        return baseFilename;
+        return this.properties.baseFilename;
     }
 
     /**
@@ -305,6 +302,11 @@ public class InvDescriptor {
      */
     protected static class Properties {
 
+        private final String baseFilename;
+        private final Queue<Statement> statements;
+        private final Queue<Closure<Object>> steps;
+        private final Queue<WhenData> whens;
+
         private String name;
         private String path;
         private String markdown;
@@ -313,9 +315,13 @@ public class InvDescriptor {
         private boolean pop;
 
         private Closure<Object> ready;
-        private final Queue<Statement> statements = new LinkedBlockingQueue<>();
-        private final Queue<Closure<Object>> steps = new LinkedBlockingQueue<>();
-        private final Queue<WhenData> whens = new LinkedBlockingQueue<>();
+
+        Properties(String baseFilename) {
+            this.baseFilename = baseFilename;
+            this.statements = new LinkedBlockingQueue<>();
+            this.steps = new LinkedBlockingQueue<>();
+            this.whens = new LinkedBlockingQueue<>();
+        }
 
         protected void reset() {
             ready = null;

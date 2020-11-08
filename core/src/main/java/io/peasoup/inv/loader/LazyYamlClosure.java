@@ -1,26 +1,14 @@
 package io.peasoup.inv.loader;
 
-import groovy.lang.Binding;
 import groovy.lang.Closure;
-import groovy.lang.GroovyShell;
 import groovy.util.DelegatingScript;
 import io.peasoup.inv.run.Inv;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.runtime.CurriedClosure;
+import io.peasoup.inv.run.Logger;
+import org.apache.commons.lang.NotImplementedException;
 
 public class LazyYamlClosure extends Closure {
 
-    private static final CompilerConfiguration COMPILER_CONFIGURATION = new CompilerConfiguration();
-    private static final GroovyShell GROOVY_SHELL;
-
-    // Initialize GroovyShell
-    static {
-        COMPILER_CONFIGURATION.setScriptBaseClass(DelegatingScript.class.getName());
-        GROOVY_SHELL = new GroovyShell(
-                Thread.currentThread().getContextClassLoader(),
-                new Binding(),
-                COMPILER_CONFIGURATION);
-    }
+    private static final GroovyLoader GROOVYLOADER = new GroovyLoader(DelegatingScript.class.getName());
 
     private final transient Inv owner;
     private final transient String codeBlock;
@@ -36,95 +24,102 @@ public class LazyYamlClosure extends Closure {
     }
 
     @Override
-    public Object invokeMethod(String method, Object arguments) { return getCodeClosure().invokeMethod(method, arguments); }
+    public Object invokeMethod(String method, Object arguments) {
+        throw new NotImplementedException();
+    }
 
     @Override
     public Object getProperty(String property) {
-        return getCodeClosure().getProperty(property);
+        throw new NotImplementedException();
     }
 
     @Override
     public void setProperty(String property, Object newValue) {
-        getCodeClosure().setProperty(property, newValue);
+        throw new NotImplementedException();
     }
 
     @Override
     public Object call() {
-        return getCodeClosure().call();
+        return this.getCodeClosure().call();
     }
 
     @Override
     public Object call(Object arguments) {
-        return getCodeClosure().call(arguments);
+        throw new NotImplementedException();
     }
 
     @Override
     public Object call(Object... args) {
-        return getCodeClosure().call(args);
+        throw new NotImplementedException();
     }
 
     public Object doCall(Object... args) {
-        return this.call(args);
+        throw new NotImplementedException();
     }
 
     @Override
     public Object getDelegate() {
-        return getCodeClosure().getDelegate();
+        return this.getCodeClosure().getDelegate();
     }
 
     @Override
     public void setDelegate(Object delegate) {
-        getCodeClosure().setDelegate(delegate);
+        this.getCodeClosure().setDelegate(delegate);
     }
 
     @Override
     public Class[] getParameterTypes() {
-        return getCodeClosure().getParameterTypes();
+        return this.getCodeClosure().getParameterTypes();
     }
 
     @Override
     public int getMaximumNumberOfParameters() {
-        return getCodeClosure().getMaximumNumberOfParameters();
+        return this.getCodeClosure().getMaximumNumberOfParameters();
     }
 
     @Override
     public void run() {
-        getCodeClosure().run();
+        this.getCodeClosure().run();
     }
 
     @Override
     public Object clone() {
-        return getCodeClosure().clone();
+        throw new NotImplementedException();
     }
 
     @Override
     public int hashCode() {
-        return getCodeClosure().hashCode();
+        return this.getCodeClosure().hashCode();
     }
 
     @Override
     public boolean equals(Object arg0) {
-        return getCodeClosure().equals(arg0);
+        return this.getCodeClosure().equals(arg0);
     }
 
     @Override
     public String toString() {
-        return getCodeClosure().toString();
+        return this.getCodeClosure().toString();
+    }
+
+    @Override
+    public Closure curry(Object argument) {
+        throw new NotImplementedException();
     }
 
     @Override
     public Closure curry(Object... arguments) {
-        return (new CurriedClosure(this, arguments)).asWritable();
+        throw new NotImplementedException();
     }
 
     @Override
     public void setResolveStrategy(int resolveStrategy) {
-        getCodeClosure().setResolveStrategy(resolveStrategy);
+        this.getCodeClosure().setResolveStrategy(resolveStrategy);
     }
 
     @Override
     public int getResolveStrategy() {
-        return getCodeClosure().getResolveStrategy();
+        return this.getCodeClosure().getResolveStrategy();
     }
 
     /**
@@ -142,11 +137,15 @@ public class LazyYamlClosure extends Closure {
 
                 // Wrap codeBlock inside Closure to make sure we get a Closure object.
                 // Inspired by module.export in Javascript.
-                DelegatingScript script = (DelegatingScript) GROOVY_SHELL.parse(
-                        "def export = { " + codeBlock + " }; return export");
-                script.setDelegate(owner.getDelegate());
+                Class closureScript = GROOVYLOADER.parseClassText("def export = { " + codeBlock + " }; return export");
 
-                codeClosure = (Closure)script.run();
+                try {
+                    DelegatingScript script = (DelegatingScript) closureScript.getDeclaredConstructors()[0].newInstance();
+                    script.setDelegate(owner.getDelegate());
+                    codeClosure = (Closure)script.run();
+                } catch (Exception e) {
+                    Logger.error(e);
+                }
             }
         }
 

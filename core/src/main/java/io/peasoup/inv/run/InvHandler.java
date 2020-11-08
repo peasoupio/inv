@@ -75,7 +75,7 @@ public class InvHandler {
         body.setDelegate(inv.getDelegate());
 
         try {
-            body.call();
+            body.run();
         } catch (Exception ex) {
             invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
         }

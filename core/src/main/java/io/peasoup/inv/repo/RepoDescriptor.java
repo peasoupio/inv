@@ -105,7 +105,7 @@ public class RepoDescriptor {
 
         hooksBody.setResolveStrategy(Closure.DELEGATE_FIRST);
         hooksBody.setDelegate(hooks);
-        hooksBody.call();
+        hooksBody.run();
     }
 
     public void ask(@DelegatesTo(RepoDescriptor.AskDescriptor.class) Closure askBody) {
@@ -114,7 +114,7 @@ public class RepoDescriptor {
 
         askBody.setResolveStrategy(Closure.DELEGATE_FIRST);
         askBody.setDelegate(ask);
-        askBody.call();
+        askBody.run();
     }
 
     public Object propertyMissing(final String propertyName) {

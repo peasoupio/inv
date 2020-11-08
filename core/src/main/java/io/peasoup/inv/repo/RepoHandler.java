@@ -42,7 +42,7 @@ public class RepoHandler {
         body.setDelegate(repoDescriptor);
 
         try {
-            body.call();
+            body.run();
         } catch (MissingMethodException ex) {
             throw new IllegalAccessException("Repo instruction '" + ex.getMethod() + "' not found for arguments: " + Arrays.toString(ex.getArguments()));
         }

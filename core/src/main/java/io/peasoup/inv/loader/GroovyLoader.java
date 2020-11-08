@@ -75,6 +75,15 @@ public class GroovyLoader {
     }
 
     /**
+     * Create a common loader using system-wide secure mode preference
+     *
+     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
+     */
+    public GroovyLoader(String scriptBaseClass) {
+        this(systemSecureModeEnabled, systemClassloaderEnabled,  scriptBaseClass, null);
+    }
+
+    /**
      * Create a common loader
      *
      * @param secureMode Determines if using secure mode or not

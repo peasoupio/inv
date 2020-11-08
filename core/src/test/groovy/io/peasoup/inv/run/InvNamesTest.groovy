@@ -36,6 +36,6 @@ class InvNamesTest {
 
     @Test
     void invokeMethod_asBoolean() {
-        assertTrue InvNames.Instance.invokeMethod("asBoolean", []) as boolean
+        assertTrue InvNames.Instance.asBoolean() as boolean
     }
 }

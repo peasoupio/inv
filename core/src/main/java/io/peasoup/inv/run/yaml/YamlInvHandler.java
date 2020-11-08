@@ -83,7 +83,6 @@ public class YamlInvHandler {
             // Print REPO reference
             Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
         }
-
     }
 
     private void parseDescriptor(YamlInvDescriptor descriptor, Inv inv) throws IOException, ClassNotFoundException {

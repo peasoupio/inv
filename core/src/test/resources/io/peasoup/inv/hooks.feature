@@ -14,3 +14,4 @@ Feature: What is the stdout of repo hooks?
       | file:/pull/pull1.yml       | pull     | 0        | /io/peasoup/inv/hooks/pull/stdout1.txt    |
       | file:/push/push1.yml       | push     | 0        | /io/peasoup/inv/hooks/push/stdout1.txt    |
       | file:/version/version1.yml | version  | 0        | /io/peasoup/inv/hooks/version/stdout1.txt |
+      | file:/version/version2.yml | version  | 0        | /io/peasoup/inv/hooks/version/stdout2.txt |

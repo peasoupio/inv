@@ -192,7 +192,7 @@ public class RequireStatement implements Statement {
             // Sends message to resolved (if defined)
             if (requireStatement.getResolved() != null) {
                 requireStatement.getResolved().setDelegate(new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
-                requireStatement.getResolved().call();
+                requireStatement.getResolved().run();
             }
 
             // Check if NV would have dumped something

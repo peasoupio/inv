@@ -42,7 +42,7 @@ public class WhenData {
         }
 
         callback.setResolveStrategy(Closure.DELEGATE_FIRST);
-        callback.call();
+        callback.run();
 
         return inv.dumpDelegate();
     }

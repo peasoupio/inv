@@ -55,7 +55,7 @@ public class RequireDescriptor {
 
         usingBody.setResolveStrategy(Closure.DELEGATE_FIRST);
         usingBody.setDelegate(requireUsingDescriptor);
-        usingBody.call();
+        usingBody.run();
 
         return using(requireUsingDescriptor);
     }

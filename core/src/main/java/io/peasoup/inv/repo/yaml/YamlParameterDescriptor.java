@@ -6,7 +6,7 @@ public class YamlParameterDescriptor {
 
     private String name;
 
-    private String description;
+    private String usage;
 
     private String defaultValue;
 
@@ -26,12 +26,12 @@ public class YamlParameterDescriptor {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getUsage() {
+        return usage;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUsage(String usage) {
+        this.usage = usage;
     }
 
     public String getDefaultValue() {

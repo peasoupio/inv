@@ -79,7 +79,7 @@ public class InvExecutor {
                 if (inv.getReady() == null) continue;
 
                 Logger.info(inv + " event ready raised");
-                inv.getReady().call();
+                inv.getReady().run();
             }
 
             // Run for eternity

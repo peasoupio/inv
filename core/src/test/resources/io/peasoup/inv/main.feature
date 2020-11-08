@@ -19,14 +19,14 @@ Feature: What is the stdout of my main cli options?
       | run main3.yml main4.yml                                              | file:/run              | 0        | /io/peasoup/inv/main/run/stdout8.txt               |
       | run main*.*                                                          | file:/run              | 0        | /io/peasoup/inv/main/run/stdout9.txt               |
       # GRAPH
-      | graph file:/graph/run1.txt                                           |                        | 0        | /io/peasoup/inv/main/graph/stdout1.txt            |
+      | graph file:/graph/run1.txt                                           |                        | 0        | /io/peasoup/inv/main/graph/stdout1.txt             |
       # Syntax
-      | syntax file:/syntax/valid.groovy                                     |                        | 0        | /io/peasoup/inv/main/syntax/stdout1.txt           |
-      | syntax file:/syntax/invalid.groovy                                   |                        | 2        | /io/peasoup/inv/main/syntax/stdout2.txt           |
+      | syntax file:/syntax/valid.groovy                                     |                        | 0        | /io/peasoup/inv/main/syntax/stdout1.txt            |
+      | syntax file:/syntax/invalid.groovy                                   |                        | 2        | /io/peasoup/inv/main/syntax/stdout2.txt            |
       # Delta
-      | delta file:/delta/run1.txt file:/delta/run1.txt                      |                        | 0        | /io/peasoup/inv/main/delta/stdout1.txt            |
+      | delta file:/delta/run1.txt file:/delta/run1.txt                      |                        | 0        | /io/peasoup/inv/main/delta/stdout1.txt             |
       # Repo
-      | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout1.txt             |
-      | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout2.txt             |
+      | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout1.txt              |
+      | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout2.txt              |
       | repo test                                                            | file:/repo/testsuccess | 0        | /io/peasoup/inv/main/repo/testsuccess/stdout20.txt |
       | repo test                                                            | file:/repo/testfailed  | 2        | /io/peasoup/inv/main/repo/testfailed/stdout25.txt  |

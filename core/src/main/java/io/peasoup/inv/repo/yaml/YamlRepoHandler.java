@@ -2,6 +2,7 @@ package io.peasoup.inv.repo.yaml;
 
 
 import io.peasoup.inv.MissingOptionException;
+import io.peasoup.inv.loader.InterpolableGroovyObject;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.repo.RepoDescriptor;
 import io.peasoup.inv.repo.RepoExecutor;
@@ -66,23 +67,19 @@ public class YamlRepoHandler {
     }
 
     private void parseDescriptor(YamlRepoDescriptor descriptor, RepoDescriptor repo) throws IOException, ClassNotFoundException, MissingOptionException {
-
-        Map<String, String> interpolatable = new HashMap<>(RepoDescriptor.getEnv());
+        InterpolableGroovyObject interpolatable = new InterpolableGroovyObject(repo);
 
         // Sets name
         if (StringUtils.isNotEmpty(descriptor.getName()))
             repo.name(yamlLoader.interpolateString(descriptor.getName(), interpolatable));
-        interpolatable.put("name", repo.getName());
 
         // Sets path
         if (StringUtils.isNotEmpty(descriptor.getPath()))
             repo.path(yamlLoader.interpolateString(descriptor.getPath(), interpolatable));
-        interpolatable.put("path", repo.getPath());
 
         // Sets src
         if (StringUtils.isNotEmpty(descriptor.getSrc()))
             repo.src(yamlLoader.interpolateString(descriptor.getSrc(), interpolatable));
-        interpolatable.put("src", repo.getSrc());
 
         parseAsk(descriptor, repo, interpolatable);
         parseHooks(descriptor, repo, interpolatable);
@@ -113,7 +110,7 @@ public class YamlRepoHandler {
                 // Create the actual parameter
                 repo.getAsk().parameter(
                         parameter.getName(),
-                        parameter.getDescription(),
+                        parameter.getUsage(),
                         options);
             }
         }

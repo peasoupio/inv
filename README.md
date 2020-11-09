@@ -28,7 +28,7 @@ Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more 
 | Works in a Linux | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :white_check_mark: |  
 | Works in a Docker container | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
 | Report and keeps tracks | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
-| Allow SSL | Not yet :-1:  | Groovy   :x:, Yaml  :x: |  :white_check_mark: |  
+| Allow SSL | Yes :+1:  | Groovy   :x:, Yaml  :x: |  :white_check_mark: |  
 | Test reporting framework | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
 | Code coverage | Not yet :-1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
 

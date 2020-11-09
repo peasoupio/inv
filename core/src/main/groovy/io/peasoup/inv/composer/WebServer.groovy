@@ -11,6 +11,10 @@ import static spark.Spark.*
 class WebServer {
     final static String API_CONTEXT_ROOT = "/api"
 
+    final static String CONFIG_LOCAL_WEB = "INV_LOCAL_WEB"
+    final static String CONFIG_SSL_KEYSTORE = "INV_SSL_KEYSTORE"
+    final static String CONFIG_SSL_PASSWORD = "INV_SSL_PASSWORD"
+
     final Map webServerConfigs
     final String runLocation
     final String reposLocation
@@ -42,12 +46,22 @@ class WebServer {
         // Browser configs
         port(webServerConfigs.port as int)
 
+        // Get environment configs
+        def env = System.getenv()
+        def configLocalWeb = env[CONFIG_LOCAL_WEB]
+        def configSslKeystore = env[CONFIG_SSL_KEYSTORE]
+        def configSslPass = env[CONFIG_SSL_PASSWORD]
+
         // Static files
-        def localWeb = System.getenv()["INV_LOCAL_WEB"]
-        if (localWeb)
-            staticFiles.externalLocation(localWeb)
+        if (configLocalWeb)
+            staticFiles.externalLocation(configLocalWeb)
         else
             staticFiles.location("/public")
+
+        // SSL configuratio
+        if (configSslKeystore) {
+            secure(configSslKeystore, configSslPass, null, null)
+        }
 
         // Exception handling
         exception(Exception.class, { e, request, response ->

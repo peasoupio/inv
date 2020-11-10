@@ -18,7 +18,10 @@ class MainTest {
         resourceDir = MainTest.getResource("/io/peasoup/inv/main/").path
         Home.setCurrent(new File(resourceDir))
 
+        // Clear remaining resources files
         new File(resourceDir, "repo/get").deleteDir()
+        new File(resourceDir, "repo/create").deleteDir()
+        new File(resourceDir, "init/init1").deleteDir()
 
         outputTester = new OutputTester()
         resourceTester = new ResourceTester(resourceDir)

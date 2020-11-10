@@ -1,0 +1,8 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+SRCFILES: .*/repo/.inv/src
+TESTFILES: .*/repo/.inv/test
+VARSFILES: .*/repo/.inv/vars
+REPOFILE: .*/.inv/repo.yml

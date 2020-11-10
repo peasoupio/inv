@@ -28,5 +28,8 @@ Feature: What is the stdout of my main cli options?
       # Repo
       | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout1.txt              |
       | repo get -rp url:/peasoupio/inv-public-repo/master/net/http/repo.yml | file:/repo/get         | 0        | /io/peasoup/inv/main/repo/stdout2.txt              |
+      | repo create                                                          | file:/repo             | 0        | /io/peasoup/inv/main/repo/stdout3.txt              |
       | repo test                                                            | file:/repo/testsuccess | 0        | /io/peasoup/inv/main/repo/testsuccess/stdout20.txt |
       | repo test                                                            | file:/repo/testfailed  | 2        | /io/peasoup/inv/main/repo/testfailed/stdout25.txt  |
+      # Init
+      | init create init1                                                    | file:/init             | 0        | /io/peasoup/inv/main/init/stdout1.txt              |

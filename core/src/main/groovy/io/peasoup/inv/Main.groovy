@@ -126,7 +126,7 @@ class Main extends Script {
             if (arguments["run"])
                 return new InitRunCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
             if (arguments["create"])
-                return new InitCreateCommand()
+                return new InitCreateCommand(repoName: arguments["<repoName>"] as String)
         }
 
         if (arguments["run"])
@@ -167,7 +167,7 @@ Usage:
   inv repo create
   inv composer [-d | -x] [-s]
   inv init run [-d | -x] [-s] <repoFile>
-  inv init create
+  inv init create <repoName>
   inv promote [<runIndex>] 
   inv delta <base> <other>
   inv graph <base>
@@ -209,6 +209,7 @@ Parameters:
                current file system.
                Using --list with run, you can use a list
                of repos. 
+  <repoName>   The REPO name.
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run

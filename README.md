@@ -16,7 +16,7 @@ Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more 
 ##  :sparkles: Features
 
 
-| Explanation | Implemented | Targeted flavor(s) | Available on *Composer*
+| Feature | Implemented | Targeted flavor(s) | Available on *Composer*
 | --- | :---: | --- | :---: |
 | Execute Network valuables sequencing runs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
 | Extract sources with a REPO script file  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :white_check_mark: |  

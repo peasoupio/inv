@@ -1,13 +1,15 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
+import io.peasoup.inv.io.FileUtils
+import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class RepoCreateCommand implements CliCommand {
 
     int call() {
-
-        def invDir = new File(".inv/")
+        def invDir = new File(Home.getCurrent(), ".inv/")
         invDir.mkdirs()
 
         def srcFiles = new File(invDir, "src/")
@@ -22,6 +24,11 @@ class RepoCreateCommand implements CliCommand {
         def repoFile = new File(invDir,"repo.yml")
         if (!repoFile.exists())
             repoFile << "# Newly created repo file"
+
+        Logger.system("SRCFILES: ${FileUtils.convertUnixPath(srcFiles.absolutePath)}")
+        Logger.system("TESTFILES: ${FileUtils.convertUnixPath(testFiles.absolutePath)}")
+        Logger.system("VARSFILES: ${FileUtils.convertUnixPath(varsFiles.absolutePath)}")
+        Logger.system("REPOFILE: ${FileUtils.convertUnixPath(repoFile.absolutePath)}")
 
         return 0
     }

@@ -1,40 +1,57 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
+import io.peasoup.inv.io.FileUtils
 import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class InitCreateCommand implements CliCommand {
 
+    String repoName
+
     int call() {
 
-        def files = new File("./").listFiles()
-        if (files != null && files.size() > 0) {
+        def files = new File(Home.getCurrent(), repoName)
+        if (files.exists() && files.listFiles().size() > 0) {
             Logger.warn("Current directory is not empty")
             return 1
         }
 
+        // Create init folder
+        files.mkdirs()
+
         // Create .gitignore file
-        def gitIgnore = new File(".gitignore")
+        def gitIgnore = new File(files, ".gitignore")
         gitIgnore.delete()
         gitIgnore << """# Exclude unnecessary .repos files 
-.repos/
+.repos/*
 !.repos/*-values.json
 """
 
         // Create href folder
-        def hrefFolder = new File("href")
+        def hrefFolder = new File(files, "href")
         hrefFolder.mkdirs()
 
+        def hrefDummy = new File(hrefFolder, "keep-me.txt")
+        hrefDummy.delete()
+        hrefDummy << "# keep for scm"
+
+        // Create repos folder
+        def reposFolder = new File(files, ".repos")
+        reposFolder.mkdirs()
+
+        def repoDummy = new File(reposFolder, "keep-me-values.json")
+        repoDummy.delete()
+        repoDummy << "{ }"
+
         // Create settings.xml
-        def settingsXml = new File("settings.xml")
+        def settingsXml = new File(files, "settings.xml")
         settingsXml.delete()
-        settingsXml << """{
-}
-"""
+        settingsXml << "{ }"
 
         // Create init.yml
-        def initYml = new File("init.yml")
+        def initYml = new File(files, "init.yml")
         initYml.delete()
         initYml << """# Default init file
 repo:
@@ -59,14 +76,21 @@ repo:
 """
 
         StringBuilder sb = new StringBuilder()
-            .append("You may proceed with any of the following commands:").append(System.lineSeparator())
-            .append("\tgit checkout -b main").append(System.lineSeparator())
-            .append("\tgit add --all").append(System.lineSeparator())
-            .append("\tgit commit -m \"Initial commit\"").append(System.lineSeparator())
-            .append("You also can start composer using the following command:").append(System.lineSeparator())
-            .append("\tinv init run init.yml").append(System.lineSeparator())
+                .append("You may proceed with any of the following commands:").append(System.lineSeparator())
+                .append("\tgit init").append(System.lineSeparator())
+                .append("\tgit checkout -b main").append(System.lineSeparator())
+                .append("\tgit add --all").append(System.lineSeparator())
+                .append("\tgit commit -m \"Initial commit\"").append(System.lineSeparator())
+                .append("You also can start composer using the following command:").append(System.lineSeparator())
+                .append("\tinv init run init.yml").append(System.lineSeparator())
 
         Logger.trace(sb.toString())
+
+        Logger.system("GITIGNORE: ${FileUtils.convertUnixPath(gitIgnore.absolutePath)}")
+        Logger.system("HREFDUMMY: ${FileUtils.convertUnixPath(hrefDummy.absolutePath)}")
+        Logger.system("REPODUMMY: ${FileUtils.convertUnixPath(repoDummy.absolutePath)}")
+        Logger.system("SETTINGSXML: ${FileUtils.convertUnixPath(settingsXml.absolutePath)}")
+        Logger.system("INITYML: ${FileUtils.convertUnixPath(initYml.absolutePath)}")
 
         return 0
     }

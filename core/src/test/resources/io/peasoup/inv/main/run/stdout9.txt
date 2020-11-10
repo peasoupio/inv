@@ -29,10 +29,10 @@
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
 [EXECUTOR] scheduling: #3
-[main.*] => [REQUIRE] [Something] undefined
-[main.*] => [REQUIRE] [Something] undefined
-[main.*] => [REQUIRE] [SomethingYaml] undefined
-[main.*] => [REQUIRE] [SomethingYaml] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
 [POOL] available:2 , staged:0
 [POOL] inv: main5 COMPLETED
 [POOL] inv: main2 COMPLETED

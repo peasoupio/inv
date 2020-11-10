@@ -20,8 +20,8 @@
 ---- [DIGEST] #2 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1
 [EXECUTOR] scheduling: #2
-[main2] => [REQUIRE] [Something] undefined
-[main3] => [REQUIRE] [Something] undefined
+[main.*] => [REQUIRE] [Something] undefined
+[main.*] => [REQUIRE] [Something] undefined
 [POOL] available:1 , staged:0
 [POOL] inv: main2 COMPLETED
 [POOL] inv: main3 COMPLETED

@@ -1,5 +1,0 @@
-inv {
-    require $inv.Something
-}
-
-

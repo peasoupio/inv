@@ -62,7 +62,7 @@
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <outputDirectory>${project.build.directory}/dist</outputDirectory>
                                     <descriptors>
-                                        <descriptor>dist/assembly/packages.xml</descriptor>
+                                        <descriptor>src/main/assembly/packages.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>
@@ -76,7 +76,7 @@
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <finalName>docker</finalName>
                                     <descriptors>
-                                        <descriptor>dist/assembly/docker.xml</descriptor>
+                                        <descriptor>src/main/assembly/docker.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>

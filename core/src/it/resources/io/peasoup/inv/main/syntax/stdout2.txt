@@ -1,0 +1,10 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+[SYNTAX] startup failed:
+empty.package.invalid: .*: Unexpected input: '{' @ line .*, column .*.
+   repo {
+        ^
+
+1 error

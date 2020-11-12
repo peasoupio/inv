@@ -19,16 +19,16 @@ jobs:
   include:
     # Do the actual build (and test reporting)
     - stage: package (maven)
-      script: mvn -B clean package -Pdistribute --settings ./ci/.travis-settings.xml
+      script: mvn --settings ./ci/.travis-settings.xml -B         clean package -P distribute
 
-    - stage: report tests (sonarqube)
+    - stage: report tests to sonarqube (maven)
       if: branch =~ ^release\/.*$
-      script: mvn -B -DskipTests=true -f core org.jacoco:jacoco-maven-plugin:prepare-agent sonar:sonar
+      script: mvn --settings ./ci/.travis-settings.xml -B -f core sonar:sonar
 
     # Distribute binairies
     - stage: distribute
       if: branch =~ ^release\/.*$
-      script: mvn -B -DskipTests=true deploy --settings ./ci/.travis-settings.xml
+      script: mvn --settings ./ci/.travis-settings.xml -B -DskipTests=true deploy:deploy
 
     - stage: distribute
       if: branch =~ ^release\/.*$

@@ -1,5 +1,0 @@
-inv {
-    broadcast $inv.Something
-}
-
-

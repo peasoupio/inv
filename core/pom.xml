@@ -11,17 +11,16 @@
 
     <build>
         <resources>
-            <resource>
-                <directory>../ci/build</directory>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
+            <resource><directory>../ci/build</directory><filtering>true</filtering></resource>
+            <resource><directory>src/main/resources</directory></resource>
         </resources>
+        <testResources>
+            <testResource><directory>src/test/resources</directory></testResource>
+            <testResource><directory>src/it/resources</directory></testResource>
+        </testResources>
 
         <plugins>
-            <!-- core engine -->
+            <!-- compile groovy files -->
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
@@ -36,6 +35,22 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <testSources>
+                        <testSource>
+                            <directory>${project.basedir}/src/test/groovy</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                            </includes>
+                        </testSource>
+                        <testSource>
+                            <directory>${project.basedir}/src/it/groovy</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                            </includes>
+                        </testSource>
+                    </testSources>
+                </configuration>
             </plugin>
 
             <!-- tests and coverage -->
@@ -45,11 +60,11 @@
                 <version>0.8.5</version>
                 <executions>
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-                    <!-- attached to Maven test phase -->
                     <execution>
                         <id>report</id>
                         <phase>test</phase>
@@ -105,8 +120,9 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
+
     </build>
+
 
 </project>

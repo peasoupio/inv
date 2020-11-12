@@ -12,7 +12,7 @@ class SettingsTest {
     @Test
     void ok_alreadyExists() {
         def stageValue = "value1"
-        def settingsFile = new File("./target/test-classes/settings.json")
+        def settingsFile = new File(SettingsTest.getResource("/settings.json").path)
         settingsFile.delete()
 
 

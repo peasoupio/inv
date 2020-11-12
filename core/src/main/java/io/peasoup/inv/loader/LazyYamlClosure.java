@@ -140,7 +140,7 @@ public class LazyYamlClosure extends Closure {
                 Class closureScript = GROOVYLOADER.parseClassText("def export = { " + codeBlock + " }; return export");
 
                 try {
-                    DelegatingScript script = (DelegatingScript) closureScript.getDeclaredConstructors()[0].newInstance();
+                    DelegatingScript script = (DelegatingScript) closureScript.getDeclaredConstructor().newInstance();
                     script.setDelegate(owner.getDelegate());
                     codeClosure = (Closure)script.run();
                 } catch (Exception e) {

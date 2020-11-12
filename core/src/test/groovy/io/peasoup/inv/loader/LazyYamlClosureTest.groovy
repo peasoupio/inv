@@ -82,7 +82,7 @@ class LazyYamlClosureTest {
         simpleClosure.setDelegate(myNewDelegate)
 
         assertEquals myNewDelegate, simpleClosure.getDelegate()
-        assertEquals simpleClosure.getProperties().codeClosure.getDelegate(), simpleClosure.getDelegate()
+        assertEquals simpleClosure.getCodeClosure().getDelegate(), simpleClosure.getDelegate()
     }
 
     @Test
@@ -109,17 +109,17 @@ class LazyYamlClosureTest {
 
     @Test
     void hashCode_ok() {
-        assertEquals simpleClosure.getProperties().codeClosure.hashCode(), simpleClosure.hashCode()
+        assertEquals simpleClosure.getCodeClosure().hashCode(), simpleClosure.hashCode()
     }
 
     @Test
     void equals_ok() {
-        assertTrue simpleClosure.equals(simpleClosure.getProperties().codeClosure)
+        assertTrue simpleClosure.equals(simpleClosure.getCodeClosure())
     }
 
     @Test
     void toString_ok() {
-        assertEquals simpleClosure.getProperties().codeClosure.toString(), simpleClosure.toString()
+        assertEquals simpleClosure.getCodeClosure().toString(), simpleClosure.toString()
     }
 
     @Test
@@ -139,6 +139,6 @@ class LazyYamlClosureTest {
         simpleClosure.setResolveStrategy(resolveStategy)
 
         assertEquals resolveStategy, simpleClosure.getResolveStrategy()
-        assertEquals simpleClosure.getProperties().codeClosure.getResolveStrategy(), simpleClosure.getResolveStrategy()
+        assertEquals simpleClosure.getCodeClosure().getResolveStrategy(), simpleClosure.getResolveStrategy()
     }
 }

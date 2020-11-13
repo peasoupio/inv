@@ -140,7 +140,7 @@ public class InvDescriptor {
      * @param body @optional @default None, the value required
      * @return a new BroadcastDescriptor
      */
-    public BroadcastDescriptor broadcast(@DelegatesTo(InvNames.class) Closure body) {
+    public BroadcastDescriptor broadcast(@DelegatesTo(java.util.Map.class) Closure body) {
         if (body == null) throw new IllegalArgumentException("body is required");
 
         body.setResolveStrategy(Closure.DELEGATE_ONLY);
@@ -186,7 +186,7 @@ public class InvDescriptor {
      * @param body @optional @default None, the value required
      * @return a new RequireDescriptor
      */
-    public RequireDescriptor require(Closure body) {
+    public RequireDescriptor require(@DelegatesTo(java.util.Map.class) Closure body) {
         if (body == null) throw new IllegalArgumentException("body is required");
 
         body.setResolveStrategy(Closure.DELEGATE_ONLY);

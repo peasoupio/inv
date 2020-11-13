@@ -45,7 +45,11 @@ class InvDescriptorTest {
     @Test
     void broadcast_not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            myself.broadcast()
+            myself.broadcast((Closure)null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.broadcast((StatementDescriptor)null)
         })
     }
 
@@ -131,7 +135,11 @@ class InvDescriptorTest {
     @Test
     void require_not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            myself.require()
+            myself.require((Closure)null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.require((StatementDescriptor)null)
         })
     }
 

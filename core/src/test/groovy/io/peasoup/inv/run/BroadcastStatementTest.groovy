@@ -21,7 +21,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     my: { return "method" }
                 ]}
@@ -31,7 +31,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNotNull response.my
@@ -49,7 +49,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready { return null }
             }
         }
@@ -57,7 +57,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNull my
@@ -74,7 +74,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     something: "valuable"
                 ]}
@@ -84,7 +84,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNull my
@@ -101,7 +101,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                         my: "method"
                 ]}
@@ -111,7 +111,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNotNull my
@@ -129,7 +129,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     my: "property"
                 ]}
@@ -139,7 +139,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNotNull my
@@ -156,7 +156,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                         $: {
                             return [
@@ -170,7 +170,7 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
                     assertNotNull my

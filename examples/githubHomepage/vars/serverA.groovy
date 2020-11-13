@@ -1,7 +1,7 @@
 inv {
     name "ServerA"
 
-    broadcast $inv.Server using {
+    broadcast { Server } using {
         id name: "server-a"
         ready {
             return [

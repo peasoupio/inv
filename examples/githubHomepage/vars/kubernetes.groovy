@@ -1,7 +1,7 @@
 inv {
     name "Kubernetes"
 
-    require $inv.Server using {
+    require { Server } using {
         id name: "server-a"
 
         resolved {
@@ -11,7 +11,7 @@ inv {
         }
     }
 
-    broadcast $inv.Kubernetes using {
+    broadcast { Kubernetes } using {
         ready {
             return [
                     http      : "http://my-kubernetes.my.host.com",

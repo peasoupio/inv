@@ -1,9 +1,9 @@
 inv {
     name "iis"
 
-    require $inv.Server(name: "server-a")
+    require { Server(name: "server-a") }
 
-    broadcast $inv.IIS using {
+    broadcast { IIS } using {
         ready {
             return [
                     deploy: {webApp ->

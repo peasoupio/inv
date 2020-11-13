@@ -1,9 +1,9 @@
 inv {
 	name "my-webservice"
 
-	require $inv.Server("my-server-id")
+	require { Server("my-server-id") }
 
-	broadcast $inv.Endpoint using {
+	broadcast { Endpoint } using {
 		id "my-webservice-id"
 		ready {
 			println "my-webservice-id has been broadcast"
@@ -14,15 +14,15 @@ inv {
 inv {
 	name "my-app"
 
-	require $inv.Endpoint("my-webservice-id")
+	require { Endpoint("my-webservice-id") }
 
-	broadcast $inv.App("my-app-id")
+	broadcast { App("my-app-id") }
 }
 
 inv {
 	name "my-server"
 
-	broadcast $inv.Server using {
+	broadcast { Server } using {
 		id "my-server-id"
 		ready {
 			println "my-server-id has been broadcast"

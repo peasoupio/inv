@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
@@ -113,7 +114,7 @@ public class InvDescriptor {
      * Per example:
      * <pre>
      *     tags(myType: 'type1')
-     *     require $inv.Type(tags.myType)
+     *     require { Type(tags.myType) }
      * </pre>
      *
      * @param tags @optional @default None, value required
@@ -127,11 +128,33 @@ public class InvDescriptor {
     }
 
     /**
-     * Defines a shorthand broadcast statement.
-     * <p>
-     * Each broadcast needs a *name* (below it's "MyBroadcastStatement").
-     * <p>
-     * Also, it allows associating a unique identifier.
+     * Creates a broadcast statement using a facilitator callback.
+     * Examples:
+     * <pre>
+     *     broadcast { Something }
+     *     broadcast { Else() }
+     *     broadcast { And(even: "more") }
+     * </pre>
+     *
+     *
+     * @param body @optional @default None, the value required
+     * @return a new BroadcastDescriptor
+     */
+    public BroadcastDescriptor broadcast(@DelegatesTo(InvNames.class) Closure body) {
+        if (body == null) throw new IllegalArgumentException("body is required");
+
+        body.setResolveStrategy(Closure.DELEGATE_ONLY);
+        body.setDelegate(InvNames.Instance);
+        Object returnValue = body.call();
+
+        if (!(returnValue instanceof StatementDescriptor))
+            throw new IllegalStateException("broadcast statement descriptor is not valid. Make sure a valid return value is defined");
+
+        return this.broadcast((StatementDescriptor)returnValue);
+    }
+
+    /**
+     * Creates a broadcast statement based on an actual statement descriptor
      *
      * @param statementDescriptor @optional @default None, the value required
      * @return a new BroadcastDescriptor
@@ -151,14 +174,37 @@ public class InvDescriptor {
     }
 
     /**
-     * Defines a shorthand requirement statement.
-     * <p>
-     * Each requirement needs a *name* (below it's "MyRequireStatement").
-     * <p>
-     * Also, it allows associating a unique identifier.
+     * Creates a require statement using a facilitator callback.
+     * Examples:
+     * <pre>
+     *     require { Something }
+     *     require { Else() }
+     *     require { And(even: "more") }
+     * </pre>
+     *
+     *
+     * @param body @optional @default None, the value required
+     * @return a new RequireDescriptor
+     */
+    public RequireDescriptor require(Closure body) {
+        if (body == null) throw new IllegalArgumentException("body is required");
+
+        body.setResolveStrategy(Closure.DELEGATE_ONLY);
+        body.setDelegate(InvNames.Instance);
+        Object returnValue = body.call();
+
+        if (!(returnValue instanceof StatementDescriptor))
+            throw new IllegalStateException("require statement descriptor is not valid. Make sure a valid return value is defined");
+
+        return this.require((StatementDescriptor)returnValue);
+    }
+
+
+    /**
+     * Creates a require statement based on an actual statement descriptor
      *
      * @param statementDescriptor @optional @default None, the value required
-     * @return a new BroadcastDescriptor
+     * @return a new RequireDescriptor
      */
     public RequireDescriptor require(StatementDescriptor statementDescriptor) {
         if (statementDescriptor == null) {
@@ -259,24 +305,6 @@ public class InvDescriptor {
 
     public Map<String, String> getTags() {
         return this.properties.tags;
-    }
-
-    /**
-     * Create a new generic StatementDescriptor.
-     * <p>
-     * INV names are dynamically generated.
-     * <p>
-     * Per example:
-     * <pre>
-     *     inv.Something
-     *     inv.Else
-     *     inv.Even("more)
-     * </pre>
-     * @return a new StatementDescriptor
-     */
-    @SuppressWarnings("squid:S100")
-    public InvNames get$inv() {
-        return InvNames.Instance;
     }
 
     /**

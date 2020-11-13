@@ -28,12 +28,12 @@ class InvHandlerTest {
     @Test
     void call_ok() {
 
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id name: "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -41,23 +41,23 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint using {
+            require { Endpoint } using {
                 id name: "my-webservice-id"
                 resolved {
                     println "my-webservice-id has been resolved by ${resolvedBy}"
                 }
             }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -98,13 +98,27 @@ class InvHandlerTest {
     }
 
     @Test
+    void call_using_variable_id() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something(myId) }
+
+            require { Something(myId) }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+    @Test
     void call_broadcast_twice() {
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -112,12 +126,12 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-webservice-2"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast twice"
@@ -125,20 +139,20 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint using {
+            require { Endpoint } using {
                 id "my-webservice-id"
             }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -160,13 +174,13 @@ class InvHandlerTest {
 
     @Test
     void call_using_step() {
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -175,13 +189,13 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         print "My App is hosted here: ${$ep}"
                     }
@@ -189,10 +203,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -206,14 +220,14 @@ class InvHandlerTest {
 
     @Test
     void call_using_step_and_unbloating() {
-        inv {
+        inv.call {
             name "my-webservice"
 
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -222,17 +236,17 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-unbloatable-ws-id") using {
+            require { Endpoint("my-unbloatable-ws-id") } using {
                 unbloatable true
             }
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         print "My App is hosted here: ${$ep}"
                     }
@@ -240,10 +254,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -257,14 +271,14 @@ class InvHandlerTest {
 
     @Test
     void call_using_step_unbloating_and_broadcast_after() {
-        inv {
+        inv.call {
             name "my-webservice"
 
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -273,22 +287,22 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-unbloatable-ws-id") using {
+            require { Endpoint("my-unbloatable-ws-id") } using {
                 unbloatable true
             }
 
             step {
-                broadcast $inv.App("my-app-id")
+                broadcast { App("my-app-id") }
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -296,19 +310,19 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-other-app"
 
             step {
-                require $inv.App("my-app-id")
+                require { App("my-app-id") }
             }
 
             step {
-                require $inv.Element("not-existing") using { unbloatable true }
+                require { Element("not-existing") } using { unbloatable true }
             }
 
             step {
-                broadcast $inv.Element("at-the-end")
+                broadcast { Element("at-the-end") }
             }
         }
 
@@ -318,33 +332,33 @@ class InvHandlerTest {
 
     @Test
     void call_using_multiple_unbloating() {
-        inv {
+        inv.call {
             name "my-app-1"
 
-            require $inv.Artifact("A") using { unbloatable true }
-            broadcast $inv.Artifact("B")
-            require $inv.Artifact("B") using { unbloatable true }
-            require $inv.Artifact("C") using { unbloatable true }
-            require $inv.Artifact("D") using { unbloatable true }
+            require { Artifact("A") } using { unbloatable true }
+            broadcast { Artifact("B") }
+            require { Artifact("B") } using { unbloatable true }
+            require { Artifact("C") } using { unbloatable true }
+            require { Artifact("D") } using { unbloatable true }
 
-            require $inv.Service("A") using { unbloatable true }
-            require $inv.Service("B")
-            require $inv.Service("C") using { unbloatable true }
-            require $inv.Service("D") using { unbloatable true }
+            require { Service("A") } using { unbloatable true }
+            require { Service("B") }
+            require { Service("C") } using { unbloatable true }
+            require { Service("D") } using { unbloatable true }
         }
 
-        inv {
+        inv.call {
             name "my-app-2"
 
-            require $inv.Artifact("A") using { unbloatable true }
-            require $inv.Artifact("B")
-            require $inv.Artifact("C") using { unbloatable true }
-            require $inv.Artifact("D") using { unbloatable true }
+            require { Artifact("A") } using { unbloatable true }
+            require { Artifact("B") }
+            require { Artifact("C") } using { unbloatable true }
+            require { Artifact("D") } using { unbloatable true }
 
-            require $inv.Service("A") using { unbloatable true }
-            broadcast $inv.Service("B")
-            require $inv.Service("C") using { unbloatable true }
-            require $inv.Service("D") using { unbloatable true }
+            require { Service("A") } using { unbloatable true }
+            broadcast { Service("B") }
+            require { Service("C") } using { unbloatable true }
+            require { Service("D") } using { unbloatable true }
         }
 
         def report = executor.execute()
@@ -358,13 +372,13 @@ class InvHandlerTest {
 
         def value = 1
 
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         value++
@@ -378,13 +392,13 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         value++
                         print "My App is hosted here: ${$ep}"
@@ -393,10 +407,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     value++
@@ -415,15 +429,15 @@ class InvHandlerTest {
         def patternProvider = { provider ->
             this.inv.call {
                 name "element-${provider}"
-                broadcast $inv.Element(provider)
+                broadcast { Element(provider) }
             }
         }
 
         def patternConsumer = { provider, consumer ->
             this.inv.call {
                 name "element-${consumer}"
-                require $inv.Element(provider)
-                step { broadcast $inv.Element(consumer) }
+                require { Element(provider) }
+                step { broadcast { Element(consumer) } }
             }
         }
 
@@ -446,16 +460,12 @@ class InvHandlerTest {
     @Test
     void call_with_halting() {
 
-        assertThrows(IllegalArgumentException.class, {
-            inv.call(null)
-        })
-
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -463,10 +473,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -474,37 +484,37 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
+            require { Endpoint("my-webservice-id-not-existing") }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-app-2"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
-            require $inv.App("my-app-id")
+            require { Endpoint("my-webservice-id-not-existing") }
+            require { App("my-app-id") }
 
-            require $inv.Endpoint("my-unbloatable-endpoint") using {
+            require { Endpoint("my-unbloatable-endpoint") } using {
                 unbloatable true
             }
 
-            broadcast $inv.App("my-app-id-2")
+            broadcast { App("my-app-id-2") }
         }
 
-        inv {
+        inv.call {
             name "my-app-3"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
-            require $inv.App("my-app-id")
-            require $inv.App("my-app-id-2")
+            require { Endpoint("my-webservice-id-not-existing") }
+            require { App("my-app-id") }
+            require { App("my-app-id-2") }
 
-            require $inv.Endpoint("my-webservice-id")
+            require { Endpoint("my-webservice-id") }
 
-            broadcast $inv.App("my-app-id-3")
+            broadcast { App("my-app-id-3") }
         }
 
 
@@ -518,7 +528,7 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception() {
-        inv {
+        inv.call {
             name "my-exception"
 
             throw new Exception("fail")
@@ -533,10 +543,10 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception_2() {
-        inv {
+        inv.call {
             name "my-exception"
 
-            broadcast $inv.Exception using {
+            broadcast { MyException } using {
                 ready {
                     throw new Exception("fail-broadcast")
                 }
@@ -551,16 +561,16 @@ class InvHandlerTest {
 
     @Test
     void call_with_exception_3() {
-        inv {
+        inv.call {
             name "provide"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "my-exception"
 
-            require $inv.Something using {
+            require { Something } using {
                 resolved {
                     throw new Exception("fail-require")
                 }
@@ -576,16 +586,16 @@ class InvHandlerTest {
     @Test
     void call_with_exception_4() {
 
-        inv {
+        inv.call {
             name "provide"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "my-exception"
 
-            require $inv.Something using {
+            require { Something } using {
                 resolved {
                     assertTrue 1 == 2, "Does not equal"
                 }
@@ -601,13 +611,13 @@ class InvHandlerTest {
     void pop_and_tail() {
         int index = 0
 
-        inv {
+        inv.call {
             name "3"
 
             pop false
             tail true
 
-            broadcast $inv.Something("3") using {
+            broadcast { Something("3") } using {
                 ready {
                     assertEquals 3, index
                 }
@@ -615,13 +625,13 @@ class InvHandlerTest {
         }
 
 
-        inv {
+        inv.call {
             name "2"
 
             pop false
             tail true
 
-            broadcast $inv.Something("2") using {
+            broadcast { Something("2") } using {
                 ready {
                     assertEquals 2, index
                     index++
@@ -629,13 +639,13 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "1"
 
             pop false
             tail false
 
-            broadcast $inv.Something("1") using {
+            broadcast { Something("1") } using {
                 ready {
                     assertEquals 1, index
                     index++
@@ -643,13 +653,13 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "0"
 
             pop true
             tail false
 
-            broadcast $inv.Something("0") using {
+            broadcast { Something("0") } using {
                 ready {
                     assertEquals 0, index
                     index++
@@ -667,7 +677,7 @@ class InvHandlerTest {
 
     @Test
     void tags_ok() {
-        inv {
+        inv.call {
             name "3"
 
             tags(
@@ -689,7 +699,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -697,7 +707,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') completed {
@@ -715,17 +725,17 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') created {
@@ -743,23 +753,23 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
         }
 
-        inv {
+        inv.call {
             name "3"
 
             when all tags(my: 'tag') completed {
@@ -777,7 +787,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -785,7 +795,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'other-tag') completed {
@@ -803,7 +813,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -811,7 +821,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "1" completed {
@@ -829,7 +839,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "123"
 
             tags(
@@ -837,7 +847,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "1" completed {
@@ -855,7 +865,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -863,7 +873,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "2" completed {
@@ -879,7 +889,7 @@ class InvHandlerTest {
     @Test
     void when_ok_broadcasts() {
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -887,28 +897,28 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') completed {
                 step {
-                    broadcast $inv.Something
+                    broadcast { Something }
                 }
             }
         }
 
-        inv {
+        inv.call {
             name "3"
 
-            require $inv.Something
+            require { Something }
 
-            broadcast $inv.Else
+            broadcast { Else }
         }
 
-        inv {
+        inv.call {
             name "4"
 
-            require $inv.Else
+            require { Else }
         }
 
         def report = executor.execute()
@@ -920,24 +930,24 @@ class InvHandlerTest {
 
         boolean raised = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
 
             when all tags(my: 'tag') completed {
                 raised = true
@@ -954,24 +964,24 @@ class InvHandlerTest {
 
         boolean raised = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Else
+            require { Else }
 
             when all tags(my: 'tag') completed {
                 raised = true
@@ -994,7 +1004,7 @@ class InvHandlerTest {
             }
         })
 
-        inv {
+        inv.call {
 
             name "steps"
 
@@ -1008,49 +1018,49 @@ class InvHandlerTest {
 
     @Test
     void multiple_steps_require_and_broadcasts() {
-        inv {
+        inv.call {
             name "step1"
 
             step {
                 assertEquals 0, it
 
-                require $inv.Something
+                require { Something }
             }
 
             step {
                 assertEquals 1, it
 
-                broadcast $inv.Else
-                require $inv.More
+                broadcast { Else }
+                require { More }
             }
 
             step {
                 assertEquals 2, it
 
-                broadcast $inv.Final
+                broadcast { Final }
             }
         }
 
-        inv {
+        inv.call {
             name "step2"
 
             step {
                 assertEquals 0, it
 
-                broadcast $inv.Something
+                broadcast { Something }
             }
 
             step {
                 assertEquals 1, it
 
-                require $inv.Else
-                broadcast $inv.More
+                require { Else }
+                broadcast { More }
             }
 
             step {
                 assertEquals 2, it
 
-                require $inv.Final
+                require { Final }
             }
         }
 
@@ -1060,26 +1070,26 @@ class InvHandlerTest {
 
     @Test
     void ok_doc() {
-        inv {
+        inv.call {
             name "doc"
             markdown '''
 This is a sample description for this INV.
 '''
 
-            broadcast $inv.Something using {
+            broadcast { Something } using {
                 markdown '''
 This is a sample description for this  
 broadcast statement
 '''
             }
 
-            require $inv.Something using {
+            require { Something } using {
                 markdown '''
 This is a sample description for **this** require statement
 '''
             }
 
-            broadcast $inv.Else using {
+            broadcast { Else } using {
                 markdown '''
 This is a sample description for **this** broadcast statement
 '''

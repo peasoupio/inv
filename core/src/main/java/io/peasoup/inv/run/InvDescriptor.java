@@ -133,7 +133,7 @@ public class InvDescriptor {
      * </pre>
      *
      *
-     * @param body @optional @default None, the value is required
+     * @param body @optional @default None, a value is required
      * @return a new BroadcastDescriptor
      */
     public BroadcastDescriptor broadcast(@DelegatesTo(java.util.Map.class) Closure body) {
@@ -152,7 +152,7 @@ public class InvDescriptor {
     /**
      * Creates a broadcast statement based on an actual statement descriptor
      *
-     * @param statementDescriptor @optional @default None, the value is required
+     * @param statementDescriptor @optional @default None, a value is required
      * @return a new BroadcastDescriptor
      */
     public BroadcastDescriptor broadcast(StatementDescriptor statementDescriptor) {
@@ -179,7 +179,7 @@ public class InvDescriptor {
      * </pre>
      *
      *
-     * @param body @optional @default None, the value is required
+     * @param body @optional @default None, a value is required
      * @return a new RequireDescriptor
      */
     public RequireDescriptor require(@DelegatesTo(java.util.Map.class) Closure body) {
@@ -199,7 +199,7 @@ public class InvDescriptor {
     /**
      * Creates a require statement based on an actual statement descriptor
      *
-     * @param statementDescriptor @optional @default None, the value is required
+     * @param statementDescriptor @optional @default None, a value is required
      * @return a new RequireDescriptor
      */
     public RequireDescriptor require(StatementDescriptor statementDescriptor) {

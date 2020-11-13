@@ -29,7 +29,8 @@ class StatementDescriptorTest {
     void call_ok() {
 
         assertEquals myself, myself.call()
-        assertNull myself.id
+        assertNotNull myself.id
+        assertEquals myself.id, StatementDescriptor.DEFAULT_ID
 
 
         def id1 = "id1"

@@ -111,6 +111,47 @@ class InvHandlerTest {
         assertTrue report.isOk()
     }
 
+
+    @Test
+    void call_using_delayed_id() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something } using {
+                ready { myId }
+            }
+
+            require { Something }
+
+            broadcast { Something { $Something.id } }
+
+            require { Something { $Something.id } }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+    @Test
+    void call_using_delayed_id_with_bad_variable() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something } using {
+                ready { myId }
+            }
+
+            require { Something }
+
+            broadcast { Something { $SomethingElse.id } }
+
+            require { Something { $SomethingElse.id } }
+        }
+
+        def report = executor.execute()
+        assertFalse report.isOk()
+    }
+
     @Test
     void call_broadcast_twice() {
         inv.call {

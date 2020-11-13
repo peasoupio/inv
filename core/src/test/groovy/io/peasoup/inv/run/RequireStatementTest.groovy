@@ -20,12 +20,12 @@ class RequireStatementTest {
     void ok() {
 
         inv {
-            name "provide"
+            name "provider"
             broadcast { Element }
         }
 
         inv {
-            name "consume"
+            name "consumer"
             require { Element }
         }
 
@@ -36,7 +36,7 @@ class RequireStatementTest {
         def requireStatement = executor
                 .pool
                 .totalInvs
-                .find { it.name == "consume" }
+                .find { it.name == "consumer" }
                 .totalStatements
                 .first() as RequireStatement
 
@@ -52,7 +52,7 @@ class RequireStatementTest {
         boolean unresolvedRaised = false
 
         inv {
-            name "consume"
+            name "consumer"
 
             require { Bloatable } using {
                 unbloatable true
@@ -61,8 +61,8 @@ class RequireStatementTest {
                     unresolvedRaised = true
 
                     assertEquals "Bloatable", it.name
-                    assertEquals InvDescriptor.DEFAULT_ID, it.id
-                    assertEquals "consume", it.owner
+                    assertEquals StatementDescriptor.DEFAULT_ID, it.id
+                    assertEquals "consumer", it.owner
                 }
             }
         }
@@ -77,7 +77,6 @@ class RequireStatementTest {
         assertNotNull requireStatement
         assertTrue requireStatement.unbloatable
         assertTrue requireStatement.toString().contains("[UNBLOATABLE]")
-
     }
 
     @Test
@@ -86,7 +85,7 @@ class RequireStatementTest {
         boolean unresolvedRaised = false
 
         inv {
-            name "consume"
+            name "consumer"
 
             require { Bloatable } using {
                 unbloatable false
@@ -107,18 +106,41 @@ class RequireStatementTest {
     void ok_with_into() {
 
         inv {
-            name "provide"
+            name "provider"
 
             broadcast { Element }
         }
 
         inv {
-            name "consume"
+            name "consumer"
 
             require { Element } into '$element'
 
             step {
                 assertNotNull $element
+            }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+    @Test
+    void ok_with_default_into() {
+
+        inv {
+            name "provider"
+
+            broadcast { Element }
+        }
+
+        inv {
+            name "consumer"
+
+            require { Element }
+
+            step {
+                assertNotNull $Element
             }
         }
 

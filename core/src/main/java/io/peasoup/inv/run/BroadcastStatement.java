@@ -102,9 +102,19 @@ public class BroadcastStatement implements Statement {
 
                 Logger.info(broadcastStatement);
 
+                Object id = broadcastStatement.getId();
+
+                // Resolved delayed id
+                if (id instanceof Closure) {
+                    Closure delayedId = (Closure)id;
+                    delayedId.setResolveStrategy(Closure.DELEGATE_ONLY);
+                    delayedId.setDelegate(broadcastStatement.getInv().getDelegate());
+                    id = delayedId.call();
+                }
+
                 // Staging response
                 BroadcastResponse response = createResponse(broadcastStatement);
-                staging.putIfAbsent(broadcastStatement.getId(), response);
+                staging.putIfAbsent(id, response);
             }
         }
 

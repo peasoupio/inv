@@ -11,11 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class InvDescriptor {
 
-    /**
-     * Sets the default ID for statements.
-     */
-    public static final String DEFAULT_ID = "undefined";
-
     private final Properties properties;
 
     protected InvDescriptor(Properties properties) {
@@ -134,10 +129,11 @@ public class InvDescriptor {
      *     broadcast { Something }
      *     broadcast { Else() }
      *     broadcast { And(even: "more") }
+     *     require { With { $delayedResponse } }
      * </pre>
      *
      *
-     * @param body @optional @default None, the value required
+     * @param body @optional @default None, the value is required
      * @return a new BroadcastDescriptor
      */
     public BroadcastDescriptor broadcast(@DelegatesTo(java.util.Map.class) Closure body) {
@@ -156,7 +152,7 @@ public class InvDescriptor {
     /**
      * Creates a broadcast statement based on an actual statement descriptor
      *
-     * @param statementDescriptor @optional @default None, the value required
+     * @param statementDescriptor @optional @default None, the value is required
      * @return a new BroadcastDescriptor
      */
     public BroadcastDescriptor broadcast(StatementDescriptor statementDescriptor) {
@@ -164,8 +160,7 @@ public class InvDescriptor {
 
         BroadcastStatement broadcastStatement = new BroadcastStatement();
 
-        final Object id = statementDescriptor.getId();
-        broadcastStatement.setId(id != null ? id : DEFAULT_ID);
+        broadcastStatement.setId(statementDescriptor.getId());
         broadcastStatement.setName(statementDescriptor.getName());
 
         properties.statements.add(broadcastStatement);
@@ -180,10 +175,11 @@ public class InvDescriptor {
      *     require { Something }
      *     require { Else() }
      *     require { And(even: "more") }
+     *     require { With { $delayedResponse } }
      * </pre>
      *
      *
-     * @param body @optional @default None, the value required
+     * @param body @optional @default None, the value is required
      * @return a new RequireDescriptor
      */
     public RequireDescriptor require(@DelegatesTo(java.util.Map.class) Closure body) {
@@ -203,7 +199,7 @@ public class InvDescriptor {
     /**
      * Creates a require statement based on an actual statement descriptor
      *
-     * @param statementDescriptor @optional @default None, the value required
+     * @param statementDescriptor @optional @default None, the value is required
      * @return a new RequireDescriptor
      */
     public RequireDescriptor require(StatementDescriptor statementDescriptor) {
@@ -213,8 +209,7 @@ public class InvDescriptor {
 
         RequireStatement requireStatement = new RequireStatement();
 
-        final Object id = statementDescriptor.getId();
-        requireStatement.setId(id != null ? id : DEFAULT_ID);
+        requireStatement.setId(statementDescriptor.getId());
         requireStatement.setName(statementDescriptor.getName());
 
         properties.statements.add(requireStatement);

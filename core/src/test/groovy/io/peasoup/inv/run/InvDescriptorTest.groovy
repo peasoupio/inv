@@ -78,7 +78,7 @@ class InvDescriptorTest {
         def delegate = properties.statements.first() as RequireStatement
 
         assertEquals nvd.name, delegate.name
-        assertEquals InvDescriptor.DEFAULT_ID, delegate.id
+        assertEquals StatementDescriptor.DEFAULT_ID, delegate.id
     }
 
     @Test

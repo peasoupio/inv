@@ -27,7 +27,7 @@ public class HookExecutor {
     private static final String MESSAGE_REPO_START = "[REPO] name: %s, path: %s [%s] start";
     private static final String MESSAGE_REPO_DONE = "[REPO] name: %s, path: %s [%s] done";
 
-    private static final boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+    private static final boolean IS_WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
     private HookExecutor() {
 
@@ -99,7 +99,7 @@ public class HookExecutor {
             repository.getRepoPath().mkdirs();
             if (!repository.getRepoPath().setExecutable(true) ||
                 // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6728842
-                !isWindows && !repository.getRepoPath().setWritable(true) ||
+                !IS_WINDOWS && !repository.getRepoPath().setWritable(true) ||
                 !repository.getRepoPath().setReadable(true))
                 Logger.warn("Failed to set path permissions");
 
@@ -113,7 +113,7 @@ public class HookExecutor {
         String extension = DEFAULT_UNIX_EXTENSION;
         List<String> envs = RepoDescriptor.getCurrentOSSet();
 
-        if (isWindows) {
+        if (IS_WINDOWS) {
             currentCommands = "@ECHO OFF" + System.lineSeparator() + currentCommands;
             program = DEFAULT_SHEBANG_WINDOW;
             extension = DEFAULT_WINDOWS_EXTENSION;
@@ -187,13 +187,10 @@ public class HookExecutor {
 
         report.setExitCode(process.exitValue());
 
-        if (report.getExitCode() != 0) {
-
-            // Delete folder ONLY if this hook brought it
-            if (shouldDeleteUponFailure) {
-                Logger.warn("Repository for location '" + FileUtils.convertUnixPath(repository.getRepoPath().toString()) + "' was deleted since hook returned " + process.exitValue());
-                ResourceGroovyMethods.deleteDir(repository.getRepoPath());
-            }
+        // Delete folder ONLY if this hook brought it
+        if (report.getExitCode() != 0 &&shouldDeleteUponFailure) {
+            Logger.warn("Repository for location '" + FileUtils.convertUnixPath(repository.getRepoPath().toString()) + "' was deleted since hook returned " + process.exitValue());
+            ResourceGroovyMethods.deleteDir(repository.getRepoPath());
         }
     }
 

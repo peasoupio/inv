@@ -61,42 +61,42 @@ public class RepoDescriptor {
         this(scriptFile,null);
     }
 
-    public void name(String value) {
-        if (StringUtils.isEmpty(value))
-            throw new IllegalArgumentException("value");
+    public void name(String name) {
+        if (StringUtils.isEmpty(name))
+            throw new IllegalArgumentException("name");
 
-        if (!NAME_PATTERN.matcher(value).matches())
-            throw new IllegalArgumentException("value must match the following regex: " + NAME_REGEX);
+        if (!NAME_PATTERN.matcher(name).matches())
+            throw new IllegalArgumentException("name must match the following regex: " + NAME_REGEX);
 
-        this.name = value;
+        this.name = name;
 
         generateRepoPaths();
     }
 
-    public void path(String value) {
-        if (StringUtils.isEmpty(value))
-            throw new IllegalArgumentException("value");
+    public void path(String path) {
+        if (StringUtils.isEmpty(path))
+            throw new IllegalArgumentException("path");
 
-        if (new File(value).isAbsolute())
+        if (new File(path).isAbsolute())
             throw new IllegalArgumentException("path cannot be absolute");
 
-        this.path = value;
+        this.path = path;
 
         generateRepoPaths();
     }
 
-    public void src(String value) {
-        if (StringUtils.isEmpty(value))
-            throw new IllegalArgumentException("value");
+    public void src(String src) {
+        if (StringUtils.isEmpty(src))
+            throw new IllegalArgumentException("src");
 
-        this.src = value;
+        this.src = src;
     }
 
-    public void timeout(int value) {
-        if (value < 0)
-            throw new IllegalStateException("value cannot be zero or negative.");
+    public void timeout(int timeout) {
+        if (timeout < 0)
+            throw new IllegalStateException("timeout cannot be zero or negative.");
 
-        this.timeout = value;
+        this.timeout = timeout;
     }
 
     public void hooks(@DelegatesTo(RepoDescriptor.HookDescriptor.class) Closure hooksBody) {
@@ -303,6 +303,13 @@ public class RepoDescriptor {
 
     public static class AskDescriptor {
 
+        private static final String PARAM_DEFAULT_VALUE = "defaultValue";
+        private static final String PARAM_REQUIRED = "required";
+        private static final String PARAM_VALUES = "values";
+        private static final String PARAM_COMMAND = "command";
+        private static final String PARAM_FILTER = "filter";
+        private static final String PARAM_FILTER_REGEX = "filterRegex";
+
         private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-groovy-Syntax";
 
         private final List<AskParameter> parameters;
@@ -323,25 +330,27 @@ public class RepoDescriptor {
             if (options == null)
                 return;
 
-            if (options.containsKey("defaultValue") && options.get("defaultValue") instanceof CharSequence)
-                parameter.defaultValue = String.valueOf(options.get("defaultValue"));
+            if (options.containsKey(PARAM_DEFAULT_VALUE) && options.get(PARAM_DEFAULT_VALUE) instanceof CharSequence)
+                parameter.defaultValue = String.valueOf(options.get(PARAM_DEFAULT_VALUE));
 
-            if (options.containsKey("required") && options.get("required") instanceof Boolean)
-                parameter.required = (boolean)options.get("required");
+            if (options.containsKey(PARAM_REQUIRED) && options.get(PARAM_REQUIRED) instanceof Boolean)
+                parameter.required = (boolean)options.get(PARAM_REQUIRED);
 
-            if (options.containsKey("values") && options.get("values") instanceof Collection<?>)
+            if (options.containsKey(PARAM_VALUES) && options.get(PARAM_VALUES) instanceof Collection<?>) {
                 //noinspection unchecked
-                parameter.values = (Collection<String>) options.get("values");
+                parameter.values = (Collection<String>) options.get(PARAM_VALUES);
+            }
 
-            if (options.containsKey("command") && options.get("command") instanceof CharSequence)
-                parameter.command = String.valueOf(options.get("command"));
+            if (options.containsKey(PARAM_COMMAND) && options.get(PARAM_COMMAND) instanceof CharSequence)
+                parameter.command = String.valueOf(options.get(PARAM_COMMAND));
 
-            if (options.containsKey("filter") && options.get("filter") instanceof Closure)
+            if (options.containsKey(PARAM_FILTER) && options.get(PARAM_FILTER) instanceof Closure) {
                 //noinspection unchecked
-                parameter.filter = (Closure<String>)options.get("filter");
+                parameter.filter = (Closure<String>) options.get(PARAM_FILTER);
+            }
 
-            if (options.containsKey("filterRegex") && options.get("filterRegex") instanceof CharSequence)
-                parameter.filterRegex = String.valueOf(options.get("filterRegex"));
+            if (options.containsKey(PARAM_FILTER_REGEX) && options.get(PARAM_FILTER_REGEX) instanceof CharSequence)
+                parameter.filterRegex = String.valueOf(options.get(PARAM_FILTER_REGEX));
 
             parameters.add(parameter);
         }

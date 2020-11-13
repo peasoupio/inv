@@ -83,11 +83,6 @@ public class LazyYamlClosure extends Closure {
     }
 
     @Override
-    public Object clone() {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public int hashCode() {
         return this.getCodeClosure().hashCode();
     }

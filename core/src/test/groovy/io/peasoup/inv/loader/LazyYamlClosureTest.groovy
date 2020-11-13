@@ -101,13 +101,6 @@ class LazyYamlClosureTest {
     }
 
     @Test
-    void clone_fail() {
-        assertThrows(NotImplementedException.class, {
-            simpleClosure.clone()
-        })
-    }
-
-    @Test
     void hashCode_ok() {
         assertEquals simpleClosure.getCodeClosure().hashCode(), simpleClosure.hashCode()
     }

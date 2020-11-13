@@ -28,7 +28,11 @@ jobs:
     # Distribute binairies
     - stage: distribute
       if: branch =~ ^release\/.*$
-      script: mvn --settings ./ci/.travis-settings.xml -B -DskipTests=true deploy:deploy
+      script: mvn --settings ./ci/.travis-settings.xml -B -f core -DskipTests=true deploy:deploy
+
+    - stage: distribute
+      if: branch =~ ^release\/.*$
+      script: mvn --settings ./ci/.travis-settings.xml -B -f launcher -DskipTests=true deploy:deploy
 
     - stage: distribute
       if: branch =~ ^release\/.*$

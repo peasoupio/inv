@@ -1,3 +1,5 @@
+package something.that.will.be.replaced
+
 class AClass {
     @Override
     String toString() {

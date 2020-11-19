@@ -1,8 +1,8 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.graph.RunGraph
-import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class GraphCommand implements CliCommand {

@@ -2,20 +2,40 @@ package io.peasoup.inv.loader;
 
 import io.peasoup.fgroup.FileMatches;
 import io.peasoup.fgroup.FileSeeker;
+import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FgroupLoader {
 
-    private static final FileSeeker fileSeeker =
-            new FileSeeker(InvMatches.class.getResource("/fgroup.txt").getPath());
+    private static final FileSeeker fileSeeker;
+
+
+    static {
+        String tmpFolder = System.getProperty("java.io.tmpdir");
+        Path configFile = Path.of(tmpFolder, "fgroup.txt");;
+
+        if (!Files.exists(configFile)) {
+            try (InputStream is = FgroupLoader.class.getResourceAsStream("/fgroup.txt");) {
+                Files.copy(is, configFile);
+            } catch (IOException e) {
+                Logger.error(e);
+            }
+        }
+
+        fileSeeker = new FileSeeker(configFile.toString());
+    }
 
     private FgroupLoader() {
         // private ctor
+
     }
 
     /**

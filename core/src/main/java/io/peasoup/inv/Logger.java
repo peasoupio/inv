@@ -1,4 +1,4 @@
-package io.peasoup.inv.run;
+package io.peasoup.inv;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
@@ -13,6 +13,14 @@ public final class Logger {
 
     private static boolean systemEnabled = false;
     private static boolean debugEnabled = false;
+
+    static {
+        // Overrides StackTraceUtils blacklist
+        System.setProperty(
+                "groovy.sanitized.stacktraces",
+                "groovy.,org.codehaus.groovy.,java.,javax.,sun.,gjdk.groovy.," +
+                "groovyjarjarantlr4.,org.apache.groovy.,");
+    }
 
     private Logger() {
 

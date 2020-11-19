@@ -2,8 +2,8 @@ package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 
 @CompileStatic

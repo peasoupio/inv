@@ -3,10 +3,10 @@ package io.peasoup.inv
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
+import io.peasoup.inv.Logger
 import io.peasoup.inv.repo.HookExecutor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.run.Logger
 
 class HooksTests {
 

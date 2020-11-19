@@ -4,8 +4,8 @@ import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
+import io.peasoup.inv.Logger
 import io.peasoup.inv.Main
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
@@ -219,6 +219,8 @@ class Execution {
 
         if (secureMode)
             appArgs << "-s"
+
+        appArgs << "-l"
 
         appArgs << repoListFile.absolutePath
 

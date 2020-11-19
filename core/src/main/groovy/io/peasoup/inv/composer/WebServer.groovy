@@ -2,8 +2,8 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.api.*
-import io.peasoup.inv.run.Logger
 import spark.Response
 
 import static spark.Spark.*

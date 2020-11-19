@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Call INV jar with parameters
 java -jar ${project.artifactId}-${project.version}.jar $@

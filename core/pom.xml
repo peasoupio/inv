@@ -123,6 +123,20 @@
         </plugins>
 
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>6.8.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>6.8.2</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 
 </project>

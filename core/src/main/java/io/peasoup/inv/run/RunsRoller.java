@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Home;
+import io.peasoup.inv.Logger;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;

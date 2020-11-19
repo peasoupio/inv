@@ -1,7 +1,7 @@
 package io.peasoup.inv.repo;
 
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
-import io.peasoup.inv.run.Logger;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;

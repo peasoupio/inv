@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;

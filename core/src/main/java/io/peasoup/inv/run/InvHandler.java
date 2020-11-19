@@ -2,7 +2,7 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import groovy.lang.Script;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import org.apache.commons.lang.StringUtils;
 
@@ -56,8 +56,7 @@ public class InvHandler {
         if (StringUtils.isNotEmpty(defaultName)) context.setDefaultName(defaultName);
 
         // Is loading from script ?
-        Script script = (body.getOwner() instanceof Script) ? (Script) body.getOwner() : null;
-        if (script != null) {
+        if (scriptFile != null) {
             // Set default path
             if (StringUtils.isNotEmpty(pwd))
                 context.setDefaultPath(pwd);
@@ -88,7 +87,7 @@ public class InvHandler {
         inv.dumpDelegate();
 
         // Print REPO reference
-        if (script != null) {
+        if (scriptFile != null) {
             Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
         }
     }

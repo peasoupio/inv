@@ -1,11 +1,11 @@
 package io.peasoup.inv.repo;
 
 import groovy.lang.Script;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.repo.yaml.YamlRepoHandler;
 import io.peasoup.inv.run.DebugLogger;
-import io.peasoup.inv.run.Logger;
 
 import java.io.File;
 import java.io.IOException;

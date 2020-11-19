@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;

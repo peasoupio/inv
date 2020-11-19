@@ -1,6 +1,7 @@
 package io.peasoup.inv.randomizer
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.run.*
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before

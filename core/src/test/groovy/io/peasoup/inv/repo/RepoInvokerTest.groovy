@@ -1,7 +1,7 @@
 package io.peasoup.inv.repo
 
+import io.peasoup.inv.Logger
 import io.peasoup.inv.TempHome
-import io.peasoup.inv.run.Logger
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test

@@ -3,10 +3,10 @@ package io.peasoup.inv.composer
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Regexes
 
 @CompileStatic

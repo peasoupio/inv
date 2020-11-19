@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.io.File;
 
 /**
@@ -31,12 +33,12 @@ public class InvExecutor {
      * Parse and invoke INV Groovy script file with specific path (pwd).
      * Also, it allows to define the REPO associated to this INV
      * @param scriptFile INV Groovy script file
-     * @param newPackage New package assigned to the script file
+     * @param packageName New package assigned to the script file
      * @param pwd Pwd "Print working directory", the working directory
      * @param repo The associated REPO name
      */
-    public void parse(File scriptFile, String newPackage, String pwd, String repo) {
-        InvInvoker.invoke(this, scriptFile, newPackage, pwd, repo);
+    public void parse(File scriptFile, String packageName, String pwd, String repo) {
+        InvInvoker.invoke(this, scriptFile, packageName, pwd, repo);
     }
 
     /**

@@ -3,7 +3,7 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 [SYNTAX] startup failed:
-empty.package.invalid: .*: Unexpected input: '{' @ line .*, column .*.
+.*invalid.groovy: .*: Unexpected input: '{' @ line .*, column .*.
    repo {
         ^
 

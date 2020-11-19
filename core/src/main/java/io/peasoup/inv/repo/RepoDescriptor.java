@@ -3,8 +3,8 @@ package io.peasoup.inv.repo;
 import groovy.json.JsonSlurper;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
-import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 

@@ -2,10 +2,10 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.Logger
 import io.peasoup.inv.TempHome
 import io.peasoup.inv.repo.RepoInvoker
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.Logger
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Ignore

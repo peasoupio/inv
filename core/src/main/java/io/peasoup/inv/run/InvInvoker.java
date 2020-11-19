@@ -2,6 +2,7 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
@@ -60,9 +61,9 @@ public class InvInvoker {
      *
      * @param invExecutor Executor instance
      * @param scriptFile  INV Groovy script file
-     * @param newPackage  New package assigned to the script file
+     * @param packageName  New package assigned to the script file
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage) {
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -70,7 +71,7 @@ public class InvInvoker {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invExecutor, scriptFile, newPackage, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
+        invoke(invExecutor, scriptFile, packageName, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
     }
 
     /**
@@ -79,11 +80,11 @@ public class InvInvoker {
      *
      * @param invExecutor Executor instance
      * @param scriptFile  INV Groovy script file
-     * @param newPackage  New package assigned to the script file
+     * @param packageName  New package assigned to the script file
      * @param pwd         Pwd "Print working directory", the working directory
      * @param repo        The associated REPO name
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo) {
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
         if (groovyLoader == null || yamlLoader == null)
             throw new IllegalStateException("loader has no cache");
 
@@ -115,7 +116,7 @@ public class InvInvoker {
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
             parseYaml(invExecutor, scriptFile, pwd, repo);
         else
-            runScript(invExecutor, scriptFile, newPackage, pwd, repo);
+            runScript(invExecutor, scriptFile, packageName, pwd, repo);
     }
 
     private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
@@ -135,11 +136,11 @@ public class InvInvoker {
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String newPackage, String pwd, String repo) {
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
         Script myNewScript;
 
         try {
-            myNewScript = groovyLoader.parseScriptFile(scriptFile, newPackage);
+            myNewScript = groovyLoader.parseScriptFile(scriptFile, packageName);
         } catch (Exception e) {
             Logger.error(e);
             return;

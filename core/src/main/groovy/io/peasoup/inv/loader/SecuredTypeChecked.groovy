@@ -26,13 +26,26 @@ class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeChecking
     @Override
     Object run() {
 
+        // https://melix.github.io/blog/2015/03/sandboxing.html
+
+
         onMethodSelection { expr, methodNode ->
             if (methodNode.declaringClass.name in blacklistedClasses)
                 throw new GroovyLoader.MethodCallNotAllowedException(expr)
 
-            if (methodNode.name in knownDescriptor)
-                return delegatesTo(classNodeFor(knownDescriptor[methodNode.name]))
+            if (methodNode.name in knownDescriptor) {
+                handled = true
+                delegatesTo(classNodeFor(knownDescriptor[methodNode.name]))
+            }
         }
+
+        beforeVisitMethod { methodNode ->
+            if (methodNode in knownDescriptor) {
+                handled = true
+                delegatesTo(classNodeFor(knownDescriptor[methodNode]))
+            }
+        }
+
     }
 }
 

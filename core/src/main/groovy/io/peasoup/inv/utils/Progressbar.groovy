@@ -1,7 +1,7 @@
 package io.peasoup.inv.utils
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.run.Logger
+import io.peasoup.inv.Logger
 
 import java.util.concurrent.atomic.AtomicInteger
 

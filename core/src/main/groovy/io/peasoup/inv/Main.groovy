@@ -5,7 +5,6 @@ import io.peasoup.inv.cli.*
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.repo.RepoInvoker
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt

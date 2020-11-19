@@ -16,6 +16,8 @@ import java.net.URL;
 
 public abstract class JunitScriptBase extends Script {
 
+    private JunitRunner.JunitScriptSettings mySettings;
+
     protected InvExecutor invExecutor;
     protected PoolReport report;
 
@@ -23,6 +25,8 @@ public abstract class JunitScriptBase extends Script {
 
     @Before
     public void setup() {
+        mySettings = JunitRunner.getMySettings(this);
+
         invExecutor = new InvExecutor();
         called = false;
     }
@@ -73,6 +77,6 @@ public abstract class JunitScriptBase extends Script {
         if (!invFile.exists())
             throw new IllegalStateException(invFile.getAbsolutePath() + " does not exists on the filesystem");
 
-        InvInvoker.invoke(invExecutor, invFile);
+        InvInvoker.invoke(invExecutor, invFile, mySettings.getPackageName());
     }
 }

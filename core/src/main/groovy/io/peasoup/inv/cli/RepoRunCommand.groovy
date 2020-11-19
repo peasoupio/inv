@@ -1,15 +1,14 @@
 package io.peasoup.inv.cli
 
-
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.loader.FgroupLoader
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
 import io.peasoup.inv.run.InvExecutor
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 
 import java.nio.file.Files
@@ -145,28 +144,28 @@ class RepoRunCommand implements CliCommand {
     private void parseDescriptorfiles(InvExecutor invExecutor, RepoDescriptor descriptor, FgroupLoader.InvMatches matches) {
         def path = matches.rootPath
         def name = descriptor.name
-        def newPackage = name
+        def packageName = name
 
         // Invoke groovy files
-        invokeGroovyfiles(matches, newPackage)
+        invokeGroovyfiles(matches, packageName)
 
         // Invoke inv files
-        invokeInvfiles(matches, invExecutor, newPackage, path, name)
+        invokeInvfiles(matches, invExecutor, packageName, path, name)
     }
 
-    private void invokeGroovyfiles(FgroupLoader.InvMatches matches, String newPackage) {
+    private void invokeGroovyfiles(FgroupLoader.InvMatches matches, String packageName) {
         // Parse groovy classes
         for(Path groovyFile : matches.groovyFiles) {
-            InvInvoker.addClass(groovyFile.toFile(), newPackage)
+            InvInvoker.addClass(groovyFile.toFile(), packageName)
         }
     }
 
-    private void invokeInvfiles(FgroupLoader.InvMatches matches, InvExecutor invExecutor, String newPackage, String path, String repo) {
+    private void invokeInvfiles(FgroupLoader.InvMatches matches, InvExecutor invExecutor, String packageName, String path, String repo) {
         // Parse inv files.
         for(Path invFile : matches.invFiles) {
             invExecutor.parse(
                     invFile.toFile(),
-                    newPackage,
+                    packageName,
                     path,
                     repo)
         }

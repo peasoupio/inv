@@ -1,9 +1,9 @@
 package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
+import io.peasoup.inv.Logger
 import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.utils.Progressbar
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.validator.routines.UrlValidator

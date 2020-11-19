@@ -3,7 +3,7 @@ package io.peasoup.inv
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
-import io.peasoup.inv.run.Logger
+import io.peasoup.inv.Logger
 import spark.utils.StringUtils
 
 class MainTest {

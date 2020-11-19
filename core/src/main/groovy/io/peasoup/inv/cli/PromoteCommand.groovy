@@ -2,7 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
-import io.peasoup.inv.run.Logger
+import io.peasoup.inv.Logger
 import io.peasoup.inv.run.RunsRoller
 
 import java.nio.file.Files

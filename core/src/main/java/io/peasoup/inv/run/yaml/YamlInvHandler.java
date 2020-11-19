@@ -1,5 +1,6 @@
 package io.peasoup.inv.run.yaml;
 
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.loader.YamlLoader;

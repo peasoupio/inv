@@ -2,13 +2,13 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.Logger
 import io.peasoup.inv.SystemInfo
 import io.peasoup.inv.cli.InitRunCommand
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.repo.HookExecutor
 import io.peasoup.inv.repo.RepoExecutor
-import io.peasoup.inv.run.Logger
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response

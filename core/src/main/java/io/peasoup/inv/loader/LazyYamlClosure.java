@@ -2,8 +2,8 @@ package io.peasoup.inv.loader;
 
 import groovy.lang.Closure;
 import groovy.util.DelegatingScript;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.run.Inv;
-import io.peasoup.inv.run.Logger;
 import org.apache.commons.lang.NotImplementedException;
 
 public class LazyYamlClosure extends Closure {

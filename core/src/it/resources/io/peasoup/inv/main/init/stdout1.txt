@@ -1,0 +1,16 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+You may proceed with any of the following commands:
+	git init
+	git checkout -b main
+	git add --all
+	git commit -m "Initial commit"
+You also can start composer using the following command:
+	inv init run init.yml
+GITIGNORE: .*/init/init1/.gitignore
+HREFDUMMY: .*/init/init1/href/keep-me.txt
+REPODUMMY: .*/init/init1/.repos/keep-me-values.json
+SETTINGSXML: .*/init/init1/settings.xml
+INITYML: .*/init/init1/init.yml

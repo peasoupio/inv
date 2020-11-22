@@ -1,0 +1,22 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+---- [DIGEST] opened ----
+[STATEMENT] [main2] => [REQUIRE] [Something] undefined [INIT]
+[undefined] [.*/main/run/main2.groovy] [main2]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[POOL] available:0 , staged:0
+nothing done
+---- [DIGEST] #2 (state=UNBLOATING) ----
+[POOL] available:0 , staged:0
+nothing unbloated
+---- [DIGEST] completed ----
+Completed INV(s): 0
+Uncompleted INV(s): 1
+Incompleted INV(s):
+- [main2] has 1 statement(s) and has 0 when criteria(s) left:
+	1 requirement(s):
+		[NOT MATCHED] [main2] => [REQUIRE] [Something] undefined

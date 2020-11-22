@@ -1,9 +1,9 @@
 @Test
 void ok() {
-    simulate(
-        "/testing/inv1-provider.groovy",
-        "/testing/inv1.groovy"
-    )
+    simulate {
+        addInvFile "/testing/inv1-provider.groovy"
+        addInvFile "/testing/inv1.groovy"
+    }
 
     assertTrue true
 
@@ -12,9 +12,9 @@ void ok() {
 
 @Test
 void missing_element() {
-    simulate(
-        "/testing/inv1.groovy"
-    )
+    simulate {
+        addInvFile "/testing/inv1.groovy"
+    }
 
     assert isHalted
 }

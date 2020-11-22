@@ -2,8 +2,8 @@ package io.peasoup.inv.graph
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.Logger
 import io.peasoup.inv.run.RunsRoller
 
 @CompileStatic
@@ -13,7 +13,7 @@ class DeltaGraph {
     final RunGraph baseGraph
     final RunGraph otherGraph
     final List<DeltaLine> deltaLines = []
-    final List<String> removedScms = []
+    final List<String> removedRepos = []
 
     DeltaGraph(BufferedReader base, BufferedReader other) {
         assert base != null, 'Base (reader) is required'
@@ -23,11 +23,11 @@ class DeltaGraph {
         otherGraph = new RunGraph(other)
     }
 
-    void removeScms(List<String> scms) {
-        assert scms != null, "Scm is required"
+    void removeRepos(List<String> repos) {
+        assert repos != null, "Repo is required"
 
-        removedScms.clear()
-        removedScms.addAll(scms)
+        removedRepos.clear()
+        removedRepos.addAll(repos)
     }
 
     void resolve() {
@@ -46,8 +46,8 @@ class DeltaGraph {
 
             def fileStatement = cacheBaseFiles[linksNode.owner]
 
-            // Check if it has a valid SCM reference
-            if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM || removedScms.contains(fileStatement.scm)) {
+            // Check if it has a valid REPO reference
+            if (!fileStatement || fileStatement.repo == InvInvoker.UNDEFINED_REPO || removedRepos.contains(fileStatement.repo)) {
                 deltaLines << new DeltaLine(state: 'x', link: link, owner: linksNode)
                 continue
             }
@@ -67,12 +67,12 @@ class DeltaGraph {
                 continue
             }
 
-            // Check if it has a valid SCM reference
+            // Check if it has a valid REPO reference
             def fileStatement = cacheOtherFiles[linksNode.owner]
-            if (!fileStatement || fileStatement.scm == InvInvoker.UNDEFINED_SCM) {
+            if (!fileStatement || fileStatement.repo == InvInvoker.UNDEFINED_REPO) {
 
                 // Check if a deltaLine was added from base when a correspondence was found in other.
-                // In that case, if other as not defined an SCM, it must be removed.
+                // In that case, if other as not defined an REPO, it must be removed.
                 def alreadyProcessed = deltaLines.find { it.owner == linksNode && it.state == '=' }
                 if (alreadyProcessed)
                     alreadyProcessed.state = 'x'
@@ -100,7 +100,7 @@ class DeltaGraph {
         // Process lines
         List<DeltaGraph.DeltaLine> approuvedLines =  deltaLines.findAll { DeltaGraph.DeltaLine line -> line.state != 'x' } // get non removed lines
 
-        // Get scm for lines
+        // Get repo for lines
         List<RunGraph.FileStatement> approuvedFiles = approuvedLines
                 .findAll { it.link.isOwner() }
                 .collect { files[it.owner.owner] }
@@ -109,7 +109,7 @@ class DeltaGraph {
 
         // Write files
         approuvedFiles.each { RunGraph.FileStatement fileStatement ->
-            builder.append "[INV] [${fileStatement.scm}] [${fileStatement.file}] [${fileStatement.inv}]${System.lineSeparator()}"
+            builder.append "[INV] [${fileStatement.repo}] [${fileStatement.file}] [${fileStatement.inv}]${System.lineSeparator()}"
         }
 
         // Write tags

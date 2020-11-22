@@ -1,6 +1,8 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import io.peasoup.inv.Logger;
+import io.peasoup.inv.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.HandleMetaClass;
@@ -32,14 +34,14 @@ public class Inv {
     private final Queue<Statement> totalStatements;
     private int stepCount;
 
-    private Inv(Context context, String baseFilename) {
+    private Inv(Context context) {
         if (context == null) throw new IllegalArgumentException("Context is required");
 
         this.context = context;
 
         this.digestionSummary  = new Digestion();
-        this.properties = new InvDescriptor.Properties();
-        this.delegate = new InvDescriptor(this.properties, baseFilename);
+        this.properties = new InvDescriptor.Properties(context.getBaseFilename());
+        this.delegate = new InvDescriptor(this.properties);
 
         this.remainingStatements = new LinkedBlockingQueue<>();
         this.steps = new LinkedBlockingQueue<>();
@@ -352,7 +354,7 @@ public class Inv {
 
         private String defaultName;
         private String defaultPath = WORKING_DIR;
-        private String scm;
+        private String repo;
         private String baseFilename;
 
         public Context(NetworkValuablePool pool) {
@@ -375,23 +377,23 @@ public class Inv {
             this.defaultPath = path;
         }
 
-        public void setSCM(String scm) {
-            if (StringUtils.isEmpty(scm))
+        public void setRepo(String repo) {
+            if (StringUtils.isEmpty(repo))
                 return;
 
-            this.scm = scm;
+            this.repo = repo;
         }
 
         public void setBaseFilename(String scriptFilename) {
             if (StringUtils.isEmpty(scriptFilename))
                 return;
 
-            this.baseFilename = scriptFilename;
+            this.baseFilename = FileUtils.convertUnixPath(scriptFilename);
         }
 
         public Inv build() {
 
-            Inv inv = new Inv(this, baseFilename);
+            Inv inv = new Inv(this);
 
             // Set name from delegate - needs digestion to apply.
             if (StringUtils.isNotEmpty(defaultName))
@@ -415,8 +417,8 @@ public class Inv {
             return defaultPath;
         }
 
-        public String getScm() {
-            return scm;
+        public String getRepo() {
+            return repo;
         }
 
         public String getBaseFilename() {

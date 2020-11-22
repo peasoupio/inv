@@ -1,7 +1,6 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.run.Logger
 
 @CompileStatic
 class SystemInfo {

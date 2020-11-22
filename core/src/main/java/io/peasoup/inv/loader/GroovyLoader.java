@@ -1,10 +1,9 @@
 package io.peasoup.inv.loader;
 
-import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovy.transform.TypeChecked;
-import io.peasoup.inv.run.Logger;
-import io.peasoup.inv.run.RunsRoller;
+import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -14,49 +13,72 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.Message;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 
-import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 
 public class GroovyLoader {
-
 
     /**
      * Enables system-wide secure mode.
      * Some API might be disabled, or key features, such as "packages" might be disabled also.
      */
     public static void enableSecureMode() {
+        Logger.system("[GROOVYLOADER] secure: true");
         systemSecureModeEnabled = true;
     }
+
+    /**
+     * Disables system-wide secure mode.
+     * Some API might be disabled, or key features, such as "packages" might be disabled also.
+     */
+    public static void disableSecureMode() {
+        Logger.system("[GROOVYLOADER] secure: false");
+        systemSecureModeEnabled = false;
+    }
+
     private static boolean systemSecureModeEnabled = false;
 
     /**
      * Enables SystemClassloader.
      * It allows GrabConfig(systemClassLoader=true).
      */
-    public static void enableSystemClassloader() { systemClassloaderEnabled = true; }
+    public static void enableSystemClassloader() {
+        Logger.system("[GROOVYLOADER] system: true");
+        systemClassloaderEnabled = true; }
+
+    /**
+     * Disables SystemClassloader.
+     * It allows GrabConfig(systemClassLoader=true).
+     */
+    public static void disableSystemClassloader() {
+        Logger.system("[GROOVYLOADER] system: false");
+        systemClassloaderEnabled = false; }
     private static boolean systemClassloaderEnabled = false;
 
+
     private final boolean secureMode;
-    private final GroovyClassLoader generalClassLoader;
-    private final GroovyClassLoader securedClassLoader;
+    private final ExtGroovyClassLoader generalClassLoader;
+    private final ExtGroovyClassLoader securedClassLoader;
 
 
     /**
      * Create a common loader using system-wide secure mode preference
      */
     public GroovyLoader() {
-        this(systemSecureModeEnabled, null, null);
+        this(systemSecureModeEnabled, systemClassloaderEnabled,  null, null);
+    }
+
+    /**
+     * Create a common loader using system-wide secure mode preference
+     *
+     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
+     */
+    public GroovyLoader(String scriptBaseClass) {
+        this(systemSecureModeEnabled, systemClassloaderEnabled,  scriptBaseClass, null);
     }
 
     /**
@@ -67,6 +89,18 @@ public class GroovyLoader {
      * @param importCustomizer A pre-defined import customizer. Can be null.
      */
     public GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
+        this(secureMode, systemClassloaderEnabled,  scriptBaseClass, importCustomizer);
+    }
+
+    /**
+     * Create a common loader
+     *
+     * @param secureMode Determines if using secure mode or not
+     * @param systemClassloader Determines if using system classloader
+     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
+     * @param importCustomizer A pre-defined import customizer. Can be null.
+     */
+    public GroovyLoader(boolean secureMode, boolean systemClassloader, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
 
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
@@ -82,34 +116,21 @@ public class GroovyLoader {
             securedCompilerConfiguration.addCompilationCustomizers(importCustomizer);
         }
 
+        compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
+
         ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
-        if (systemClassloaderEnabled) {
+        if (systemClassloader)
             loaderToUse = ClassLoader.getSystemClassLoader();
-            Logger.system("[CLASSLOADER] system: true");
-        } else {
-            Logger.system("[CLASSLOADER] system: false");
-        }
 
-        this.generalClassLoader = new GroovyClassLoader(loaderToUse, compilerConfiguration);
-        this.securedClassLoader = new GroovyClassLoader(loaderToUse, applySecureTransformers(securedCompilerConfiguration));
-    }
 
-    /**
-     * Compile a Groovy text with preferred secure and classloading options.
-     * This method does not cache the Groovy script file.
-     * For caching, use "parseClass".
-     *
-     * @param file Groovy file
-     * @return Compiled Object
-     *
-     * @throws IOException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     */
-    public Script parseText(File file) throws IOException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        return parseText(ResourceGroovyMethods.getText(file));
+        // Apply SecureAST to all (de)compilers
+        applySecureASTConfigs(securedCompilerConfiguration);
+
+        // Apply SecureTypeChecker to secured (de)compiler
+        applySecureTypeCheckerConfigs(securedCompilerConfiguration);
+
+        this.generalClassLoader = new ExtGroovyClassLoader(loaderToUse, compilerConfiguration);
+        this.securedClassLoader = new ExtGroovyClassLoader(loaderToUse, securedCompilerConfiguration);
     }
 
     /**
@@ -117,76 +138,113 @@ public class GroovyLoader {
      *
      * @param text Groovy text
      * @return Compiled Object
-     *
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
      */
-    public Script parseText(String text) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    public Class<?> parseClassText(String text)  {
+        return parseGroovyCodeSource(
+            new GroovyCodeSource(
+                text,
+                "script:",
+                "groovy/script"),
+            new ExtGroovyClassLoader.ExtConfig("text", null));
+    }
 
-        // If secure is enabled, use secure classloader
-        if (secureMode) {
-            try {
-                Class<?> cls = securedClassLoader.parseClass(text);
-                if (cls == null) throw new IllegalStateException("text could not be parsed as a Class object");
+    /**
+     * Parse class from a Groovy script file, with a predefined package.
+     * @param groovyFile Groovy file
+     * @param packageName Defines package for groovy file classes (nullable)
+     * @return A new class object
+     * @throws IOException
+     */
+    public Class<?> parseClassFile(File groovyFile, String packageName) throws IOException {
+        if (StringUtils.isEmpty(packageName))
+            throw new IllegalArgumentException("packageName");
 
-                return (Script)cls.getDeclaredConstructor().newInstance();
-            } catch (MultipleCompilationErrorsException ex) {
-                if (hasFatalException(ex))
-                    return null;
-            }
-        }
+        return parseGroovyCodeSource(
+                new GroovyCodeSource(groovyFile),
+                new ExtGroovyClassLoader.ExtConfig("class", packageName));
+    }
 
-        // Otherwise, use general classloader
-        Class<?> cls = generalClassLoader.parseClass(text);
-        if (cls == null) return null;
+    /**
+     * Parse a test script class from a Groovy script file, with a predefined package.
+     * @param groovyFile Groovy file
+     * @param packageName Defines package for groovy file classes (nullable)
+     * @return A new class object
+     * @throws IOException
+     */
+    public Class<?> parseTestScriptFile(File groovyFile, String packageName) throws IOException {
+        if (StringUtils.isEmpty(packageName))
+            throw new IllegalArgumentException("packageName");
 
-        return (Script)cls.getDeclaredConstructor().newInstance();
+        return parseGroovyCodeSource(
+                new GroovyCodeSource(groovyFile),
+                new ExtGroovyClassLoader.ExtConfig("test", packageName));
     }
 
     /**
      * Parse and raise new instance of Groovy (script) file
      * @param groovyFile Groovy file
-     * @return
+     * @return A new Script instance
      * @throws IOException
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public Script parseClass(File groovyFile) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return parseClass(ResourceGroovyMethods.getText(groovyFile), groovyFile);
+    public Script parseScriptFile(File groovyFile) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return parseScriptFile(groovyFile, null);
     }
 
     /**
      * Parse and raise new instance of Groovy (script) file
-     * @param text Groovy file text
-     * @param groovyFile Groovy file location
+     * @param groovyFile Groovy file
+     * @param newPackage Defines package for groovy file classes (nullable)
      * @return
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
      * @throws IOException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
      */
-    public Script parseClass(String text, File groovyFile) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, IOException {
-        // Get preferred classname
-        String preferredClassname = (normalizeClassName(groovyFile) + "_" + checksum(groovyFile)).toLowerCase();
+    public Script parseScriptFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return createScript(
+                new GroovyCodeSource(groovyFile),
+                new ExtGroovyClassLoader.ExtConfig("script", newPackage));
+    }
 
-        // Cache the file
-        cache(groovyFile, preferredClassname);
+    /**
+     * Create a new instance of a Script Groovy code source
+     * @param groovyCodeSource Groovy code source
+     * @param config Extended Groovy class loader config
+     * @return A new Script instance
+     */
+    private Script createScript(GroovyCodeSource groovyCodeSource, ExtGroovyClassLoader.ExtConfig config) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+
+        Class<?> cls = parseGroovyCodeSource(groovyCodeSource, config);
+        if (cls == null)
+            return null;
+
+        return (Script) cls.getDeclaredConstructor().newInstance();
+    }
+
+    /**
+     * Parse and raise new instance of Groovy (script) file
+     * @param groovyCodeSource Groovy code source
+     * @param config Extended Groovy class loader config
+     * @return A new class object
+     */
+    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource, ExtGroovyClassLoader.ExtConfig config) {
 
         // If secure is enabled, use secure classloader
         if (secureMode) {
             try {
-                Class<?> cls = securedClassLoader.parseClass(text, preferredClassname);
+                Class<?> cls = securedClassLoader.parseClass(groovyCodeSource, config);
                 if (cls == null) {
-                    Logger.warn("[COMMONLOADER] file: " + preferredClassname + ", succeeded: false");
+                    Logger.warn("[COMMONLOADER] name: " + groovyCodeSource.getName() + ", succeeded: false");
                     return null;
                 }
 
-                return (Script)cls.getDeclaredConstructor().newInstance();
+                // If this point is reached, source is valid and will be loaded into the general class loader.
+
             } catch (MultipleCompilationErrorsException ex) {
                 if (hasFatalException(ex))
                     return null;
@@ -194,116 +252,57 @@ public class GroovyLoader {
         }
 
         // Otherwise, use general classloader
-        Class<?> cls = generalClassLoader.parseClass(text, preferredClassname);
+        Class<?> cls = generalClassLoader.parseClass(groovyCodeSource, config);
         if (cls == null) {
-            Logger.warn("[COMMONLOADER] file: " + preferredClassname + ", succeeded: false");
+            Logger.warn("[COMMONLOADER] name: " + groovyCodeSource.getName() + ", succeeded: false");
             return null;
         }
 
-        return (Script)cls.getDeclaredConstructor().newInstance();
+        return cls;
     }
 
     private boolean hasFatalException(MultipleCompilationErrorsException ex) {
 
+        boolean returnValue = false;
+
         for(Message message : ex.getErrorCollector().getErrors()) {
-            if (!(message instanceof ExceptionMessage))
-                continue;
 
-            ExceptionMessage exceptionMessage = (ExceptionMessage)message;
-            Exception cause = exceptionMessage.getCause();
+            // Log Exception message
+            // Exception Message does not loop for other exceptions and
+            // returns to the caller immediately
+            if (message instanceof ExceptionMessage) {
+                ExceptionMessage exceptionMessage = (ExceptionMessage) message;
+                Exception cause = exceptionMessage.getCause();
 
-            if (cause instanceof MethodCallNotAllowedException) {
+                if (cause instanceof MethodCallNotAllowedException) {
+                    Logger.error(cause);
+                    return true;
+                }
+
+                if (cause instanceof SecurityException) {
+                    Logger.error(cause);
+                    return true;
+                }
+            }
+
+            // Synthax Message does immidiately and swallow the cause the type checking framework cannot recognize delegates inv, repo, ask, etc...
+            if (message instanceof SyntaxErrorMessage) {
+                SyntaxErrorMessage syntaxErrorMessage = (SyntaxErrorMessage) message;
+                Exception cause = syntaxErrorMessage.getCause();
+
+                // Do not track static type checking since it raises "false-positives"
+                if (cause.getMessage().startsWith("[Static type checking] "))
+                    continue;
+
                 Logger.error(cause);
-                return true;
-            }
-
-            if (cause instanceof SecurityException) {
-                Logger.error(cause);
-                return true;
+                returnValue = true;
             }
         }
 
-        return false;
+        return returnValue;
     }
 
-    private String cache(File scriptFile, final String classname) throws IOException {
-        if (scriptFile == null) {
-            throw new IllegalArgumentException("Script file is required");
-        }
-        if (!scriptFile.exists()) {
-            throw new IllegalArgumentException("Script file must exists");
-        }
-        if (StringUtils.isEmpty(classname)) {
-            throw new IllegalArgumentException("Classname is required");
-        }
-
-        File cache = new File(RunsRoller.getLatest().folder(), "scripts/");
-
-        // Make sure cache is available with minimal accesses
-        if (!cache.exists()) {
-            Logger.system("[CACHE] folder: " + cache.getAbsolutePath() + ", created: " + cache.mkdirs());
-
-            // https://stackoverflow.com/questions/5302269/java-file-setwritable-and-stopped-working-correctly-after-jdk-6u18
-            if (!cache.setExecutable(true)) {
-                throw new IllegalArgumentException("Could not set executable");
-            }
-
-            boolean writabledSet = cache.setWritable(true, false);
-            Logger.system("[SECURITY] writable: " + writabledSet);
-
-            if (!cache.setReadable(true, false)) {
-                throw new IllegalArgumentException("Could not set readable");
-            }
-        }
-
-        final File filename = new File(cache, classname + ".groovy");
-        Logger.system("[CACHE] folder: " + classname + ", created: " + filename.getParentFile().mkdirs());
-
-        // Make sure we got latest
-        if (filename.exists())
-            Files.delete(Paths.get(filename.getAbsolutePath()));
-
-        // Create a symlink to have dynamic updates adn save space
-        //Files.createSymbolicLink(Paths.get(filename.absolutePath), Paths.get(scriptFile.absolutePath))
-        Files.copy(Paths.get(scriptFile.getAbsolutePath()), Paths.get(filename.getAbsolutePath()));
-
-        Logger.system("[CACHE] file: " + filename.getName());
-
-        return filename.getAbsolutePath();
-    }
-
-    private String normalizeClassName(File script) {
-        if (script.getParent() == null) return script.getName().split("\\.")[0];
-
-        if (script.getName().equalsIgnoreCase("inv")) return script.getParentFile().getName();
-
-        if (script.getName().equalsIgnoreCase("inv.groovy")) return script.getParentFile().getName();
-
-        return script.getName().split("\\.")[0];
-    }
-
-    private String checksum(File path) throws IOException {
-
-        String checksumValue = path.getName();
-
-        try {
-            try (
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    ObjectOutputStream oos = new ObjectOutputStream(baos)
-            ) {
-                oos.writeObject(path.getAbsolutePath());
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                byte[] thedigest = md.digest(baos.toByteArray());
-                checksumValue = DatatypeConverter.printHexBinary(thedigest);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            Logger.error(e);
-        }
-
-        return checksumValue;
-    }
-
-    private CompilerConfiguration applySecureTransformers(CompilerConfiguration compilerConfiguration) {
+    private CompilerConfiguration applySecureTypeCheckerConfigs(CompilerConfiguration compilerConfiguration) {
 
         // Apply custom AST transformer to trap type checking errors
         LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
@@ -311,10 +310,13 @@ public class GroovyLoader {
         ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
         compilerConfiguration.addCompilationCustomizers(astTransformationCustomizer);
 
-        // Apply generalized secured configurations
+        return compilerConfiguration;
+    }
+
+    private CompilerConfiguration applySecureASTConfigs(CompilerConfiguration compilerConfiguration) {
         SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
-        secureASTCustomizer.setPackageAllowed(false);
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
+
         compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
 
         return compilerConfiguration;

@@ -1,6 +1,7 @@
 package io.peasoup.inv.fs
 
 import groovy.io.FileType
+import io.peasoup.inv.io.FileUtils
 
 class Pattern {
 
@@ -8,12 +9,12 @@ class Pattern {
 
     }
 
-    static List<File> get(List<String> patterns, List<String> excludes = [], File root = null) {
+    static List<File> get(List<String> patterns, List<String> excludes = [], File root = null, boolean recursive = true) {
         assert patterns != null, 'Patterns is required.'
         assert excludes != null, 'Exclude is required. Can be empty'
 
         def excludePatterns = excludes.collect {
-            it.replace("\\", "/")
+            FileUtils.convertUnixPath(it)
                     .replace("/", "\\/")
                     .replace(".", "\\.")
                     .replace("*", ".*")
@@ -32,33 +33,41 @@ class Pattern {
             if (!root)
                 return []
 
+            // If patterns mean an actual file the root, use it
+            File lookupFileRoot = new File(root, lookupPattern)
+            if (!lookupFileRoot.isDirectory() && lookupFileRoot.exists())
+                return [lookupFileRoot]
+
             // Convert Ant pattern to regex
-            def includePattern = lookupPattern
-                    .replace("\\", "/")
+            def includePattern = FileUtils.convertUnixPath(lookupPattern)
                     .replace("/", "\\/")
                     .replace(".", "\\.")
                     .replace("*", ".*")
                     .replace("?", ".*")
 
             List<File> included = []
-            root.eachFileRecurse(FileType.FILES) {
-
+            def walker = { File found ->
                 // Make sure path is using the *nix slash for folders
-                def file = it.path.replace("\\", "/")
+                def relativizedFile = FileUtils.convertUnixPath(root.relativePath(found))
 
                 // Check if file should be excluded
                 if (excludePatterns) {
                     // Any file match any exclusion pattern
-                    if (excludePatterns.any { file ==~ /.*${it}.*/ })
+                    if (excludePatterns.any { relativizedFile ==~ /.*${it}.*/ })
                         return
                 }
 
                 // Check if file should be included
-                if (!(file ==~ /.*${includePattern}.*/))
+                if (!(relativizedFile ==~ /^${includePattern}$/))
                     return
 
-                included << it
+                included.add(found)
             }
+
+            if (recursive)
+                root.eachFileRecurse(FileType.FILES, walker)
+            else
+                root.eachFile(FileType.FILES, walker)
 
             return included
         }

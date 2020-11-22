@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+import io.peasoup.inv.MissingOptionException
 import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
@@ -7,7 +8,7 @@ import org.junit.runner.RunWith
 
 import java.util.stream.Stream
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @SuppressWarnings(["GroovyAssignabilityCheck", "GroovyMissingReturnStatement", "GrEqualsBetweenInconvertibleTypes"])
 @RunWith(TempHome.class)
@@ -27,12 +28,12 @@ class InvHandlerTest {
     @Test
     void call_ok() {
 
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id name: "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -40,23 +41,23 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint using {
+            require { Endpoint } using {
                 id name: "my-webservice-id"
                 resolved {
                     println "my-webservice-id has been resolved by ${resolvedBy}"
                 }
             }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -67,12 +68,12 @@ class InvHandlerTest {
 
         def report = executor.execute()
 
-        assert report.isOk()
+        assertTrue report.isOk()
 
-        assert report.digested.size() == 3
-        assert report.digested[0].name == "my-server"
-        assert report.digested[1].name == "my-webservice"
-        assert report.digested[2].name == "my-app"
+        assertEquals 3, report.digested.size()
+        assertEquals "my-server", report.digested[0].name
+        assertEquals "my-webservice", report.digested[1].name
+        assertEquals "my-app", report.digested[2].name
     }
 
     @Test
@@ -91,19 +92,74 @@ class InvHandlerTest {
 
     @Test
     void call_without_name() {
-        assertThrows(InvHandler.INVOptionRequiredException.class, {
+        assertThrows(MissingOptionException.class, {
             inv.call({}, '')
         })
     }
 
     @Test
+    void call_using_variable_id() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something(myId) }
+
+            require { Something(myId) }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+
+    @Test
+    void call_using_delayed_id() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something } using {
+                ready { myId }
+            }
+
+            require { Something }
+
+            broadcast { Something { $Something.id } }
+
+            require { Something { $Something.id } }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+    @Test
+    void call_using_delayed_id_with_bad_variable() {
+        inv.call {
+            def myId = [id: 1]
+
+            broadcast { Something } using {
+                ready { myId }
+            }
+
+            require { Something }
+
+            broadcast { Something { $SomethingElse.id } }
+
+            require { Something { $SomethingElse.id } }
+        }
+
+        def report = executor.execute()
+        assertFalse report.isOk()
+    }
+
+    @Test
     void call_broadcast_twice() {
-        inv {
-            name "my-webservice-2"
+        inv.call {
+            name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -111,12 +167,12 @@ class InvHandlerTest {
             }
         }
 
-        inv {
-            name "my-webservice"
+        inv.call {
+            name "my-webservice-2"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast twice"
@@ -124,20 +180,20 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint using {
+            require { Endpoint } using {
                 id "my-webservice-id"
             }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -147,11 +203,11 @@ class InvHandlerTest {
 
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
 
-        report.digested
+        assertTrue report.digested
                 .findAll { it.name.contains("my-webservice") }
-                .collect { it.totalStatements }
+                .collectMany { it.totalStatements }
                 .any {
                     it.state == StatementStatus.ALREADY_BROADCAST
                 }
@@ -159,13 +215,13 @@ class InvHandlerTest {
 
     @Test
     void call_using_step() {
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -174,13 +230,13 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         print "My App is hosted here: ${$ep}"
                     }
@@ -188,10 +244,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -200,19 +256,19 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void call_using_step_and_unbloating() {
-        inv {
+        inv.call {
             name "my-webservice"
 
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -221,17 +277,17 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-unbloatable-ws-id") using {
+            require { Endpoint("my-unbloatable-ws-id") } using {
                 unbloatable true
             }
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         print "My App is hosted here: ${$ep}"
                     }
@@ -239,10 +295,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -251,19 +307,19 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void call_using_step_unbloating_and_broadcast_after() {
-        inv {
+        inv.call {
             name "my-webservice"
 
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         return "http://my.endpoint.com"
@@ -272,22 +328,22 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-unbloatable-ws-id") using {
+            require { Endpoint("my-unbloatable-ws-id") } using {
                 unbloatable true
             }
 
             step {
-                broadcast $inv.App("my-app-id")
+                broadcast { App("my-app-id") }
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -295,61 +351,61 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-other-app"
 
             step {
-                require $inv.App("my-app-id")
+                require { App("my-app-id") }
             }
 
             step {
-                require $inv.Element("not-existing") using { unbloatable true }
+                require { Element("not-existing") } using { unbloatable true }
             }
 
             step {
-                broadcast $inv.Element("at-the-end")
+                broadcast { Element("at-the-end") }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void call_using_multiple_unbloating() {
-        inv {
+        inv.call {
             name "my-app-1"
 
-            require $inv.Artifact("A") using { unbloatable true }
-            broadcast $inv.Artifact("B")
-            require $inv.Artifact("B") using { unbloatable true }
-            require $inv.Artifact("C") using { unbloatable true }
-            require $inv.Artifact("D") using { unbloatable true }
+            require { Artifact("A") } using { unbloatable true }
+            broadcast { Artifact("B") }
+            require { Artifact("B") } using { unbloatable true }
+            require { Artifact("C") } using { unbloatable true }
+            require { Artifact("D") } using { unbloatable true }
 
-            require $inv.Service("A") using { unbloatable true }
-            require $inv.Service("B")
-            require $inv.Service("C") using { unbloatable true }
-            require $inv.Service("D") using { unbloatable true }
+            require { Service("A") } using { unbloatable true }
+            require { Service("B") }
+            require { Service("C") } using { unbloatable true }
+            require { Service("D") } using { unbloatable true }
         }
 
-        inv {
+        inv.call {
             name "my-app-2"
 
-            require $inv.Artifact("A") using { unbloatable true }
-            require $inv.Artifact("B")
-            require $inv.Artifact("C") using { unbloatable true }
-            require $inv.Artifact("D") using { unbloatable true }
+            require { Artifact("A") } using { unbloatable true }
+            require { Artifact("B") }
+            require { Artifact("C") } using { unbloatable true }
+            require { Artifact("D") } using { unbloatable true }
 
-            require $inv.Service("A") using { unbloatable true }
-            broadcast $inv.Service("B")
-            require $inv.Service("C") using { unbloatable true }
-            require $inv.Service("D") using { unbloatable true }
+            require { Service("A") } using { unbloatable true }
+            broadcast { Service("B") }
+            require { Service("C") } using { unbloatable true }
+            require { Service("D") } using { unbloatable true }
         }
 
         def report = executor.execute()
 
-        assert report.isOk()
-        assert report.cycleCount == 8
+        assertTrue report.isOk()
+        assertEquals 8, report.cycleCount
     }
 
     @Test
@@ -357,13 +413,13 @@ class InvHandlerTest {
 
         def value = 1
 
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
             step {
-                broadcast $inv.Endpoint using {
+                broadcast { Endpoint } using {
                     id "my-webservice-id"
                     ready {
                         value++
@@ -373,17 +429,17 @@ class InvHandlerTest {
             }
 
             ready {
-                assert value == 1
+                assertEquals 1, value
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id") into '$ep'
+            require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
-                broadcast $inv.App("my-app-id") using {
+                broadcast { App("my-app-id") } using {
                     ready {
                         value++
                         print "My App is hosted here: ${$ep}"
@@ -392,10 +448,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     value++
@@ -405,7 +461,7 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -414,15 +470,15 @@ class InvHandlerTest {
         def patternProvider = { provider ->
             this.inv.call {
                 name "element-${provider}"
-                broadcast $inv.Element(provider)
+                broadcast { Element(provider) }
             }
         }
 
         def patternConsumer = { provider, consumer ->
             this.inv.call {
                 name "element-${consumer}"
-                require $inv.Element(provider)
-                step { broadcast $inv.Element(consumer) }
+                require { Element(provider) }
+                step { broadcast { Element(consumer) } }
             }
         }
 
@@ -439,22 +495,18 @@ class InvHandlerTest {
                 }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void call_with_halting() {
 
-        assertThrows(IllegalArgumentException.class, {
-            inv.call(null)
-        })
-
-        inv {
+        inv.call {
             name "my-webservice"
 
-            require $inv.Server("my-server-id")
+            require { Server("my-server-id") }
 
-            broadcast $inv.Endpoint using {
+            broadcast { Endpoint } using {
                 id "my-webservice-id"
                 ready {
                     println "my-webservice-id has been broadcast"
@@ -462,10 +514,10 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-server"
 
-            broadcast $inv.Server using {
+            broadcast { Server } using {
                 id "my-server-id"
                 ready {
                     println "my-server-id has been broadcast"
@@ -473,71 +525,69 @@ class InvHandlerTest {
             }
         }
 
-        inv {
+        inv.call {
             name "my-app"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
+            require { Endpoint("my-webservice-id-not-existing") }
 
-            broadcast $inv.App("my-app-id")
+            broadcast { App("my-app-id") }
         }
 
-        inv {
+        inv.call {
             name "my-app-2"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
-            require $inv.App("my-app-id")
+            require { Endpoint("my-webservice-id-not-existing") }
+            require { App("my-app-id") }
 
-            require $inv.Endpoint("my-unbloatable-endpoint") using {
+            require { Endpoint("my-unbloatable-endpoint") } using {
                 unbloatable true
             }
 
-            broadcast $inv.App("my-app-id-2")
+            broadcast { App("my-app-id-2") }
         }
 
-        inv {
+        inv.call {
             name "my-app-3"
 
-            require $inv.Endpoint("my-webservice-id-not-existing")
-            require $inv.App("my-app-id")
-            require $inv.App("my-app-id-2")
+            require { Endpoint("my-webservice-id-not-existing") }
+            require { App("my-app-id") }
+            require { App("my-app-id-2") }
 
-            require $inv.Endpoint("my-webservice-id")
+            require { Endpoint("my-webservice-id") }
 
-            broadcast $inv.App("my-app-id-3")
+            broadcast { App("my-app-id-3") }
         }
 
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert report.halted
-        assert report.digested.size() == 2
-        assert report.digested[0].name == "my-server"
-        assert report.digested[1].name == "my-webservice"
+        assertFalse report.isOk()
+        assertTrue report.halted
+        assertEquals 2, report.digested.size()
+        assertEquals "my-server", report.digested[0].name
+        assertEquals "my-webservice", report.digested[1].name
     }
 
     @Test
     void call_with_exception() {
-        inv {
+        inv.call {
             name "my-exception"
 
             throw new Exception("fail")
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.inv.name == "my-exception" }
-        assert report.errors.find { it.throwable.message == "fail" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.inv.name == "my-exception" }
+        assertNotNull report.errors.find { it.throwable.message == "fail" }
     }
 
     @Test
     void call_with_exception_2() {
-        inv {
+        inv.call {
             name "my-exception"
 
-            broadcast $inv.Exception using {
+            broadcast { MyException } using {
                 ready {
                     throw new Exception("fail-broadcast")
                 }
@@ -545,24 +595,23 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.throwable.message == "fail-broadcast" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.throwable.message == "fail-broadcast" }
     }
 
     @Test
     void call_with_exception_3() {
-        inv {
+        inv.call {
             name "provide"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "my-exception"
 
-            require $inv.Something using {
+            require { Something } using {
                 resolved {
                     throw new Exception("fail-require")
                 }
@@ -570,92 +619,90 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
-        assert report.errors.find { it.throwable.message == "fail-require" }
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
+        assertNotNull report.errors.find { it.throwable.message == "fail-require" }
     }
 
     @Test
     void call_with_exception_4() {
 
-        inv {
+        inv.call {
             name "provide"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "my-exception"
 
-            require $inv.Something using {
+            require { Something } using {
                 resolved {
-                    assert 1 == 2, "Does not equal"
+                    assertTrue 1 == 2, "Does not equal"
                 }
             }
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-
-        assert !report.errors.isEmpty()
+        assertFalse report.isOk()
+        assertFalse report.errors.isEmpty()
     }
 
     @Test
     void pop_and_tail() {
         int index = 0
 
-        inv {
+        inv.call {
             name "3"
 
             pop false
             tail true
 
-            broadcast $inv.Something("3") using {
+            broadcast { Something("3") } using {
                 ready {
-                    assert index == 3
+                    assertEquals 3, index
                 }
             }
         }
 
 
-        inv {
+        inv.call {
             name "2"
 
             pop false
             tail true
 
-            broadcast $inv.Something("2") using {
+            broadcast { Something("2") } using {
                 ready {
-                    assert index == 2
+                    assertEquals 2, index
                     index++
                 }
             }
         }
 
-        inv {
+        inv.call {
             name "1"
 
             pop false
             tail false
 
-            broadcast $inv.Something("1") using {
+            broadcast { Something("1") } using {
                 ready {
-                    assert index == 1
+                    assertEquals 1, index
                     index++
                 }
             }
         }
 
-        inv {
+        inv.call {
             name "0"
 
             pop true
             tail false
 
-            broadcast $inv.Something("0") using {
+            broadcast { Something("0") } using {
                 ready {
-                    assert index == 0
+                    assertEquals 0, index
                     index++
                 }
             }
@@ -663,15 +710,15 @@ class InvHandlerTest {
 
         def remainingInvs = executor.pool.sort()
 
-        assert remainingInvs[0].name == "0"
-        assert remainingInvs[1].name == "1"
-        assert remainingInvs[2].name == "2"
-        assert remainingInvs[3].name == "3"
+        assertEquals "0", remainingInvs[0].name
+        assertEquals "1", remainingInvs[1].name
+        assertEquals "2", remainingInvs[2].name
+        assertEquals "3", remainingInvs[3].name
     }
 
     @Test
     void tags_ok() {
-        inv {
+        inv.call {
             name "3"
 
             tags(
@@ -679,13 +726,13 @@ class InvHandlerTest {
             )
 
             step {
-                assert tags.my
-                assert tags.my == 'tag'
+                assertNotNull tags.my
+                assertEquals 'tag', tags.my
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -693,7 +740,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -701,7 +748,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') completed {
@@ -710,8 +757,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -719,17 +766,17 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') created {
@@ -737,8 +784,9 @@ class InvHandlerTest {
             }
         }
 
-        executor.execute()
-        assert reached
+        def report = executor.execute()
+        assertFalse report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -746,23 +794,23 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
         }
 
-        inv {
+        inv.call {
             name "3"
 
             when all tags(my: 'tag') completed {
@@ -771,8 +819,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -780,7 +828,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -788,7 +836,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'other-tag') completed {
@@ -797,8 +845,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !reached
+        assertFalse report.isOk()
+        assertFalse reached
     }
 
     @Test
@@ -806,7 +854,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -814,7 +862,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "1" completed {
@@ -823,8 +871,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -832,7 +880,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "123"
 
             tags(
@@ -840,7 +888,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "1" completed {
@@ -849,8 +897,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert reached
+        assertTrue report.isOk()
+        assertTrue reached
     }
 
     @Test
@@ -858,7 +906,7 @@ class InvHandlerTest {
 
         boolean reached = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -866,7 +914,7 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all name "2" completed {
@@ -875,14 +923,14 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !reached
+        assertFalse report.isOk()
+        assertFalse reached
     }
 
     @Test
     void when_ok_broadcasts() {
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
@@ -890,32 +938,32 @@ class InvHandlerTest {
             )
         }
 
-        inv {
+        inv.call {
             name "2"
 
             when all tags(my: 'tag') completed {
                 step {
-                    broadcast $inv.Something
+                    broadcast { Something }
                 }
             }
         }
 
-        inv {
+        inv.call {
             name "3"
 
-            require $inv.Something
+            require { Something }
 
-            broadcast $inv.Else
+            broadcast { Else }
         }
 
-        inv {
+        inv.call {
             name "4"
 
-            require $inv.Else
+            require { Else }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -923,24 +971,24 @@ class InvHandlerTest {
 
         boolean raised = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Something
+            require { Something }
 
             when all tags(my: 'tag') completed {
                 raised = true
@@ -948,8 +996,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert report.isOk()
-        assert raised
+        assertTrue report.isOk()
+        assertTrue raised
     }
 
     @Test
@@ -957,24 +1005,24 @@ class InvHandlerTest {
 
         boolean raised = false
 
-        inv {
+        inv.call {
             name "1"
 
             tags(
                     my: 'tag'
             )
 
-            broadcast $inv.Something
+            broadcast { Something }
         }
 
-        inv {
+        inv.call {
             name "2"
 
             tags(
                     my: 'tag'
             )
 
-            require $inv.Else
+            require { Else }
 
             when all tags(my: 'tag') completed {
                 raised = true
@@ -982,8 +1030,8 @@ class InvHandlerTest {
         }
 
         def report = executor.execute()
-        assert !report.isOk()
-        assert !raised
+        assertFalse report.isOk()
+        assertFalse raised
     }
 
     @Test
@@ -993,11 +1041,11 @@ class InvHandlerTest {
         def steps = []
         1.upto(size, { final Number reference ->
             steps << {
-                assert reference == it + 1
+                assertEquals it + 1, reference
             }
         })
 
-        inv {
+        inv.call {
 
             name "steps"
 
@@ -1006,83 +1054,83 @@ class InvHandlerTest {
             }
         }
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void multiple_steps_require_and_broadcasts() {
-        inv {
+        inv.call {
             name "step1"
 
             step {
-                assert it == 0
+                assertEquals 0, it
 
-                require $inv.Something
+                require { Something }
             }
 
             step {
-                assert it == 1
+                assertEquals 1, it
 
-                broadcast $inv.Else
-                require $inv.More
+                broadcast { Else }
+                require { More }
             }
 
             step {
-                assert it == 2
+                assertEquals 2, it
 
-                broadcast $inv.Final
+                broadcast { Final }
             }
         }
 
-        inv {
+        inv.call {
             name "step2"
 
             step {
-                assert it == 0
+                assertEquals 0, it
 
-                broadcast $inv.Something
+                broadcast { Something }
             }
 
             step {
-                assert it == 1
+                assertEquals 1, it
 
-                require $inv.Else
-                broadcast $inv.More
+                require { Else }
+                broadcast { More }
             }
 
             step {
-                assert it == 2
+                assertEquals 2, it
 
-                require $inv.Final
+                require { Final }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
     void ok_doc() {
-        inv {
+        inv.call {
             name "doc"
             markdown '''
 This is a sample description for this INV.
 '''
 
-            broadcast $inv.Something using {
+            broadcast { Something } using {
                 markdown '''
 This is a sample description for this  
 broadcast statement
 '''
             }
 
-            require $inv.Something using {
+            require { Something } using {
                 markdown '''
 This is a sample description for **this** require statement
 '''
             }
 
-            broadcast $inv.Else using {
+            broadcast { Else } using {
                 markdown '''
 This is a sample description for **this** broadcast statement
 '''
@@ -1090,10 +1138,10 @@ This is a sample description for **this** broadcast statement
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
 
         def reportFolder = new File(RunsRoller.latest.folder(), "reports")
-        assert reportFolder.exists()
-        assert new File(reportFolder, "doc.md").exists()
+        assertTrue reportFolder.exists()
+        assertTrue new File(reportFolder, "doc.md").exists()
     }
 }

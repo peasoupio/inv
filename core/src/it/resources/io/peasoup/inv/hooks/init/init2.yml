@@ -1,0 +1,5 @@
+repo:
+    - name: init2
+      hooks:
+        init: |
+          exit 3

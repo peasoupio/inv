@@ -3,7 +3,9 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNull
+import static org.junit.jupiter.api.Assertions.*
 
 class InvDescriptorTest {
 
@@ -13,7 +15,7 @@ class InvDescriptorTest {
     @Before
     void setup() {
         properties = new InvDescriptor.Properties()
-        myself = new InvDescriptor(properties, null)
+        myself = new InvDescriptor(properties)
     }
 
     @Test
@@ -21,7 +23,7 @@ class InvDescriptorTest {
         def name = "name"
         myself.name(name)
 
-        assert myself.name == name
+        assertEquals name, myself.name
     }
 
     @Test
@@ -37,13 +39,17 @@ class InvDescriptorTest {
         def statementDescriptor = new StatementDescriptor("name")
 
         def broadcastDescriptor = myself.broadcast(statementDescriptor)
-        assert broadcastDescriptor
+        assertNotNull broadcastDescriptor
     }
 
     @Test
     void broadcast_not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            myself.broadcast()
+            myself.broadcast((Closure)null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.broadcast((StatementDescriptor)null)
         })
     }
 
@@ -56,11 +62,11 @@ class InvDescriptorTest {
 
         def delegate = properties.statements.first() as RequireStatement
 
-        assert delegate.name == nvd.name
-        assert delegate.id == nvd.id
-        assert delegate.defaults
-        assert !delegate.unbloatable
-        assert delegate.into == null
+        assertEquals nvd.name, delegate.name
+        assertEquals nvd.id, delegate.id
+        assertTrue delegate.defaults
+        assertFalse delegate.unbloatable
+        assertNull delegate.into
     }
 
     @Test
@@ -71,8 +77,8 @@ class InvDescriptorTest {
 
         def delegate = properties.statements.first() as RequireStatement
 
-        assert delegate.name == nvd.name
-        assert delegate.id == InvDescriptor.DEFAULT_ID
+        assertEquals nvd.name, delegate.name
+        assertEquals StatementDescriptor.DEFAULT_ID, delegate.id
     }
 
     @Test
@@ -82,22 +88,22 @@ class InvDescriptorTest {
 
         def delegate = properties.statements.first() as RequireStatement
 
-        assert delegate.name == statementDescriptor.name
-        assert delegate.defaults
+        assertEquals statementDescriptor.name, delegate.name
+        assertTrue delegate.defaults
 
         requireDescriptor.using {
             defaults false
         }
 
-        assert delegate.name == statementDescriptor.name
-        assert !delegate.defaults
+        assertEquals statementDescriptor.name, delegate.name
+        assertFalse delegate.defaults
 
         requireDescriptor.using {
             defaults true
         }
 
-        assert delegate.name == statementDescriptor.name
-        assert delegate.defaults
+        assertEquals statementDescriptor.name, delegate.name
+        assertTrue delegate.defaults
     }
 
     @Test
@@ -105,31 +111,35 @@ class InvDescriptorTest {
         def statementDescriptor = new StatementDescriptor("name")
 
         def requireDescriptor = myself.require(statementDescriptor)
-        assert requireDescriptor
+        assertNotNull requireDescriptor
 
         def delegate = properties.statements.first() as RequireStatement
-        assert delegate.name == statementDescriptor.name
-        assert !delegate.unbloatable
-
-        requireDescriptor.using {
-            unbloatable false
-        }
-
-        assert delegate.name == statementDescriptor.name
-        assert !delegate.unbloatable
+        assertEquals statementDescriptor.name, delegate.name
+        assertFalse delegate.unbloatable
 
         requireDescriptor.using {
             unbloatable true
         }
 
-        assert delegate.name == statementDescriptor.name
-        assert delegate.unbloatable
+        assertEquals statementDescriptor.name, delegate.name
+        assertTrue delegate.unbloatable
+
+        requireDescriptor.using {
+            unbloatable false
+        }
+
+        assertEquals statementDescriptor.name, delegate.name
+        assertFalse delegate.unbloatable
     }
 
     @Test
     void require_not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            myself.require()
+            myself.require((Closure)null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.require((StatementDescriptor)null)
         })
     }
 
@@ -139,7 +149,7 @@ class InvDescriptorTest {
 
         myself.pop(value)
 
-        assert properties.pop == value
+        assertEquals value, properties.pop
     }
 
     @Test
@@ -148,7 +158,7 @@ class InvDescriptorTest {
 
         myself.tail(value)
 
-        assert properties.tail == value
+        assertEquals value, properties.tail
     }
 
     @Test
@@ -173,7 +183,7 @@ class InvDescriptorTest {
 
         myself.tags(tags)
 
-        assert myself.getTags() == tags
+        assertEquals tags, myself.getTags()
     }
 
     @Test
@@ -189,6 +199,6 @@ class InvDescriptorTest {
 
     @Test
     void myself_ok() {
-        assert myself.myself == myself // funny isn't it ?
+        assertEquals myself, myself.myself  // funny isn't it ?
     }
 }

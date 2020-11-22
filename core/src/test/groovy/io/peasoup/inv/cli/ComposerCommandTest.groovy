@@ -2,10 +2,12 @@ package io.peasoup.inv.cli
 
 import org.junit.Test
 
+import static org.junit.Assert.assertTrue
+
 class ComposerCommandTest {
 
     @Test
     void rolling() {
-        assert !new ComposerCommand().rolling()
+        assertTrue new ComposerCommand().rolling()
     }
 }

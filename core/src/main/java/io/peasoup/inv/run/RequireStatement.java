@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
@@ -128,7 +129,18 @@ public class RequireStatement implements Statement {
 
             // Get broadcast
             Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(requireStatement.getName());
-            BroadcastResponse broadcastResponse = channel.get(requireStatement.getId());
+
+            Object id = requireStatement.getId();
+
+            // Resolved delayed id
+            if (id instanceof Closure) {
+                Closure delayedId = (Closure)id;
+                delayedId.setResolveStrategy(Closure.DELEGATE_ONLY);
+                delayedId.setDelegate(requireStatement.getInv().getDelegate());
+                id = delayedId.call();
+            }
+
+            BroadcastResponse broadcastResponse = channel.get(id);
 
             if (!isBroadcastAvailable(pool, requireStatement, broadcastResponse))
                 return;
@@ -183,16 +195,21 @@ public class RequireStatement implements Statement {
         }
 
         private void resolveRequire(RequireStatement requireStatement, BroadcastResponse broadcastResponse) {
-            // Implement variable into NV inv (if defined)
+
+            // Be default, a require statement includes an "into" variable which equals to the
+            // require statement name preceded by a '$'.
+            String intoVariable = "$" + requireStatement.getName();
             if (StringUtils.isNotEmpty(requireStatement.getInto()))
-                requireStatement.getInv().addProperty(
-                        requireStatement.getInto(),
-                        new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
+                intoVariable = requireStatement.getInto();
+
+            requireStatement.getInv().addProperty(
+                    intoVariable,
+                    new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
 
             // Sends message to resolved (if defined)
             if (requireStatement.getResolved() != null) {
                 requireStatement.getResolved().setDelegate(new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
-                requireStatement.getResolved().call();
+                requireStatement.getResolved().run();
             }
 
             // Check if NV would have dumped something

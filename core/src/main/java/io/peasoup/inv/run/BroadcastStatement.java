@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import io.peasoup.inv.Logger;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Map;
@@ -74,6 +75,7 @@ public class BroadcastStatement implements Statement {
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
+
         public void manage(NetworkValuablePool pool, final BroadcastStatement broadcastStatement) {
             if (pool == null || broadcastStatement == null)
                 return;
@@ -84,21 +86,37 @@ public class BroadcastStatement implements Statement {
             if (pool.isHalting()) // Do nothing if halting
                 return;
 
+
             Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastStatement.getName());
             if (alreadyBroadcast(channel, broadcastStatement))
                 return;
 
-            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
-            if (alreadyBroadcast(staging, broadcastStatement))
-                return;
+            // Synchronize this part since another thread at the same time
+            // could add the exact same broadcast statement.
+            synchronized (this) {
 
-            broadcastStatement.state = StatementStatus.SUCCESSFUL;
+                Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
+                if (alreadyBroadcast(staging, broadcastStatement))
+                    return;
 
-            Logger.info(broadcastStatement);
+                broadcastStatement.state = StatementStatus.SUCCESSFUL;
 
-            // Staging response
-            BroadcastResponse response = createResponse(broadcastStatement);
-            staging.putIfAbsent(broadcastStatement.getId(), response);
+                Logger.info(broadcastStatement);
+
+                Object id = broadcastStatement.getId();
+
+                // Resolved delayed id
+                if (id instanceof Closure) {
+                    Closure delayedId = (Closure)id;
+                    delayedId.setResolveStrategy(Closure.DELEGATE_ONLY);
+                    delayedId.setDelegate(broadcastStatement.getInv().getDelegate());
+                    id = delayedId.call();
+                }
+
+                // Staging response
+                BroadcastResponse response = createResponse(broadcastStatement);
+                staging.putIfAbsent(id, response);
+            }
         }
 
         @SuppressWarnings("unchecked")

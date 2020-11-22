@@ -1,10 +1,10 @@
 package io.peasoup.inv.run
 
-
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.Assert.assertNull
+import static org.junit.jupiter.api.Assertions.*
 
 class InvTest {
 
@@ -21,37 +21,36 @@ class InvTest {
 
     @Test
     void dumpDelegate_ok() {
-        assert pool.totalInvs.isEmpty()
-        assert !inv.name
+        assertTrue pool.totalInvs.isEmpty()
+        assertNull inv.name
 
         inv.name = "my-name"
         inv.dumpDelegate()
 
-        assert !pool.totalInvs.isEmpty()
-        assert pool.totalInvs.getAt(0) == inv
+        assertFalse pool.totalInvs.isEmpty()
+        assertEquals inv, pool.totalInvs.getAt(0)
     }
 
     @Test
     void dumpDelegate_without_name() {
-        assert pool.totalInvs.isEmpty()
-        assert !inv.name
+        assertTrue pool.totalInvs.isEmpty()
+        assertNull inv.name
 
         assertThrows(IllegalStateException.class) {
             inv.dumpDelegate()
         }
 
-        assert pool.totalInvs.isEmpty()
+        assertTrue pool.totalInvs.isEmpty()
     }
 
     @Test
     void dumpDelegate_without_path() {
-        assert inv.delegate.path == Inv.Context.WORKING_DIR
+        assertEquals Inv.Context.WORKING_DIR, inv.delegate.path
     }
 
     @Test
     void digest_pool_not_ok() {
-
-        assert !pool.isDigesting()
+        assertFalse pool.isDigesting()
 
         assertThrows(IllegalArgumentException.class, {
             inv.digest()
@@ -82,19 +81,18 @@ class InvTest {
 
     @Test
     void equals() {
-
-        assert inv.name == null
-        assert !inv.equals(ctx.build())
+        assertNull inv.name
+        assertFalse inv.equals(ctx.build())
 
         inv.name = "my-inv"
 
-        assert !inv.equals(null)
-        assert !inv.equals("inv")
-        assert !inv.equals(ctx.build())
+        assertFalse inv.equals(null)
+        assertFalse inv.equals("inv")
+        assertFalse inv.equals(ctx.build())
 
         def other = ctx.build()
         other.name = "my-inv"
 
-        assert inv.equals(other)
+        assertTrue inv.equals(other)
     }
 }

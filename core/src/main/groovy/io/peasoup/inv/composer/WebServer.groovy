@@ -2,8 +2,8 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.api.*
-import io.peasoup.inv.run.Logger
 import spark.Response
 
 import static spark.Spark.*
@@ -11,15 +11,20 @@ import static spark.Spark.*
 class WebServer {
     final static String API_CONTEXT_ROOT = "/api"
 
+    final static String CONFIG_LOCAL_WEB = "INV_LOCAL_WEB"
+    final static String CONFIG_SSL_KEYSTORE = "INV_SSL_KEYSTORE"
+    final static String CONFIG_SSL_PASSWORD = "INV_SSL_PASSWORD"
+
     final Map webServerConfigs
     final String runLocation
-    final String scmsLocation
+    final String reposLocation
+    final String hrefsLocation
 
     final Boot boot
     final Pagination pagination
 
     final Settings settings
-    final ScmFileCollection scms
+    final RepoFileCollection repos
     final Execution exec
     RunFile run
 
@@ -35,31 +40,46 @@ class WebServer {
         ] + args
 
         runLocation = webServerConfigs.workspace as String
-        scmsLocation = webServerConfigs.workspace + "/scms" as String
+        reposLocation = webServerConfigs.workspace + "/.repos" as String
+        hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
         // Browser configs
         port(webServerConfigs.port as int)
 
+        // Get environment configs
+        def env = System.getenv()
+        def configLocalWeb = env[CONFIG_LOCAL_WEB]
+        def configSslKeystore = env[CONFIG_SSL_KEYSTORE]
+        def configSslPass = env[CONFIG_SSL_PASSWORD]
+
         // Static files
-        def localWeb = System.getenv()["INV_LOCAL_WEB"]
-        if (localWeb)
-            staticFiles.externalLocation(localWeb)
+        if (configLocalWeb)
+            staticFiles.externalLocation(configLocalWeb)
         else
             staticFiles.location("/public")
+
+        // SSL configuratio
+        if (configSslKeystore) {
+            secure(configSslKeystore, configSslPass, null, null)
+        }
 
         // Exception handling
         exception(Exception.class, { e, request, response ->
             Logger.error(e)
         })
 
-        def scmsLocationFolder = new File(scmsLocation)
-        if (!scmsLocationFolder.exists())
-            scmsLocationFolder.mkdirs()
+        def reposLocationFolder = new File(reposLocation)
+        if (!reposLocationFolder.exists())
+            reposLocationFolder.mkdirs()
+
+        def hrefsLocationFolder = new File(hrefsLocation)
+        if (!hrefsLocationFolder.exists())
+            hrefsLocationFolder.mkdirs()
 
         // Init
         settings = new Settings(new File(runLocation, "settings.json"))
-        scms = new ScmFileCollection(scmsLocationFolder)
-        exec = new Execution(webServerConfigs.appLauncher as String, scmsLocationFolder)
+        repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
+        exec = new Execution(webServerConfigs.appLauncher as String, reposLocationFolder)
 
         boot = new Boot(this)
         pagination = new Pagination(settings)
@@ -80,7 +100,7 @@ class WebServer {
         path(API_CONTEXT_ROOT, {
             new SystemAPI(this).routes()
             new RunAPI(this).routes()
-            new ScmAPI(this).routes()
+            new RepoAPI(this).routes()
             new ExecutionAPI(this).routes()
             new ReviewAPI(this).routes()
         })

@@ -17,23 +17,23 @@ class Review {
     private final File baseRun
     private final File latestRun
 
-    private final List<String> removeScms = []
+    private final List<String> removeRepos = []
 
-    Review(File baseRun, File latestRun, ScmFileCollection scms = null) {
+    Review(File baseRun, File latestRun, RepoFileCollection repos = null) {
         assert baseRun.exists(), 'Base run file must exist on filesystem'
         assert latestRun.exists(), 'Latest execution file must be present on the filesystem'
 
         this.baseRun = baseRun
         this.latestRun = latestRun
 
-        if (scms != null) {
+        if (repos != null) {
             def baseRunGraph = new RunGraph(baseRun.newReader())
-            def originalScms = baseRunGraph.files
-                    .findAll { it.scm && it.scm != InvInvoker.UNDEFINED_SCM }
-                    .collect { it.scm }
+            def originalRepos = baseRunGraph.files
+                    .findAll { it.repo && it.repo != InvInvoker.UNDEFINED_REPO }
+                    .collect { it.repo }
 
-            removeScms.addAll(originalScms
-                    .findAll { !scms.elements.containsKey(it) })
+            removeRepos.addAll(originalRepos
+                    .findAll { !repos.elements.containsKey(it) })
         }
     }
 
@@ -67,7 +67,7 @@ class Review {
         assert latestBackup.exists(), 'Latest run backup file must be present on filesystem'
 
         DeltaGraph deltaGraph = new DeltaGraph(baseRun.newReader(), latestRun.newReader())
-        deltaGraph.removeScms(removeScms)
+        deltaGraph.removeRepos(removeRepos)
         deltaGraph.resolve()
 
         latestRun.delete()
@@ -77,7 +77,7 @@ class Review {
 
     Map compare() {
         DeltaGraph deltaGraph = new DeltaGraph(baseRun.newReader(), latestRun.newReader())
-        deltaGraph.removeScms(removeScms)
+        deltaGraph.removeRepos(removeRepos)
         deltaGraph.resolve()
 
         List<DeltaGraph.DeltaLine> lines = deltaGraph.deltaLines.findAll { it.link.isId() }

@@ -3,7 +3,8 @@ package io.peasoup.inv
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
 import io.peasoup.inv.loader.GroovyLoader
-import io.peasoup.inv.run.Logger
+import io.peasoup.inv.repo.RepoInvoker
+import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
@@ -61,10 +62,18 @@ class Main extends Script {
         // Enable secure mode
         if (arguments["--secure"])
             GroovyLoader.enableSecureMode()
+        else
+            GroovyLoader.disableSecureMode()
 
         // Enable SystemClassLoader
         if (System.getProperty("java.system.class.loader"))
             GroovyLoader.enableSystemClassloader()
+        else
+            GroovyLoader.disableSystemClassloader()
+
+        // Create caches for invokers
+        InvInvoker.newCache()
+        RepoInvoker.newCache()
 
         // Do system checks
         if (SystemInfo.consistencyFails()) {
@@ -94,18 +103,33 @@ class Main extends Script {
     }
 
     CliCommand findCommand() {
+
+        if (arguments["repo"]) {
+            if (arguments["get"])
+                return new RepoGetCommand(
+                        repoUrl: arguments["<repoUrl>"] as String,
+                        createParameters: arguments["--create-parameters"] as Boolean,
+                        run: arguments["--run"] as Boolean)
+            if (arguments["run"])
+                return new RepoRunCommand(
+                        repoFileLocation: arguments["<repoFile>"] as String,
+                        list: arguments["--list"] as Boolean)
+            if (arguments["test"])
+                return new RepoTestCommand()
+            if (arguments["create"]) {
+                return new RepoCreateCommand()
+            }
+        }
+
+        if (arguments["init"]) {
+            if (arguments["run"])
+                return new InitRunCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
+            if (arguments["create"])
+                return new InitCreateCommand(repoName: arguments["<repoName>"] as String)
+        }
+
         if (arguments["run"])
             return new RunCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["scm"])
-            return new ScmCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["test"])
-            return new TestCommand(
                     patterns: arguments["<include>"] as List<String>,
                     exclude: arguments["--exclude"] as String ?: "")
 
@@ -125,9 +149,6 @@ class Main extends Script {
         if (arguments["composer"])
             return new ComposerCommand()
 
-        if (arguments["init"])
-            return new InitCommand(initFileLocation: arguments["<initFile>"] as String)
-
         if (arguments["promote"])
             return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
 
@@ -138,20 +159,25 @@ class Main extends Script {
         return """Inv, version: ${SystemInfo.version()}.
 
 Usage:
-  inv (run|scm|test|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv (run|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
+  inv repo get [-d | -x] [-s] [-p] [-r] <repoUrl>
+  inv repo run [-d | -x] [-s] [-l] <repoFile>
+  inv repo test [-d | -x] [-s]
+  inv repo create
   inv composer [-d | -x] [-s]
-  inv init [-d | -x] [-s] <initFile>
+  inv init run [-d | -x] [-s] <repoFile>
+  inv init create <repoName>
   inv promote [<runIndex>] 
   inv delta <base> <other>
-  inv graph (plain|dot) <base>
+  inv graph <base>
   
 Options:
   run          Load and execute INV files.
-  scm          Load and execute SCM files.
-  test         Load and execute a unit test script
-  syntax       Test the syntax of an INV or SCM file.
+  syntax       Test the syntax of an INV or REPO file.
+  repo         Create, get, run or test a REPO folder.
   composer     Start Composer dashboard
-  init         Start Composer dashboard from an SCM file.
+  init         Start Composer dashboard from an REPO file
+               or create an empty Git init repository.
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
@@ -159,6 +185,10 @@ Options:
   -x --system  Print system troubleshooting messages.
   -s --secure  Enable the secure mode for script files.
   -e --exclude Exclude files from loading.
+  -p, --create-parameters
+               Create a parameter file of a REPO file.
+  -r --run     Run a REPO file after getting it.
+  -l --list    Use a list of repo to run.
   -h --help    Show this screen.
   
 Parameters:
@@ -168,25 +198,23 @@ Parameters:
                (p.e *.groovy, ./**/*.groovy, ...)
                It is also expandable using a space-separator
                (p.e myfile1.groovy myfile2.groovy)
-               For scm: 
-                   You can use a file ending with 'scm-list.txt'
-                   for it to list all your SCM file references.
-                   Each line must equal to the absolute path
-                   of your SCM file on the current filesystems.
   <exclude>    Indicates the files to exclude.
                Exclusion is predominant over inclusion
                It is Ant-compatible 
                (p.e *.groovy, ./**/*.groovy, ...)
-  <initFile>   The SCM file location. The file can be local
-               or remote, using an URL.
+  <repoUrl>    The REPO remote file location.  
+  <repoFile>   The REPO file location. 
+               The file MUST be existing on the 
+               current file system.
+               Using --list with run, you can use a list
+               of repos. 
+  <repoName>   The REPO name.
   <runIndex>   The run index whose promotion will be granted.
                Runs are located inside INV_HOME/.runs/ 
                By default, it uses the latest successful run
                location.
   <base>       Base file location
   <other>      Other file location
-  plain        No specific output structure
-  dot          Graph Description Language (DOT) output structure
 """
     }
 

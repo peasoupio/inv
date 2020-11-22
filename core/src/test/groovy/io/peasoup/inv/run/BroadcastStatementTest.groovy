@@ -3,6 +3,8 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.*
+
 class BroadcastStatementTest {
 
     InvExecutor executor
@@ -19,7 +21,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     my: { return "method" }
                 ]}
@@ -29,12 +31,12 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert response.my
-                    assert response.my instanceof Closure
-                    assert response.my() == "method"
+                    assertNotNull response.my
+                    assertTrue response.my instanceof Closure
+                    assertEquals "method", response.my()
                 }
             }
         }
@@ -47,7 +49,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready { return null }
             }
         }
@@ -55,11 +57,11 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert my == null
-                    assert my() == null
+                    assertNull my
+                    assertNull my()
                 }
             }
         }
@@ -72,7 +74,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     something: "valuable"
                 ]}
@@ -82,11 +84,11 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert my == null
-                    assert my() == null
+                    assertNull my
+                    assertNull my()
                 }
             }
         }
@@ -99,7 +101,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                         my: "method"
                 ]}
@@ -109,12 +111,12 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert my
-                    assert !(my instanceof Closure)
-                    assert my() == null
+                    assertNotNull my
+                    assertFalse my instanceof Closure
+                    assertNull my()
                 }
             }
         }
@@ -127,7 +129,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                     my: "property"
                 ]}
@@ -137,13 +139,11 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert my
-                    assert my == "property"
-
-                    println my
+                    assertNotNull my
+                    assertEquals "property", my
                 }
             }
         }
@@ -156,7 +156,7 @@ class BroadcastStatementTest {
         inv {
             name "provide"
 
-            broadcast $inv.Element using {
+            broadcast { Element } using {
                 ready {[
                         $: {
                             return [
@@ -170,11 +170,11 @@ class BroadcastStatementTest {
         inv {
             name "consume"
 
-            require $inv.Element using {
+            require { Element } using {
 
                 resolved {
-                    assert my
-                    assert my == "default-value"
+                    assertNotNull my
+                    assertEquals "default-value", my
                 }
             }
         }
@@ -193,7 +193,7 @@ class BroadcastStatementTest {
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
 
-        assert statement.state == StatementStatus.NOT_PROCESSED
+        assertEquals StatementStatus.NOT_PROCESSED, statement.state
     }
 
     @Test
@@ -210,7 +210,7 @@ class BroadcastStatementTest {
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
-        assert statement.state == StatementStatus.ALREADY_BROADCAST
+        assertEquals StatementStatus.ALREADY_BROADCAST, statement.state
 
         pool.availableStatements[statement.name].clear()
         statement.state = StatementStatus.NOT_PROCESSED
@@ -220,6 +220,6 @@ class BroadcastStatementTest {
         ] as Map<Object, BroadcastResponse>)
 
         BroadcastStatement.BROADCAST.manage(pool, statement)
-        assert statement.state == StatementStatus.ALREADY_BROADCAST
+        assertEquals StatementStatus.ALREADY_BROADCAST, statement.state
     }
 }

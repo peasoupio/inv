@@ -101,7 +101,7 @@ Vue.component('install', {
             runningTimestamp: 0,
             socket: undefined,
             filters: {
-                scm: ''
+                repo: ''
             },
             refreshRate: 20, // seconds
             remainingRefresh: 0,
@@ -276,14 +276,14 @@ Vue.component('install', {
             } while(Math.abs(logSize) >= thresh && u < units.length - 1);
             return logSize.toFixed(1)+' '+units[u];
         },
-        getLastExecutedScm: function() {
+        getLastExecutedRepo: function() {
             var vm = this
 
             if (!vm.execution || !vm.execution.lastExecution)
                 return []
 
-            var filtered = vm.execution.lastExecution.scms.filter(function(scm) {
-                if (scm.indexOf(vm.filters.scm) < 0) return
+            var filtered = vm.execution.lastExecution.repos.filter(function(repo) {
+                if (repo.indexOf(vm.filters.repo) < 0) return
 
                 return true
             })

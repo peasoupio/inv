@@ -3,6 +3,9 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThrows
+
 class BroadcastUsingDescriptorTest {
 
     BroadcastUsingDescriptor myself
@@ -17,17 +20,17 @@ class BroadcastUsingDescriptorTest {
         def id1 = "my-id"
         myself.id(id1)
 
-        assert myself.id == id1
+        assertEquals id1, myself.id
 
         def id2 = [prop: "my-id"]
         myself.id(id2)
 
-        assert myself.id == id2
+        assertEquals id2, myself.id
 
         def id3 = null
         myself.id(id3)
 
-        assert myself.id == id3
+        assertEquals id3, myself.id
     }
 
     @Test
@@ -36,6 +39,13 @@ class BroadcastUsingDescriptorTest {
 
         myself.ready(ready)
 
-        assert myself.ready == ready
+        assertEquals ready, myself.ready
+    }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            new BroadcastUsingDescriptor().markdown("")
+        })
     }
 }

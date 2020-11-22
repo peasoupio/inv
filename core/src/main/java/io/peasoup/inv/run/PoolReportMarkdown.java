@@ -3,6 +3,7 @@ package io.peasoup.inv.run;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import io.peasoup.inv.Logger;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
@@ -80,7 +81,7 @@ public class PoolReportMarkdown {
         Map<String, Object> scopes = new HashMap<>();
         scopes.put("name", inv.getName());
         scopes.put("markdown", inv.getMarkdown());
-        scopes.put("scm", inv.getContext().getScm());
+        scopes.put("repo", inv.getContext().getRepo());
 
         List<Map<String, Object>> statements = new ArrayList<>();
 

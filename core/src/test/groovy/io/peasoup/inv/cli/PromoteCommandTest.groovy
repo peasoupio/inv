@@ -6,12 +6,14 @@ import io.peasoup.inv.run.RunsRoller
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.*
+
 @RunWith(TempHome.class)
 class PromoteCommandTest {
 
     @Test
     void ok() {
-        assert PromoteCommand.DEFAULT == RunsRoller.latest.successFolder()
+        assertEquals(PromoteCommand.DEFAULT, RunsRoller.latest.successFolder())
         RunsRoller.latest.successFolder().mkdirs()
         def run = new File(RunsRoller.latest.successFolder(), "run.txt")
         run.delete()
@@ -19,15 +21,15 @@ class PromoteCommandTest {
 
         def dest = new File(Home.getCurrent(), "run.txt")
 
-        assert new PromoteCommand().call() == 0
-        assert dest.exists()
+        assertEquals(0, new PromoteCommand().call())
+        assertTrue(dest.exists())
 
         dest.delete()
     }
 
     @Test
     void runfolder_not_existing() {
-        assert new PromoteCommand(runIndex: "999").call() == -1
+        assertEquals(1, new PromoteCommand(runIndex: "999").call())
     }
 
     @Test
@@ -35,11 +37,11 @@ class PromoteCommandTest {
         def run = new File(RunsRoller.runsFolder(), "10")
         run.mkdirs()
 
-        assert new PromoteCommand(runIndex: "10").call() == -2
+        assertEquals(2, new PromoteCommand(runIndex: "10").call())
     }
 
     @Test
     void rolling() {
-        assert !new PromoteCommand().rolling()
+        assertFalse(new PromoteCommand().rolling())
     }
 }

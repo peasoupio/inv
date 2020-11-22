@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.util.List;
 
 public class PoolReportTrace {
@@ -23,7 +25,7 @@ public class PoolReportTrace {
     public void printPoolTrace() {
 
         Logger.info("Completed INV(s): " + (pool.getTotalInvs().size() - pool.getRemainingInvs().size()));
-        Logger.info("Incompleted INV(s): " + pool.getRemainingInvs().size());
+        Logger.info("Uncompleted INV(s): " + pool.getRemainingInvs().size());
 
         // Print uncompleted INVs
         if (!pool.getRemainingInvs().isEmpty()) {

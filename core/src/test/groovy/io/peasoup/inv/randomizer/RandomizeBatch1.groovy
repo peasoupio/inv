@@ -1,10 +1,14 @@
 package io.peasoup.inv.randomizer
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.run.*
 import org.apache.commons.lang.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 @CompileStatic
 class RandomizeBatch1 {
@@ -105,7 +109,7 @@ class RandomizeBatch1 {
                             // Otherwise link them
                             invBoostrap.requires.add(currentRequire.name)
 
-                            myself.require((myself.inv.getProperty("Randomized") as StatementDescriptor).call(currentRequire.name))
+                            myself.require((InvNames.Instance.getProperty("Randomized") as StatementDescriptor).call(currentRequire.name))
 
                             currentRequire.done = true
 
@@ -114,7 +118,7 @@ class RandomizeBatch1 {
                     }
                 }
 
-                myself.broadcast((myself.inv.getProperty("Randomized") as StatementDescriptor).call(invBoostrap.name))
+                myself.broadcast((InvNames.Instance.getProperty("Randomized") as StatementDescriptor).call(invBoostrap.name))
 
                 ++index
 
@@ -125,8 +129,8 @@ class RandomizeBatch1 {
 
         def report = executor.execute()
 
-        assert report.isOk()
-        assert report.digested.size() == totalInv
+        assertTrue report.isOk()
+        assertEquals totalInv, report.digested.size()
     }
 
     static class InvBootstrap {

@@ -1,6 +1,5 @@
 package io.peasoup.inv.graph
 
-
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import org.jgrapht.Graph
@@ -27,7 +26,7 @@ class RunGraph {
     RunGraph(BufferedReader logs) {
         assert logs, 'Logs are required'
 
-        g = new DefaultDirectedGraph<> (DefaultEdge.class)
+        g = new DefaultDirectedGraph<GraphNavigator.Linkable, DefaultEdge>(DefaultEdge.class)
         navigator = new GraphNavigator(g)
 
         long nodeCount = 0
@@ -83,12 +82,6 @@ class RunGraph {
         }
 
         logs.close()
-    }
-
-    String toPlainList() {
-        return navigator.links().collect {
-            it.value
-        }.join(lf)
     }
 
     String toDotGraph() {
@@ -192,14 +185,14 @@ class RunGraph {
                 return null
 
             return new FileStatement(
-                scm: fileMatcher.group(1),
+                repo: fileMatcher.group(1),
                 file: fileMatcher.group(2),
                 inv: fileMatcher.group(3)
             )
         }
 
         // Ctor
-        String scm
+        String repo
         String file
         String inv
 

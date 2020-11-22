@@ -1,15 +1,17 @@
 package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
-import io.peasoup.inv.Home
+import io.peasoup.inv.Logger
 import io.peasoup.inv.fs.Pattern
-import io.peasoup.inv.run.Logger
-import io.peasoup.inv.scm.ScmInvoker
+import io.peasoup.inv.repo.RepoInvoker
 import io.peasoup.inv.utils.Progressbar
+import org.apache.commons.io.FilenameUtils
+import org.apache.commons.validator.routines.UrlValidator
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
+import spark.utils.StringUtils
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
@@ -59,7 +61,8 @@ class Boot {
             if (runFile.exists())
                 webServer.run = new RunFile(runFile)
 
-            readScmsFiles()
+            readReposFiles()
+            readReposHrefs()
             stageSettings()
             readRunFile()
 
@@ -81,21 +84,63 @@ class Boot {
         }
     }
 
-    protected void readScmsFiles() {
-        File scmFolder = webServer.scms.scmFolder
-        def files = Pattern.get(["*"], ScmInvoker.DEFAULT_EXCLUDED, scmFolder)
+    protected void readReposFiles() {
+        File repoFolder = webServer.repos.repoFolder
+        def files = Pattern.get(["*"], RepoInvoker.DEFAULT_EXCLUDED, repoFolder, false)
 
         if (!files) {
-            Logger.warn("No files to be found in'${scmFolder.absolutePath}'")
+            Logger.warn("No files to be found in'${repoFolder.absolutePath}'")
             return
         }
 
         thingsToDo.addAndGet(files.size())
 
-        def progress = new Progressbar("Reading from '${scmFolder.absolutePath}'".toString(), files.size(), false)
+        def progress = new Progressbar("Reading from '${repoFolder.absolutePath}'".toString(), files.size(), false)
         progress.start {
             files.each {
-                webServer.scms.load(it)
+                webServer.repos.load(it)
+
+                thingsDone.incrementAndGet()
+                progress.step()
+            }
+        }
+    }
+
+    protected void readReposHrefs() {
+        File hrefFolder = webServer.repos.hrefFolder
+        def files = Pattern.get(["*.href"], RepoInvoker.DEFAULT_EXCLUDED, hrefFolder, false)
+
+        if (!files) {
+            Logger.warn("No files to be found in'${hrefFolder.absolutePath}'")
+            return
+        }
+
+        thingsToDo.addAndGet(files.size())
+
+        def progress = new Progressbar("Reading from '${hrefFolder.absolutePath}'".toString(), files.size(), false)
+        progress.start {
+            files.each {
+                String href = it.text
+                if (StringUtils.isEmpty(href))
+                    return
+
+                href = href.trim()
+                if (!UrlValidator.instance.isValid(href))
+                    return
+
+                HttpURLConnection repoConn = (HttpURLConnection)new URL(href).openConnection()
+                if (!HttpURLConnection.HTTP_OK.equals(repoConn.getResponseCode()))
+                    return
+
+                String repoFileContent = repoConn.inputStream.text
+
+                File localRepofile = new File(webServer.repos.repoFolder, FilenameUtils.getName(href))
+                if (localRepofile.exists())
+                    localRepofile.delete()
+
+                localRepofile << repoFileContent
+
+                webServer.repos.load(localRepofile)
 
                 thingsDone.incrementAndGet()
                 progress.step()
@@ -107,10 +152,10 @@ class Boot {
         def stagedIds = webServer.settings.stagedIds()
         thingsToDo.addAndGet(stagedIds.size())
 
-        def stagedScms = webServer.settings.stagedSCMs()
-        thingsToDo.addAndGet(stagedScms.size())
+        def stagedRepos = webServer.settings.stagedREPOs()
+        thingsToDo.addAndGet(stagedRepos.size())
 
-        new Progressbar("Staging from 'settings.xml'", stagedIds.size() + stagedScms.size(), false).start {
+        new Progressbar("Staging from 'settings.xml'", stagedIds.size() + stagedRepos.size(), false).start {
             stagedIds.each {
                 if (webServer.run)
                     webServer.run.stageWithoutPropagate(it)
@@ -119,8 +164,8 @@ class Boot {
                 step()
             }
 
-            stagedScms.each {
-                webServer.scms.stage(it)
+            stagedRepos.each {
+                webServer.repos.stage(it)
 
                 thingsDone.incrementAndGet()
                 step()

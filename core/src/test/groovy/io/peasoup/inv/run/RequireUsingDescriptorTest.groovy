@@ -3,6 +3,8 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.*
+
 class RequireUsingDescriptorTest {
 
     RequireUsingDescriptor myself
@@ -17,17 +19,17 @@ class RequireUsingDescriptorTest {
         def id1 = "my-id"
         myself.id(id1)
 
-        assert myself.id == id1
+        assertEquals id1, myself.id
 
         def id2 = [prop: "my-id"]
         myself.id(id2)
 
-        assert myself.id == id2
+        assertEquals id2, myself.id
 
         def id3 = null
         myself.id(id3)
 
-        assert myself.id == id3
+        assertEquals id3, myself.id
     }
 
     @Test
@@ -36,7 +38,7 @@ class RequireUsingDescriptorTest {
 
         myself.resolved(resolved)
 
-        assert myself.resolved == resolved
+        assertEquals resolved, myself.resolved
     }
 
     @Test
@@ -45,17 +47,17 @@ class RequireUsingDescriptorTest {
 
         myself.unresolved(unresolved)
 
-        assert myself.unresolved == unresolved
+        assertEquals unresolved, myself.unresolved
     }
 
     @Test
     void unbloatable() {
         def unbloatable = true
 
-        assert !myself.unbloatable
+        assertNull myself.unbloatable
 
         myself.unbloatable(unbloatable)
 
-        assert myself.unbloatable
+        assertTrue myself.unbloatable
     }
 }

@@ -2,16 +2,22 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import groovy.lang.Script;
+import io.peasoup.inv.Logger;
+import io.peasoup.inv.MissingOptionException;
 import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
 
 @SuppressWarnings("rawtypes")
 public class InvHandler {
+
+    private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-groovy-Syntax";
+
     private final InvExecutor invExecutor;
 
-    private String scriptPath;
+    private File scriptFile;
     private String pwd;
-    private String scm;
+    private String repo;
 
     public InvHandler(InvExecutor invExecutor) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
@@ -19,19 +25,19 @@ public class InvHandler {
         this.invExecutor = invExecutor;
     }
 
-    public InvHandler(InvExecutor invExecutor, String scriptPath, String pwd, String scm) {
+    public InvHandler(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
         if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
-        if (scriptPath == null) throw new IllegalArgumentException("scriptPath");
+        if (scriptFile == null) throw new IllegalArgumentException("scriptFile");
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
-        if (StringUtils.isEmpty(scm)) throw new IllegalArgumentException("scm");
+        if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
         this.invExecutor = invExecutor;
-        this.scriptPath = scriptPath;
+        this.scriptFile = scriptFile;
         this.pwd = pwd;
-        this.scm = scm;
+        this.repo = repo;
     }
 
-    public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws INVOptionRequiredException {
+    public void call(@DelegatesTo(InvDescriptor.class) Closure body) throws MissingOptionException {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }
@@ -39,7 +45,7 @@ public class InvHandler {
         this.call(body, body.getOwner().getClass().getSimpleName());
     }
 
-    public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws INVOptionRequiredException {
+    public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws MissingOptionException {
         if (body == null) {
             throw new IllegalArgumentException("Body is required");
         }
@@ -50,19 +56,17 @@ public class InvHandler {
         if (StringUtils.isNotEmpty(defaultName)) context.setDefaultName(defaultName);
 
         // Is loading from script ?
-        Script script = (body.getOwner() instanceof Script) ? (Script) body.getOwner() : null;
-        if (script != null) {
+        if (scriptFile != null) {
             // Set default path
             if (StringUtils.isNotEmpty(pwd))
                 context.setDefaultPath(pwd);
 
-            // Set SCM
-            if (StringUtils.isNotEmpty(scm))
-                context.setSCM(scm);
+            // Set REPO
+            if (StringUtils.isNotEmpty(repo))
+                context.setRepo(repo);
 
             // Set Script filename
-            if (StringUtils.isNotEmpty(scriptPath))
-                context.setBaseFilename(scriptPath);
+            context.setBaseFilename(scriptFile.getAbsolutePath());
         }
 
         final Inv inv = context.build();
@@ -70,29 +74,21 @@ public class InvHandler {
         body.setDelegate(inv.getDelegate());
 
         try {
-            body.call();
+            body.run();
         } catch (Exception ex) {
             invExecutor.getReport().getErrors().add(new PoolReport.PoolError(inv, ex));
         }
 
         // Make sure, at any cost, delegate.name is not empty before dumping for the first time
         if (StringUtils.isEmpty(inv.getDelegate().getName()))
-            throw new INVOptionRequiredException("name");
+            throw new MissingOptionException("inv.name", HELP_LINK);
 
         // Attempt to dump delegate to insert it into pool
         inv.dumpDelegate();
 
-        // Print SCM reference
-        if (script != null) {
-            Logger.info("[" + context.getScm() + "] [" + context.getBaseFilename() + "] " + inv);
-        }
-    }
-
-    public static class INVOptionRequiredException extends Exception {
-        private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/INV-groovy-Syntax";
-
-        public INVOptionRequiredException(final String option) {
-            super("Option " + option + " is not valid. Please visit " + HELP_LINK + " for more information");
+        // Print REPO reference
+        if (scriptFile != null) {
+            Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
         }
     }
 }

@@ -2,28 +2,68 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
+import io.peasoup.inv.Logger;
+import io.peasoup.inv.io.FileUtils;
+import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
-import io.peasoup.inv.loader.GroovyLoader;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 
 public class InvInvoker {
-    public static final String UNDEFINED_SCM = "undefined";
-    private static final GroovyLoader loader = new GroovyLoader();
+    public static final String UNDEFINED_REPO = "undefined";
+    private static GroovyLoader groovyLoader;
+    private static YamlLoader yamlLoader;
 
     private InvInvoker() {
         // empty ctor
     }
 
     /**
+     * Clear existing loader and create a new instance.
+     */
+    public static void newCache() {
+        groovyLoader = new GroovyLoader();
+        yamlLoader = new YamlLoader();
+    }
+
+    /**
+     * Add a groovy class to the current loader
+     *
+     * @param classFile   Classfile to load
+     * @param packageName New package name assigned to the loaded classes
+     */
+    public static void addClass(File classFile, String packageName) {
+        if (groovyLoader == null || yamlLoader == null)
+            throw new IllegalStateException("loader has no cache");
+
+        try {
+            groovyLoader.parseClassFile(classFile, packageName);
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    /**
      * Parse and invoke INV Groovy script file
+     *
      * @param invExecutor Executor instance
-     * @param scriptFile INV Groovy script file
+     * @param scriptFile  INV Groovy script file
      */
     public static void invoke(InvExecutor invExecutor, File scriptFile) {
+        invoke(invExecutor, scriptFile, null);
+    }
+
+    /**
+     * Parse and invoke INV Groovy script file
+     *
+     * @param invExecutor Executor instance
+     * @param scriptFile  INV Groovy script file
+     * @param packageName  New package assigned to the script file
+     */
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName) {
         if (invExecutor == null) {
             throw new IllegalArgumentException("InvExecutor is required");
         }
@@ -31,25 +71,28 @@ public class InvInvoker {
             throw new IllegalArgumentException("ScriptPath is required");
         }
 
-        invoke(invExecutor, scriptFile, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_SCM);
+        invoke(invExecutor, scriptFile, packageName, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
     }
 
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
-     * Also, it allows to define the SCM associated to this INV
+     * Also, it allows to define the REPO associated to this INV
+     *
      * @param invExecutor Executor instance
-     * @param scriptFile INV Groovy script file
-     * @param pwd Pwd "Print working directory", the working directory
-     * @param scm The associated SCM name
+     * @param scriptFile  INV Groovy script file
+     * @param packageName  New package assigned to the script file
+     * @param pwd         Pwd "Print working directory", the working directory
+     * @param repo        The associated REPO name
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String pwd, String scm) {
-        if (invExecutor == null) {
-            throw new IllegalArgumentException("InvExecutor is required");
-        }
+    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
+        if (groovyLoader == null || yamlLoader == null)
+            throw new IllegalStateException("loader has no cache");
 
-        if (scriptFile == null) {
+        if (invExecutor == null)
+            throw new IllegalArgumentException("InvExecutor is required");
+
+        if (scriptFile == null)
             throw new IllegalArgumentException("Script file is required");
-        }
 
         String scriptPath;
 
@@ -71,32 +114,33 @@ public class InvInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(invExecutor, scriptFile,pwd, scm, scriptPath);
+            parseYaml(invExecutor, scriptFile, pwd, repo);
         else
-            runScript(invExecutor, scriptFile,pwd, scm, scriptPath);
+            runScript(invExecutor, scriptFile, packageName, pwd, repo);
     }
 
-    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
+    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
 
         // Create YAML handler
         YamlInvHandler yamlInvHandler = new YamlInvHandler(
                 invExecutor,
-                scriptPath,
-                checkSubordinateSlash(pwd),
-                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+                yamlLoader,
+                scriptFile,
+                FileUtils.addSubordinateSlash(pwd),
+                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         try {
-            yamlInvHandler.call(YamlLoader.parseYaml(scriptFile));
+            yamlInvHandler.call();
         } catch (Exception e) {
             Logger.error(e);
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String pwd, String scm, String scriptPath) {
+    private static void runScript(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
         Script myNewScript;
 
         try {
-            myNewScript = loader.parseClass(scriptFile);
+            myNewScript = groovyLoader.parseScriptFile(scriptFile, packageName);
         } catch (Exception e) {
             Logger.error(e);
             return;
@@ -106,9 +150,9 @@ public class InvInvoker {
 
         InvHandler invHandler = new InvHandler(
                 invExecutor,
-                scriptPath,
-                checkSubordinateSlash(pwd),
-                StringUtils.isNotEmpty(scm) ? scm : UNDEFINED_SCM);
+                scriptFile,
+                FileUtils.addSubordinateSlash(pwd),
+                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         Binding binding = myNewScript.getBinding();
         binding.setProperty("inv", invHandler);
@@ -121,12 +165,5 @@ public class InvInvoker {
         }
     }
 
-    private static String checkSubordinateSlash(String path) {
-        assert StringUtils.isNotEmpty(path);
-
-        if (path.charAt(path.length() - 1) == '/') return path;
-
-        return path + "/";
-    }
 
 }

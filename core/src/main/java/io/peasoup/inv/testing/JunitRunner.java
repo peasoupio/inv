@@ -1,27 +1,40 @@
 package io.peasoup.inv.testing;
 
-import groovy.lang.Script;
+import io.peasoup.inv.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
-import io.peasoup.inv.run.Logger;
+import io.peasoup.inv.run.InvInvoker;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.InvokerHelper;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JunitRunner {
 
+    private static final Map<String, JunitScriptSettings> LISTED_SETTINGS = new HashMap<>(1024);
+
+    public static JunitScriptSettings getMySettings(JunitScriptBase scriptBase) {
+        return LISTED_SETTINGS.get(scriptBase.getClass().getName());
+    }
+
+    private final String packageName;
     private final JUnitCore junit;
     private final GroovyLoader groovyLoader;
     private final List<Class> classes = new ArrayList<>();
 
-    public JunitRunner() {
+    public JunitRunner(String packageName) {
+        if (StringUtils.isEmpty(packageName))
+            throw new IllegalArgumentException("packageName");
+
+        this.packageName = packageName;
+
         junit = new JUnitCore();
-        junit.addListener(new TextListener(System.out));
+        junit.addListener(new InvTextListener());
 
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStarImports("org.junit");
@@ -30,7 +43,15 @@ public class JunitRunner {
         groovyLoader = new GroovyLoader(false, "io.peasoup.inv.testing.JunitScriptBase", importCustomizer);
     }
 
-    public void add(String scriptLocation) {
+    public void addClass(String classLocation) {
+        try {
+            InvInvoker.addClass(new File(classLocation), packageName);
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+    }
+
+    public void addTestScript(String scriptLocation) {
         final File scriptFile = new File(scriptLocation);
         if (!scriptFile.exists()) {
             Logger.warn(scriptFile.getAbsolutePath() + " does not exist on current filesystem.");
@@ -38,33 +59,37 @@ public class JunitRunner {
         }
 
         // Load and put class into list
-        Script scriptObj;
+        Class classObj;
         try {
-            scriptObj = groovyLoader.parseClass(scriptFile);
+            classObj = groovyLoader.parseTestScriptFile(scriptFile, packageName);
         } catch (Exception e) {
             Logger.error(e);
             return;
         }
 
-        // Add script location into the metaClass properties
-        InvokerHelper.setProperty(
-                DefaultGroovyMethods.getMetaClass(scriptObj.getClass()),
-                "$0",
-                scriptLocation);
+        // Register test script settings
+        LISTED_SETTINGS.put(classObj.getName(), new JunitScriptSettings());
 
-        classes.add(scriptObj.getClass());
+        // Add classes to the actual Junit runner
+        classes.add(classObj);
     }
 
     public boolean run() {
-        Result result = junit.run(classes.toArray(new Class[0]));
+        if (classes.isEmpty())
+            return false;
 
-        System.out.println("Finished. Result: Failures: " + result.getFailureCount() +
-                ". Ignored: " + result.getIgnoreCount() +
-                ". Tests run: " + result.getRunCount() +
-                ". Time: " + result.getRunTime() + "ms.");
+        Result result = junit.run(classes.toArray(new Class[0]));
 
         return result.getFailureCount() == 0;
     }
 
+    class JunitScriptSettings {
 
+        protected JunitScriptSettings() {
+        }
+
+        public String getPackageName() {
+            return packageName;
+        }
+    }
 }

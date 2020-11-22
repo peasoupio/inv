@@ -33,7 +33,7 @@ public class BroadcastResponseDelegate implements GroovyInterceptable {
         this.caller = caller;
         this.defaults = defaults;
 
-        defaultResponse = checkDefault();
+        this.defaultResponse = checkDefault();
     }
 
     @Override

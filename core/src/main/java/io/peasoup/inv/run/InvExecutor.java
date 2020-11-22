@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.io.File;
 
 /**
@@ -29,13 +31,14 @@ public class InvExecutor {
 
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
-     * Also, it allows to define the SCM associated to this INV
+     * Also, it allows to define the REPO associated to this INV
      * @param scriptFile INV Groovy script file
+     * @param packageName New package assigned to the script file
      * @param pwd Pwd "Print working directory", the working directory
-     * @param scm The associated SCM name
+     * @param repo The associated REPO name
      */
-    public void parse(File scriptFile, String pwd, String scm) {
-        InvInvoker.invoke(this, scriptFile, pwd, scm);
+    public void parse(File scriptFile, String packageName, String pwd, String repo) {
+        InvInvoker.invoke(this, scriptFile, packageName, pwd, repo);
     }
 
     /**
@@ -55,6 +58,7 @@ public class InvExecutor {
             Thread.sleep(100);
         } catch (InterruptedException e) {
             Logger.error(e);
+            Thread.currentThread().interrupt();
         }
 
         new PoolReportTrace(pool, report).printPoolTrace();
@@ -77,7 +81,7 @@ public class InvExecutor {
                 if (inv.getReady() == null) continue;
 
                 Logger.info(inv + " event ready raised");
-                inv.getReady().call();
+                inv.getReady().run();
             }
 
             // Run for eternity

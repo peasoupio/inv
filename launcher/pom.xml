@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.peasoup</groupId>
         <artifactId>inv</artifactId>
-        <version>0.6-beta-SNAPSHOT</version>
+        <version>0.7-beta-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -62,7 +62,7 @@
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <outputDirectory>${project.build.directory}/dist</outputDirectory>
                                     <descriptors>
-                                        <descriptor>dist/assembly/distribution.xml</descriptor>
+                                        <descriptor>src/main/assembly/packages.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>
@@ -76,7 +76,7 @@
                                     <appendAssemblyId>false</appendAssemblyId>
                                     <finalName>docker</finalName>
                                     <descriptors>
-                                        <descriptor>dist/assembly/docker.xml</descriptor>
+                                        <descriptor>src/main/assembly/docker.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>

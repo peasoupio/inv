@@ -1,0 +1,42 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+---- [DIGEST] opened ----
+[STATEMENT] [main1] => [BROADCAST] [Something] undefined [INIT]
+[undefined] [.*/run/main1.groovy] [main1]
+[STATEMENT] [main2] => [REQUIRE] [Something] undefined [INIT]
+[undefined] [.*/run/main2.groovy] [main2]
+[STATEMENT] [main3] => [BROADCAST] [SomethingYaml] undefined [INIT]
+[undefined] [.*/run/main3.yml] [main3]
+[STATEMENT] [main4] => [REQUIRE] [SomethingYaml] undefined [INIT]
+[undefined] [.*n/main4.yml] [main4]
+[STATEMENT] [main5] => [REQUIRE] [Something] undefined [INIT]
+[STATEMENT] [main5] => [REQUIRE] [SomethingYaml] undefined [INIT]
+[undefined] [.*/run/main5.yml] [main5]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[EXECUTOR] scheduling: #2
+[EXECUTOR] scheduling: #3
+[EXECUTOR] scheduling: #4
+[main1] => [BROADCAST] [Something] undefined
+[main3] => [BROADCAST] [SomethingYaml] undefined
+[POOL] available:2 , staged:2
+[POOL] inv: main1 COMPLETED
+[POOL] inv: main3 COMPLETED
+---- [DIGEST] #2 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[EXECUTOR] scheduling: #2
+[EXECUTOR] scheduling: #3
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[main.*] => [REQUIRE] [Something.*] undefined
+[POOL] available:2 , staged:0
+[POOL] inv: main5 COMPLETED
+[POOL] inv: main2 COMPLETED
+[POOL] inv: main4 COMPLETED
+---- [DIGEST] completed ----
+Completed INV(s): 5
+Uncompleted INV(s): 0

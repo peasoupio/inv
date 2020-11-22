@@ -4,7 +4,7 @@ import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.*
 
 @RunWith(TempHome.class)
 class SettingsTest {
@@ -12,19 +12,19 @@ class SettingsTest {
     @Test
     void ok_alreadyExists() {
         def stageValue = "value1"
-        def settingsFile = new File("./target/test-classes/settings.json")
+        def settingsFile = new File(SettingsTest.getResource("/settings.json").path)
         settingsFile.delete()
 
 
         def settings = new Settings(settingsFile)
-        assert !settings.stagedIds().contains(stageValue)
+        assertFalse settings.stagedIds().contains(stageValue)
 
         settings.stageId(stageValue)
         settings.save()
 
 
         settings = new Settings(settingsFile)
-        assert settings.stagedIds().contains(stageValue)
+        assertTrue settings.stagedIds().contains(stageValue)
 
         settingsFile
     }

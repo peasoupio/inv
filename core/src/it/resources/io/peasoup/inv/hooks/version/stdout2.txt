@@ -1,0 +1,4 @@
+[REPO] name: version2, path: .*/hooks/version/version2@version2 [VERSION] start
+[REPO] .* .*/hooks/version/.*
+This is my default value!
+[REPO] name: version2, path: .*/hooks/version/version2@version2 [VERSION] done

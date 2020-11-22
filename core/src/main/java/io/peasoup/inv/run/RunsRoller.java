@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Home;
+import io.peasoup.inv.Logger;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -26,8 +27,8 @@ public class RunsRoller {
      */
     public static RunsRoller getLatest() {
         // Make sure .runs/ exists
-        if (runsFolder().mkdirs())
-            Logger.system("Created runs (./runs) folder");
+        if (!runsFolder().mkdirs() && !runsFolder().exists())
+            Logger.warn("Could not create runs (./runs) folder");
 
         return latest;
     }

@@ -3,12 +3,28 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
                       https://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-<servers>
-    <server>
-        <id>ossrh</id>
-        <username>${env.OSSRH_USERNAME}</username>
-        <password>${env.OSSRH_PASSWORD}</password>
-    </server>
-</servers>
+    <servers>
+        <server>
+            <id>ossrh</id>
+            <username>${env.OSSRH_USERNAME}</username>
+            <password>${env.OSSRH_PASSWORD}</password>
+        </server>
+    </servers>
+
+    <profiles>
+        <profile>
+            <id>sonatype-snapshots</id>
+            <repositories>
+                <repository>
+                    <id>sonatype</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>sonatype-snapshots</activeProfile>
+    </activeProfiles>
 
 </settings>

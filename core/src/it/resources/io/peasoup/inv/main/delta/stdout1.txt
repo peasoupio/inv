@@ -1,0 +1,36 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+= ServerA
+= [Server] [name:server-a]
+= ServerB
+= [Server] [name:server-b]
+= IIS
+= [IIS] undefined
+= Kubernetes
+= [Kubernetes] undefined
+= appA
+= [App] [id=AppA]
+= appB
+= [App] [id=AppB]
+x files
+x [Files] undefined
+x files
+x [Files] undefined
+x maven
+x [Maven] undefined
+x maven
+x [Maven] undefined
+x my-app-1
+x [Artifact] com.mycompany.app:my-app-1
+x my-app-1
+x [Artifact] com.mycompany.app:my-app-1
+x [Artifact] com.mycompany.app:my-app-2
+x [Artifact] com.mycompany.app:my-app-2
+x my-app-2
+x my-app-2
+x removed
+x [Artifact] com.mycompany.app:my-app-3
+x removed
+x [Artifact] com.mycompany.app:my-app-3

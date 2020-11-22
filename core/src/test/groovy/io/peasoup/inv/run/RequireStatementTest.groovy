@@ -3,6 +3,8 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.*
+
 class RequireStatementTest {
 
     InvExecutor executor
@@ -18,30 +20,30 @@ class RequireStatementTest {
     void ok() {
 
         inv {
-            name "provide"
-            broadcast $inv.Element
+            name "provider"
+            broadcast { Element }
         }
 
         inv {
-            name "consume"
-            require $inv.Element
+            name "consumer"
+            require { Element }
         }
 
         def report = executor.execute()
 
-        assert report.isOk()
+        assertTrue report.isOk()
 
         def requireStatement = executor
                 .pool
                 .totalInvs
-                .find { it.name == "consume" }
+                .find { it.name == "consumer" }
                 .totalStatements
                 .first() as RequireStatement
 
-        assert requireStatement
-        assert requireStatement.state == StatementStatus.SUCCESSFUL
-        assert !requireStatement.unbloatable
-        assert requireStatement.toString().contains("[REQUIRE]")
+        assertNotNull requireStatement
+        assertEquals StatementStatus.SUCCESSFUL, requireStatement.state
+        assertFalse requireStatement.unbloatable
+        assertTrue requireStatement.toString().contains("[REQUIRE]")
     }
 
     @Test
@@ -50,32 +52,31 @@ class RequireStatementTest {
         boolean unresolvedRaised = false
 
         inv {
-            name "consume"
+            name "consumer"
 
-            require $inv.Bloatable using {
+            require { Bloatable } using {
                 unbloatable true
 
                 unresolved {
                     unresolvedRaised = true
 
-                    assert it.name == "Bloatable"
-                    assert it.id == InvDescriptor.DEFAULT_ID
-                    assert it.owner == "consume"
+                    assertEquals "Bloatable", it.name
+                    assertEquals StatementDescriptor.DEFAULT_ID, it.id
+                    assertEquals "consumer", it.owner
                 }
             }
         }
 
         def report = executor.execute()
 
-        assert report.isOk()
-        assert unresolvedRaised
+        assertTrue report.isOk()
+        assertTrue unresolvedRaised
 
         def requireStatement = executor.pool.totalInvs.first().totalStatements.first() as RequireStatement
 
-        assert requireStatement
-        assert requireStatement.unbloatable
-        assert requireStatement.toString().contains("[UNBLOATABLE]")
-
+        assertNotNull requireStatement
+        assertTrue requireStatement.unbloatable
+        assertTrue requireStatement.toString().contains("[UNBLOATABLE]")
     }
 
     @Test
@@ -84,9 +85,9 @@ class RequireStatementTest {
         boolean unresolvedRaised = false
 
         inv {
-            name "consume"
+            name "consumer"
 
-            require $inv.Bloatable using {
+            require { Bloatable } using {
                 unbloatable false
 
                 unresolved {
@@ -97,32 +98,54 @@ class RequireStatementTest {
 
         def report = executor.execute()
 
-        assert !report.isOk()
-        assert !unresolvedRaised
+        assertFalse report.isOk()
+        assertFalse unresolvedRaised
     }
 
     @Test
     void ok_with_into() {
 
         inv {
-            name "provide"
+            name "provider"
 
-            broadcast $inv.Element
+            broadcast { Element }
         }
 
         inv {
-            name "consume"
+            name "consumer"
 
-            require $inv.Element into '$element'
+            require { Element } into '$element'
 
             step {
-                assert $element
+                assertNotNull $element
             }
         }
 
         def report = executor.execute()
+        assertTrue report.isOk()
+    }
 
-        assert report.isOk()
+    @Test
+    void ok_with_default_into() {
+
+        inv {
+            name "provider"
+
+            broadcast { Element }
+        }
+
+        inv {
+            name "consumer"
+
+            require { Element }
+
+            step {
+                assertNotNull $Element
+            }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -136,6 +159,6 @@ class RequireStatementTest {
 
         RequireStatement.REQUIRE.manage(pool, statement)
 
-        assert statement.state == StatementStatus.NOT_PROCESSED
+        assertEquals StatementStatus.NOT_PROCESSED, statement.state
     }
 }

@@ -2,8 +2,9 @@ package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
+import io.peasoup.inv.Logger
 import io.peasoup.inv.fs.Pattern
-import io.peasoup.inv.run.Logger
+import io.peasoup.inv.io.FileUtils
 import io.peasoup.inv.loader.GroovyLoader
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 
@@ -16,7 +17,7 @@ class SyntaxCommand implements CliCommand {
     int call() {
         assert patterns != null, 'A valid value is required for patterns'
         if (patterns.isEmpty())
-            return -1
+            return 1
 
         // Handle excluding patterns
         def excludePatterns = [".runs/*"]
@@ -29,11 +30,13 @@ class SyntaxCommand implements CliCommand {
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.parseText(it)
+                def result = commonLoader.parseClassFile(it, "empty.package") // TODO Should use its own classloader
+                def path = FileUtils.convertUnixPath(it.absolutePath)
+
                 if (result)
-                    Logger.info("[SYNTAX] startup succeeded: ${it.absolutePath}")
+                    Logger.info("[SYNTAX] startup succeeded: ${path}")
                 else {
-                    Logger.warn("[SYNTAX] startup failed: ${it.absolutePath}")
+                    Logger.warn("[SYNTAX] startup failed: ${path}")
                     succeeded = false
                 }
             } catch (MultipleCompilationErrorsException ex) {
@@ -42,7 +45,7 @@ class SyntaxCommand implements CliCommand {
             }
         }
 
-        return succeeded? 0 : -2
+        return succeeded? 0 : 2
     }
 
     boolean rolling() {

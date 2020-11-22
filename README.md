@@ -10,17 +10,17 @@ Basically, **anything** collaborating within your ecosystem.
 **INV** is a free, on-prem, java/groovy based solution.  
 Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more about the licence.
 
-![Travis build Status](https://travis-ci.org/peasoupio/inv.svg)
+[![Build Status](https://travis-ci.com/peasoupio/inv.svg?branch=master)](https://travis-ci.com/peasoupio/inv)
 [![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=inv&metric=alert_status)](https://sonarcloud.io/dashboard?id=inv)
 
 ##  :sparkles: Features
 
 
-| Explanation | Implemented | Targeted flavor(s) | Available on *Composer*
+| Feature | Implemented | Targeted flavor(s) | Available on *Composer*
 | --- | :---: | --- | :---: |
 | Execute Network valuables sequencing runs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
-| Extract sources with a SCM script file  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :white_check_mark: |  
-| Init Web (*Composer*) with a SCM script file | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :white_check_mark: |  
+| Extract sources with a REPO script file  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
+| Init Web (*Composer*) with a REPO script file | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
 | Validate synthax  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :x: | :x: |  
 | Generate DOT graphs  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :x: |  
 | Generate markdown documentation  | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
@@ -28,8 +28,8 @@ Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more 
 | Works in a Linux | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: |  :white_check_mark: |  
 | Works in a Docker container | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
 | Report and keeps tracks | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :white_check_mark: |  
-| Allow SSL | Not yet :-1:  | Groovy   :x:, Yaml  :x: |  :white_check_mark: |  
-| Test reporting framework | Not yet :-1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
+| Allow SSL | Yes :+1:  | Groovy   :x:, Yaml  :x: |  :white_check_mark: |  
+| Test reporting framework | Yes :+1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
 | Code coverage | Not yet :-1:  | Groovy   :white_check_mark:, Yaml  :white_check_mark: | :x: |
 
 ## :computer: Installation: How to get?  

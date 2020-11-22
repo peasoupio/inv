@@ -1,0 +1,14 @@
+repo:
+  - name: version2
+    ask:
+      - parameter:
+          name: myparameter
+          defaultValue: This is my default value!
+          usage: For tests purposes
+          values:
+            - my
+            - other
+            - values
+    hooks:
+      version: |
+        echo ${myparameter}

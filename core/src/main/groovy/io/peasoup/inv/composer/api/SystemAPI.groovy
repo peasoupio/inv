@@ -2,13 +2,13 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.Logger
 import io.peasoup.inv.SystemInfo
-import io.peasoup.inv.cli.InitCommand
+import io.peasoup.inv.cli.InitRunCommand
 import io.peasoup.inv.composer.WebServer
-import io.peasoup.inv.run.Logger
-import io.peasoup.inv.scm.HookExecutor
-import io.peasoup.inv.scm.ScmExecutor
 import io.peasoup.inv.loader.GroovyLoader
+import io.peasoup.inv.repo.HookExecutor
+import io.peasoup.inv.repo.RepoExecutor
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -55,15 +55,15 @@ class SystemAPI {
                                     tags      : webServer.API_CONTEXT_ROOT + "/run/tags",
                                     runFile   : webServer.API_CONTEXT_ROOT + "/run/file"
                             ],
-                            scms     : [
-                                    default        : webServer.API_CONTEXT_ROOT + "/scms",
-                                    search         : webServer.API_CONTEXT_ROOT + "/scms",
-                                    add            : webServer.API_CONTEXT_ROOT + "/scms/source",
-                                    stageAll       : webServer.API_CONTEXT_ROOT + "/scms/stageAll",
-                                    unstageAll     : webServer.API_CONTEXT_ROOT + "/scms/unstageAll",
-                                    applyDefaultAll: webServer.API_CONTEXT_ROOT + "/scms/applyDefaultAll",
-                                    resetAll       : webServer.API_CONTEXT_ROOT + "/scms/resetAll",
-                                    metadata       : webServer.API_CONTEXT_ROOT + "/scms/metadata",
+                            repos     : [
+                                    default        : webServer.API_CONTEXT_ROOT + "/repos",
+                                    search         : webServer.API_CONTEXT_ROOT + "/repos",
+                                    add            : webServer.API_CONTEXT_ROOT + "/repos/source",
+                                    stageAll       : webServer.API_CONTEXT_ROOT + "/repos/stageAll",
+                                    unstageAll     : webServer.API_CONTEXT_ROOT + "/repos/unstageAll",
+                                    applyDefaultAll: webServer.API_CONTEXT_ROOT + "/repos/applyDefaultAll",
+                                    resetAll       : webServer.API_CONTEXT_ROOT + "/repos/resetAll",
+                                    metadata       : webServer.API_CONTEXT_ROOT + "/repos/metadata",
                             ],
                             execution: [
                                     default: webServer.API_CONTEXT_ROOT + "/execution"
@@ -122,7 +122,7 @@ class SystemAPI {
             List<String> exceptionMessages = []
 
             try {
-                new GroovyLoader().parseText(fileContent)
+                new GroovyLoader().parseClassText(fileContent)
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }
@@ -154,9 +154,9 @@ class SystemAPI {
             if (!(webServer.webServerConfigs.initFile instanceof String))
                 return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
 
-            // Reuse InitCommand to pull init file
-            InitCommand initCommand = new InitCommand(initFileLocation: webServer.webServerConfigs.initFile as String)
-            def report = initCommand.processSCM()
+            // Reuse InitRunCommand to pull init file
+            InitRunCommand initCommand = new InitRunCommand(initRepoFileLocation: webServer.webServerConfigs.initFile as String)
+            def report = initCommand.processREPO()
 
             if (!report)
                 return webServer.showError(res, "Could not pull init")
@@ -173,13 +173,13 @@ class SystemAPI {
 
             // Invoke push hook manually
             def initFile = new File(webServer.webServerConfigs.initFile as String)
-            ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
+            RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
                 parse(initFile)
 
-                if (!scms.containsKey("main"))
+                if (!repos.containsKey("main"))
                     return null
 
-                def report = new ScmExecutor.SCMExecutionReport("main", scms.get("main"))
+                def report = new RepoExecutor.RepoHookExecutionReport("main", repos.get("main"))
                 HookExecutor.push(report)
 
                 return report
@@ -198,13 +198,13 @@ class SystemAPI {
             return [standalone: true]
 
         def initFile = new File(webServer.webServerConfigs.initFile as String)
-        ScmExecutor.SCMExecutionReport report = new ScmExecutor().with {
+        RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
             parse(initFile)
 
-            if (!scms.containsKey("main"))
+            if (!repos.containsKey("main"))
                 return null
 
-            def report = new ScmExecutor.SCMExecutionReport("main", scms.get("main"))
+            def report = new RepoExecutor.RepoHookExecutionReport("main", repos.get("main"))
             HookExecutor.version(report)
 
             return report

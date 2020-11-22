@@ -1,0 +1,5 @@
+repo:
+    - name: version1
+      hooks:
+        version: |
+          echo v1

@@ -1,5 +1,7 @@
 package io.peasoup.inv.run;
 
+import io.peasoup.inv.Logger;
+
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -8,7 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NetworkValuablePoolExecutor {
 
     private static final int THREAD_COUNT = 4;
-    private static int count = 0;
 
     private final NetworkValuablePoolEater eater;
     private final Queue<Inv> stack;
@@ -20,6 +21,8 @@ public class NetworkValuablePoolExecutor {
     private final CompletionService<Object> invCompletionService;
 
     private final AtomicInteger working = new AtomicInteger(0);
+
+    private int count = 0;
 
     public NetworkValuablePoolExecutor(NetworkValuablePoolEater eater, List<Inv> invs, Inv.Digestion cycleDigestion, BlockingDeque<PoolReport.PoolError> poolErrors) {
         this.eater = eater;
@@ -34,7 +37,13 @@ public class NetworkValuablePoolExecutor {
     }
 
     public void start() {
-        // Register threads
+
+        // Print info outside the register loop to make sure it's print before any statement is processed
+        for(int i=0;i<threadCount;i++) {
+            Logger.system("[EXECUTOR] scheduling: #" + ++count);
+        }
+
+        // Register and start workers
         for(int i=0;i<threadCount;i++) {
             schedule();
         }
@@ -48,12 +57,11 @@ public class NetworkValuablePoolExecutor {
             }
         }
 
+        // Close pool
         this.invExecutor.shutdownNow();
     }
 
     private void schedule() {
-        Logger.system("[EXECUTOR] scheduling: #" + ++count);
-
         working.incrementAndGet();
         invCompletionService.submit(createWorker());
     }

@@ -6,7 +6,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 inv {
     name "files"
 
-    broadcast $inv.Files using {
+    broadcast { Files } using {
         ready {[
             glob: { String glob ->
                 return new FileNameFinder().getFileNames(pwd, glob)
@@ -18,9 +18,9 @@ inv {
 inv {
     name "maven"
 
-    require $inv.Files into '$files'
+    require { Files } into '$files'
 
-    broadcast $inv.Maven using {
+    broadcast { Maven } using {
         ready {[
             analyze: { glob ->
 
@@ -29,7 +29,7 @@ inv {
                     MavenXpp3Reader reader = new MavenXpp3Reader()
                     Model model = reader.read(new FileReader(it))
 
-                    broadcast $inv.Artifact using {
+                    broadcast { Artifact } using {
                         id model.groupId + ":" + model.artifactId
 
                         ready {
@@ -38,7 +38,7 @@ inv {
                     }
 
                     model.dependencies.each {
-                        require $inv.Artifact(it.groupId + ":" + it.artifactId)
+                        require { Artifact(it.groupId + ":" + it.artifactId) }
                     }
                 }
             }

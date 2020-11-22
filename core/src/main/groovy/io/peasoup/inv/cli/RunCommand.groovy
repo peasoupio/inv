@@ -4,7 +4,6 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.run.InvExecutor
-import io.peasoup.inv.utils.Progressbar
 
 @CompileStatic
 class RunCommand implements CliCommand {
@@ -13,9 +12,11 @@ class RunCommand implements CliCommand {
     String exclude
 
     int call() {
-        assert patterns != null, 'A valid value is required for patterns'
+        if (patterns == null)
+            return 1
+
         if (patterns.isEmpty())
-            return -1
+            return 2
 
         // Handle excluding patterns
         def excludePatterns = [".runs/*"]
@@ -23,8 +24,14 @@ class RunCommand implements CliCommand {
             excludePatterns.add(exclude)
 
         def invExecutor = new InvExecutor()
+        List<File> invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
 
-        def invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+        invFiles.sort(new Comparator<File>() {
+            @Override
+            int compare(File o1, File o2) {
+                return o1.getAbsolutePath() <=> o2.getAbsolutePath()
+            }
+        })
 
         // Parse INV Groovy files
         invFiles.each {
@@ -33,7 +40,7 @@ class RunCommand implements CliCommand {
 
         // Do the actual execution
         if (!invExecutor.execute().isOk())
-            return -1
+            return 3
 
         return 0
     }

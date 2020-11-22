@@ -1,0 +1,5 @@
+[GROOVYLOADER] secure: false
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+[SYNTAX] startup succeeded: .*/syntax/valid.groovy

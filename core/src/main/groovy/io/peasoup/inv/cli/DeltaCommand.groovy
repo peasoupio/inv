@@ -1,7 +1,9 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.graph.DeltaGraph
+import spark.utils.StringUtils
 
 @CompileStatic
 class DeltaCommand implements CliCommand {
@@ -10,21 +12,18 @@ class DeltaCommand implements CliCommand {
     String other
 
     int call() {
-        assert base, 'Base is required'
-        assert other, 'Other is required'
+        if (StringUtils.isEmpty(base))
+            return 1
+
+        if (StringUtils.isEmpty(other))
+            return 2
 
         def delta = new DeltaGraph(
                 new File(base).newReader(),
                 new File(other).newReader())
         delta.resolve()
 
-        /*
-        if (args.hasHtml)
-            print(delta.html(arg1.name))
-        else
-        */
-
-        print(delta.echo())
+        Logger.trace(delta.echo())
 
         return 0
     }

@@ -1,0 +1,15 @@
+./
+    src
+        (*.groovy as 'groovyFiles')
+./
+    test
+        (*.groovy as 'groovyTestFiles')
+./
+    vars
+        (*.groovy as 'invFiles')
+        (*.yml as 'invFiles')
+        (*.yaml as 'invFiles')
+./
+    (repo.groovy as 'repoFile')
+    (repo.yml as 'repoFile')
+    (repo.yaml as 'repoFile')

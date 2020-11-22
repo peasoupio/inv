@@ -3,6 +3,9 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
+
 class BroadcastResponseTest {
 
     InvExecutor executor
@@ -22,11 +25,11 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
+                broadcast { EndpointMapper } using {
                     ready {
                         [
                                 withContext: { String ctx ->
-                                    broadcast $inv.Endpoint(context: ctx)
+                                    broadcast { Endpoint(context: ctx) }
                                 }
                         ]
                     }
@@ -37,7 +40,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     response.withContext(myCtx)
                 }
@@ -47,11 +50,11 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myCtx)
+            require { Endpoint(context: myCtx) }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -62,12 +65,12 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
+                broadcast { EndpointMapper } using {
                     ready {
                         [
                                 $          : { [defaultContext: myCtx] },
                                 withContext: { String ctx ->
-                                    broadcast $inv.Endpoint(context: ctx)
+                                    broadcast { Endpoint(context: ctx) }
                                 }
                         ]
                     }
@@ -78,7 +81,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     response.withContext(response.defaultContext)
                 }
@@ -88,11 +91,11 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myCtx)
+            require { Endpoint(context: myCtx) }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
 
@@ -104,8 +107,8 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
-                    ready {return new MyResponseClass1()}
+                broadcast { EndpointMapper } using {
+                    ready { return new MyResponseClass1() }
                 }
             }
         }
@@ -113,7 +116,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     response.withContext(myCtx)
                 }
@@ -123,11 +126,11 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myCtx)
+            require { Endpoint(context: myCtx) }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -138,8 +141,8 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
-                    ready {return new MyResponseClass2()}
+                broadcast { EndpointMapper } using {
+                    ready { return new MyResponseClass2() }
                 }
             }
         }
@@ -147,7 +150,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     def resp = response as MyResponseClass2
                     resp.withContext2(myself, myCtx)
@@ -158,11 +161,11 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myCtx)
+            require { Endpoint(context: myCtx) }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -173,7 +176,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
+                broadcast { EndpointMapper } using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -182,7 +185,7 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     response.withContext(response.defaultContext)
                 }
@@ -192,11 +195,11 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myCtx)
+            require { Endpoint(context: myCtx) }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -208,7 +211,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
+                broadcast { EndpointMapper } using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -217,10 +220,10 @@ class BroadcastResponseTest {
         inv {
             name "my-webservice"
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
-                    assert respCls2.myCtx == myCtx
+                    assertEquals myCtx, respCls2.myCtx
 
                     respCls2.myCtx = myNewCtx
 
@@ -232,18 +235,18 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.Endpoint(context: myNewCtx)
+            require { Endpoint(context: myNewCtx) }
 
-            require $inv.EndpointMapper using {
+            require { EndpointMapper } using {
                 resolved {
                     def respCls2 = response as MyResponseClass2
-                    assert respCls2.myCtx == myNewCtx
+                    assertEquals myNewCtx, respCls2.myCtx
                 }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     @Test
@@ -255,7 +258,7 @@ class BroadcastResponseTest {
             name "my-server-id"
 
             step {
-                broadcast $inv.EndpointMapper using {
+                broadcast { EndpointMapper } using {
                     ready { return new MyResponseClass2(myCtx: myCtx) }
                 }
             }
@@ -264,9 +267,9 @@ class BroadcastResponseTest {
         inv {
             name "my-proxy"
 
-            require $inv.EndpointMapper into '$mapper'
+            require { EndpointMapper } into '$mapper'
 
-            broadcast $inv.EndpointMapperProxy using {
+            broadcast { EndpointMapperProxy } using {
                 ready {
                     $mapper.defaultContext = myNewCtx
 
@@ -278,21 +281,23 @@ class BroadcastResponseTest {
         inv {
             name "my-other-app"
 
-            require $inv.EndpointMapperProxy using {
+            require { EndpointMapperProxy } using {
                 resolved {
-                    assert response.defaultContext == myNewCtx
+                    assertEquals myNewCtx, response.defaultContext
                 }
             }
         }
 
         def report = executor.execute()
-        assert report.isOk()
+        assertTrue report.isOk()
     }
 
     class MyResponseClass1 {
-        Closure withContext(String ctx) {{
-            broadcast $inv.Endpoint(context: ctx)
-        } as Closure}
+        Closure withContext(String ctx) {
+            {
+                broadcast { Endpoint(context: ctx) }
+            } as Closure
+        }
     }
 
     class MyResponseClass2 {
@@ -306,12 +311,12 @@ class BroadcastResponseTest {
 
         Closure withContext(String ctx) {
             return {
-                broadcast $inv.Endpoint(context: ctx)
+                broadcast { Endpoint(context: ctx) }
             } as Closure
         }
 
         void withContext2(InvDescriptor myself, String ctx) {
-            myself.broadcast(myself.inv.Endpoint(context: ctx))
+            myself.broadcast { Endpoint(context: ctx) }
         }
     }
 }

@@ -1,0 +1,16 @@
+[GROOVYLOADER] secure: true
+[GROOVYLOADER] system: false
+[VARS] INV_HOME: .*
+[VARS] VERSION: .*
+---- [DIGEST] opened ----
+[STATEMENT] [main1] => [BROADCAST] [Something] undefined [INIT]
+[undefined] [.*] [main1]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[main1] => [BROADCAST] [Something] undefined
+[POOL] available:1 , staged:1
+[POOL] inv: main1 COMPLETED
+---- [DIGEST] completed ----
+Completed INV(s): 1
+Uncompleted INV(s): 0

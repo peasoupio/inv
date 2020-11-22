@@ -6,6 +6,7 @@ import org.eclipse.jetty.websocket.api.Session
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import static org.junit.Assert.*
 import static org.junit.jupiter.api.Assertions.assertThrows
 
 @RunWith(TempHome.class)
@@ -23,17 +24,17 @@ class ExecutionTest {
 
     @Test
     void messageStreamer() {
-        assert Execution.MessageStreamer.sessions != null
-        assert Execution.MessageStreamer.sessions.isEmpty()
+        assertNotNull Execution.MessageStreamer.sessions
+        assertTrue Execution.MessageStreamer.sessions.isEmpty()
 
         Session sessionMock = new MockFor(Session).proxy as Session
 
         def messageStreamer = new Execution.MessageStreamer()
 
         messageStreamer.connected(sessionMock)
-        assert Execution.MessageStreamer.sessions.contains(sessionMock)
+        assertTrue Execution.MessageStreamer.sessions.contains(sessionMock)
 
         messageStreamer.closed(sessionMock, 0, null)
-        assert !Execution.MessageStreamer.sessions.contains(sessionMock)
+        assertFalse Execution.MessageStreamer.sessions.contains(sessionMock)
     }
 }

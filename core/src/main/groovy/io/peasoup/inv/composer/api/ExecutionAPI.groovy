@@ -2,7 +2,7 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import io.peasoup.inv.composer.ScmFile
+import io.peasoup.inv.composer.RepoFile
 import io.peasoup.inv.composer.WebServer
 import spark.Request
 import spark.Response
@@ -45,7 +45,7 @@ class ExecutionAPI {
                 return "Already webServer.running"
 
             List<String> toExecute = []
-            toExecute += webServer.scms.staged
+            toExecute += webServer.repos.staged
 
             boolean debugMode = false
             boolean systemMode = false
@@ -60,19 +60,19 @@ class ExecutionAPI {
             }
 
             if (webServer.run)
-                toExecute += webServer.run.selectedScms()
+                toExecute += webServer.run.selectedRepos()
 
-            List<ScmFile> scmFiles = webServer.scms.toFiles(toExecute.unique()) as List<ScmFile>
+            List<RepoFile> repoFiles = webServer.repos.toFiles(toExecute.unique()) as List<RepoFile>
 
             webServer.exec.start(
                     debugMode,
                     systemMode,
                     secureMode,
-                    scmFiles)
+                    repoFiles)
             Thread.sleep(50)
 
             return JsonOutput.toJson([
-                    files: scmFiles.collect { it.simpleName() }
+                    files: repoFiles.collect { it.simpleName() }
             ])
         })
 

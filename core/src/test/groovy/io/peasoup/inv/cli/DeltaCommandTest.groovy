@@ -2,27 +2,19 @@ package io.peasoup.inv.cli
 
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertFalse
 
 class DeltaCommandTest {
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
-            assert new DeltaCommand().call()
-        })
-
-        assertThrows(AssertionError.class, {
-            assert new DeltaCommand(base: "base").call()
-        })
-
-        assertThrows(AssertionError.class, {
-            assert new DeltaCommand(other: "other").call()
-        })
+        assertEquals 1, new DeltaCommand().call()
+        assertEquals 2, new DeltaCommand(base: "base").call()
     }
 
     @Test
     void rolling() {
-        assert !new DeltaCommand().rolling()
+        assertFalse new DeltaCommand().rolling()
     }
 }

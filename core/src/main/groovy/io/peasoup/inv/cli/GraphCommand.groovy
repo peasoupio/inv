@@ -1,6 +1,7 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import io.peasoup.inv.graph.RunGraph
 
 @CompileStatic
@@ -9,16 +10,25 @@ class GraphCommand implements CliCommand {
     Map arguments
 
     int call() {
-        assert arguments != null, 'A valid value is required for args'
+        if (arguments == null)
+            return 1
 
         String base = arguments["<base>"] as String
         def run = new RunGraph(new File(base).newReader())
 
-        if (arguments["plain"])
-            println run.toPlainList()
+        String graphType = null
 
+        // For future uses
         if (arguments["dot"])
-            println run.toDotGraph()
+            graphType = "dot"
+
+        switch (graphType) {
+            case "dot":
+                Logger.trace(run.toDotGraph())
+                break
+            default:
+                Logger.trace(run.toDotGraph())
+        }
 
         return 0
     }

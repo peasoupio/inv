@@ -6,6 +6,7 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,6 +69,10 @@ public class RepoExecutor {
         final ExecutorService pool = Executors.newFixedThreadPool(4);
         final List<Future<RepoHookExecutionReport>> futures = new ArrayList<>();
         final List<RepoHookExecutionReport> reports = new ArrayList<>();
+
+        // Quit right away if nothing has been parsed
+        if (repos.isEmpty())
+            return Collections.emptyList();
 
         for(Map.Entry<String, RepoDescriptor> kpv : repos.entrySet()) {
             futures.add(pool.submit(() -> {

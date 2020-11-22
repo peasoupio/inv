@@ -9,6 +9,11 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>inv-core</artifactId>
 
+    <properties>
+        <sonar.sources>src/main/java,src/main/groovy</sonar.sources>
+        <sonar.tests>src/test/groovy,src/it/groovy</sonar.tests>
+    </properties>
+
     <build>
         <resources>
             <resource><directory>../ci/build</directory><filtering>true</filtering></resource>

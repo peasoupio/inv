@@ -1,9 +1,12 @@
 package io.peasoup.inv.testing;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.Script;
 import io.peasoup.inv.Home;
 import io.peasoup.inv.MissingOptionException;
+import io.peasoup.inv.repo.RepoFolderCollection;
+import io.peasoup.inv.repo.RepoURLExtractor;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
 import io.peasoup.inv.run.InvInvoker;
@@ -18,6 +21,7 @@ public abstract class JunitScriptBase extends Script {
 
     private JunitRunner.JunitScriptSettings mySettings;
 
+    protected RepoFolderCollection repoFolderCollection;
     protected InvExecutor invExecutor;
     protected PoolReport report;
 
@@ -28,6 +32,8 @@ public abstract class JunitScriptBase extends Script {
         mySettings = JunitRunner.getMySettings(this);
 
         invExecutor = new InvExecutor();
+        repoFolderCollection = new RepoFolderCollection(invExecutor);
+
         called = false;
     }
 
@@ -43,18 +49,55 @@ public abstract class JunitScriptBase extends Script {
         return report != null  && !report.getErrors().isEmpty();
     }
 
-    public void simulate(Object... invs) throws IllegalAccessException, MissingOptionException {
-        if (invs == null) throw new IllegalArgumentException("invs");
-        if (invs.length == 0) return;
+    public void simulate(@DelegatesTo(SimulatorDescriptor.class) Closure body) throws IllegalAccessException, MissingOptionException {
+        if (body == null)
+            throw new IllegalArgumentException("body");
 
         if (called) throw new IllegalAccessException("Only call sequence once for test method");
         called = true;
 
-        for (Object inv : invs) {
-            if (inv instanceof CharSequence) loadInvScriptfile((String)inv);
-            if (inv instanceof Closure) new InvHandler(invExecutor).call((Closure)inv);
+        SimulatorDescriptor simulatorDescriptor = new SimulatorDescriptor();
+
+        body.setDelegate(simulatorDescriptor);
+        body.setResolveStrategy(Closure.DELEGATE_FIRST);
+        body.run();
+
+        if (!simulatorDescriptor.hasSomethingToDo())
+            return;
+
+        // Add repo files
+        for(String repoLocation : simulatorDescriptor.getRepoFiles()) {
+            repoFolderCollection.add(repoLocation);
         }
 
+        // Add repo urls
+        for(String repoURL : simulatorDescriptor.getRepoUrls()) {
+            File localRepoFile = RepoURLExtractor.extract(repoURL);
+            if (localRepoFile == null)
+                continue;
+
+            repoFolderCollection.add(localRepoFile.getAbsolutePath());
+        }
+
+        repoFolderCollection.loadInvs();
+
+        // Add inv files
+        for(String invLocation : simulatorDescriptor.getInvFiles()) {
+            File invRealLocation = new File(Home.getCurrent(), invLocation);
+
+            invExecutor.parse(
+                    invRealLocation,
+                    mySettings.getPackageName(),
+                    invRealLocation.getParent(),
+                    null);
+        }
+
+        // Add inv bodies
+        for(Closure invBody : simulatorDescriptor.getInvBodies()) {
+            new InvHandler(invExecutor).call(invBody);
+        }
+
+        // Do the actual execution
         report = invExecutor.execute();
     }
 

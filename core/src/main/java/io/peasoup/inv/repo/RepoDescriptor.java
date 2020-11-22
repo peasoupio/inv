@@ -45,7 +45,6 @@ public class RepoDescriptor {
     private File repoPath;
     private File completeRepoPath;
 
-
     public RepoDescriptor(File scriptFile, File parametersFile) {
         if (scriptFile == null)
             throw new IllegalArgumentException("scriptFile");

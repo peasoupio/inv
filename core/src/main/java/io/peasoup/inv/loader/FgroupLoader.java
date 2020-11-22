@@ -41,9 +41,9 @@ public class FgroupLoader {
     /**
      * Find matches based on the fgroup.txt configuration for a directory.
      * @param dir Directory to lookup.
-     * @return InvMatches object.
+     * @return RepoMatches object.
      */
-    public static InvMatches findMatches(String dir) {
+    public static RepoMatches findMatches(String dir) {
         if (StringUtils.isEmpty(dir)) throw new IllegalArgumentException("dir");
 
         FileMatches fileMatches;
@@ -52,39 +52,39 @@ public class FgroupLoader {
         else
             fileMatches = fileSeeker.seek(dir);
 
-        InvMatches invMatches = new InvMatches(dir);
+        RepoMatches repoMatches = new RepoMatches(dir);
 
         // Load groovy files right now
         for(FileMatches.FileMatchRecord match : fileMatches.get("groovyFiles")) {
-            invMatches.getGroovyFiles().add(match.getCurrent());
+            repoMatches.getGroovyFiles().add(match.getCurrent());
         }
 
         // Load groovy test files if included
         for(FileMatches.FileMatchRecord match : fileMatches.get("groovyTestFiles")) {
-            invMatches.getGroovyTestFiles().add(match.getCurrent());
+            repoMatches.getGroovyTestFiles().add(match.getCurrent());
         }
 
         // Add invs
         for(FileMatches.FileMatchRecord match : fileMatches.get("invFiles")) {
-            invMatches.getInvFiles().add(match.getCurrent());
+            repoMatches.getInvFiles().add(match.getCurrent());
         }
 
         // Add repo file
         for(FileMatches.FileMatchRecord match : fileMatches.get("repoFile")) {
-            invMatches.setRepoFile(match.getCurrent());
+            repoMatches.setRepoFile(match.getCurrent());
         }
 
-        return invMatches;
+        return repoMatches;
     }
 
-    public static class InvMatches {
+    public static class RepoMatches {
         private final String rootPath;
         private final List<Path> groovyFiles;
         private final List<Path> groovyTestFiles;
         private final List<Path> invFiles;
         private Path repoFile;
 
-        public InvMatches(String rootPath) {
+        public RepoMatches(String rootPath) {
             if (StringUtils.isEmpty(rootPath))
                 throw new IllegalArgumentException("rootPath");
 

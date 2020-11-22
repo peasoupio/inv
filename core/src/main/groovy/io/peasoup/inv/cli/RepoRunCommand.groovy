@@ -3,16 +3,11 @@ package io.peasoup.inv.cli
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
-import io.peasoup.inv.loader.FgroupLoader
-import io.peasoup.inv.repo.RepoDescriptor
-import io.peasoup.inv.repo.RepoExecutor
-import io.peasoup.inv.repo.RepoInvoker
+import io.peasoup.inv.repo.RepoFolderCollection
 import io.peasoup.inv.run.InvExecutor
-import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 
 import java.nio.file.Files
-import java.nio.file.Path
 
 @CompileStatic
 class RepoRunCommand implements CliCommand {
@@ -25,18 +20,23 @@ class RepoRunCommand implements CliCommand {
             return 1
 
         def invExecutor = new InvExecutor()
+        def repoFolders = new RepoFolderCollection(invExecutor)
 
         // Check if a single file matches the LIST_FILE_SUFFIX
         if (list) {
-            boolean listResult = readListJsonfile(invExecutor)
+            boolean listResult = readListJsonfile(repoFolders)
             if (!listResult)
                 return 2
         } else {
-            boolean singleResult = readSinglefile(invExecutor)
+            boolean singleResult = readSinglefile(repoFolders)
             if (!singleResult)
                 return 3
         }
 
+        // Read repos and load invs
+        repoFolders.loadInvs()
+
+        // Execute invs
         if (!invExecutor.execute().isOk())
             return 4
 
@@ -47,7 +47,7 @@ class RepoRunCommand implements CliCommand {
         return true
     }
 
-    private boolean readListJsonfile(InvExecutor invExecutor) {
+    private boolean readListJsonfile(RepoFolderCollection repoFolders) {
         def repoListPath = repoFileLocation
         def repoListFile = new File(repoListPath)
 
@@ -59,8 +59,6 @@ class RepoRunCommand implements CliCommand {
         Map<String, Map> repoListJson = new JsonSlurper().parse(repoListFile) as Map<String, Map>
         if (!repoListJson || !repoListJson.size())
             return false
-
-        RepoExecutor repoExecutor = new RepoExecutor()
 
         // Parse and invoke REPO file from JSON list file
         repoListJson.each { String name, Map repo ->
@@ -77,101 +75,13 @@ class RepoRunCommand implements CliCommand {
                 return
             }
 
-            parseRepofile(repoExecutor, script, expectedParameter)
-        }
-
-        // Extracted INVs file
-        for(RepoExecutor.RepoHookExecutionReport report : repoExecutor.execute()) {
-            parseDescriptorfiles(invExecutor, report.descriptor)
+            repoFolders.add(script, expectedParameter)
         }
 
         return true
     }
 
-    private boolean readSinglefile(InvExecutor invExecutor) {
-        def repoExecutor = new RepoExecutor()
-
-        // If a single file, assume its an repo file
-        if (new File(repoFileLocation).isFile()) {
-
-            parseRepofile(repoExecutor, repoFileLocation)
-
-            // Execute REPO files
-            def reports = repoExecutor.execute()
-
-            // Extracted INVs file
-            for (RepoExecutor.RepoHookExecutionReport report : reports) {
-                if (!report.isOk())
-                    continue
-
-                parseDescriptorfiles(invExecutor, report.descriptor)
-            }
-        } else {
-            // Otherwise, expect a repo folder
-            def matches = FgroupLoader.findMatches(repoFileLocation)
-
-            if (matches.repoFile == null)
-                return false
-
-            parseRepofile(repoExecutor, matches.repoFile.toString())
-            RepoDescriptor repoDescriptor = repoExecutor.getRepos().values().first()
-
-            parseDescriptorfiles(invExecutor, repoDescriptor, matches)
-        }
-
-        return true
+    private boolean readSinglefile(RepoFolderCollection repoFolders) {
+        return repoFolders.add(new File(repoFileLocation).absolutePath)
     }
-
-    private void parseRepofile(RepoExecutor repoExecutor, String repoFileLocation, String expectedParametersFileLocation = null) {
-        File localRepofile = new File(repoFileLocation)
-        File expectedParametersFile = RepoInvoker.expectedParametersfileLocation(localRepofile)
-
-        if (expectedParametersFileLocation)
-            expectedParametersFile = new File(expectedParametersFileLocation)
-
-        repoExecutor.parse(
-                localRepofile,
-                expectedParametersFile)
-    }
-
-    private void parseDescriptorfiles(InvExecutor invExecutor, RepoDescriptor descriptor) {
-        parseDescriptorfiles(
-                invExecutor,
-                descriptor,
-                FgroupLoader.findMatches(descriptor.getRepoCompletePath().absolutePath))
-    }
-
-    private void parseDescriptorfiles(InvExecutor invExecutor, RepoDescriptor descriptor, FgroupLoader.InvMatches matches) {
-        def path = matches.rootPath
-        def name = descriptor.name
-        def packageName = name
-
-        // Invoke groovy files
-        invokeGroovyfiles(matches, packageName)
-
-        // Invoke inv files
-        invokeInvfiles(matches, invExecutor, packageName, path, name)
-    }
-
-    private void invokeGroovyfiles(FgroupLoader.InvMatches matches, String packageName) {
-        // Parse groovy classes
-        for(Path groovyFile : matches.groovyFiles) {
-            InvInvoker.addClass(groovyFile.toFile(), packageName)
-        }
-    }
-
-    private void invokeInvfiles(FgroupLoader.InvMatches matches, InvExecutor invExecutor, String packageName, String path, String repo) {
-        // Parse inv files.
-        for(Path invFile : matches.invFiles) {
-            invExecutor.parse(
-                    invFile.toFile(),
-                    packageName,
-                    path,
-                    repo)
-        }
-    }
-
-
-
-
 }

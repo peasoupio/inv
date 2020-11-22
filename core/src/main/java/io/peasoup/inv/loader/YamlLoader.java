@@ -9,6 +9,7 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -30,7 +31,9 @@ public class YamlLoader {
      * @throws IOException
      */
     public YamlLoader.Descriptor parseYaml(File scriptFile) throws IOException {
-        return yaml.load(ResourceGroovyMethods.newReader(scriptFile));
+        try(BufferedReader reader = ResourceGroovyMethods.newReader(scriptFile)) {
+            return yaml.load(reader);
+        }
     }
 
     public Object interpolate(Object receiver, Map<String, String> data) throws IOException, ClassNotFoundException {

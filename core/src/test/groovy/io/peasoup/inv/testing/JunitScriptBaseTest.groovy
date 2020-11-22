@@ -20,7 +20,9 @@ class JunitScriptBaseTest {
         assertFalse script.hasExceptions
 
         script.simulate {
-            name "my-inv"
+            addInvBody {
+                name "my-inv"
+            }
         }
 
         assertTrue script.isOk
@@ -40,10 +42,14 @@ class JunitScriptBaseTest {
             script.setup()
 
             script.simulate {
-                name 'my-inv'
+                addInvBody {
+                    name 'my-inv'
+                }
             }
             script.simulate {
-                name 'another-inv'
+                addInvBody {
+                    name 'another-inv'
+                }
             }
         })
     }

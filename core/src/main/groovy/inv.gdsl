@@ -1,6 +1,7 @@
 contributor(context(scope: scriptScope())) {
     method name: 'inv', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new INV object"
     method name: 'repo', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new REPO object"
+    method name: 'simulate', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Defines a new simulation context for your test"
     method name: 'debug', type: 'void', params: [object: 'java.lang.Object'], doc: "Display a new debug message"
 }
 
@@ -14,6 +15,11 @@ contributor(context(scope: closureScope())) {
     if (enclosingCall('repo')) {
         //noinspection GroovyAssignabilityCheck
         delegatesTo(findClass('io.peasoup.inv.repo.RepoDescriptor'))
+    }
+
+    if (enclosingCall('simulate')) {
+        //noinspection GroovyAssignabilityCheck
+        delegatesTo(findClass('io.peasoup.inv.testing.SimulatorDescriptor'))
     }
 
     if (enclosingCall('resolved')) {

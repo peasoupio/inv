@@ -2,12 +2,10 @@ package io.peasoup.inv.cli
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Home
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
-import org.apache.commons.io.FilenameUtils
-import org.apache.commons.validator.routines.UrlValidator
+import io.peasoup.inv.repo.RepoURLExtractor
 
 @CompileStatic
 class RepoGetCommand implements CliCommand {
@@ -20,20 +18,9 @@ class RepoGetCommand implements CliCommand {
         if (!repoUrl)
             return 1
 
-        if (!UrlValidator.instance.isValid(repoUrl))
+        def localRepofile = RepoURLExtractor.extract(repoUrl)
+        if (localRepofile == null)
             return 2
-
-        HttpURLConnection repoConn = (HttpURLConnection)new URL(repoUrl).openConnection()
-        if (!HttpURLConnection.HTTP_OK.equals(repoConn.getResponseCode()))
-            return 3
-
-        String repoFileContent = repoConn.inputStream.text
-
-        File localRepofile = new File(Home.getCurrent(), FilenameUtils.getName(repoUrl))
-        if (localRepofile.exists())
-            localRepofile.delete()
-
-        localRepofile << repoFileContent
 
         if (createParameters) {
             createNewParametersFile(localRepofile)

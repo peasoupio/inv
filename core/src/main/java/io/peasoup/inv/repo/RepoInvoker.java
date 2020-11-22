@@ -6,6 +6,7 @@ import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.repo.yaml.YamlRepoHandler;
 import io.peasoup.inv.run.DebugLogger;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,6 +135,18 @@ public class RepoInvoker {
         myNewScript.getBinding().setProperty("scm", repoHandler); // @Deprecated
         myNewScript.getBinding().setProperty("debug", DebugLogger.Instance);
         myNewScript.run();
+    }
+
+
+    /**
+     * Gets the expected location of a parameters JSON file for a specific repoFile.
+     * @param repoFileLocation RepoFile location
+     * @return Expected parameters file location
+     */
+    public static String expectedParametersfileLocation(String repoFileLocation) {
+        if (StringUtils.isEmpty(repoFileLocation)) throw new IllegalArgumentException("repoFileLocation");
+
+        return expectedParametersfileLocation(new File(repoFileLocation)).getAbsolutePath();
     }
 
 

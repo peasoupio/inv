@@ -109,7 +109,12 @@ class RepoInvokerTest {
 
         // parameters file is null
         assertThrows(IllegalArgumentException.class, {
-            RepoInvoker.expectedParametersfileLocation(null)
+            RepoInvoker.expectedParametersfileLocation((File)null)
+        })
+
+        // parameters file is null
+        assertThrows(IllegalArgumentException.class, {
+            RepoInvoker.expectedParametersfileLocation((String)null)
         })
 
     }

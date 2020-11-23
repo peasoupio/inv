@@ -1,7 +1,6 @@
 package io.peasoup.inv.composer
 
 import io.peasoup.inv.TempHome
-import io.peasoup.inv.repo.RepoInvoker
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,8 +16,6 @@ class RepoFileCollectionTest {
 
     @Before
     void setup() {
-        RepoInvoker.newCache()
-
         def repoFolder = new File(repos)
         def hrefsFolder = new File(hrefs)
         repoFileCollection = new RepoFileCollection(repoFolder, hrefsFolder)

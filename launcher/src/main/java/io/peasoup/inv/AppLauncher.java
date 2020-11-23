@@ -70,6 +70,7 @@ public class AppLauncher {
         List<String> commands = new ArrayList<>();
         commands.add("java");
         commands.add("-Djava.system.class.loader=groovy.lang.GroovyClassLoader");
+        commands.add("-Dio.peasoup.inv.launcher=" + Paths.get(AppLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString());
         commands.add("-cp");
         commands.add(String.join(delimiter, urls));
         commands.add("io.peasoup.inv.Main");
@@ -79,7 +80,6 @@ public class AppLauncher {
 
         // Start process
         ProcessBuilder proc = new ProcessBuilder(commands.toArray(new String[0]));
-        proc.environment().put("APPLAUNCHER", Paths.get(AppLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString());
         proc.directory(new File("./"));
         proc.inheritIO();
 

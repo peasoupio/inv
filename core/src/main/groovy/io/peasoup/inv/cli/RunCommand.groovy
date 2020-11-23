@@ -8,14 +8,18 @@ import io.peasoup.inv.run.InvExecutor
 @CompileStatic
 class RunCommand implements CliCommand {
 
-    List<String> patterns
-    String exclude
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
-        if (patterns == null)
+        List<String> includes = args["<include>"] as List<String>
+        String exclude = args["--exclude"]
+
+        if (includes == null)
             return 1
 
-        if (patterns.isEmpty())
+        if (includes.isEmpty())
             return 2
 
         // Handle excluding patterns
@@ -24,7 +28,7 @@ class RunCommand implements CliCommand {
             excludePatterns.add(exclude)
 
         def invExecutor = new InvExecutor()
-        List<File> invFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+        List<File> invFiles = Pattern.get(includes, excludePatterns, Home.getCurrent())
 
         invFiles.sort(new Comparator<File>() {
             @Override
@@ -35,7 +39,7 @@ class RunCommand implements CliCommand {
 
         // Parse INV Groovy files
         invFiles.each {
-            invExecutor.parse(it)
+            invExecutor.addScript(it)
         }
 
         // Do the actual execution
@@ -45,7 +49,32 @@ class RunCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return true
+    }
+
+    @Override
+    String usage() {
+        """
+Load and execute INV files.
+
+Usage:
+  inv [-dsx] run [--exclude <exclude>] <include>...
+
+Options:
+  -e, --exclude=exclude
+               Indicates the files to exclude.
+               Exclusion is predominant over inclusion
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+
+Arguments:
+  <include>    Indicates the files to include.
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+               It is also expandable using a space-separator
+               (p.e myfile1.groovy myfile2.groovy)
+"""
     }
 }

@@ -13,9 +13,13 @@ class PromoteCommand implements CliCommand {
 
     private static final File DEFAULT = RunsRoller.latest.successFolder()
 
-    String runIndex // optional
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
+        String runIndex = args["<runIndex>"]
+
         File toPromote = DEFAULT
 
         if (runIndex && runIndex.isInteger())
@@ -40,7 +44,23 @@ class PromoteCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return false
+    }
+
+    @Override
+    String usage() {
+        """
+Promote a run.txt as the new base.
+
+Usage:
+  inv [-dsx] promote [<runIndex>]
+
+Arguments:
+  <runIndex>   The run index whose promotion will be granted.
+               Runs are located inside INV_HOME/.runs/ 
+               By default, it uses the latest successful run
+"""
     }
 }

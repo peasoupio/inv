@@ -14,19 +14,18 @@ import java.io.IOException;
 
 public class InvInvoker {
     public static final String UNDEFINED_REPO = "undefined";
-    private static GroovyLoader groovyLoader;
-    private static YamlLoader yamlLoader;
 
-    private InvInvoker() {
-        // empty ctor
-    }
+    private final InvExecutor invExecutor;
+    private final GroovyLoader groovyLoader;
+    private final YamlLoader yamlLoader;
 
-    /**
-     * Clear existing loader and create a new instance.
-     */
-    public static void newCache() {
-        groovyLoader = new GroovyLoader();
-        yamlLoader = new YamlLoader();
+    public InvInvoker(InvExecutor invExecutor) {
+        if (invExecutor == null)
+            throw new IllegalArgumentException("invExecutor");
+
+        this.invExecutor= invExecutor;
+        this.groovyLoader = new GroovyLoader();
+        this.yamlLoader = new YamlLoader();
     }
 
     /**
@@ -35,9 +34,9 @@ public class InvInvoker {
      * @param classFile   Classfile to load
      * @param packageName New package name assigned to the loaded classes
      */
-    public static void addClass(File classFile, String packageName) {
-        if (groovyLoader == null || yamlLoader == null)
-            throw new IllegalStateException("loader has no cache");
+    public void invokeClass(File classFile, String packageName) {
+        if (classFile == null)
+            throw new IllegalArgumentException("classFile");
 
         try {
             groovyLoader.parseClassFile(classFile, packageName);
@@ -49,48 +48,35 @@ public class InvInvoker {
     /**
      * Parse and invoke INV Groovy script file
      *
-     * @param invExecutor Executor instance
      * @param scriptFile  INV Groovy script file
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile) {
-        invoke(invExecutor, scriptFile, null);
+    public void invokeScript(File scriptFile) {
+        invokeScript(scriptFile, null);
     }
 
     /**
      * Parse and invoke INV Groovy script file
      *
-     * @param invExecutor Executor instance
      * @param scriptFile  INV Groovy script file
      * @param packageName  New package assigned to the script file
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName) {
-        if (invExecutor == null) {
-            throw new IllegalArgumentException("InvExecutor is required");
-        }
-        if (scriptFile == null) {
+    public void invokeScript(File scriptFile, String packageName) {
+        if (scriptFile == null)
             throw new IllegalArgumentException("ScriptPath is required");
-        }
 
-        invoke(invExecutor, scriptFile, packageName, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
+        invokeScript(scriptFile, packageName, scriptFile.getAbsoluteFile().getParent(), UNDEFINED_REPO);
     }
 
     /**
      * Parse and invoke INV Groovy script file with specific path (pwd).
      * Also, it allows to define the REPO associated to this INV
      *
-     * @param invExecutor Executor instance
      * @param scriptFile  INV Groovy script file
      * @param packageName  New package assigned to the script file
      * @param pwd         Pwd "Print working directory", the working directory
      * @param repo        The associated REPO name
      */
-    public static void invoke(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
-        if (groovyLoader == null || yamlLoader == null)
-            throw new IllegalStateException("loader has no cache");
-
-        if (invExecutor == null)
-            throw new IllegalArgumentException("InvExecutor is required");
-
+    public void invokeScript(File scriptFile, String packageName, String pwd, String repo) {
         if (scriptFile == null)
             throw new IllegalArgumentException("Script file is required");
 
@@ -114,12 +100,12 @@ public class InvInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(invExecutor, scriptFile, pwd, repo);
+            parseYaml(scriptFile, pwd, repo);
         else
-            runScript(invExecutor, scriptFile, packageName, pwd, repo);
+            runScript(scriptFile, packageName, pwd, repo);
     }
 
-    private static void parseYaml(InvExecutor invExecutor, File scriptFile, String pwd, String repo) {
+    private void parseYaml(File scriptFile, String pwd, String repo) {
 
         // Create YAML handler
         YamlInvHandler yamlInvHandler = new YamlInvHandler(
@@ -136,7 +122,7 @@ public class InvInvoker {
         }
     }
 
-    private static void runScript(InvExecutor invExecutor, File scriptFile, String packageName, String pwd, String repo) {
+    private void runScript(File scriptFile, String packageName, String pwd, String repo) {
         Script myNewScript;
 
         try {

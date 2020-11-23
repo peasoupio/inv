@@ -8,9 +8,12 @@ import io.peasoup.inv.io.FileUtils
 @CompileStatic
 class InitCreateCommand implements CliCommand {
 
-    String repoName
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
+        String repoName = args["<repoName>"]
 
         def files = new File(Home.getCurrent(), repoName)
         if (files.exists() && files.listFiles().size() > 0) {
@@ -95,9 +98,22 @@ repo:
         return 0
     }
 
+    @Override
     boolean rolling() {
         return false
     }
 
+    @Override
+    String usage() {
+        """
+Create a new INIT folder named <repoName> at the current INV_HOME location.
+
+Usage:
+  inv [-dsx] init-create <repoName>
+
+Arguments:
+  <repoName>   The REPO name.
+"""
+    }
 
 }

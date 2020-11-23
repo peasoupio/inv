@@ -1,0 +1,6 @@
+{
+  "my-repository": {
+    "script": "repo.groovy",
+    "expectedParameterFile": "repo-values.json"
+  }
+}

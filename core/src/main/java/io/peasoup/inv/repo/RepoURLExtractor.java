@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 
 public class RepoURLExtractor {
 
+    private RepoURLExtractor() {
+        // private ctor
+    }
+
     public static File extract(String repoUrl) {
         if (!UrlValidator.getInstance().isValid(repoUrl))
             return null;

@@ -146,7 +146,11 @@ public class RepoDescriptor {
             // Try to get parameters
             Map<String, Map> parameters = null;
             try {
-                parameters = (Map<String, Map>) new JsonSlurper().parseText(ResourceGroovyMethods.getText(parametersFile));
+                String paramertersText =  ResourceGroovyMethods.getText(parametersFile);
+                if (StringUtils.isEmpty(paramertersText))
+                    return;
+
+                parameters = (Map<String, Map>) new JsonSlurper().parseText(paramertersText);
             } catch (IOException e) {
                 Logger.error(e);
             }
@@ -320,6 +324,9 @@ public class RepoDescriptor {
         public void parameter(String name, String usage, Map options) throws MissingOptionException {
             if (StringUtils.isEmpty(name))
                 throw new MissingOptionException("ask/parameter/name", HELP_LINK);
+
+            if (!name.matches("^[a-zA-Z0-9]*$"))
+                throw new IllegalArgumentException("name must be an alphanumeric only");
 
             if (StringUtils.isEmpty(usage))
                 throw new MissingOptionException("ask/parameter/usage", HELP_LINK);

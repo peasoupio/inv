@@ -35,9 +35,9 @@ class RepoFile {
         new RepoExecutor().with {
 
             if(expectedParameterFile && expectedParameterFile.exists())
-               parse(scriptFile, expectedParameterFile)
+               addScript(scriptFile, expectedParameterFile)
             else
-               parse(scriptFile)
+               addScript(scriptFile)
 
             RepoFile myself = this
             repos.each { String name, RepoDescriptor desc ->

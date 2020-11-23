@@ -27,7 +27,7 @@ class SystemAPI {
     }
 
     void routes() {
-        get("/stop", { Request req, Response res -> stop() })
+        post("/stop", { Request req, Response res -> stop() })
 
         get("/v1", { Request req, Response res ->
             return JsonOutput.toJson([
@@ -103,13 +103,11 @@ class SystemAPI {
         })
 
         get("/initfile", { Request req, Response res ->
-            if (!webServer.webServerConfigs.initFile)
+            def initFile = webServer.initFile()
+            if (!initFile)
                 return webServer.showError(res, "Missing init file")
 
-            if (!(webServer.webServerConfigs.initFile instanceof String))
-                return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
-
-            return new File(webServer.webServerConfigs.initFile as String).text
+            return  initFile.text
         })
 
         post("/initfile", { Request req, Response res ->
@@ -129,13 +127,11 @@ class SystemAPI {
             }
 
             if (errorCount == 0) {
-                def initFilePath = webServer.webServerConfigs.initFile
-                File initFile
+                File initFile = webServer.initFile()
 
-                if (!(initFilePath instanceof String))
+                // Create an init file if it does not exists
+                if (initFile == null)
                     initFile = new File(webServer.webServerConfigs.workspace as String, "init.groovy")
-                else
-                    initFile = new File(initFilePath as String)
 
                 initFile.delete()
                 initFile << fileContent
@@ -148,15 +144,12 @@ class SystemAPI {
         })
 
         post("/initfile/pull", { Request req, Response res ->
-            if (!webServer.webServerConfigs.initFile)
+            def initFile = webServer.initFile()
+            if (!initFile)
                 return webServer.showError(res, "Missing init file")
 
-            if (!(webServer.webServerConfigs.initFile instanceof String))
-                return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
-
             // Reuse InitRunCommand to pull init file
-            InitRunCommand initCommand = new InitRunCommand(initRepoFileLocation: webServer.webServerConfigs.initFile as String)
-            def report = initCommand.processREPO()
+            def report = new InitRunCommand().processREPO(initFile.absolutePath)
 
             if (!report)
                 return webServer.showError(res, "Could not pull init")
@@ -165,16 +158,13 @@ class SystemAPI {
         })
 
         post("/initfile/push", { Request req, Response res ->
-            if (!webServer.webServerConfigs.initFile)
+            def initFile = webServer.initFile()
+            if (!initFile)
                 return webServer.showError(res, "Missing init file")
 
-            if (!(webServer.webServerConfigs.initFile instanceof String))
-                return webServer.showError(res, "InitFile is corrupted. Contact your administrator.")
-
             // Invoke push hook manually
-            def initFile = new File(webServer.webServerConfigs.initFile as String)
             RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
-                parse(initFile)
+                addScript(initFile)
 
                 if (!repos.containsKey("main"))
                     return null
@@ -194,12 +184,13 @@ class SystemAPI {
 
 
     private Map initInfo() {
-        if (!webServer.webServerConfigs.initFile)
+        File initFile = webServer.initFile()
+
+        if (!initFile)
             return [standalone: true]
 
-        def initFile = new File(webServer.webServerConfigs.initFile as String)
         RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
-            parse(initFile)
+            addScript(initFile)
 
             if (!repos.containsKey("main"))
                 return null

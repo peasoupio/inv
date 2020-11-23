@@ -7,19 +7,21 @@ import io.peasoup.inv.graph.RunGraph
 @CompileStatic
 class GraphCommand implements CliCommand {
 
-    Map arguments
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
-        if (arguments == null)
+        String base = args["<base>"]
+        if (!base)
             return 1
 
-        String base = arguments["<base>"] as String
         def run = new RunGraph(new File(base).newReader())
 
         String graphType = null
 
         // For future uses
-        if (arguments["dot"])
+        if (args["dot"])
             graphType = "dot"
 
         switch (graphType) {
@@ -33,7 +35,21 @@ class GraphCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return false
+    }
+
+    @Override
+    String usage() {
+        """
+Generate delta between two run files.
+
+Usage:
+  inv [-dsx] graph <base>
+
+Arguments:
+  <base>       Base file location
+"""
     }
 }

@@ -8,7 +8,11 @@ import io.peasoup.inv.io.FileUtils
 @CompileStatic
 class RepoCreateCommand implements CliCommand {
 
-    int call() {
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
+
         def invDir = new File(Home.getCurrent(), ".inv/")
         invDir.mkdirs()
 
@@ -23,7 +27,9 @@ class RepoCreateCommand implements CliCommand {
 
         def repoFile = new File(invDir,"repo.yml")
         if (!repoFile.exists())
-            repoFile << "# Newly created repo file"
+            repoFile << """
+
+"""
 
         Logger.system("SRCFILES: ${FileUtils.convertUnixPath(srcFiles.absolutePath)}")
         Logger.system("TESTFILES: ${FileUtils.convertUnixPath(testFiles.absolutePath)}")
@@ -33,9 +39,18 @@ class RepoCreateCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return false
     }
 
+    @Override
+    String usage() {
+        """
+Create a new ".inv" REPO folder at the current INV_HOME location.
 
+Usage:
+  inv [-dsx] repo-create
+"""
+    }
 }

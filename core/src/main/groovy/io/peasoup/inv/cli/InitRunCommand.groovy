@@ -3,6 +3,7 @@ package io.peasoup.inv.cli
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.Logger
+import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.repo.RepoExecutor
 import org.apache.commons.validator.routines.UrlValidator
 import spark.utils.StringUtils
@@ -10,35 +11,68 @@ import spark.utils.StringUtils
 @CompileStatic
 class InitRunCommand implements CliCommand {
 
-    String initRepoFileLocation
+    private final boolean startComposer
 
-    int call() {
+    InitRunCommand() {
+        this(true)
+    }
+
+    InitRunCommand(boolean startComposer) {
+        this.startComposer = startComposer;
+    }
+
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
+
+        String initRepoFileLocation = args["<repoFile>"]
+
         if (StringUtils.isEmpty(initRepoFileLocation))
             return 1
 
-        RepoExecutor.RepoHookExecutionReport report = processREPO()
+        RepoExecutor.RepoHookExecutionReport report = processREPO(initRepoFileLocation)
         if (!report) {
             return 2
         }
 
+        if (!startComposer)
+            return 0
+
         // Change currentHome for current process (and others spawned by composer.Execution
         Home.setCurrent(report.descriptor.getRepoPath())
 
-        def composerCommand = new ComposerCommand()
-
-        // Define initFile
-        composerCommand.settings = [
-            initFile: initRepoFileLocation
-        ]
-
-        return composerCommand.call()
+        def composerCommand = new ComposerCommand(initRepoFileLocation)
+        return composerCommand.call(args)
     }
 
+    @Override
     boolean rolling() {
         return false
     }
 
-    private RepoExecutor.RepoHookExecutionReport processREPO() {
+    @Override
+    String usage() {
+        """
+Start Composer using an INIT file.
+
+Usage:
+  inv [-dsx] init-run [-p <port>] <repoFile>
+
+Options:
+  -p, --port=port
+               Sets the listening port 
+
+Arguments:
+  <repoFile>   The REPO file location.
+    
+Environment variables:
+  ${WebServer.CONFIG_SSL_KEYSTORE}  Sets the SSL keystore location
+  ${WebServer.CONFIG_SSL_PASSWORD}  Sets the SSL keystore password
+"""
+    }
+
+    private RepoExecutor.RepoHookExecutionReport processREPO(String initRepoFileLocation) {
         String actualFileLocation = initRepoFileLocation
         File repoFile
 
@@ -57,7 +91,7 @@ class InitRunCommand implements CliCommand {
         assert repoFile.exists(), 'Repo file path must exist on filesystem'
 
         def repoExecutor = new RepoExecutor()
-        repoExecutor.parse(repoFile)
+        repoExecutor.addScript(repoFile)
         def reports = repoExecutor.execute()
 
         if (reports.any { !it.isOk() }) {

@@ -4,8 +4,6 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.Logger
 import io.peasoup.inv.TempHome
-import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.run.InvInvoker
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Ignore
@@ -34,9 +32,6 @@ class WebServerTest {
     static void setup() {
         clean()
 
-        InvInvoker.newCache()
-        RepoInvoker.newCache()
-
         def repo7 = new File(base + ".repos/", "repo7.groovy")
 
         repo7 << """
@@ -57,11 +52,11 @@ repo {
 
     @AfterClass
     static void close() {
-
         clean()
 
         // Spark stop
         Spark.stop()
+        Spark.awaitStop()
 
         Logger.resetCapture()
     }

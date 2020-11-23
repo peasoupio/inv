@@ -2,7 +2,6 @@ package io.peasoup.inv.testing;
 
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
-import io.peasoup.inv.run.InvInvoker;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.junit.runner.JUnitCore;
@@ -45,7 +44,7 @@ public class JunitRunner {
 
     public void addClass(String classLocation) {
         try {
-            InvInvoker.addClass(new File(classLocation), packageName);
+            groovyLoader.parseClassFile(new File(classLocation), packageName);
         } catch (Exception e) {
             Logger.error(e);
         }

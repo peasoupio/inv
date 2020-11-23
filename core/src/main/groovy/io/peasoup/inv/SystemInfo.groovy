@@ -1,6 +1,9 @@
 package io.peasoup.inv
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.io.FileUtils
+
+import java.nio.file.Files
 
 @CompileStatic
 class SystemInfo {
@@ -37,7 +40,7 @@ class SystemInfo {
             return true
         }
 
-        Logger.system "[VARS] INV_HOME: ${invHome.absolutePath}"
+        Logger.system "[VARS] INV_HOME: ${FileUtils.convertUnixPath(invHome.absolutePath)}"
 
         if (!invHome.exists()) {
             Logger.fail "INV_HOME does not exists"
@@ -49,7 +52,7 @@ class SystemInfo {
             return true
         }
 
-        if (!invHome.canRead()) {
+        if (!Files.isWritable(invHome.toPath())) {
             Logger.fail "current user is not able to read from INV_HOME"
             return true
         }

@@ -3,8 +3,6 @@ package io.peasoup.inv
 import groovy.transform.CompileStatic
 import io.peasoup.inv.cli.*
 import io.peasoup.inv.loader.GroovyLoader
-import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.run.InvInvoker
 import io.peasoup.inv.run.RunsRoller
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.docopt.Docopt
@@ -18,7 +16,8 @@ class Main extends Script {
      */
     static int exitCode = 0
 
-    private Map<String, Object> arguments
+    private Map<String, Object> execArguments
+    private Map<String, Object> commandArguments
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     Object run() {
@@ -31,11 +30,31 @@ class Main extends Script {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
         // Parse docopt arguments
-        try {
-            arguments = new Docopt(usage())
-                    .withExit(false)
-                    .parse(getProperty("args") as List<String>)
-        } catch(DocoptExitException ex) {
+        def args = (getProperty("args") as List<String>)
+
+        // Sanitized args make sure docopt does not raise exceptions
+        // So, we take each argument, stack it, and test the chain to see
+        // if a positive result occurs, otherwise, it fails
+        // Best case scenario, if the last argument is a valid subcommand,
+        // the process should go on and forget about the remaining arguments.
+        def sanitizedArgs = []
+        for(String arg : args) {
+            sanitizedArgs << arg
+
+            try {
+                execArguments = new Docopt(usage())
+                        .withExit(false)
+                        .parse(sanitizedArgs)
+
+                // If reached, means arguments are valid
+                break
+            } catch(DocoptExitException ex) {
+                continue
+            }
+        }
+
+        // Exec arguments is empty, print usage and quit
+        if (!execArguments) {
             println usage()
             return -1
         }
@@ -44,7 +63,19 @@ class Main extends Script {
         CliCommand command = findCommand()
         if (!command) {
             println usage()
-            return -1
+            return -2
+        }
+
+
+        // Parse docopt arguments
+        try {
+            commandArguments = new Docopt(command.usage())
+                    .withExit(false)
+                    .parse(args)
+        } catch(DocoptExitException ex) {
+            println usageHeader()
+            println command.usage()
+            return -3
         }
 
         // Make sure we setup the rolling mechanism property BEFORE any logging
@@ -52,15 +83,15 @@ class Main extends Script {
             setupRolling()
 
         // Enable debug logs
-        if (arguments["--debug"] as boolean)
+        if (execArguments["--debug"] as boolean)
             Logger.enableDebug()
 
         // Enable system logs
-        if (arguments["--system"] as boolean)
+        if (execArguments["--system"] as boolean)
             Logger.enableSystem()
 
         // Enable secure mode
-        if (arguments["--secure"])
+        if (execArguments["--secure"])
             GroovyLoader.enableSecureMode()
         else
             GroovyLoader.disableSecureMode()
@@ -70,10 +101,6 @@ class Main extends Script {
             GroovyLoader.enableSystemClassloader()
         else
             GroovyLoader.disableSystemClassloader()
-
-        // Create caches for invokers
-        InvInvoker.newCache()
-        RepoInvoker.newCache()
 
         // Do system checks
         if (SystemInfo.consistencyFails()) {
@@ -85,7 +112,7 @@ class Main extends Script {
         int result
 
         try {
-            result = command.call()
+            result = command.call(commandArguments)
         } catch(Exception ex) {
             Logger.error(ex)
             result = -99
@@ -103,77 +130,42 @@ class Main extends Script {
     }
 
     CliCommand findCommand() {
-
-        if (arguments["repo"]) {
-            if (arguments["get"])
-                return new RepoGetCommand(
-                        repoUrl: arguments["<repoUrl>"] as String,
-                        createParameters: arguments["--create-parameters"] as Boolean,
-                        run: arguments["--run"] as Boolean)
-            if (arguments["run"])
-                return new RepoRunCommand(
-                        repoFileLocation: arguments["<repoFile>"] as String,
-                        list: arguments["--list"] as Boolean)
-            if (arguments["test"])
-                return new RepoTestCommand()
-            if (arguments["create"]) {
-                return new RepoCreateCommand()
-            }
+        switch (execArguments["<command>"]) {
+            case "run": return new RunCommand()
+            case "syntax": return new SyntaxCommand()
+            case "repo-get": return new RepoGetCommand()
+            case "repo-run": return new RepoRunCommand()
+            case "repo-test": return new RepoTestCommand()
+            case "repo-create": return new RepoCreateCommand()
+            case "composer": return new ComposerCommand()
+            case "init-run": return new InitRunCommand()
+            case "init-create": return new InitCreateCommand()
+            case "promote": return new PromoteCommand()
+            case "delta": return new DeltaCommand()
+            case "graph": return new GraphCommand()
+            default: return null;
         }
+    }
 
-        if (arguments["init"]) {
-            if (arguments["run"])
-                return new InitRunCommand(initRepoFileLocation: arguments["<repoFile>"] as String)
-            if (arguments["create"])
-                return new InitCreateCommand(repoName: arguments["<repoName>"] as String)
-        }
-
-        if (arguments["run"])
-            return new RunCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["syntax"])
-            return new SyntaxCommand(
-                    patterns: arguments["<include>"] as List<String>,
-                    exclude: arguments["--exclude"] as String ?: "")
-
-        if (arguments["delta"])
-            return new DeltaCommand(
-                    base: arguments["<base>"] as String,
-                    other: arguments["<other>"] as String)
-
-        if (arguments["graph"])
-            return new GraphCommand(arguments: arguments)
-
-        if (arguments["composer"])
-            return new ComposerCommand()
-
-        if (arguments["promote"])
-            return new PromoteCommand(runIndex: arguments["<runIndex>"] as String)
-
-        return null
+    private static String usageHeader() {
+        "Inv, version: ${SystemInfo.version()}."
     }
 
     private static String usage() {
-        return """Inv, version: ${SystemInfo.version()}.
+        return """${usageHeader()}
 
 Usage:
-  inv (run|syntax) [-d | -x] [-s] [-e <exclude>] <include>...
-  inv repo get [-d | -x] [-s] [-p] [-r] <repoUrl>
-  inv repo run [-d | -x] [-s] [-l] <repoFile>
-  inv repo test [-d | -x] [-s]
-  inv repo create
-  inv composer [-d | -x] [-s]
-  inv init run [-d | -x] [-s] <repoFile>
-  inv init create <repoName>
-  inv promote [<runIndex>] 
-  inv delta <base> <other>
-  inv graph <base>
-  
+ inv [-dxs] <command> [<args>...]
+
 Options:
+  -h --help    Show this screen.  
+  -d --debug   Debug out. Excellent for troubleshooting.  
+  -x --system  Print system troubleshooting messages.  
+  -s --secure  Enable the secure mode for script files.  
+
+The subcommands are:
   run          Load and execute INV files.
-  syntax       Test the syntax of an INV or REPO file.
+  syntax       Check the syntax of an INV or REPO file.
   repo         Create, get, run or test a REPO folder.
   composer     Start Composer dashboard
   init         Start Composer dashboard from an REPO file
@@ -181,40 +173,10 @@ Options:
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.
-  -d --debug   Debug out. Excellent for troubleshooting.
-  -x --system  Print system troubleshooting messages.
-  -s --secure  Enable the secure mode for script files.
-  -e --exclude Exclude files from loading.
-  -p, --create-parameters
-               Create a parameter file of a REPO file.
-  -r --run     Run a REPO file after getting it.
-  -l --list    Use a list of repo to run.
-  -h --help    Show this screen.
-  
-Parameters:
-  
-  <include>    Indicates the files to include.
-               It is Ant-compatible 
-               (p.e *.groovy, ./**/*.groovy, ...)
-               It is also expandable using a space-separator
-               (p.e myfile1.groovy myfile2.groovy)
-  <exclude>    Indicates the files to exclude.
-               Exclusion is predominant over inclusion
-               It is Ant-compatible 
-               (p.e *.groovy, ./**/*.groovy, ...)
-  <repoUrl>    The REPO remote file location.  
-  <repoFile>   The REPO file location. 
-               The file MUST be existing on the 
-               current file system.
-               Using --list with run, you can use a list
-               of repos. 
-  <repoName>   The REPO name.
-  <runIndex>   The run index whose promotion will be granted.
-               Runs are located inside INV_HOME/.runs/ 
-               By default, it uses the latest successful run
-               location.
-  <base>       Base file location
-  <other>      Other file location
+
+Environment variables:
+  INV_HOME     Defines the working directory.
+               By default it uses the current folder.
 """
     }
 

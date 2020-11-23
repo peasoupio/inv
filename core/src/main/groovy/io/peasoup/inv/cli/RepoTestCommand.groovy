@@ -12,7 +12,11 @@ import java.nio.file.Path
 @CompileStatic
 class RepoTestCommand implements CliCommand {
 
-    int call() {
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
+
         String packageName = "test" + checksum()
 
         def matches = FgroupLoader.findMatches(Home.getCurrent().absolutePath)
@@ -20,7 +24,7 @@ class RepoTestCommand implements CliCommand {
         // Get Repofile name and use it as a package
         if (matches.repoFile != null) {
             def repoExecutor = new RepoExecutor()
-            repoExecutor.parse(matches.repoFile.toFile())
+            repoExecutor.addScript(matches.repoFile.toFile())
 
             def repo = repoExecutor.repos.values().first()
             packageName = repo.name
@@ -42,8 +46,19 @@ class RepoTestCommand implements CliCommand {
         return runner.run() ? 0 : 2
     }
 
+    @Override
     boolean rolling() {
         return true
+    }
+
+    @Override
+    String usage() {
+        """
+Test a REPO folder at the current INV_HOME location.
+
+Usage:
+  inv [-dsx] repo-test 
+"""
     }
 
     private String checksum() {

@@ -86,4 +86,11 @@ class RepoDescriptorTest {
             new RepoDescriptor.AskDescriptor().parameter("name", "")
         })
     }
+
+    @Test
+    void name_invalid_format() {
+        assertThrows(IllegalArgumentException.class, {
+            new RepoDescriptor.AskDescriptor().parameter("a-b-c", "usage")
+        })
+    }
 }

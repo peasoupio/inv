@@ -3,7 +3,6 @@ package io.peasoup.inv.repo
 import io.peasoup.inv.Logger
 import io.peasoup.inv.TempHome
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -13,22 +12,19 @@ import static org.junit.jupiter.api.Assertions.*
 class RepoInvokerTest {
 
     RepoExecutor repoExecutor
-
-    @BeforeClass
-    static void init() {
-        RepoInvoker.newCache()
-    }
+    RepoInvoker repoInvoker
 
     @Before
     void setup() {
         repoExecutor = new RepoExecutor()
+        repoInvoker = repoExecutor.repoInvoker
     }
 
     @Test
     void ok() {
         def repoFile =  new File(TempHome.testResources,  '/repo.groovy')
         def executor = new RepoExecutor()
-        executor.parse(repoFile)
+        executor.addScript(repoFile)
 
         def reports = executor.execute()
 
@@ -42,17 +38,15 @@ class RepoInvokerTest {
         def repoFile =  new File(getClass().getResource('/repo-multiple.groovy').toURI())
 
         // parametersFile is nullable
-        RepoInvoker.invoke(new RepoExecutor(), repoFile, null)
+        repoInvoker.invokeScript(repoFile, null)
     }
 
     @Test
     void not_existing_script() {
         def repoFile =  new File('/repo-does-not-exists.groovy')
+        repoInvoker.invokeScript(repoFile, null)
 
-        def exec = new RepoExecutor()
-        RepoInvoker.invoke(exec, repoFile, null)
-
-        assertTrue exec.repos.isEmpty()
+        assertTrue repoExecutor.repos.isEmpty()
     }
 
     @Test
@@ -60,7 +54,7 @@ class RepoInvokerTest {
 
         def repoFile =  new File(getClass().getResource('/repo-multiple.groovy').toURI())
         def executor = new RepoExecutor()
-        executor.parse(repoFile)
+        executor.addScript(repoFile)
 
         def reports = executor.execute()
 
@@ -74,7 +68,7 @@ class RepoInvokerTest {
 
         def repoFile =  new File(getClass().getResource('/repo-invalid.groovy').toURI())
         def executor = new RepoExecutor()
-        executor.parse(repoFile)
+        executor.addScript(repoFile)
 
         def report = executor.execute()
         assertFalse report.any { it.isOk() }
@@ -87,7 +81,7 @@ class RepoInvokerTest {
         def repoFile =  new File(TempHome.testResources,  '/repo-debug.groovy')
         def executor = new RepoExecutor()
 
-        executor.parse(repoFile)
+        executor.addScript(repoFile)
 
         assertTrue logs.any { it == "ok" }
 
@@ -96,15 +90,14 @@ class RepoInvokerTest {
 
     @Test
     void invoke_not_ok() {
-
         // inv invoker is null
         assertThrows(IllegalArgumentException.class, {
-            RepoInvoker.invoke(null, null)
+            repoInvoker.invokeScript(null, null)
         })
 
         // script file is null
         assertThrows(IllegalArgumentException.class, {
-            RepoInvoker.invoke(new RepoExecutor(), null)
+            repoInvoker.invokeScript(null)
         })
 
         // parameters file is null

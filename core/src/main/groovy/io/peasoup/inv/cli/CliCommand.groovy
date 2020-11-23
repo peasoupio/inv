@@ -2,13 +2,18 @@ package io.peasoup.inv.cli
 
 interface CliCommand {
 
-    /*
+    /**
         Do the actual command call
      */
-    int call()
+    int call(Map args)
 
-    /*
-        Determines whether or not this command may roll a successful or a failing run
+    /**
+        Gets whether or not this command may roll a successful or a failing run
      */
     boolean rolling()
+
+    /**
+     *  Gets the usage of this command
+     */
+    String usage();
 }

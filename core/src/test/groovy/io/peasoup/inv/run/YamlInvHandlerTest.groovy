@@ -11,13 +11,10 @@ class YamlInvHandlerTest {
 
     @Test
     void ok() {
-
+        def yamlFile = new File("../examples/yaml/inv.yaml")
 
         def executor = new InvExecutor()
-
-        def yamlFile = new File("../examples/yaml/inv.yaml")
-        InvInvoker.newCache()
-        InvInvoker.invoke(executor, yamlFile)
+        executor.addScript(yamlFile)
 
         def report = executor.execute()
         assertTrue report.isOk();

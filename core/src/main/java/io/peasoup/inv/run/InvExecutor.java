@@ -8,6 +8,7 @@ import java.io.File;
  * InvExecutor is the main object for parsing, invoking and executing INV files.
  */
 public class InvExecutor {
+    private final InvInvoker invInvoker;
     private final NetworkValuablePool pool;
     private final PoolReport report;
 
@@ -15,18 +16,36 @@ public class InvExecutor {
      * Creates a new InvExecutor object.
      */
     public InvExecutor() {
+        invInvoker = new InvInvoker(this);
         pool = new NetworkValuablePool();
         report = new PoolReport();
 
         Logger.info("---- [DIGEST] opened ----");
     }
 
+    public void addClass(File classFile) {
+        this.addClass(classFile, null);
+    }
+
+    public void addClass(File classFile, String packageName) {
+        invInvoker.invokeClass(classFile, packageName);
+    }
+
     /**
      * Parse and invoke INV Groovy script file
      * @param scriptFile INV Groovy script file
      */
-    public void parse(File scriptFile) {
-        InvInvoker.invoke(this, scriptFile);
+    public void addScript(File scriptFile) {
+        invInvoker.invokeScript(scriptFile);
+    }
+
+    /**
+     * Parse and invoke INV Groovy script file within a predefined package
+     * @param scriptFile INV Groovy script file
+     * @param packageName package name
+     */
+    public void addScript(File scriptFile, String packageName) {
+        invInvoker.invokeScript(scriptFile, packageName);
     }
 
     /**
@@ -37,8 +56,8 @@ public class InvExecutor {
      * @param pwd Pwd "Print working directory", the working directory
      * @param repo The associated REPO name
      */
-    public void parse(File scriptFile, String packageName, String pwd, String repo) {
-        InvInvoker.invoke(this, scriptFile, packageName, pwd, repo);
+    public void addScript(File scriptFile, String packageName, String pwd, String repo) {
+        invInvoker.invokeScript(scriptFile, packageName, pwd, repo);
     }
 
     /**

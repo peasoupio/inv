@@ -9,7 +9,6 @@ import io.peasoup.inv.repo.RepoFolderCollection;
 import io.peasoup.inv.repo.RepoURLExtractor;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
-import io.peasoup.inv.run.InvInvoker;
 import io.peasoup.inv.run.PoolReport;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
@@ -85,7 +84,7 @@ public abstract class JunitScriptBase extends Script {
         for(String invLocation : simulatorDescriptor.getInvFiles()) {
             File invRealLocation = new File(Home.getCurrent(), invLocation);
 
-            invExecutor.parse(
+            invExecutor.addScript(
                     invRealLocation,
                     mySettings.getPackageName(),
                     invRealLocation.getParent(),
@@ -120,6 +119,6 @@ public abstract class JunitScriptBase extends Script {
         if (!invFile.exists())
             throw new IllegalStateException(invFile.getAbsolutePath() + " does not exists on the filesystem");
 
-        InvInvoker.invoke(invExecutor, invFile, mySettings.getPackageName());
+        invExecutor.addScript(invFile, mySettings.getPackageName());
     }
 }

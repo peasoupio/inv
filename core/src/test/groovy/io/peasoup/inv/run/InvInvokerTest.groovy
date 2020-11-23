@@ -9,9 +9,13 @@ import static org.junit.jupiter.api.Assertions.*
 
 class InvInvokerTest {
 
+    InvInvoker invInvoker
+    InvExecutor invExecutor
+
     @Before
-    void setup(){
-        InvInvoker.newCache()
+    void setup() {
+        invExecutor = new InvExecutor()
+        invInvoker = invExecutor.invInvoker
     }
 
     @Test
@@ -22,7 +26,7 @@ class InvInvokerTest {
 
         def scriptFile = new File(script.path)
 
-        Stdout.capture ({ InvInvoker.invoke(new InvExecutor(), scriptFile) }, {
+        Stdout.capture ({ invInvoker.invokeScript(scriptFile) }, {
             assertTrue it.contains("inv-invoker-script.groovy")
         })
     }
@@ -52,7 +56,7 @@ class InvInvokerTest {
 
         def scriptFile = new File(script.path)
 
-        InvInvoker.invoke(new InvExecutor(), scriptFile)
+        invInvoker.invokeScript(scriptFile)
 
         assertTrue logs.any { it == "ok" }
 
@@ -63,30 +67,29 @@ class InvInvokerTest {
     void not_existing_script() {
         def repoFile =  new File('/repo-does-not-exists.groovy')
 
-        def exec = new InvExecutor()
-        InvInvoker.invoke(exec, repoFile)
+        invInvoker.invokeScript(repoFile)
 
-        assertTrue exec.pool.isEmpty()
+        assertTrue invExecutor.pool.isEmpty()
     }
 
 
     @Test
     void invoke_not_ok() {
 
-        // inv invoker is null
-        assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(null, null)
-        })
-
         // script file is null
         assertThrows(IllegalArgumentException.class, {
-            InvInvoker.invoke(new InvExecutor(), null)
+            invInvoker.invokeScript(null)
+        })
+
+        // inv invoker is null
+        assertThrows(IllegalArgumentException.class, {
+            invInvoker.invokeScript(null, null)
         })
 
         // pwd is null
         assertThrows(IllegalArgumentException.class, {
             def script = InvInvokerTest.class.getResource("/inv-invoker-script-with-debug.groovy")
-            InvInvoker.invoke(new InvExecutor(), new File(script.path), null, null, null)
+            invInvoker.invokeScript(new File(script.path), null, null, null)
         })
 
     }

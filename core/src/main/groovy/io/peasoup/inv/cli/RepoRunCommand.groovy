@@ -2,6 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Home
 import io.peasoup.inv.Logger
 import io.peasoup.inv.repo.RepoFolderCollection
 import io.peasoup.inv.run.InvExecutor
@@ -12,10 +13,14 @@ import java.nio.file.Files
 @CompileStatic
 class RepoRunCommand implements CliCommand {
 
-    String repoFileLocation
-    Boolean list
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
+        String repoFileLocation = args["<repoFile>"]
+        Boolean list = args["--list"]
+
         if (!repoFileLocation)
             return 1
 
@@ -24,11 +29,11 @@ class RepoRunCommand implements CliCommand {
 
         // Check if a single file matches the LIST_FILE_SUFFIX
         if (list) {
-            boolean listResult = readListJsonfile(repoFolders)
+            boolean listResult = readListJsonfile(repoFileLocation, repoFolders)
             if (!listResult)
                 return 2
         } else {
-            boolean singleResult = readSinglefile(repoFolders)
+            boolean singleResult = readSinglefile(repoFileLocation, repoFolders)
             if (!singleResult)
                 return 3
         }
@@ -43,11 +48,29 @@ class RepoRunCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return true
     }
 
-    private boolean readListJsonfile(RepoFolderCollection repoFolders) {
+    @Override
+    String usage() {
+        """
+Execute a REPO file from.
+
+Usage:
+  inv [-dsx] repo-run [--list] <repoFile>
+
+Options:
+  -l, --list 
+               Use a list of repo to run.
+
+Arguments:
+  <repoFile>   The REPO file location. 
+"""
+    }
+
+    private boolean readListJsonfile(String repoFileLocation, RepoFolderCollection repoFolders) {
         def repoListPath = repoFileLocation
         def repoListFile = new File(repoListPath)
 
@@ -75,13 +98,21 @@ class RepoRunCommand implements CliCommand {
                 return
             }
 
+            // If script path is relative, try to resolve from the current home path
+            if (!new File(script).isAbsolute())
+                script = new File(Home.getCurrent(), script).absolutePath
+
+            // If expected parameters path is relative, try to resolve from the current home path
+            if (expectedParameter && !new File(expectedParameter).isAbsolute())
+                expectedParameter = new File(Home.getCurrent(), expectedParameter).absolutePath
+
             repoFolders.add(script, expectedParameter)
         }
 
         return true
     }
 
-    private boolean readSinglefile(RepoFolderCollection repoFolders) {
+    private boolean readSinglefile(String repoFileLocation, RepoFolderCollection repoFolders) {
         return repoFolders.add(new File(repoFileLocation).absolutePath)
     }
 }

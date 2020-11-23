@@ -12,6 +12,8 @@ class WebServer {
     final static String API_CONTEXT_ROOT = "/api"
 
     final static String CONFIG_LOCAL_WEB = "INV_LOCAL_WEB"
+
+    final static String CONFIG_LAUNCHER = "io.peasoup.inv.launcher"
     final static String CONFIG_SSL_KEYSTORE = "INV_SSL_KEYSTORE"
     final static String CONFIG_SSL_PASSWORD = "INV_SSL_PASSWORD"
 
@@ -39,12 +41,19 @@ class WebServer {
                 port: 8080
         ] + args
 
+        Logger.system("[COMPOSER] settings: ${webServerConfigs}")
+
         runLocation = webServerConfigs.workspace as String
         reposLocation = webServerConfigs.workspace + "/.repos" as String
         hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
+        def actualPort = webServerConfigs.port as int
+
         // Browser configs
-        port(webServerConfigs.port as int)
+        if (!isTcpPortAvailable(actualPort))
+            throw new IllegalStateException("port already in use")
+
+        port(actualPort)
 
         // Get environment configs
         def env = System.getenv()
@@ -76,7 +85,7 @@ class WebServer {
         if (!hrefsLocationFolder.exists())
             hrefsLocationFolder.mkdirs()
 
-        // Init
+        // initFile
         settings = new Settings(new File(runLocation, "settings.json"))
         repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
         exec = new Execution(webServerConfigs.appLauncher as String, reposLocationFolder)
@@ -116,6 +125,16 @@ class WebServer {
         return new File(runLocation, "run.txt")
     }
 
+    File initFile() {
+        if (!webServerConfigs.initFile)
+            return null;
+
+        if (!(webServerConfigs.initFile instanceof String))
+            throw new IllegalStateException("InitFile is corrupted. Contact your administrator.")
+
+        return new File(webServerConfigs.initFile as String)
+    }
+
     static String showError(Response res, String message) {
         res.status(500)
 
@@ -129,5 +148,16 @@ class WebServer {
         return JsonOutput.toJson([
                 result: message
         ])
+    }
+
+    private static boolean isTcpPortAvailable(int port) {
+        // https://stackoverflow.com/a/48828373
+        try (ServerSocket serverSocket = new ServerSocket()) {
+            serverSocket.setReuseAddress(false)
+            serverSocket.bind(new InetSocketAddress(InetAddress.getByName("localhost"), port), 1)
+            return true
+        } catch (Exception ex) {
+            return false
+        }
     }
 }

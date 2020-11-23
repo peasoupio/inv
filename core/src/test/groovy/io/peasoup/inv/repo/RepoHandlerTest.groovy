@@ -2,7 +2,6 @@ package io.peasoup.inv.repo
 
 import io.peasoup.inv.MissingOptionException
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
 
 import static org.junit.jupiter.api.Assertions.*
@@ -12,11 +11,6 @@ class RepoHandlerTest {
     File scriptFile
     RepoExecutor executor
     RepoHandler repo
-
-    @BeforeClass
-    static void init() {
-        RepoInvoker.newCache()
-    }
 
     @Before
     void setup() {
@@ -29,7 +23,7 @@ class RepoHandlerTest {
     void ok() {
 
         def testRepo = RepoHandlerTest.class.getResource("/repo.groovy")
-        executor.parse(new File(testRepo.path))
+        executor.addScript(new File(testRepo.path))
 
         assertNotNull executor.repos["my-repository"]
 

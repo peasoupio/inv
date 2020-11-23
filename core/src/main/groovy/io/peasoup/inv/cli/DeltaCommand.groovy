@@ -8,10 +8,14 @@ import spark.utils.StringUtils
 @CompileStatic
 class DeltaCommand implements CliCommand {
 
-    String base
-    String other
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
+        String base = args["<base>"]
+        String other = args["<other>"]
+
         if (StringUtils.isEmpty(base))
             return 1
 
@@ -28,7 +32,22 @@ class DeltaCommand implements CliCommand {
         return 0
     }
 
+    @Override
     boolean rolling() {
         return false
+    }
+
+    @Override
+    String usage() {
+        """
+Generate delta between two run files.
+
+Usage:
+  inv [-dsx] delta <base> <other>
+
+Arguments:
+  <base>       Base file location
+  <other>      Other file location
+"""
     }
 }

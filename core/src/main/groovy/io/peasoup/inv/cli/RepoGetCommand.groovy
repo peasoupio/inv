@@ -10,11 +10,15 @@ import io.peasoup.inv.repo.RepoURLExtractor
 @CompileStatic
 class RepoGetCommand implements CliCommand {
 
-    String repoUrl
-    Boolean createParameters
-    Boolean run
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
+        String repoUrl = args["<repoUrl>"]
+        Boolean createParameters = args["--create-parameters>"]
+        Boolean run = args["--run"]
+
         if (!repoUrl)
             return 1
 
@@ -28,20 +32,39 @@ class RepoGetCommand implements CliCommand {
 
         if (run) {
             RepoRunCommand repoRunCommand = new RepoRunCommand()
-            repoRunCommand.repoFileLocation = localRepofile.absolutePath
-            return repoRunCommand.call()
+            return repoRunCommand.call(["<repoFile>": localRepofile.absolutePath])
         }
 
         return 0
     }
 
+    @Override
     boolean rolling() {
         return true
     }
 
+    @Override
+    String usage() {
+        """
+Get a REPO file from an URL address.
+
+Usage:
+  inv [-dsx] repo-get [--run] [--create-parameters] <repoUrl>
+
+Options:
+  -r, --run
+               Run the REPO file after getting it.
+  -c, --create-parameters
+               Create a parameter file of a REPO file.
+
+Arguments:
+  <repoUrl>    The REPO remote file location.
+"""
+    }
+
     private void createNewParametersFile(File localRepofile) {
         RepoExecutor executor = new RepoExecutor()
-        RepoInvoker.invoke(executor, localRepofile)
+        executor.addScript(localRepofile)
 
         // Get expected parameter file location
         File newParameterFile = RepoInvoker.expectedParametersfileLocation(localRepofile)

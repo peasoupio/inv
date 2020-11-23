@@ -42,6 +42,11 @@ class StatementDescriptorTest {
 
         assertEquals myself, myself.call(id2)
         assertEquals id2, myself.id
+
+        def id3 = { "id1" }
+
+        assertEquals myself, myself.call(id3)
+        assertEquals id3, myself.id
     }
 
     @Test()
@@ -57,6 +62,10 @@ class StatementDescriptorTest {
 
         assertThrows(IllegalArgumentException.class, {
             myself.call((Map)null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            myself.call((Closure)null)
         })
     }
 }

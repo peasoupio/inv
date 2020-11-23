@@ -20,8 +20,8 @@
 [EXECUTOR] scheduling: #2
 [EXECUTOR] scheduling: #3
 [EXECUTOR] scheduling: #4
-[main1] => [BROADCAST] [Something] undefined
-[main3] => [BROADCAST] [SomethingYaml] undefined
+[main.*] => [BROADCAST] [Something.*] undefined
+[main.*] => [BROADCAST] [Something.*] undefined
 [POOL] available:2 , staged:2
 [POOL] inv: main1 COMPLETED
 [POOL] inv: main3 COMPLETED

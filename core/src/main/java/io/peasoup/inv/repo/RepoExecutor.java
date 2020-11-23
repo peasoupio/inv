@@ -16,9 +16,11 @@ import java.util.concurrent.Future;
 
 public class RepoExecutor {
 
+    private final RepoInvoker repoInvoker;
     private final Map<String, RepoDescriptor> repos;
 
     public RepoExecutor() {
+        this.repoInvoker = new RepoInvoker(this);
         this.repos = new ConcurrentHashMap<>();
     }
 
@@ -26,8 +28,8 @@ public class RepoExecutor {
      * Parse and invoke an REPO Groovy script file
      * @param scriptFile REPO Groovy script file
      */
-    public void parse(File scriptFile) {
-        parse(scriptFile, null);
+    public void addScript(File scriptFile) {
+        addScript(scriptFile, null);
     }
 
     /**
@@ -35,14 +37,14 @@ public class RepoExecutor {
      * @param scriptFile REPO Groovy script file
      * @param parametersFile Matching parameters file
      */
-    public void parse(File scriptFile, File parametersFile) {
+    public void addScript(File scriptFile, File parametersFile) {
         if (scriptFile == null)
             throw new IllegalArgumentException("scriptFile");
 
         if (!scriptFile.exists())
             throw new IllegalStateException("Script file must exist on filesystem");
 
-        RepoInvoker.invoke(this, scriptFile, parametersFile);
+        repoInvoker.invokeScript(scriptFile, parametersFile);
     }
 
     /**

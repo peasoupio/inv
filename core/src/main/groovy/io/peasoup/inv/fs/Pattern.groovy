@@ -30,7 +30,7 @@ class Pattern {
                 return [lookupFile]
 
             // Can't process Ant-compliant patterns without a root
-            if (!root)
+            if (!root || !root.exists())
                 return []
 
             // If patterns mean an actual file the root, use it

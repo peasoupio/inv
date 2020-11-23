@@ -209,7 +209,7 @@ class Execution {
         Logger.info("Executing using AppLauncher configuration")
 
         def jvmArgs = ["java", "-jar", appLauncher]
-        def appArgs = ["repo", "run"]
+        def appArgs = []
 
         if (debugMode)
             appArgs << "-d"
@@ -220,7 +220,8 @@ class Execution {
         if (secureMode)
             appArgs << "-s"
 
-        appArgs << "-l"
+        appArgs << "repo-run"
+        appArgs << "--list"
 
         appArgs << repoListFile.absolutePath
 
@@ -232,7 +233,7 @@ class Execution {
 
         def myClassPath = System.getProperty("java.class.path")
         def jvmArgs = ["java", "-Djava.system.class.loader=groovy.lang.GroovyClassLoader", "-classpath", myClassPath, Main.class.canonicalName]
-        def appArgs = ["repo", "run"]
+        def appArgs = []
 
         if (debugMode)
             appArgs << "-d"
@@ -243,7 +244,8 @@ class Execution {
         if (secureMode)
             appArgs << "-s"
 
-        appArgs << "-l"
+        appArgs << "repo-run"
+        appArgs << "--list"
 
         appArgs << repoListFile.absolutePath
 

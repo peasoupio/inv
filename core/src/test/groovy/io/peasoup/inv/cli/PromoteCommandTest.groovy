@@ -29,7 +29,7 @@ class PromoteCommandTest {
 
     @Test
     void runfolder_not_existing() {
-        assertEquals(1, new PromoteCommand(runIndex: "999").call())
+        assertEquals(1, new PromoteCommand().call("<runIndex>": "999"))
     }
 
     @Test
@@ -37,7 +37,7 @@ class PromoteCommandTest {
         def run = new File(RunsRoller.runsFolder(), "10")
         run.mkdirs()
 
-        assertEquals(2, new PromoteCommand(runIndex: "10").call())
+        assertEquals(2, new PromoteCommand().call("<runIndex>": "10"))
     }
 
     @Test

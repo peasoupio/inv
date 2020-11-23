@@ -18,46 +18,37 @@ public class RepoInvoker {
 
     public static final List<String> DEFAULT_EXCLUDED = Collections.unmodifiableList(Arrays.asList(".runs/*", "*.json" ));
 
-    private static GroovyLoader groovyLoader;
-    private static YamlLoader yamlLoader;
+    private final RepoExecutor repoExecutor;
+    private final GroovyLoader groovyLoader;
+    private final YamlLoader yamlLoader;
 
-    private RepoInvoker() {
-        // empty ctor
-    }
+    public RepoInvoker(RepoExecutor repoExecutor) {
+        if (repoExecutor == null)
+            throw new IllegalArgumentException("repoExecutor");
 
-    /**
-     * Clear existing loader and create a new instance.
-     */
-    public static void newCache() {
-        groovyLoader = new GroovyLoader();
-        yamlLoader = new YamlLoader();
+        this.repoExecutor = repoExecutor;
+        this.groovyLoader = new GroovyLoader();
+        this.yamlLoader = new YamlLoader();
     }
 
     /**
      * Parse and invoke an Repo groovy File
-     * @param repoExecutor RepoExecutor instance
+     *
      * @param repoFile Repo Groovy file
      */
-    public static void invoke(RepoExecutor repoExecutor, File repoFile) {
-        invoke(repoExecutor, repoFile, null);
+    public void invokeScript(File repoFile) {
+        invokeScript(repoFile, null);
     }
 
     /**
      * Parse and invoke an REPO groovy File
-     * @param repoExecutor RepoExecutor instance
+     *
      * @param scriptFile REPO Groovy file
      * @param parametersFile Parameters file to load with the REPO
      */
-    public static void invoke(RepoExecutor repoExecutor, File scriptFile, File parametersFile) {
-        if (groovyLoader == null || yamlLoader == null)
-            throw new IllegalStateException("loader has no cache");
-
-        if (repoExecutor == null) {
-            throw new IllegalArgumentException("repoExecutor");
-        }
-        if (scriptFile == null) {
+    public void invokeScript(File scriptFile, File parametersFile) {
+        if (scriptFile == null)
             throw new IllegalArgumentException("scriptFile");
-        }
 
         if (!scriptFile.exists()) {
             Logger.warn("REPO file does not exists: " + scriptFile.getAbsolutePath());
@@ -75,12 +66,12 @@ public class RepoInvoker {
 
         // Check if either a YAML or Groovy Script file
         if (scriptPath.endsWith(".yaml") || scriptPath.endsWith(".yml"))
-            parseYaml(repoExecutor, scriptFile, parametersFile);
+            parseYaml(scriptFile, parametersFile);
         else
-            runScript(repoExecutor, scriptFile, parametersFile);
+            runScript(scriptFile, parametersFile);
     }
 
-    private static void parseYaml(RepoExecutor repoExecutor, File scriptFile, File parametersFile) {
+    private void parseYaml(File scriptFile, File parametersFile) {
 
         // Create YAML handler
         YamlRepoHandler yamlInvHandler = new YamlRepoHandler(
@@ -98,17 +89,13 @@ public class RepoInvoker {
 
     /**
      * Parse and invoke an REPO groovy File
-     * @param repoExecutor RepoExecutor instance
+     *
      * @param repoFile Repo Groovy file
      * @param parametersFile Parameters file to load with the REPO
      */
-    public static void runScript(RepoExecutor repoExecutor, File repoFile, File parametersFile) {
-        if (repoExecutor == null) {
-            throw new IllegalArgumentException("repoExecutor");
-        }
-        if (repoFile == null) {
+    public void runScript(File repoFile, File parametersFile) {
+        if (repoFile == null)
             throw new IllegalArgumentException("repoFile");
-        }
 
         if (!repoFile.exists()) {
             Logger.warn("REPO file does not exists: " + repoFile.getAbsolutePath());

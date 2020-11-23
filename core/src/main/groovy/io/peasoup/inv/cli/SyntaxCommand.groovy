@@ -11,12 +11,16 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException
 @CompileStatic
 class SyntaxCommand implements CliCommand {
 
-    List<String> patterns
-    String exclude
+    @Override
+    int call(Map args = [:]) {
+        if (args == null)
+            throw new IllegalArgumentException("args")
 
-    int call() {
-        assert patterns != null, 'A valid value is required for patterns'
-        if (patterns.isEmpty())
+        List<String> includes = args["<include>"] as List<String>
+        String exclude = args["--exclude"]
+
+        assert includes != null, 'A valid value is required for patterns'
+        if (includes.isEmpty())
             return 1
 
         // Handle excluding patterns
@@ -25,7 +29,7 @@ class SyntaxCommand implements CliCommand {
             excludePatterns.add(exclude)
 
         def commonLoader = new GroovyLoader()
-        def syntaxFiles = Pattern.get(patterns, excludePatterns, Home.getCurrent())
+        def syntaxFiles = Pattern.get(includes, excludePatterns, Home.getCurrent())
         def succeeded = true
 
         syntaxFiles.each {
@@ -48,7 +52,32 @@ class SyntaxCommand implements CliCommand {
         return succeeded? 0 : 2
     }
 
+    @Override
     boolean rolling() {
         return false
+    }
+
+    @Override
+    String usage() {
+        """
+Check the syntax of an INV or REPO file.
+
+Usage:
+  inv [-dsx] syntax [--exclude <exclude>] <include>...
+
+Options:
+  -e, --exclude=exclude
+               Indicates the files to exclude.
+               Exclusion is predominant over inclusion
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+
+Arguments:
+  <include>    Indicates the files to include.
+               It is Ant-compatible 
+               (p.e *.groovy, ./**/*.groovy, ...)
+               It is also expandable using a space-separator
+               (p.e myfile1.groovy myfile2.groovy)
+"""
     }
 }

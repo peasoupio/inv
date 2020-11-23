@@ -2,7 +2,6 @@ package io.peasoup.inv.repo;
 
 import io.peasoup.inv.loader.FgroupLoader;
 import io.peasoup.inv.run.InvExecutor;
-import io.peasoup.inv.run.InvInvoker;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -117,7 +116,7 @@ public class RepoFolderCollection {
         if (StringUtils.isNotEmpty(expectedParametersFileLocation))
             expectedParametersFile = new File(expectedParametersFileLocation);
 
-        currentRepoExecutor.parse(
+        currentRepoExecutor.addScript(
                 localRepofile,
                 expectedParametersFile);
     }
@@ -137,14 +136,14 @@ public class RepoFolderCollection {
     private void invokeGroovyfiles(FgroupLoader.RepoMatches matches, String packageName) {
         // Parse groovy classes
         for(Path groovyFile : matches.getGroovyFiles()) {
-            InvInvoker.addClass(groovyFile.toFile(), packageName);
+            invExecutor.addClass(groovyFile.toFile(), packageName);
         }
     }
 
     private void invokeInvfiles(FgroupLoader.RepoMatches matches, String packageName, String path, String repo) {
         // Parse inv files.
         for(Path invFile : matches.getInvFiles()) {
-            invExecutor.parse(
+            invExecutor.addScript(
                     invFile.toFile(),
                     packageName,
                     path,

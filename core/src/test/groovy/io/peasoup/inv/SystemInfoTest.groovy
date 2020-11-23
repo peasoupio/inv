@@ -1,9 +1,11 @@
 package io.peasoup.inv
 
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import static org.junit.Assert.*
 
+@RunWith(TempHome.class)
 class SystemInfoTest {
 
     @Test

@@ -20,7 +20,7 @@ public class FgroupLoader {
 
     static {
         String tmpFolder = System.getProperty("java.io.tmpdir");
-        Path configFile = Path.of(tmpFolder, "fgroup.txt");;
+        Path configFile = Path.of(tmpFolder, "fgroup.txt");
 
         if (!Files.exists(configFile)) {
             try (InputStream is = FgroupLoader.class.getResourceAsStream("/fgroup.txt");) {
@@ -40,6 +40,7 @@ public class FgroupLoader {
 
     /**
      * Find matches based on the fgroup.txt configuration for a directory.
+     *
      * @param dir Directory to lookup.
      * @return RepoMatches object.
      */
@@ -55,22 +56,22 @@ public class FgroupLoader {
         RepoMatches repoMatches = new RepoMatches(dir);
 
         // Load groovy files right now
-        for(FileMatches.FileMatchRecord match : fileMatches.get("groovyFiles")) {
+        for (FileMatches.FileMatchRecord match : fileMatches.get("groovyFiles")) {
             repoMatches.getGroovyFiles().add(match.getCurrent());
         }
 
         // Load groovy test files if included
-        for(FileMatches.FileMatchRecord match : fileMatches.get("groovyTestFiles")) {
+        for (FileMatches.FileMatchRecord match : fileMatches.get("groovyTestFiles")) {
             repoMatches.getGroovyTestFiles().add(match.getCurrent());
         }
 
         // Add invs
-        for(FileMatches.FileMatchRecord match : fileMatches.get("invFiles")) {
+        for (FileMatches.FileMatchRecord match : fileMatches.get("invFiles")) {
             repoMatches.getInvFiles().add(match.getCurrent());
         }
 
         // Add repo file
-        for(FileMatches.FileMatchRecord match : fileMatches.get("repoFile")) {
+        for (FileMatches.FileMatchRecord match : fileMatches.get("repoFile")) {
             repoMatches.setRepoFile(match.getCurrent());
         }
 

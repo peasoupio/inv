@@ -40,12 +40,12 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
     /**
      * Raised by the Groovy class parser
      * @param groovyCodeSource Groovy source code to parse
-     * @param extConfig Extended groovy classloader configuration
+     * @param config Extended groovy classloader configuration
      * @return A class reference
      * @throws CompilationFailedException
      */
-    public Class<?> parseClass(GroovyCodeSource groovyCodeSource, Config extConfig) throws CompilationFailedException {
-        this.knownConfigs.put(groovyCodeSource.getCodeSource(), extConfig);
+    public Class<?> parseClass(GroovyCodeSource groovyCodeSource, Config config) throws CompilationFailedException {
+        this.knownConfigs.put(groovyCodeSource.getCodeSource(), config);
 
         return super.parseClass(groovyCodeSource);
     }

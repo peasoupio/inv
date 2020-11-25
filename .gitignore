@@ -13,3 +13,7 @@ reports/
 .runs/
 .repos/
 
+
+# Known tests
+init@main
+

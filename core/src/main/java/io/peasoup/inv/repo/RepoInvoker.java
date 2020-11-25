@@ -5,7 +5,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.repo.yaml.YamlRepoHandler;
-import io.peasoup.inv.run.DebugLogger;
+import io.peasoup.inv.DebugLogger;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;

@@ -61,8 +61,8 @@ public class GroovyLoader {
 
 
     private final boolean secureMode;
-    private final ExtGroovyClassLoader generalClassLoader;
-    private final ExtGroovyClassLoader securedClassLoader;
+    private final EncapsulatedGroovyClassLoader generalClassLoader;
+    private final EncapsulatedGroovyClassLoader securedClassLoader;
 
 
     /**
@@ -118,10 +118,13 @@ public class GroovyLoader {
 
         compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
 
+        /*
         ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
         if (systemClassloader)
             loaderToUse = ClassLoader.getSystemClassLoader();
 
+        */
+        ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
 
         // Apply SecureAST to all (de)compilers
         applySecureASTConfigs(securedCompilerConfiguration);
@@ -129,8 +132,8 @@ public class GroovyLoader {
         // Apply SecureTypeChecker to secured (de)compiler
         applySecureTypeCheckerConfigs(securedCompilerConfiguration);
 
-        this.generalClassLoader = new ExtGroovyClassLoader(loaderToUse, compilerConfiguration);
-        this.securedClassLoader = new ExtGroovyClassLoader(loaderToUse, securedCompilerConfiguration);
+        this.generalClassLoader = new EncapsulatedGroovyClassLoader(loaderToUse, compilerConfiguration);
+        this.securedClassLoader = new EncapsulatedGroovyClassLoader(loaderToUse, securedCompilerConfiguration);
     }
 
     /**
@@ -145,7 +148,7 @@ public class GroovyLoader {
                 text,
                 "script:",
                 "groovy/script"),
-            new ExtGroovyClassLoader.ExtConfig("text", null));
+            new EncapsulatedGroovyClassLoader.Config("text", null));
     }
 
     /**
@@ -161,7 +164,7 @@ public class GroovyLoader {
 
         return parseGroovyCodeSource(
                 new GroovyCodeSource(groovyFile),
-                new ExtGroovyClassLoader.ExtConfig("class", packageName));
+                new EncapsulatedGroovyClassLoader.Config("class", packageName));
     }
 
     /**
@@ -177,7 +180,7 @@ public class GroovyLoader {
 
         return parseGroovyCodeSource(
                 new GroovyCodeSource(groovyFile),
-                new ExtGroovyClassLoader.ExtConfig("test", packageName));
+                new EncapsulatedGroovyClassLoader.Config("test", packageName));
     }
 
     /**
@@ -208,7 +211,7 @@ public class GroovyLoader {
     public Script parseScriptFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return createScript(
                 new GroovyCodeSource(groovyFile),
-                new ExtGroovyClassLoader.ExtConfig("script", newPackage));
+                new EncapsulatedGroovyClassLoader.Config("script", newPackage));
     }
 
     /**
@@ -217,7 +220,7 @@ public class GroovyLoader {
      * @param config Extended Groovy class loader config
      * @return A new Script instance
      */
-    private Script createScript(GroovyCodeSource groovyCodeSource, ExtGroovyClassLoader.ExtConfig config) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+    private Script createScript(GroovyCodeSource groovyCodeSource, EncapsulatedGroovyClassLoader.Config config) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
         Class<?> cls = parseGroovyCodeSource(groovyCodeSource, config);
         if (cls == null)
@@ -232,7 +235,7 @@ public class GroovyLoader {
      * @param config Extended Groovy class loader config
      * @return A new class object
      */
-    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource, ExtGroovyClassLoader.ExtConfig config) {
+    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource, EncapsulatedGroovyClassLoader.Config config) {
 
         // If secure is enabled, use secure classloader
         if (secureMode) {

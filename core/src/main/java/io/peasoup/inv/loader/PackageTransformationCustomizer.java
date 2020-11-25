@@ -13,11 +13,11 @@ public class PackageTransformationCustomizer extends CompilationCustomizer {
     }
 
     public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) {
-        if (!(source.getClassLoader() instanceof ExtGroovyClassLoader))
+        if (!(source.getClassLoader() instanceof EncapsulatedGroovyClassLoader))
             return;
 
-        ExtGroovyClassLoader egcl = (ExtGroovyClassLoader)source.getClassLoader();
-        ExtGroovyClassLoader.ExtConfig cfg = egcl.getExtConfig(context.getCompileUnit().getCodeSource());
+        EncapsulatedGroovyClassLoader egcl = (EncapsulatedGroovyClassLoader)source.getClassLoader();
+        EncapsulatedGroovyClassLoader.Config cfg = egcl.getConfig(context.getCompileUnit().getCodeSource());
 
         cfg.updateClassnode(source.getAST(), classNode);
     }

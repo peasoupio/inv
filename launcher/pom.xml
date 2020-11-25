@@ -9,9 +9,14 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>inv-launcher</artifactId>
 
+    <properties>
+        <sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.sources>src/main/groovy</sonar.sources>
+        <sonar.tests>src/test/groovy,src/it/groovy</sonar.tests>
+    </properties>
+
     <dependencies>
 
-        <!-- project deps -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>inv-core</artifactId>
@@ -20,14 +25,73 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>inv-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>inv-composer</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Frameworks -->
+        <dependency>
+            <groupId>com.offbytwo</groupId>
+            <artifactId>docopt</artifactId>
+            <version>0.6.0.20150202</version>
         </dependency>
 
     </dependencies>
 
     <build>
+
+        <resources>
+            <resource><directory>../ci/build</directory><filtering>true</filtering></resource>
+            <resource><directory>src/main/resources</directory></resource>
+        </resources>
+
+        <testResources>
+            <testResource><directory>src/test/resources</directory></testResource>
+            <testResource><directory>src/it/resources</directory></testResource>
+        </testResources>
+
         <plugins>
+
+            <!-- compile groovy files -->
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.11.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>addSources</goal>
+                            <goal>addTestSources</goal>
+                            <goal>compile</goal>
+                            <goal>compileTests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <testSources>
+                        <testSource>
+                            <directory>${project.basedir}/src/test/groovy</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                            </includes>
+                        </testSource>
+                        <testSource>
+                            <directory>${project.basedir}/src/it/groovy</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                            </includes>
+                        </testSource>
+                    </testSources>
+                </configuration>
+            </plugin>
 
             <!-- assembly -->
             <plugin>
@@ -37,8 +101,9 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <mainClass>io.peasoup.inv.Main</mainClass>
                             <addClasspath>true</addClasspath>
-                            <mainClass>io.peasoup.inv.AppLauncher</mainClass>
+                            <classpathPrefix>lib/</classpathPrefix>
                         </manifest>
                     </archive>
                 </configuration>

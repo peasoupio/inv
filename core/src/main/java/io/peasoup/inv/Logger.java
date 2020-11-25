@@ -1,15 +1,13 @@
 package io.peasoup.inv;
 
-import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 
-import java.util.Queue;
+import java.util.Collection;
 
 public final class Logger {
 
-    private static Queue<Object> captureQueue = null;
-    private static Closure<Object> captureClosure = null;
+    private static Collection<String> captureList = null;
 
     private static boolean systemEnabled = false;
     private static boolean debugEnabled = false;
@@ -108,27 +106,20 @@ public final class Logger {
         System.out.append(s);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T capture(T value) {
 
-        // Reset both so only one works at the time
-        captureClosure = null;
-        captureQueue = null;
+    public static Collection<String> getCapture() {
+        return captureList;
+    }
 
-        if (value instanceof Queue) captureQueue = (Queue<Object>) value;
-
-        if (value instanceof Closure) captureClosure = (Closure<Object>) value;
-
-        return value;
+    public static void setCapture(Collection<String> value) {
+        captureList = value;
     }
 
     private static void send(String message) {
         // In real life scenario, this method would be useless
         // By putting this validation before the rest, it should
         // always indicate to the JVM to quit this method right away
-        // It's only a guess to assume it would be improve logging performances.
-        if (captureQueue == null &&
-            captureClosure == null)
+        if (captureList == null)
             return;
 
         if (StringUtils.isEmpty(message))
@@ -138,12 +129,6 @@ public final class Logger {
         if ("\n".equals(message) || System.lineSeparator().equals(message))
             return;
 
-        if (captureQueue != null) captureQueue.add(message);
-        if (captureClosure != null) captureClosure.call(message);
-    }
-
-    public static void resetCapture() {
-        captureQueue = null;
-        captureClosure = null;
+        captureList.add(message);
     }
 }

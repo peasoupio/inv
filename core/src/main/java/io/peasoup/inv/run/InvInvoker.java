@@ -2,6 +2,7 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
+import io.peasoup.inv.DebugLogger;
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.GroovyLoader;
@@ -89,13 +90,13 @@ public class InvInvoker {
             scriptPath = scriptFile.getAbsolutePath();
         }
 
+        if (StringUtils.isEmpty(pwd)) {
+            throw new IllegalArgumentException("Pwd (current working directory) is required");
+        }
+
         if (!scriptFile.exists()) {
             Logger.warn("[INVOKER] file: " + scriptPath + ", exists: false");
             return;
-        }
-
-        if (StringUtils.isEmpty(pwd)) {
-            throw new IllegalArgumentException("Pwd (current working directory) is required");
         }
 
         // Check if either a YAML or Groovy Script file
@@ -150,6 +151,4 @@ public class InvInvoker {
             Logger.error(ex);
         }
     }
-
-
 }

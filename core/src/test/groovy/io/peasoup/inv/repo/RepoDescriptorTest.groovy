@@ -6,8 +6,7 @@ import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.Assert.assertTrue
-import static org.junit.jupiter.api.Assertions.*
+import static org.junit.Assert.*
 
 @RunWith(TempHome.class)
 class RepoDescriptorTest {

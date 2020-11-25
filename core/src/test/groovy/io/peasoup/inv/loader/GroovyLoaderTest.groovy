@@ -5,8 +5,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.jupiter.api.Assertions.assertNotNull
-import static org.junit.jupiter.api.Assertions.assertNull
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
 
 @RunWith(TempHome.class)
 class GroovyLoaderTest {

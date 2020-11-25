@@ -91,11 +91,11 @@ public class RepoFolderCollection {
     /**
      * Read added repos and load invs into the executor
      */
-    public void loadInvs() {
+    public boolean loadInvs() {
         // Execute repos descriptors
         for(RepoExecutor.RepoHookExecutionReport report : repoExecutor.execute()) {
             if (!report.isOk())
-                continue;
+                return false;
 
             // Get matches for
             FgroupLoader.RepoMatches matches = FgroupLoader.findMatches(report.getDescriptor().getRepoCompletePath().getAbsolutePath());
@@ -107,6 +107,8 @@ public class RepoFolderCollection {
         for(Map.Entry<RepoDescriptor, FgroupLoader.RepoMatches> kpv : this.matchesCache.entrySet()) {
             parseRepoFolderFiles(kpv.getKey(), kpv.getValue());
         }
+
+        return true;
     }
 
     private void parseRepofile(RepoExecutor currentRepoExecutor, String repoFileLocation, String expectedParametersFileLocation) {

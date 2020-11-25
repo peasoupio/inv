@@ -4,7 +4,7 @@ import io.peasoup.inv.MissingOptionException
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.*
+import static org.junit.Assert.*
 
 class RepoHandlerTest {
 
@@ -17,22 +17,6 @@ class RepoHandlerTest {
         scriptFile = new File("dummy-repo.yml")
         executor = new RepoExecutor()
         repo = new RepoHandler(executor, scriptFile)
-    }
-
-    @Test
-    void ok() {
-
-        def testRepo = RepoHandlerTest.class.getResource("/repo.groovy")
-        executor.addScript(new File(testRepo.path))
-
-        assertNotNull executor.repos["my-repository"]
-
-        assertEquals "https://github.com/spring-guides/gs-spring-boot.git", executor.repos["my-repository"].src
-        assertEquals 30000, executor.repos["my-repository"].timeout
-
-        assertNotNull executor.repos["my-repository"].hooks
-        assertTrue executor.repos["my-repository"].hooks.init.contains("mkdir something")
-        assertTrue executor.repos["my-repository"].hooks.pull.contains("echo 'pull'")
     }
 
     @Test

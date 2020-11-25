@@ -32,7 +32,7 @@
         <module>core</module>
         <module>composer</module>
         <module>launcher</module>
-        <module>reports</module>
+        <module>report</module>
     </modules>
 
     <dependencies>

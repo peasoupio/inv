@@ -8,7 +8,7 @@ import org.junit.runner.RunWith
 
 import java.util.stream.Stream
 
-import static org.junit.jupiter.api.Assertions.*
+import static org.junit.Assert.*
 
 @SuppressWarnings(["GroovyAssignabilityCheck", "GroovyMissingReturnStatement", "GrEqualsBetweenInconvertibleTypes"])
 @RunWith(TempHome.class)

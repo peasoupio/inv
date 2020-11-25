@@ -3,8 +3,8 @@ package io.peasoup.inv.run
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.jupiter.api.Assertions.assertNotNull
-import static org.junit.jupiter.api.Assertions.assertThrows
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertThrows
 
 class PoolReportTest {
 

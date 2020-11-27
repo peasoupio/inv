@@ -1,5 +1,4 @@
 [GROOVYLOADER] secure: false
-[GROOVYLOADER] system: false
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 You may proceed with any of the following commands:

@@ -1,5 +1,4 @@
 [GROOVYLOADER] secure: true
-[GROOVYLOADER] system: false
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----

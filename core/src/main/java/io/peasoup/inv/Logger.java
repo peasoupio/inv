@@ -17,7 +17,7 @@ public final class Logger {
         System.setProperty(
                 "groovy.sanitized.stacktraces",
                 "groovy.,org.codehaus.groovy.,java.,javax.,sun.,gjdk.groovy.," +
-                "groovyjarjarantlr4.,org.apache.groovy.,");
+                        "groovyjarjarantlr4.,org.apache.groovy.,");
     }
 
     private Logger() {
@@ -65,7 +65,7 @@ public final class Logger {
         System.out.append("[INV] ").append(message).append(System.lineSeparator());
     }
 
-    public static void info(Object arg, Object ...args) {
+    public static void info(Object arg, Object... args) {
         String message = arg.toString();
         message = String.format(message, args);
 

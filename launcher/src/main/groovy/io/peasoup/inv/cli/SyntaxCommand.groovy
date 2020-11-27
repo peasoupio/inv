@@ -34,7 +34,7 @@ class SyntaxCommand implements CliCommand {
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.parseClassFile(it, "empty.package") // TODO Should use its own classloader
+                def result = commonLoader.parseClassFile(it, "empty.package")
                 def path = FileUtils.convertUnixPath(it.absolutePath)
 
                 if (result)

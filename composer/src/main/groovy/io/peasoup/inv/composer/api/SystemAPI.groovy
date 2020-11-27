@@ -79,7 +79,7 @@ class SystemAPI {
 
             return JsonOutput.toJson([
                     booted        : webServer.boot.isDone(),
-                    releaseVersion: SystemInfo.version(),
+                    releaseVersion: webServer.version(),
                     initInfo      : initInfo,
                     firstTime     : webServer.run == null,
                     links         : [
@@ -149,7 +149,7 @@ class SystemAPI {
 
             // Reuse InitRunCommand to pull init file
             def exitValue = MainHelper.execute(
-                    webServer.webServerConfigs.appLauncher as String,
+                    webServer.appLauncher(),
                     ["repo-run", initFile.absolutePath])
 
             if (!exitValue)

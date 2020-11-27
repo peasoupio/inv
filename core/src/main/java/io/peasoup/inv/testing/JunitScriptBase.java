@@ -80,13 +80,19 @@ public abstract class JunitScriptBase extends Script {
 
         repoFolderCollection.loadInvs();
 
+        String packageName = null;
+
+        // Can occur when using "standalone" Groovy executor
+        if(mySettings != null)
+            packageName = mySettings.getPackageName();
+
         // Add inv files
         for(String invLocation : simulatorDescriptor.getInvFiles()) {
             File invRealLocation = new File(Home.getCurrent(), invLocation);
 
             invExecutor.addScript(
                     invRealLocation,
-                    mySettings.getPackageName(),
+                    packageName,
                     invRealLocation.getParent(),
                     null);
         }

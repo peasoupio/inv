@@ -42,24 +42,6 @@ public class GroovyLoader {
 
     private static boolean systemSecureModeEnabled = false;
 
-    /**
-     * Enables SystemClassloader.
-     * It allows GrabConfig(systemClassLoader=true).
-     */
-    public static void enableSystemClassloader() {
-        Logger.system("[GROOVYLOADER] system: true");
-        systemClassloaderEnabled = true; }
-
-    /**
-     * Disables SystemClassloader.
-     * It allows GrabConfig(systemClassLoader=true).
-     */
-    public static void disableSystemClassloader() {
-        Logger.system("[GROOVYLOADER] system: false");
-        systemClassloaderEnabled = false; }
-    private static boolean systemClassloaderEnabled = false;
-
-
     private final boolean secureMode;
     private final EncapsulatedGroovyClassLoader generalClassLoader;
     private final EncapsulatedGroovyClassLoader securedClassLoader;
@@ -69,7 +51,7 @@ public class GroovyLoader {
      * Create a common loader using system-wide secure mode preference
      */
     public GroovyLoader() {
-        this(systemSecureModeEnabled, systemClassloaderEnabled,  null, null);
+        this(systemSecureModeEnabled,  null, null);
     }
 
     /**
@@ -78,7 +60,7 @@ public class GroovyLoader {
      * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
      */
     public GroovyLoader(String scriptBaseClass) {
-        this(systemSecureModeEnabled, systemClassloaderEnabled,  scriptBaseClass, null);
+        this(systemSecureModeEnabled,  scriptBaseClass, null);
     }
 
     /**
@@ -89,26 +71,15 @@ public class GroovyLoader {
      * @param importCustomizer A pre-defined import customizer. Can be null.
      */
     public GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
-        this(secureMode, systemClassloaderEnabled,  scriptBaseClass, importCustomizer);
-    }
-
-    /**
-     * Create a common loader
-     *
-     * @param secureMode Determines if using secure mode or not
-     * @param systemClassloader Determines if using system classloader
-     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
-     * @param importCustomizer A pre-defined import customizer. Can be null.
-     */
-    public GroovyLoader(boolean secureMode, boolean systemClassloader, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
 
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+
         CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
 
         if (StringUtils.isNotEmpty(scriptBaseClass)) {
             compilerConfiguration.setScriptBaseClass(scriptBaseClass);
-            securedCompilerConfiguration.setScriptBaseClass(scriptBaseClass); // TODO Is it safe ?
+            securedCompilerConfiguration.setScriptBaseClass(scriptBaseClass);
         }
 
         if (importCustomizer != null) {
@@ -118,13 +89,6 @@ public class GroovyLoader {
 
         compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
 
-        /*
-        ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
-        if (systemClassloader)
-            loaderToUse = ClassLoader.getSystemClassLoader();
-
-        */
-        ClassLoader loaderToUse = Thread.currentThread().getContextClassLoader();
 
         // Apply SecureAST to all (de)compilers
         applySecureASTConfigs(securedCompilerConfiguration);
@@ -132,8 +96,8 @@ public class GroovyLoader {
         // Apply SecureTypeChecker to secured (de)compiler
         applySecureTypeCheckerConfigs(securedCompilerConfiguration);
 
-        this.generalClassLoader = new EncapsulatedGroovyClassLoader(loaderToUse, compilerConfiguration);
-        this.securedClassLoader = new EncapsulatedGroovyClassLoader(loaderToUse, securedCompilerConfiguration);
+        this.generalClassLoader = new EncapsulatedGroovyClassLoader(compilerConfiguration);
+        this.securedClassLoader = new EncapsulatedGroovyClassLoader(securedCompilerConfiguration);
     }
 
     /**
@@ -211,7 +175,30 @@ public class GroovyLoader {
     public Script parseScriptFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return createScript(
                 new GroovyCodeSource(groovyFile),
-                new EncapsulatedGroovyClassLoader.Config("script", newPackage));
+                new EncapsulatedGroovyClassLoader.Config(
+                        "script",
+                        newPackage));
+    }
+
+    /**
+     * Parse and raise new instance of Groovy (script) file
+     * @param groovyFile Groovy file
+     * @param newPackage Defines package for groovy file classes (nullable)
+     * @param useScriptName True if the script name should be used, otherwise it is generated
+     * @return
+     * @throws IOException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    public Script parseScriptFile(File groovyFile, String newPackage, boolean useScriptName) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return createScript(
+                new GroovyCodeSource(groovyFile),
+                new EncapsulatedGroovyClassLoader.Config(
+                        "script",
+                        newPackage,
+                        useScriptName));
     }
 
     /**

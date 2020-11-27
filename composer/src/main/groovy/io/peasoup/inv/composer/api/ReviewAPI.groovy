@@ -57,7 +57,7 @@ class ReviewAPI {
             if (webServer.baseFile().exists())
                 review.merge()
 
-            if (!review.promote(webServer.webServerConfigs.appLauncher as String))
+            if (!review.promote(webServer.appLauncher() as String))
                 return webServer.showError(res, "failed to promote")
 
             // Recalculate RunFile

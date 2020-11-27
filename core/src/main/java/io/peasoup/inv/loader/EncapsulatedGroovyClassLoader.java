@@ -9,6 +9,7 @@ import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
+import java.io.File;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,7 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
 
             // Junit
             "org\\.junit\\..*",
+            "junit\\.framework\\..*",
 
             // INV stuff
             "io\\.peasoup\\.inv\\.testing\\.JunitScriptBase"
@@ -33,8 +35,8 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
 
     private final Map<CodeSource, Config> knownConfigs = new ConcurrentHashMap<>();
 
-    public EncapsulatedGroovyClassLoader(ClassLoader loader, CompilerConfiguration config) {
-        super(loader, config);
+    public EncapsulatedGroovyClassLoader(CompilerConfiguration config) {
+        super(Thread.currentThread().getContextClassLoader(), config);
     }
 
     /**
@@ -66,6 +68,11 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
         if (clazz.getClassLoader() instanceof EncapsulatedGroovyClassLoader)
             return clazz;
 
+        // If code source location is not a JAR file, it is safe
+        // It is probably a Groovy class discovered by a folder set into the classpath
+        if(!clazz.getProtectionDomain().getCodeSource().getLocation().getPath().endsWith(".jar"))
+            return clazz;
+
         // Check if the class is whitelisted
         // IMPORTANT: This mechanism prevent "inv" classes and libraries cross-contamination
         if (WHITELISTED_REGEX.matcher(name).matches())
@@ -89,21 +96,30 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
 
         private final String type;
         private final String packageName;
+        private final boolean useScriptName;
 
         Config(String type, String packageName) {
+            this(type, packageName, false);
+        }
+
+        Config(String type, String packageName, boolean useScriptName) {
             this.type = type;
             this.packageName = packageName;
+            this.useScriptName = useScriptName;
         }
 
         public void updateClassnode(ModuleNode ast, ClassNode classNode) {
-            String newName;
+            // Default name equals to the source filename without the extension
+            String newName = new File(ast.getDescription()).getName().split("\\.")[0];
 
             switch (type) {
 
                 // Package is appended if available, class name is ignored and
                 // replaced with a generic name + random suffix
                 case "script":
-                    newName = "Script" + random();
+                    if (!useScriptName)
+                        newName = "Script" + random();
+
                     if (StringUtils.isNotEmpty(packageName)) {
                         ast.setPackageName(packageName);
                         ast.addStarImport(packageName + ".");
@@ -129,7 +145,9 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
 
                 // Same as scripts, but package is required, so we assume its available
                 case "test":
-                    newName = "Test" + random();
+                    if (!useScriptName)
+                        newName = "Test" + random();
+
                     ast.addStarImport(packageName + ".");
                     ast.setPackageName(packageName);
                     classNode.setName(packageName + "." + newName);

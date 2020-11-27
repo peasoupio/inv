@@ -2,6 +2,7 @@ package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
+import io.peasoup.inv.SystemInfo
 import io.peasoup.inv.composer.WebServer
 
 import java.nio.file.Paths
@@ -29,9 +30,10 @@ class ComposerCommand implements CliCommand {
                 ComposerCommand.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile()
 
         Map settings = [
-                workspace: Home.getCurrent().absolutePath,
-                initFile: this.initFileLocation,
-                appLauncher: jarLocation.absolutePath
+                workspace  : Home.getCurrent().absolutePath,
+                initFile   : this.initFileLocation,
+                appLauncher: jarLocation.absolutePath,
+                version    : SystemInfo.version()
         ]
 
         // Check whether or not Composer will use the AppLauncher or classic approach.

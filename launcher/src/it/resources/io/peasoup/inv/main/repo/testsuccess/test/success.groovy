@@ -1,3 +1,4 @@
+@groovy.transform.BaseScript(io.peasoup.inv.testing.JunitScriptBase.class)
 package io.peasoup.inv.main.repo.testsuccess.test
 
 import org.junit.Test

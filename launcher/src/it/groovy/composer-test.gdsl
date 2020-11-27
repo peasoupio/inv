@@ -1,0 +1,5 @@
+contributor(context(scope: scriptScope())) {
+    method name: 'get', type: 'void', params: [url: 'java.lang.String', callback: 'groovy.lang.Closure'], doc: "Create a GET HTTP request"
+    method name: 'get', type: 'void', params: [url: 'java.lang.String', data: 'java.util.Map', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+}
+

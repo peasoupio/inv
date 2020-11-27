@@ -73,12 +73,6 @@ class Main extends Script {
         else
             GroovyLoader.disableSecureMode()
 
-        // Enable SystemClassLoader
-        if (System.getProperty("java.system.class.loader"))
-            GroovyLoader.enableSystemClassloader()
-        else
-            GroovyLoader.disableSystemClassloader()
-
         // Do system checks
         if (SystemInfo.consistencyFails()) {
             RunsRoller.latest.latestHaveFailed()

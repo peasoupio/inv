@@ -16,8 +16,8 @@ class GroovyLoaderTest {
 
     @Before
     void setup() {
-        loader = new GroovyLoader(false, true, null, null)
-        securedLoader = new GroovyLoader(true, false, null, null)
+        loader = new GroovyLoader(false, null, null)
+        securedLoader = new GroovyLoader(true, null, null)
     }
 
     @Test

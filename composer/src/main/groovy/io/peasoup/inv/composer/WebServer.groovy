@@ -36,6 +36,9 @@ class WebServer {
         if (!(args.appLauncher instanceof CharSequence))
             throw new IllegalArgumentException("Args must include a 'appLauncher' (String) property.")
 
+        if (!(args.version instanceof CharSequence))
+            throw new IllegalArgumentException("Args must include a 'version' (String) property.")
+
         webServerConfigs = [
                 port: 8080
         ] + args
@@ -87,7 +90,7 @@ class WebServer {
         // initFile
         settings = new Settings(new File(runLocation, "settings.json"))
         repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
-        exec = new Execution(webServerConfigs.appLauncher as String, reposLocationFolder)
+        exec = new Execution(appLauncher(), reposLocationFolder)
 
         boot = new Boot(this)
         pagination = new Pagination(settings)
@@ -132,6 +135,14 @@ class WebServer {
             throw new IllegalStateException("InitFile is corrupted. Contact your administrator.")
 
         return new File(webServerConfigs.initFile as String)
+    }
+
+    String appLauncher() {
+        return webServerConfigs.appLauncher
+    }
+
+    String version() {
+        return webServerConfigs.version
     }
 
     static String showError(Response res, String message) {

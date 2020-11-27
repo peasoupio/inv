@@ -10,6 +10,7 @@ public class Home {
 
     /**
      * Gets the current Home filesystem location
+     *
      * @return File reference to the current location
      */
     public static File getCurrent() {
@@ -21,6 +22,7 @@ public class Home {
 
     /**
      * Sets the current Home filesystem location
+     *
      * @param current File reference to the current location
      */
     public static void setCurrent(File current) {

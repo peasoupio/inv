@@ -44,7 +44,8 @@ repo {
         webServer = new WebServer(
             port: port,
             workspace: base,
-            appLauncher: "appLauncher"
+            appLauncher: "appLauncher",
+            version: "my-version"
         )
         webServer.routes()
 

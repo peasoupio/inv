@@ -1,7 +1,7 @@
 package io.peasoup.inv.loader
 
 @Grab("org.apache.maven:maven-model:3.0.2")
-import org.apache.maven.model.Model
+import java.util.Map // use this class so IntelliJ won't alert saying "org.apache.maven.model.Model" does not exist
 
 inv {
     def modelClazz = getClass().classLoader.loadClass("org.apache.maven.model.Model")

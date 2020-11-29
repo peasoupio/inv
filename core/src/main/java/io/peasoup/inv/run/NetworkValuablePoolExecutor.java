@@ -57,6 +57,10 @@ public class NetworkValuablePoolExecutor {
             }
         }
 
+        // Stage broadcasts
+        if (cycleDigestion.getBroadcasts() > 0)
+            eater.stageBroadcasts();
+
         // Close pool
         this.invExecutor.shutdownNow();
     }
@@ -74,15 +78,12 @@ public class NetworkValuablePoolExecutor {
                 if (toEat == null)
                     break;
 
+                // Eat an INV
                 NetworkValuablePoolEater.EatenInv eatenInv = eater.eatInv(toEat, poolErrors);
 
-                // If error was caught, check next Inv
+                // If an error was caught, check next Inv
                 if (eatenInv.hasError())
                     continue;
-
-                // Stage broadcasts
-                if (eatenInv.getDigestion().getBroadcasts() > 0)
-                    eater.stageBroadcasts();
 
                 // Concat digestion metrics
                 cycleDigestion.concat(eatenInv.getDigestion());

@@ -167,7 +167,6 @@ public class RequireStatement implements Statement {
                 toUnbloat = true;
             }
 
-
             // Does this one unbloats
             if (pool.isUnbloating() && Boolean.TRUE.equals(requireStatement.getUnbloatable())) {
                 toUnbloat = true;
@@ -176,9 +175,7 @@ public class RequireStatement implements Statement {
                 pool.getUnbloatedStatements().get(requireStatement.getName()).add(requireStatement.getId());
             }
 
-
             if (toUnbloat) {
-
                 requireStatement.state = StatementStatus.UNBLOADTING;
                 Logger.info(requireStatement);
 

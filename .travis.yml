@@ -11,7 +11,9 @@ cache:
     - $HOME/.cache
     - $HOME/.m2
     - $TRAVIS_BUILD_DIR/core/target
+    - $TRAVIS_BUILD_DIR/composer/target
     - $TRAVIS_BUILD_DIR/launcher/target
+    - $TRAVIS_BUILD_DIR/report/target
 
 install: true
 
@@ -19,7 +21,7 @@ jobs:
   include:
     # Do the actual build (and test reporting)
     - stage: package (maven)
-      script: mvn --settings ./ci/.travis-settings.xml -B         clean verify -P distribute
+      script: mvn --settings ./ci/.travis-settings.xml -B         clean install -P distribute
 
     - stage: report tests to sonarqube (maven)
       if: branch =~ ^release\/.*$

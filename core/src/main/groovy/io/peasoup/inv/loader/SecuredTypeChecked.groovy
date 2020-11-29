@@ -4,6 +4,7 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.run.InvDescriptor
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.codehaus.groovy.transform.stc.GroovyTypeCheckingExtensionSupport
 
 @CompileStatic
@@ -31,7 +32,7 @@ class SecuredTypeChecked extends GroovyTypeCheckingExtensionSupport.TypeChecking
 
         onMethodSelection { expr, methodNode ->
             if (methodNode.declaringClass.name in blacklistedClasses)
-                throw new GroovyLoader.MethodCallNotAllowedException(expr)
+                throw StackTraceUtils.sanitize(new GroovyLoader.MethodCallNotAllowedException(expr))
 
             if (methodNode.name in knownDescriptor) {
                 handled = true

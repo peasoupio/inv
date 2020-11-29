@@ -14,7 +14,7 @@
     <properties>
         <sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.sources>src/main/groovy</sonar.sources>
-        <sonar.tests>src/test/groovy,src/it/groovy</sonar.tests>
+        <sonar.tests>src/test/groovy</sonar.tests>
     </properties>
 
     <dependencies>

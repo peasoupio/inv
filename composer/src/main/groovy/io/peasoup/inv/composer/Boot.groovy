@@ -39,34 +39,40 @@ class Boot {
 
         isRunning = true
 
-
-        // Notifier
+        // Start boot sequence in a separate thread so Spark initialization is not compromised
         new Thread({
-            while (!isDone) {
-                notifyListeners()
+            println "Boot sequence beginning..."
 
-                sleep(250)
-            }
+            // Notifier
+            new Thread({
+                while (!isDone) {
+                    notifyListeners()
 
-            // Close sessions
-            MessageStreamer.sessions.each { it.close() }
-            MessageStreamer.sessions.clear()
+                    sleep(250)
+                }
 
-        }).start()
+                // Close sessions
+                MessageStreamer.sessions.each { it.close() }
+                MessageStreamer.sessions.clear()
 
-        // Processor
-        new Thread({
-            // Process RUNFILE
-            def runFile = webServer.baseFile()
-            if (runFile.exists())
-                webServer.run = new RunFile(runFile)
+            }).start()
 
-            readReposFiles()
-            readReposHrefs()
-            stageSettings()
-            readRunFile()
+            // Processor
+            new Thread({
+                // Process RUNFILE
+                def runFile = webServer.baseFile()
+                if (runFile.exists())
+                    webServer.run = new RunFile(runFile)
 
-            isDone = true
+                readReposFiles()
+                readReposHrefs()
+                stageSettings()
+                readRunFile()
+
+                isDone = true
+
+                println "Boot sequence... done!"
+            }).start()
         }).start()
     }
 
@@ -185,8 +191,6 @@ class Boot {
         } else {
             println "Not present right now."
         }
-
-        println "Ready and listening on http://localhost:${webServer.webServerConfigs.port}"
     }
 
     @WebSocket

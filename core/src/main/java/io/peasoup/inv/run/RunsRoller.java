@@ -9,9 +9,13 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 public class RunsRoller {
     private static final RunsRoller latest = new RunsRoller();
+
+    private static final int FIRST_RUN_INDEX = 1;
 
     /**
      * Gets the ".runs/" folder location
@@ -46,7 +50,11 @@ public class RunsRoller {
     }
 
     public File folder() {
-        return new File(runsFolder(), latestIndex().toString());
+        File latestFolder = new File(runsFolder(), latestIndex().toString());
+        if (!latestFolder.exists() &&!latestFolder.mkdirs())
+            Logger.warn("Could not create the latest folder");
+
+        return latestFolder;
     }
 
     public File failFolder() {
@@ -119,11 +127,17 @@ public class RunsRoller {
         File[] files = runsFolder().listFiles();
 
         if (files == null || files.length == 0)
-            return 1;
+            return FIRST_RUN_INDEX;
 
-        return (int)Arrays.stream(files)
+        OptionalInt max = Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))
-                .count();
+                .mapToInt(file -> Integer.parseInt(file.getName()))
+                .max();
+
+        if (max.isPresent())
+            return max.getAsInt();
+        return
+            FIRST_RUN_INDEX;
     }
 
     private boolean hasRuns() {

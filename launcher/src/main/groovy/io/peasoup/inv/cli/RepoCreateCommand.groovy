@@ -53,9 +53,4 @@ Usage:
   inv [-dsx] repo-create
 """
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
-    }
 }

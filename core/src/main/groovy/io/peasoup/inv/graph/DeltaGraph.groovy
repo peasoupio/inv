@@ -122,13 +122,13 @@ class DeltaGraph {
                     builder.append "[INV] [${it.owner.owner}] => [TAGS] ${inv.tags}${System.lineSeparator()}"
                 }
 
-        // Write broadcast lines
-        def nodes = approuvedLines
+        // Gather valid statement lines
+        def statementNodes = approuvedLines
                 .findAll { it.link.isOwner() }
                 .collect { otherGraph.virtualInvs[it.owner.owner] ?: baseGraph.virtualInvs[it.owner.owner]}
                 .collectMany { it.nodes } as List<GraphNavigator.Node>
 
-        nodes
+        statementNodes
                 .sort { GraphNavigator.Node node -> node.index }
                 .each { GraphNavigator.Node node ->
 

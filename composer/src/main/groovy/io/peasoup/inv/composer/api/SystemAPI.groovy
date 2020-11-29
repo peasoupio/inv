@@ -26,12 +26,16 @@ class SystemAPI {
     }
 
     void routes() {
-        post("/stop", { Request req, Response res -> stop() })
+        post("/stop", { Request req, Response res ->
+            stop()
+            awaitStop()
+        })
 
         get("/v1", { Request req, Response res ->
             return JsonOutput.toJson([
                     links: [
                             setup    : webServer.API_CONTEXT_ROOT + "/setup",
+                            stop    : webServer.API_CONTEXT_ROOT + "/stop",
                             settings : [
                                     default: webServer.API_CONTEXT_ROOT + "/settings",
                                     save: webServer.API_CONTEXT_ROOT + "/settings"

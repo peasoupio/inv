@@ -4,7 +4,7 @@
 ---- [DIGEST] opened ----
 [REPO] script: my-repo, parameter: .*/main/repo/list/repo-values.json
 [REPO] name: my-repo, path: .*/main/repo/list/repo@my-repo [INIT] start
-[REPO] cmd /c  .*/main/repo/list/.*
+[REPO] .* .*/main/repo/list/.*
 [REPO] name: my-repo, path: .*/main/repo/list/repo@my-repo [INIT] done
 ---- [DIGEST] started ----
 ---- [DIGEST] completed ----

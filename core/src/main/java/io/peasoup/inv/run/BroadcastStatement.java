@@ -152,20 +152,12 @@ public class BroadcastStatement implements Statement {
             if (!statements.containsKey(broadcastStatement.getId()))
                 return false;
 
-            // Lock on this statement
-            synchronized (broadcastStatement.getId()) {
+            String resolvedBy = statements.get(broadcastStatement.getId()).getResolvedBy();
+            Logger.warn(broadcastStatement.toString() + " already broadcasted by [" + resolvedBy + "]. Will be skipped.");
 
-                // Double lock checking
-                if (!statements.containsKey(broadcastStatement.getId()))
-                    return false;
+            broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
 
-                String resolvedBy = statements.get(broadcastStatement.getId()).getResolvedBy();
-                Logger.warn(broadcastStatement.toString() + " already broadcasted by [" + resolvedBy + "]. Will be skipped.");
-
-                broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
-
-                return true;
-            }
+            return true;
         }
     }
 }

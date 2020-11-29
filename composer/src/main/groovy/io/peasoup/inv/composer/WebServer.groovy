@@ -2,9 +2,12 @@ package io.peasoup.inv.composer
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileDynamic
+import io.peasoup.inv.Home
 import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.api.*
+import io.peasoup.inv.run.RunsRoller
 import spark.Response
+import spark.Spark
 
 import static spark.Spark.*
 
@@ -30,9 +33,6 @@ class WebServer {
     RunFile run
 
     WebServer(Map args) {
-        if (!(args.workspace instanceof CharSequence))
-            throw new IllegalArgumentException("Args must include a 'workspace' (String) property.")
-
         if (!(args.appLauncher instanceof CharSequence))
             throw new IllegalArgumentException("Args must include a 'appLauncher' (String) property.")
 
@@ -40,7 +40,8 @@ class WebServer {
             throw new IllegalArgumentException("Args must include a 'version' (String) property.")
 
         webServerConfigs = [
-                port: 8080
+                port: 8080,
+                workspace: Home.getCurrent().absolutePath
         ] + args
 
         Logger.system("[COMPOSER] settings: ${webServerConfigs}")
@@ -49,6 +50,84 @@ class WebServer {
         reposLocation = webServerConfigs.workspace + "/.repos" as String
         hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
+        // Create required folders
+        // ./.runs
+        if (!RunsRoller.runsFolder().exists())
+            RunsRoller.runsFolder().mkdirs()
+
+        // ./.repos
+        def reposLocationFolder = new File(reposLocation)
+        if (!reposLocationFolder.exists())
+            reposLocationFolder.mkdirs()
+
+        // ./hrefs
+        def hrefsLocationFolder = new File(hrefsLocation)
+        if (!hrefsLocationFolder.exists())
+            hrefsLocationFolder.mkdirs()
+
+        settings = new Settings(new File(runLocation, "settings.json"))
+        repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
+        exec = new Execution(appLauncher(), reposLocationFolder)
+
+        boot = new Boot(this)
+        pagination = new Pagination(settings)
+    }
+
+    /**
+     * Map available routes
+     * @return
+     */
+    @CompileDynamic
+    int routes() {
+        // Setup Spark
+        setupSpark()
+
+        // Register websockets
+        webSocket("/execution/log/stream", Execution.MessageStreamer.class)
+        webSocket("/boot/stream", Boot.MessageStreamer.class)
+
+        // Set /api as context root
+        path(API_CONTEXT_ROOT, {
+            new SystemAPI(this).routes()
+            new RunAPI(this).routes()
+            new RepoAPI(this).routes()
+            new ExecutionAPI(this).routes()
+            new ReviewAPI(this).routes()
+        })
+
+        // Wait for initialization
+        awaitInitialization()
+        println "Ready and listening on http://localhost:${webServerConfigs.port}"
+
+        // Execute boot sequence
+        boot.run()
+
+        return 0
+    }
+
+    File baseFile() {
+        return new File(runLocation, "run.txt")
+    }
+
+    File initFile() {
+        if (!webServerConfigs.initFile)
+            return null;
+
+        if (!(webServerConfigs.initFile instanceof String))
+            throw new IllegalStateException("InitFile is corrupted. Contact your administrator.")
+
+        return new File(webServerConfigs.initFile as String)
+    }
+
+    String appLauncher() {
+        return webServerConfigs.appLauncher
+    }
+
+    String version() {
+        return webServerConfigs.version
+    }
+
+    private void setupSpark() {
         def actualPort = webServerConfigs.port as int
 
         // Browser configs
@@ -78,71 +157,6 @@ class WebServer {
         exception(Exception.class, { e, request, response ->
             Logger.error(e)
         })
-
-        def reposLocationFolder = new File(reposLocation)
-        if (!reposLocationFolder.exists())
-            reposLocationFolder.mkdirs()
-
-        def hrefsLocationFolder = new File(hrefsLocation)
-        if (!hrefsLocationFolder.exists())
-            hrefsLocationFolder.mkdirs()
-
-        // initFile
-        settings = new Settings(new File(runLocation, "settings.json"))
-        repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
-        exec = new Execution(appLauncher(), reposLocationFolder)
-
-        boot = new Boot(this)
-        pagination = new Pagination(settings)
-    }
-
-    /**
-     * Map available routes
-     * @return
-     */
-    @CompileDynamic
-    int routes() {
-
-        // Register websockets
-        webSocket("/execution/log/stream", Execution.MessageStreamer.class)
-        webSocket("/boot/stream", Boot.MessageStreamer.class)
-
-        // Set /api as context root
-        path(API_CONTEXT_ROOT, {
-            new SystemAPI(this).routes()
-            new RunAPI(this).routes()
-            new RepoAPI(this).routes()
-            new ExecutionAPI(this).routes()
-            new ReviewAPI(this).routes()
-        })
-
-
-        // Boot
-        boot.run()
-
-        return 0
-    }
-
-    File baseFile() {
-        return new File(runLocation, "run.txt")
-    }
-
-    File initFile() {
-        if (!webServerConfigs.initFile)
-            return null;
-
-        if (!(webServerConfigs.initFile instanceof String))
-            throw new IllegalStateException("InitFile is corrupted. Contact your administrator.")
-
-        return new File(webServerConfigs.initFile as String)
-    }
-
-    String appLauncher() {
-        return webServerConfigs.appLauncher
-    }
-
-    String version() {
-        return webServerConfigs.version
     }
 
     static String showError(Response res, String message) {

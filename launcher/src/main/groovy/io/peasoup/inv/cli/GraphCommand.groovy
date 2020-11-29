@@ -3,6 +3,7 @@ package io.peasoup.inv.cli
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
 import io.peasoup.inv.graph.RunGraph
+import spark.utils.StringUtils
 
 @CompileStatic
 class GraphCommand implements CliCommand {
@@ -13,25 +14,17 @@ class GraphCommand implements CliCommand {
             throw new IllegalArgumentException("args")
 
         String base = args["<base>"]
-        if (!base)
+        if (StringUtils.isEmpty(base))
             return 1
 
-        def run = new RunGraph(new File(base).newReader())
+        File baseFile = new File(base)
+        if (!baseFile.exists())
+            return 2
 
-        String graphType = null
+        def run = new RunGraph(baseFile.newReader())
 
-        // For future uses
-        if (args["dot"])
-            graphType = "dot"
-
-        switch (graphType) {
-            case "dot":
-                Logger.trace(run.toDotGraph())
-                break
-            default:
-                Logger.trace(run.toDotGraph())
-        }
-
+        // Print "dot" graph format
+        Logger.trace(run.toDotGraph())
         return 0
     }
 
@@ -51,10 +44,5 @@ Usage:
 Arguments:
   <base>       Base file location
 """
-    }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
     }
 }

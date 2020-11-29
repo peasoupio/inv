@@ -5,6 +5,9 @@ import groovy.json.JsonSlurper
 
 import java.nio.charset.Charset
 
+import static junit.framework.TestCase.assertNotNull
+import static junit.framework.TestCase.assertNotNull
+
 class HttpDescriptor {
 
     private final int port
@@ -13,18 +16,75 @@ class HttpDescriptor {
         this.port = port
     }
 
-    void get(String context, Closure callback) {
-        String responseText = new URL("http://127.0.0.1:${port}/${context}".toString()).openConnection().inputStream.text
+    Map links() {
+        (Map)get("/api/v1") {
+            assertNotNull it
+            assertNotNull it.links
+
+            it.links
+        }
+    }
+
+    void waitFor(int waitTill, Closure body) {
+        int i = waitTill
+        while(i > 0) {
+            sleep(1000)
+            if (body())
+                i = 0
+            i--
+        }
+    }
+
+    Object get(String context) {
+        return get(context, null)
+    }
+
+    Object get(String context, Closure callback) {
+        String responseText = getAsString(context)
+
         Map responseData = new JsonSlurper().parseText(responseText) as Map
 
         if (callback)
-            callback.call(responseData)
+            return callback.call(responseData)
+
+        return true
     }
 
-    void post(String context, Map data, Closure callback) {
+    String getAsString(String context, Closure callback = null) {
+        String urlStr = "http://127.0.0.1:${port}${context}".toString()
+        String responseText = new URL(urlStr).openConnection().inputStream.text
+        if (callback)
+            return callback(responseText)
 
-        def bytesData = JsonOutput.toJson(data).getBytes(Charset.forName("UTF-8"))
-        def connection = new URL("http://0.0.0.0:${port}/${context}".toString()).openConnection() as HttpURLConnection
+        return responseText
+    }
+
+    Object post(String context) {
+        return post(context, null, null)
+    }
+
+    Object post(String context, Closure callback) {
+        return post(context, null, callback)
+    }
+
+    Object post(String context, Object data, Closure callback) {
+        def responseText = postAsString(context, data)
+        if (responseText) {
+            Map responseData = new JsonSlurper().parseText(responseText) as Map
+
+            if (callback)
+                return callback.call(responseData)
+        } else {
+            if (callback)
+                return callback.call()
+        }
+
+        return true
+    }
+
+    String postAsString(String context, Object data = null, Closure callback = null) {
+        String urlStr = "http://127.0.0.1:${port}${context}".toString()
+        HttpURLConnection connection = new URL(urlStr).openConnection() as HttpURLConnection
 
         String responseText = connection.with {
             setDoOutput(true)
@@ -32,16 +92,31 @@ class HttpDescriptor {
 
             setRequestProperty("Content-type", "text/plain")
 
-            outputStream.write(bytesData)
-            outputStream.flush()
+            // to json bytes
+            if (data instanceof Map) {
+                byte[] bytesData = JsonOutput.toJson(data).getBytes(Charset.forName("UTF-8"))
+                outputStream.write(bytesData)
+                outputStream.flush()
+            }
 
-            return connection.inputStream.text
+            // to string bytes
+            if (data instanceof String) {
+                byte[] bytesData = ((String)data).getBytes("UTF-8")
+                outputStream.write(bytesData)
+                outputStream.flush()
+            }
+
+            try {
+                return connection.inputStream.text
+            } catch(Exception ex) {
+                return ""
+            }
         }
 
-        Map responseData = new JsonSlurper().parseText(responseText) as Map
-
         if (callback)
-            callback.call(responseData)
+            return callback(responseText)
+
+        return responseText
     }
 
 }

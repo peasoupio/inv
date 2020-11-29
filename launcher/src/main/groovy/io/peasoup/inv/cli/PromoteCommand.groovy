@@ -63,9 +63,4 @@ Arguments:
                By default, it uses the latest successful run
 """
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
-    }
 }

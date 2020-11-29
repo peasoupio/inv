@@ -77,9 +77,4 @@ Arguments:
                (p.e myfile1.groovy myfile2.groovy)
 """
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return true
-    }
 }

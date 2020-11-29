@@ -30,7 +30,6 @@ class ComposerCommand implements CliCommand {
                 ComposerCommand.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile()
 
         Map settings = [
-                workspace  : Home.getCurrent().absolutePath,
                 initFile   : this.initFileLocation,
                 appLauncher: jarLocation.absolutePath,
                 version    : SystemInfo.version()
@@ -65,10 +64,5 @@ Environment variables:
   ${WebServer.CONFIG_SSL_KEYSTORE}  Sets the SSL keystore location
   ${WebServer.CONFIG_SSL_PASSWORD}  Sets the SSL keystore password
 """
-    }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
     }
 }

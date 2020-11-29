@@ -6,25 +6,16 @@ import org.codehaus.groovy.control.CompilerConfiguration
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static junit.framework.TestCase.*
 
-String setupAPI
-String repoDefault
+// Get links
+Map links = links()
 
-get("/api/v1") {
-    setupAPI = it.links.setup
-    repoDefault = it.links.repos.default
+// Wait until booting
+waitFor(10) {
+    get(links.setup) { it.booted }
 }
 
-int i = 10
-while(i > 0) {
-    sleep(1000)
-    get(setupAPI) {
-        if (it.booted)
-            i = 0
-    }
-    i--
-}
 
-get(repoDefault) {
+get(links.repos.default) {
     assertNotNull it
     assertNotNull it.descriptors
     assertEquals 2, it.total

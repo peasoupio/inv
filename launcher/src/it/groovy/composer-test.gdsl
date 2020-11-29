@@ -1,5 +1,19 @@
 contributor(context(scope: scriptScope())) {
-    method name: 'get', type: 'void', params: [url: 'java.lang.String', callback: 'groovy.lang.Closure'], doc: "Create a GET HTTP request"
-    method name: 'get', type: 'void', params: [url: 'java.lang.String', data: 'java.util.Map', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+    method name: 'get', type: 'Object', params: [url: 'String'], doc: "Create a GET HTTP request"
+    method name: 'get', type: 'Object', params: [url: 'String', callback: 'groovy.lang.Closure'], doc: "Create a GET HTTP request"
+    method name: 'getAsString', type: 'String', params: [url: 'String'], doc: "Create a GET HTTP request"
+    method name: 'getAsString', type: 'String', params: [url: 'String', callback: 'groovy.lang.Closure'], doc: "Create a GET HTTP request"
+
+    method name: 'post', type: 'Object', params: [url: 'String'], doc: "Create a POST HTTP request"
+    method name: 'post', type: 'Object', params: [url: 'String', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+    method name: 'post', type: 'Object', params: [url: 'String', data: 'java.util.Map', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+    method name: 'postAsString', type: 'String', params: [url: 'String'], doc: "Create a POST HTTP request"
+    method name: 'postAsString', type: 'String', params: [url: 'String', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+    method name: 'postAsString', type: 'String', params: [url: 'String', data: 'java.util.Map', callback: 'groovy.lang.Closure'], doc: "Create a POST HTTP request"
+
+    method name: 'waitFor', type: 'Object', params: [waitTill: 'Integer', callback: 'groovy.lang.Closure'], doc: "Wait until something is done"
+
+    method name: 'links', type: 'java.util.Map', doc: "Get links"
+
 }
 

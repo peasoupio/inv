@@ -4,16 +4,10 @@ import static junit.framework.Assert.assertEquals
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static junit.framework.TestCase.*
 
-String setupAPI
+// Get links
+Map links = links()
 
-get("/api/v1") {
-    assertNotNull it
-    assertNotNull it.links
-
-    setupAPI = it.links.setup
-}
-
-get(setupAPI) {
+get(links.setup) {
     assertNotNull it
     assertEquals "my-version", it.releaseVersion
     assertTrue it.initInfo.standalone

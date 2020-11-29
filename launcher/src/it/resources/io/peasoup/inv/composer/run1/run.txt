@@ -1,0 +1,21 @@
+[INV] [repoA] [repoA@repoA/StatementA1.groovy] [ScriptX]
+[INV] [repoA] [repoA@repoA/StatementA2.groovy] [ScriptX]
+[INV] [repoB] [repoA@repoB/StatementB1.groovy] [ScriptY]
+[INV] [repoB] [repoA@repoB/StatementB2.groovy] [ScriptY]
+[INV] [repoC] [repoA@repoB/StatementC1.groovy] [ScriptZ]
+
+[INV] [ScriptX] => [TAGS] [tag:A]
+[INV] [ScriptY] => [TAGS] [tag:A]
+[INV] [ScriptZ] => [TAGS] [tag:B]
+
+[INV] [ScriptX] => [BROADCAST] [StatementA1] undefined
+[INV] [ScriptX] => [BROADCAST] [StatementA2] undefined
+
+[INV] [ScriptY] => [REQUIRE] [StatementA1] undefined
+[INV] [ScriptY] => [REQUIRE] [StatementA2] undefined
+[INV] [ScriptY] => [BROADCAST] [StatementB1] undefined
+[INV] [ScriptY] => [BROADCAST] [StatementB2] undefined
+
+[INV] [ScriptZ] => [REQUIRE] [StatementA2] undefined
+[INV] [ScriptZ] => [REQUIRE] [StatementB2] undefined
+[INV] [ScriptZ] => [BROADCAST] [StatementC1] undefined

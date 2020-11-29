@@ -71,11 +71,6 @@ Arguments:
 """
     }
 
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return true
-    }
-
     private boolean readListJsonfile(String repoFileLocation, RepoFolderCollection repoFolders) {
         def repoListPath = repoFileLocation
         def repoListFile = new File(repoListPath)

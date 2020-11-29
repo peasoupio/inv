@@ -86,9 +86,4 @@ Arguments:
         // Save JSON into parameters file
         newParameterFile << JsonOutput.prettyPrint(JsonOutput.toJson(jsonOutput))
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return true
-    }
 }

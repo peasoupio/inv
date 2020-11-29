@@ -61,11 +61,6 @@ Usage:
 """
     }
 
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return true
-    }
-
     private String checksum() {
         return RandomStringUtils.random(9, true, true)
     }

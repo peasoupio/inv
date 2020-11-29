@@ -7,7 +7,17 @@ Feature: What are the responses of my Composer requests?
     Then I should send requests and recieve responses successfully
 
     Examples:
-      | httpScript                         | workDir         |
+      | httpScript                                         | workDir         |
+      # Run
+      | io.peasoup.inv.composer.run1.repos                 | /composer/run1  |
+      | io.peasoup.inv.composer.run1.staging_unstaging     | /composer/run1  |
+      | io.peasoup.inv.composer.run1.runfile               | /composer/run1  |
+
       # Boot
-      | io.peasoup.inv.composer.boot1.test | /composer/boot1 |
-      | io.peasoup.inv.composer.boot2.test | /composer/boot2 |
+      | io.peasoup.inv.composer.boot1.empty_folder         | /composer/boot1 |
+      | io.peasoup.inv.composer.boot2.existing_folder      | /composer/boot2 |
+
+      # Exec
+      | io.peasoup.inv.composer.exec1.start_review_promote | /composer/exec1 |
+      | io.peasoup.inv.composer.exec2.stop                 | /composer/exec2 |
+

@@ -96,7 +96,7 @@ Vue.component('choose-inv', {
             var fetch = function() {
                 owners = []
 
-                axios.post(vm.value.api.links.run.owners, filters).then(response => {
+                axios.get(vm.value.api.links.run.owners).then(response => {
                     // Create elements from owner's data
                     response.data.forEach(function(owner) {
                         owners.push(vm.createOwnerElement(owner, fetch))

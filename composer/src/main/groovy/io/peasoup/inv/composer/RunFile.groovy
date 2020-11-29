@@ -310,6 +310,8 @@ class RunFile {
 
                     String repo = invOfRepo[owner]
 
+                    String urlifiedValue = URLUtils.urlify(value)
+
                     return [
                             required: staged[value] && staged[value].required,
                             selected: staged[value] && staged[value].selected,
@@ -319,9 +321,9 @@ class RunFile {
                             repo     : repo,
                             links   : [
                                     viewRepo  : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${repo}",
-                                    requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${value}",
-                                    stage     : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${value}",
-                                    unstage   : WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${value}"
+                                    requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${urlifiedValue}",
+                                    stage     : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${urlifiedValue}",
+                                    unstage   : WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${urlifiedValue}"
                             ]
                     ]
                 }
@@ -375,11 +377,7 @@ class RunFile {
             List<Map> subTags = []
             Map tagOutput = [
                 label: tag.key,
-                subTags: subTags,
-                links: [
-                        stageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/stage?tag=${tag.key}",
-                        unstageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/unstage?tag=${tag.key}"
-                ]
+                subTags: subTags
             ]
 
             for(Map.Entry<String, List<RunGraph.VirtualInv>> subTag : tag.value) {

@@ -4,12 +4,18 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThrows
 
 class GraphCommandTest {
 
     @Test
     void not_ok() {
-        assertEquals 1, new GraphCommand().call()
+        assertThrows(IllegalArgumentException.class, {
+            new GraphCommand().call(null)
+        })
+
+        assertEquals 1, new GraphCommand().call([:])
+        assertEquals 2, new GraphCommand().call(["<base>": "base"])
     }
 
     @Test

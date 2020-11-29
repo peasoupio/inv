@@ -74,7 +74,6 @@ public class GroovyLoader {
         this.secureMode = secureMode;
 
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-
         CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
 
         if (StringUtils.isNotEmpty(scriptBaseClass)) {

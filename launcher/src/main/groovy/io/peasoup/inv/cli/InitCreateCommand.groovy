@@ -4,6 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.Home
 import io.peasoup.inv.Logger
 import io.peasoup.inv.io.FileUtils
+import org.apache.commons.lang.StringUtils
 
 @CompileStatic
 class InitCreateCommand implements CliCommand {
@@ -14,11 +15,13 @@ class InitCreateCommand implements CliCommand {
             throw new IllegalArgumentException("args")
 
         String repoName = args["<repoName>"]
+        if (StringUtils.isEmpty(repoName))
+            return 1
 
         def files = new File(Home.getCurrent(), repoName)
         if (files.exists() && files.listFiles().size() > 0) {
             Logger.warn("Current directory is not empty")
-            return 1
+            return 2
         }
 
         // Create init folder
@@ -115,10 +118,4 @@ Arguments:
   <repoName>   The REPO name.
 """
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
-    }
-
 }

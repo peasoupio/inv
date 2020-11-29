@@ -43,7 +43,6 @@ class RunAPI {
             return webServer.showResult("Runfile updated")
         })
 
-        // General
         get("/run", { Request req, Response res ->
             if (!webServer.run)
                 return webServer.showError(res, "Run is not ready yet")
@@ -54,18 +53,9 @@ class RunAPI {
             return JsonOutput.toJson(output)
         })
 
-        post("/run/owners", { Request req, Response res ->
+        get("/run/owners", { Request req, Response res ->
             if (!webServer.run)
                 return webServer.showError(res, "Run is not ready yet")
-
-            String body = req.body()
-            Map filter = [:]
-
-            if (body)
-                filter = new JsonSlurper().parseText(body) as Map
-
-            // TODO Rework webServer.pagination/propagation
-            //def owners = webServer.run.owners.findAll { !filter.owner || it.key.contains(filter.owner) }
 
             return JsonOutput.toJson(webServer.run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
@@ -280,6 +270,18 @@ class RunAPI {
                 return webServer.showResult("Ok")
             }
 
+            def name = req.queryParams("name")
+            if (name && webServer.run.names[name]) {
+                webServer.run.names[name].each { GraphNavigator.Linkable graphId ->
+                    webServer.run.stageWithoutPropagate(graphId.value)
+                    webServer.settings.stageId(graphId.value)
+                    webServer.settings.save()
+                }
+                webServer.run.propagate()
+
+                return webServer.showResult("Ok")
+            }
+
             def owner = req.queryParams("owner")
             if (owner && webServer.run.owners[owner]) {
                 webServer.run.owners[owner].each { GraphNavigator.Linkable graphId ->
@@ -291,7 +293,6 @@ class RunAPI {
 
                 return webServer.showResult("Ok")
             }
-
 
             return webServer.showError(res, "Nothing was done")
         })
@@ -305,6 +306,18 @@ class RunAPI {
                 webServer.run.unstage(id)
                 webServer.settings.unstageId(id)
                 webServer.settings.save()
+
+                return webServer.showResult("Ok")
+            }
+
+            def name = req.queryParams("name")
+            if (name && webServer.run.names[name]) {
+                webServer.run.names[name].each { GraphNavigator.Linkable graphId ->
+                    webServer.run.unstageWithoutPropagate(graphId.value)
+                    webServer.settings.unstageId(graphId.value)
+                    webServer.settings.save()
+                }
+                webServer.run.propagate()
 
                 return webServer.showResult("Ok")
             }

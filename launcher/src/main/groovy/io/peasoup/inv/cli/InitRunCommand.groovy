@@ -11,16 +11,6 @@ import spark.utils.StringUtils
 @CompileStatic
 class InitRunCommand implements CliCommand {
 
-    private final boolean startComposer
-
-    InitRunCommand() {
-        this(true)
-    }
-
-    InitRunCommand(boolean startComposer) {
-        this.startComposer = startComposer;
-    }
-
     @Override
     int call(Map args = [:]) {
         if (args == null)
@@ -35,9 +25,6 @@ class InitRunCommand implements CliCommand {
         if (!report) {
             return 2
         }
-
-        if (!startComposer)
-            return 0
 
         // Change currentHome for current process (and others spawned by composer.Execution
         Home.setCurrent(report.descriptor.getRepoPath())
@@ -72,11 +59,6 @@ Environment variables:
 """
     }
 
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return true
-    }
-
     private RepoExecutor.RepoHookExecutionReport processREPO(String initRepoFileLocation) {
         String actualFileLocation = initRepoFileLocation
         File repoFile
@@ -93,7 +75,8 @@ Environment variables:
         } else
             repoFile = new File(actualFileLocation)
 
-        assert repoFile.exists(), 'Repo file path must exist on filesystem'
+        if (!repoFile.exists())
+            return null
 
         def repoExecutor = new RepoExecutor()
         repoExecutor.addScript(repoFile)

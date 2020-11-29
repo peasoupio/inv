@@ -17,11 +17,6 @@ interface CliCommand {
      */
     String usage();
 
-    /**
-     * If set to true, it prevents libraries cross-contamination with INV own libraries, per example used for Composer.
-     */
-    boolean requireSafeExecutionLibraries();
-
 
 
 }

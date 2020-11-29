@@ -50,9 +50,4 @@ Arguments:
   <other>      Other file location
 """
     }
-
-    @Override
-    boolean requireSafeExecutionLibraries() {
-        return false
-    }
 }

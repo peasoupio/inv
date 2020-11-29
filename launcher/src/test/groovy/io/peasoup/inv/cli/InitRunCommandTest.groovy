@@ -41,7 +41,12 @@ class InitRunCommandTest {
 
     @Test
     void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            new InitRunCommand().call(null)
+        })
+
         assertEquals 1, new InitRunCommand().call()
+        assertEquals 2, new InitRunCommand().call("<repoFile>": "./does-not-exists")
     }
 
     @Test

@@ -31,7 +31,7 @@ class SettingsTest {
 
     @Test
     void not_ok() {
-        assertThrows(AssertionError.class, {
+        assertThrows(IllegalArgumentException.class, {
             new Settings(null)
         })
     }

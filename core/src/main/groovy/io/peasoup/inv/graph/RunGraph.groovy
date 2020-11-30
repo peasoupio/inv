@@ -24,7 +24,8 @@ class RunGraph {
     private final Graph<GraphNavigator.Linkable, DefaultEdge> g
 
     RunGraph(BufferedReader logs) {
-        assert logs, 'Logs are required'
+        if (logs == null)
+            throw new IllegalArgumentException("logs")
 
         g = new DefaultDirectedGraph<GraphNavigator.Linkable, DefaultEdge>(DefaultEdge.class)
         navigator = new GraphNavigator(g)

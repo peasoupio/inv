@@ -101,6 +101,13 @@ class InterpolableGroovyObjectTest {
         })
     }
 
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class) {
+            new InterpolableGroovyObject(null)
+        }
+    }
+
     class InterpolableTestObject {
         String my = "value"
     }

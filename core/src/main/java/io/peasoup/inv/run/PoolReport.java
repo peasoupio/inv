@@ -72,13 +72,6 @@ public class PoolReport {
     }
 
     private void concat(Collection<Inv> digested, Collection<PoolError> exceptions, boolean halted) {
-        if (digested == null) {
-            throw new IllegalArgumentException("Digested collection is required. NOTE: can be empty");
-        }
-        if (exceptions == null) {
-            throw new IllegalArgumentException("Exceptions collection is required. NOTE: can be empty");
-        }
-
         this.digested.addAll(digested);
         this.poolErrors.addAll(exceptions);
 

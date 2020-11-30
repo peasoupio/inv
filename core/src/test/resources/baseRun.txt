@@ -10,6 +10,7 @@
 [INV] [appB] => [TAGS] [my:tag]
 [INV] [IIS] => [TAGS] [other:tag]
 [INV] [Kubernetes] => [TAGS] [other:tag]
+[INV] [Kubernetes] => [TAGS] [notvalidtag]
 
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [ServerA] => [BROADCAST] [Server] [name:server-a]

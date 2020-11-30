@@ -28,13 +28,11 @@ public class InvTextListener extends RunListener {
 
             for(Failure failure : result.getFailures()) {
                 sb.append(failure.getDescription()).append(": ").append(System.lineSeparator());
-                if (failure.getException() != null) {
-                    StringWriter sw = new StringWriter();
-                    StackTraceUtils.sanitize(failure.getException()).printStackTrace(new PrintWriter(sw));
-                    sb.append(sw.toString());
-                }
-            }
 
+                StringWriter sw = new StringWriter();
+                StackTraceUtils.sanitize(failure.getException()).printStackTrace(new PrintWriter(sw));
+                sb.append(sw.toString());
+            }
         }
 
         Logger.trace(sb.toString());

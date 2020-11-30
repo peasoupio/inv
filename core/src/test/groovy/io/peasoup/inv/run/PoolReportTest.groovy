@@ -25,7 +25,6 @@ class PoolReportTest {
 
     @Test
     void fail() {
-
         assertThrows(IllegalArgumentException.class, {
             new PoolReport(null, new LinkedList<PoolReport.PoolError>(), false)
         })
@@ -44,6 +43,14 @@ class PoolReportTest {
 
         assertThrows(IllegalArgumentException.class, {
             poolReport.eat(new PoolReport([], null, false))
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new PoolReport.PoolError(null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new PoolReport.PoolError(new Inv.Context().build(), null)
         })
     }
 }

@@ -76,9 +76,12 @@ public class BroadcastStatement implements Statement {
 
     public static class Broadcast implements Manageable<BroadcastStatement> {
 
-        public synchronized void manage(NetworkValuablePool pool, final BroadcastStatement broadcastStatement) {
-            if (pool == null || broadcastStatement == null)
-                return;
+        public synchronized void manage(NetworkValuablePool pool, BroadcastStatement broadcastStatement) {
+            if (pool == null)
+                throw new IllegalArgumentException("pool");
+
+            if (broadcastStatement == null)
+                throw new IllegalArgumentException("broadcastStatement");
 
             // Reset state
             broadcastStatement.state = StatementStatus.NOT_PROCESSED;

@@ -451,7 +451,7 @@ public class Inv {
             if (statement.getState() == StatementStatus.SUCCESSFUL) {
                 unbloats++;
 
-                // If the statement prevents unbloating, stops processing the remaining statements
+                // If the statement prevents unbloating, stop processing the remaining statements
                 if (pool.preventUnbloating(statement))
                     interrupt = true;
             }

@@ -199,4 +199,16 @@ class NetworkValuablePoolTest {
         assertEquals "4", sortedInvs[4].name
         assertEquals "5", sortedInvs[5].name
     }
+
+    @Test
+    void include_not_ok() {
+        def ctx = new Inv.Context(pool)
+        def inv = ctx.build()
+
+        assertThrows(IllegalArgumentException.class) {
+            pool.include(null)
+        }
+
+        assertFalse pool.include(inv) // missing name
+    }
 }

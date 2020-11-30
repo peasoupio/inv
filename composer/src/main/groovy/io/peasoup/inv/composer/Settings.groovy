@@ -16,8 +16,13 @@ class Settings {
     ]
     final private File settingsFile
 
+    /**
+     * Create a new Settings
+     * @param settingsFile Settings file is required, but can NOT exist. It will be created automatically
+     */
     Settings(File settingsFile) {
-        assert settingsFile != null, 'Settings file is required. NOTE: may NOT exist. Will be created automatically'
+        if (settingsFile == null)
+            throw new IllegalArgumentException("settingsFile")
 
         this.settingsFile = settingsFile
 

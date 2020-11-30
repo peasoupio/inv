@@ -161,4 +161,15 @@ class RequireStatementTest {
 
         assertEquals StatementStatus.NOT_PROCESSED, statement.state
     }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            RequireStatement.REQUIRE.manage(null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            RequireStatement.REQUIRE.manage(new NetworkValuablePool(), null)
+        })
+    }
 }

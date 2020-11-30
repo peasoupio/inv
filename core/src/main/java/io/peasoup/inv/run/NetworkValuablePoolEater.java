@@ -41,7 +41,7 @@ public class NetworkValuablePoolEater {
             Logger.fail(inv + " caught an error. Report will be displayed on pool termination.");
         }
 
-        return new EatenInv(inv, currentDigest, hasError);
+        return new EatenInv(currentDigest, hasError);
     }
 
     /**
@@ -80,18 +80,12 @@ public class NetworkValuablePoolEater {
      */
     public static class EatenInv {
 
-        private final Inv inv;
         private final Inv.Digestion digestion;
         private final boolean hasError;
 
-        private EatenInv(Inv inv, Inv.Digestion digestion, boolean hasError) {
-            this.inv = inv;
+        private EatenInv(Inv.Digestion digestion, boolean hasError) {
             this.digestion = digestion;
             this.hasError = hasError;
-        }
-
-        public Inv getInv() {
-            return inv;
         }
 
         public Inv.Digestion getDigestion() {

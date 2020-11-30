@@ -16,7 +16,7 @@ class RepoGetCommand implements CliCommand {
             throw new IllegalArgumentException("args")
 
         String repoUrl = args["<repoUrl>"]
-        Boolean createParameters = args["--create-parameters>"]
+        Boolean createParameters = args["--create-parameters"]
         Boolean run = args["--run"]
 
         if (!repoUrl)

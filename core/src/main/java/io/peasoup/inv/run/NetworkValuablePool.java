@@ -124,12 +124,16 @@ public class NetworkValuablePool {
         
         for (final Inv inv : invs) {
             String stateBefore = runningState;
-            Inv.Digestion invDigest = eater.eatInv(inv, poolErrors).getDigestion();
+            NetworkValuablePoolEater.EatenInv eatenInv = eater.eatInv(inv, poolErrors);
 
-            cycleDigestion.concat(invDigest);
+            // If eaten INV has an error, skip and process the next INV
+            if (eatenInv.hasError())
+                continue;
 
-            // If changed, quit
-            if (invDigest.isInterrupted() && !stateBefore.equals(runningState))
+            cycleDigestion.concat(eatenInv.getDigestion());
+
+            // If state has changed or the eaten INV interrupted the cycle, quit
+            if (eatenInv.getDigestion().isInterrupted() && !stateBefore.equals(runningState))
                 break;
         }
 

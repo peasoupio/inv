@@ -60,4 +60,11 @@ class RequireUsingDescriptorTest {
 
         assertTrue myself.unbloatable
     }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class) {
+            myself.markdown("")
+        }
+    }
 }

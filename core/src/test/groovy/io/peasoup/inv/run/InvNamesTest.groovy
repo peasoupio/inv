@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals

@@ -1,6 +1,7 @@
 package io.peasoup.inv.graph
 
 import io.peasoup.inv.run.InvInvoker
+import io.peasoup.inv.run.RequireStatement
 import org.junit.Test
 
 import static org.junit.Assert.*
@@ -33,6 +34,8 @@ class RunGraphTest {
         assertTrue runGraph.files.any {it.repo == "repo6"}
         assertTrue runGraph.files.any {it.repo == InvInvoker.UNDEFINED_REPO}
 
+        assertEquals 4, runGraph.tags.collectMany { it.value.tag }.size()
+
         assertNotNull runGraph.toDotGraph()
     }
 
@@ -49,5 +52,12 @@ class RunGraphTest {
         assertEquals 5, path.size()
         assertEquals new GraphNavigator.Owner(value: "appA"), path[0]
         assertEquals new GraphNavigator.Owner(value: "ServerA"), path[4]
+    }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            new RunGraph(null)
+        })
     }
 }

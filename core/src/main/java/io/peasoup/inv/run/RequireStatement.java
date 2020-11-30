@@ -118,8 +118,11 @@ public class RequireStatement implements Statement {
     public static class Require implements Manageable<RequireStatement> {
 
         public void manage(NetworkValuablePool pool, RequireStatement requireStatement) {
-            if (pool == null || requireStatement == null)
-                return;
+            if (pool == null)
+                throw new IllegalArgumentException("pool");
+
+            if (requireStatement == null)
+                throw new IllegalArgumentException("requireStatement");
 
             // Reset state
             requireStatement.state = StatementStatus.NOT_PROCESSED;

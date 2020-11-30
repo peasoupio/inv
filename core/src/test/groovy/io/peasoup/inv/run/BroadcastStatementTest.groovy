@@ -222,4 +222,15 @@ class BroadcastStatementTest {
         BroadcastStatement.BROADCAST.manage(pool, statement)
         assertEquals StatementStatus.ALREADY_BROADCAST, statement.state
     }
+
+    @Test
+    void not_ok() {
+        assertThrows(IllegalArgumentException.class, {
+            BroadcastStatement.BROADCAST.manage(null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            BroadcastStatement.BROADCAST.manage(new NetworkValuablePool(), null)
+        })
+    }
 }

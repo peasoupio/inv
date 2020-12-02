@@ -106,11 +106,7 @@ class HttpDescriptor {
                 outputStream.flush()
             }
 
-            try {
-                return connection.inputStream.text
-            } catch(Exception ex) {
-                return ""
-            }
+            return connection.inputStream.text
         }
 
         if (callback)

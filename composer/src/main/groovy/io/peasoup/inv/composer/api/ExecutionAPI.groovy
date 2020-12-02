@@ -56,9 +56,9 @@ class ExecutionAPI {
                 def options = new JsonSlurper().parseText(body) as Map
                 debugMode = options.debugMode
                 systemMode = options.systemMode
-                secureMode = options.secureMode
             }
 
+            // Add selected repos
             if (webServer.run)
                 toExecute += webServer.run.selectedRepos()
 
@@ -78,7 +78,7 @@ class ExecutionAPI {
 
         post("/execution/stop", { Request req, Response res ->
             if (!webServer.exec.isRunning())
-                return "Already stopped"
+                return webServer.showError(res, "Already stopped")
 
             webServer.exec.stop()
             Thread.sleep(50)

@@ -3,6 +3,7 @@ package io.peasoup.inv.composer.exec1
 import io.peasoup.inv.Home
 
 import static junit.framework.Assert.assertEquals
+import static junit.framework.Assert.assertEquals
 import static junit.framework.Assert.assertTrue
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static junit.framework.TestCase.*
@@ -44,7 +45,10 @@ get(links.execution.default) {
 }
 
 // Start execution
-post(execLinks.start)
+post(execLinks.start, [debugMode: false, secureMode: false]) {
+    assertNotNull it
+    assertEquals 1, it.files.size()
+}
 
 //Wait a bit for it to actually start
 Thread.sleep(1000)
@@ -58,6 +62,19 @@ get(links.execution.default) {
 // Wait until execution is done
 waitFor(30) {
     get(links.execution.default) { !it.running }
+}
+
+// Fetch execLinks again to get download link
+get(links.execution.default) {
+    assertNotNull it
+    assertFalse it.running
+
+    execLinks = it.links
+}
+
+// Download log
+getAsString(execLinks.download) {
+    assertNotNull it
 }
 
 // Check review

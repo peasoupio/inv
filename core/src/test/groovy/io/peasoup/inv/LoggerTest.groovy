@@ -18,6 +18,9 @@ class LoggerTest {
         Logger.system("\n")
         assertTrue logs.isEmpty()
 
+        Logger.system(System.lineSeparator())
+        assertTrue logs.isEmpty()
+
         Logger.capture = null
     }
 }

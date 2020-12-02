@@ -9,6 +9,7 @@ import static junit.framework.Assert.assertTrue
 import static junit.framework.TestCase.*
 import static junit.framework.TestCase.assertEquals
 import static junit.framework.TestCase.assertTrue
+import static org.junit.Assert.assertThrows
 
 def runFile = new File(Home.getCurrent(), "run.txt")
 runFile.delete() // Make sure run.txt is deleted
@@ -22,6 +23,8 @@ Map links = links()
 waitFor(10) {
     get(links.setup) { it.booted }
 }
+
+
 
 // Stage "io.peasoup.public.net.http"
 Map httpInv
@@ -43,6 +46,11 @@ get(links.execution.default) {
 
     execLinks = it.links
 }
+
+// Stop (when not running)
+assertThrows(Exception.class, {
+    post(execLinks.stop)
+})
 
 // Start execution
 post(execLinks.start)

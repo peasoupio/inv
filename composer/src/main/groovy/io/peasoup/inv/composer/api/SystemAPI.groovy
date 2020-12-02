@@ -156,7 +156,7 @@ class SystemAPI {
                     webServer.appLauncher(),
                     ["repo-run", initFile.absolutePath])
 
-            if (!exitValue)
+            if (exitValue != 0)
                 return webServer.showError(res, "Could not pull init")
 
             return webServer.showResult("Pulled init successfully")
@@ -180,7 +180,7 @@ class SystemAPI {
                 return report
             }
 
-            if (!report || !report.isOk)
+            if (!report || !report.isOk())
                 return webServer.showError(res, "Could not push init")
 
             return webServer.showResult("Pushed init successfully")
@@ -213,7 +213,7 @@ class SystemAPI {
 
         return [
                 source: report.descriptor.src,
-                version: report.stdout.trim()
+                version: report.stdout ? report.stdout.trim() : "undefined"
         ]
     }
 }

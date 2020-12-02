@@ -1,0 +1,9 @@
+repo:
+  - name: main
+    hooks:
+      init: |
+        echo 'ok-init'
+      pull: |
+        echo 'ok-pull'
+      push: |
+        echo 'ok-push'

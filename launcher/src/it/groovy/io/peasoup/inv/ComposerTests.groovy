@@ -34,11 +34,14 @@ class ComposerTests {
         String workspace = ComposerTests.getResource("/io/peasoup/inv" + workDir).path
         Home.setCurrent(new File(workspace))
 
+        File initFile = new File(workspace, "init.yml")
+
         // Start server
         new WebServer(
                 port: port,
                 appLauncher: "my-app-launcher",
-                version: "my-version"
+                version: "my-version",
+                initFile: initFile.exists() ? initFile.absolutePath : null
         ).routes()
 
         // Run Http script

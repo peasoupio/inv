@@ -111,7 +111,7 @@ class WebServer {
 
     File initFile() {
         if (!webServerConfigs.initFile)
-            return null;
+            return null
 
         if (!(webServerConfigs.initFile instanceof String))
             throw new IllegalStateException("InitFile is corrupted. Contact your administrator.")

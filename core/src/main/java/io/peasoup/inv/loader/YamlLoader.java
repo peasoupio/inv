@@ -6,6 +6,7 @@ import io.peasoup.inv.repo.yaml.YamlRepoDescriptor;
 import io.peasoup.inv.run.yaml.YamlInvDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -32,7 +33,11 @@ public class YamlLoader {
      */
     public YamlLoader.Descriptor parseYaml(File scriptFile) throws IOException {
         try(BufferedReader reader = ResourceGroovyMethods.newReader(scriptFile)) {
-            return yaml.load(reader);
+            try {
+                return yaml.load(reader);
+            } catch(Exception ex) {
+                throw new IOException(StackTraceUtils.sanitize(ex));
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.loader.YamlLoader;
 import io.peasoup.inv.run.*;
+import lombok.NonNull;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -24,10 +25,13 @@ public class YamlInvHandler {
     private final String pwd;
     private final String repo;
 
-    public YamlInvHandler(InvExecutor invExecutor, YamlLoader yamlLoader, File yamlFile, String pwd, String repo) {
-        if (invExecutor == null) throw new IllegalArgumentException("invExecutor");
-        if (yamlLoader == null) throw new IllegalArgumentException("yamlLoader");
-        if (yamlFile == null) throw new IllegalArgumentException("yamlFile");
+
+    public YamlInvHandler(
+            @NonNull InvExecutor invExecutor,
+            @NonNull YamlLoader yamlLoader,
+            @NonNull File yamlFile,
+            @NonNull String pwd,
+            @NonNull String repo) {
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 

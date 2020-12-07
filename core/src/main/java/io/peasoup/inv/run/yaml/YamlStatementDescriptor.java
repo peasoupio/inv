@@ -1,5 +1,10 @@
 package io.peasoup.inv.run.yaml;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class YamlStatementDescriptor {
 
     private YamlRequireStatementDescriptor require;
@@ -8,21 +13,5 @@ public class YamlStatementDescriptor {
 
     public YamlStatementDescriptor() {
         // empty ctor
-    }
-
-    public YamlRequireStatementDescriptor getRequire() {
-        return require;
-    }
-
-    public void setRequire(YamlRequireStatementDescriptor require) {
-        this.require = require;
-    }
-
-    public YamlBroadcastStatementDescriptor getBroadcast() {
-        return broadcast;
-    }
-
-    public void setBroadcast(YamlBroadcastStatementDescriptor broadcast) {
-        this.broadcast = broadcast;
     }
 }

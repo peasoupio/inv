@@ -45,7 +45,7 @@ public class LazyYamlClosure extends Closure {
 
     @Override
     public Object call(Object arguments) {
-        throw new NotImplementedException();
+        return this.getCodeClosure().call(arguments);
     }
 
     @Override

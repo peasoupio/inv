@@ -9,7 +9,6 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.OptionalInt;
 
 public class RunsRoller {

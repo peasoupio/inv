@@ -56,13 +56,6 @@ class LazyYamlClosureTest {
     }
 
     @Test
-    void call_fail() {
-        assertThrows(NotImplementedException.class, {
-            simpleClosure.call("anything")
-        })
-    }
-
-    @Test
     void call_multiple_args_fail() {
         assertThrows(NotImplementedException.class, {
             simpleClosure.call("anything", "else")

@@ -8,8 +8,9 @@ Feature: What is the state of my loader execution?
 
     Examples:
       | runPattern                            | exitCode |
-      | inv-invoker-script.groovy             | 0         |
-      | inv-invoker-ivy-script.groovy         | 0         |
-      | inv-invoker-restricted-script.groovy  | 3         |
-      | inv-invoker-restricted2-script.groovy | 0         |
-      | inv-invoker-script-with-debug.groovy  | 0         |
+      | inv-invoker-script.yml                | 0        |
+      | inv-invoker-script.groovy             | 0        |
+      | inv-invoker-ivy-script.groovy         | 0        |
+      | inv-invoker-restricted-script.groovy  | 3        |
+      | inv-invoker-restricted2-script.groovy | 0        |
+      | inv-invoker-script-with-debug.groovy  | 0        |

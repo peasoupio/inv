@@ -1,0 +1,48 @@
+inv:
+  - name: provider
+    path: my-path
+    tags:
+      my: tag
+    workflow:
+      - broadcast:
+          name: Provider
+          id: 1
+          markdown: |
+              *A* markdown
+          ready: |
+              return [
+                  $: {[
+                      my: tags.my
+                  ]},
+                  my: tags.my
+              ]
+
+
+  - name: consumer
+    tags:
+      my: othertag
+    workflow:
+      - require:
+          name: Provider
+          id: 1
+          resolved: |
+              assert "othertag" == response.my
+
+  - name: consumer2
+    tags:
+      my: othertag
+    workflow:
+      - require:
+          name: Provider
+          id: 1
+          defaults: false
+          resolved: |
+            assert "tag" == response.my
+
+  - name: consumer3
+    workflow:
+      - require:
+          name: Provider2
+          unbloatable: true
+          unresolved: |
+              println "Uh oh..."

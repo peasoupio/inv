@@ -10,11 +10,9 @@ import io.peasoup.inv.repo.RepoURLExtractor;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
 import io.peasoup.inv.run.PoolReport;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 
 import java.io.File;
-import java.net.URL;
 
 public abstract class JunitScriptBase extends Script {
 
@@ -104,27 +102,5 @@ public abstract class JunitScriptBase extends Script {
 
         // Do the actual execution
         report = invExecutor.execute();
-    }
-
-    private void loadInvScriptfile(String invScriptfile) {
-        if (StringUtils.isEmpty(invScriptfile)) throw new IllegalArgumentException("Inv must be a valid non-null, non-empty value");
-
-        File invFile = new File(Home.getCurrent(), invScriptfile);
-
-        if (!invFile.exists()) {
-            String testClassLocation = getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-            invFile = new File(new File(testClassLocation).getParentFile(), invScriptfile);
-        }
-
-        if (!invFile.exists()) {
-            URL location = this.getClass().getResource(invScriptfile);
-            if (location != null)
-                invFile = new File(location.getPath());
-        }
-
-        if (!invFile.exists())
-            throw new IllegalStateException(invFile.getAbsolutePath() + " does not exists on the filesystem");
-
-        invExecutor.addScript(invFile, mySettings.getPackageName());
     }
 }

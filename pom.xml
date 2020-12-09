@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <groovy.version>3.0.6</groovy.version>
+        <groovy.version>3.0.7</groovy.version>
         <jgrapht.version>1.4.0</jgrapht.version>
         <cucumber.version>6.8.2</cucumber.version>
 

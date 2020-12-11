@@ -1,7 +1,7 @@
 # Dockerfile
 
 # Alpine Linux with OpenJDK JDK
-FROM openjdk:8-jdk-alpine
+FROM adoptopenjdk/openjdk11:alpine-slim
 
 # Install Bash
 RUN apk add --no-cache bash

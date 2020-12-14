@@ -25,6 +25,9 @@ public class RepoDescriptor {
             .map(e -> e.getKey() + ":" + e.getValue() )
             .collect(Collectors.toList());
 
+    public final static String SCRIPT_GROOVY_TYPE = "text/x-groovy";
+    public final static String SCRIPT_YAML_TYPE = "text/x-yaml";
+
     public static final String DEFAULT_PATH = ".inv";
     public static final Integer DEFAULT_TIMEOUT = 30000;
 
@@ -200,6 +203,23 @@ public class RepoDescriptor {
 
     public File getRepoCompletePath() {
         return this.completeRepoPath;
+    }
+
+    public String mimeType() {
+        String filename = scriptFile.getName();
+
+        // if not extension defined, use groovy mime
+        if (!filename.contains("."))
+            return SCRIPT_GROOVY_TYPE;
+
+        // Get mime from file extension
+        switch(filename.split("\\.")[1]) {
+            case "groovy": return SCRIPT_GROOVY_TYPE;
+            case "yml":
+            case "yaml":
+                return SCRIPT_YAML_TYPE;
+            default: return "";
+        }
     }
 
     private void generateRepoPaths() {

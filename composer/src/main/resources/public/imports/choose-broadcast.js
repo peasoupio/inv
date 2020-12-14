@@ -105,14 +105,12 @@ Vue.component('choose-broadcast', {
                         <tr class="field">
                             <th style="width: 30%">Name</th>
                             <th>Source</th>
-                            <th style="width: 30%">Entry</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr>
                             <td><p class="truncate">{{viewRepo.name}}</p></td>
-                            <td><p class="truncate">{{viewRepo.descriptor.src}}</p></td>
-                            <td><p class="truncate" v-for="entry in viewRepo.descriptor.entry">{{entry}}</p></td>
+                            <td><p class="truncate"><a :href="viewRepo.descriptor.src" target="_blank">{{viewRepo.descriptor.src}}</a></p></td>
                         </tr>
                         </tbody>
                     </table>
@@ -284,6 +282,9 @@ Vue.component('choose-broadcast', {
 
             axios.get(inv.links.viewRepo).then(response => {
                 vm.viewRepo = response.data
+            })
+            .catch(err => {
+                vm.$bus.$emit('toast', `error:${err.response.data.message}!`)
             })
         },
         close: function() {

@@ -136,6 +136,7 @@ class RepoFile {
                     name        : descriptor.name,
                     script      : [
                             source  : simpleName(),
+                            mimeType: descriptor.mimeType(),
                             text    : repoFile.text,
                             lastEdit: repoFile.lastEdit
                     ],
@@ -156,7 +157,7 @@ class RepoFile {
                             default   : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${descriptor.name}",
                             stage     : WebServer.API_CONTEXT_ROOT + "/repos/stage?name=${descriptor.name}",
                             unstage   : WebServer.API_CONTEXT_ROOT + "/repos/unstage?name=${descriptor.name}",
-                            save      : WebServer.API_CONTEXT_ROOT + "/repos/source?name=${descriptor.name}",
+                            save      : WebServer.API_CONTEXT_ROOT + "/repos/source?name=${descriptor.name}&mimeType=${descriptor.mimeType()}",
                             remove    : WebServer.API_CONTEXT_ROOT + "/repos/remove?name=${descriptor.name}",
                             parameters: WebServer.API_CONTEXT_ROOT + "/repos/parametersValues?name=${descriptor.name}"
                     ]

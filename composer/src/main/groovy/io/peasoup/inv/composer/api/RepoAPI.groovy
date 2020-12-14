@@ -5,6 +5,7 @@ import groovy.json.JsonSlurper
 import io.peasoup.inv.composer.RepoFile
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.loader.GroovyLoader
+import io.peasoup.inv.loader.YamlLoader
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
@@ -155,12 +156,28 @@ class RepoAPI {
             if (!name)
                 return webServer.showError(res, "name is required")
 
+            def mimeType = req.queryParams("mimeType")
+            if (!mimeType)
+                return webServer.showError(res, "mimeType is required")
+
             String source = req.body()
             Integer errorCount = 0
             List<String> exceptionMessages = []
 
+            String fileExtension = ".groovy"
+
             try {
-                new GroovyLoader().parseClassText(source)
+
+                switch (mimeType) {
+                    case RepoDescriptor.SCRIPT_YAML_TYPE:
+                        new YamlLoader().parseYamlText(source)
+                        fileExtension = ".yml"
+                        break
+                    case RepoDescriptor.SCRIPT_GROOVY_TYPE:
+                        new GroovyLoader().parseClassText(source)
+                        break
+                }
+
             } catch (MultipleCompilationErrorsException ex) {
                 errorCount = ex.errorCollector.errorCount
                 exceptionMessages = ex.errorCollector.errors.collect { it.cause.toString() }
@@ -173,16 +190,15 @@ class RepoAPI {
                     // If existing, replace
                     if (element) {
                         element.repoFile.scriptFile.delete()
-                        element.repoFile.scriptFile << req.body()
-
+                        element.repoFile.scriptFile << source
                         webServer.repos.load(element.repoFile.scriptFile)
                     } else {
                         // Otherwise create new one
-                        def newFile = new File(webServer.repos.repoFolder, name + ".groovy")
-                        newFile << req.body()
-
+                        def newFile = new File(webServer.repos.repoFolder, name + fileExtension)
+                        newFile << source
                         webServer.repos.load(newFile)
                     }
+
                 } catch (Exception ex) {
                     errorCount = 1
                     exceptionMessages = [ex.getMessage()]

@@ -13,6 +13,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 
 public class YamlLoader {
@@ -31,8 +32,16 @@ public class YamlLoader {
      * @return A new YamlLoader.Descriptor instance
      * @throws IOException
      */
-    public YamlLoader.Descriptor parseYaml(File scriptFile) throws IOException {
-        try(BufferedReader reader = ResourceGroovyMethods.newReader(scriptFile)) {
+    public YamlLoader.Descriptor parseYamlFile(File scriptFile) throws IOException {
+        return parseYamlReader(ResourceGroovyMethods.newReader(scriptFile));
+    }
+
+    public YamlLoader.Descriptor parseYamlText(String scriptText) throws IOException {
+        return parseYamlReader(new BufferedReader(new StringReader(scriptText)));
+    }
+
+    private YamlLoader.Descriptor parseYamlReader(BufferedReader reader) throws IOException {
+        try(reader) {
             try {
                 return yaml.load(reader);
             } catch(Exception ex) {
@@ -40,6 +49,7 @@ public class YamlLoader {
             }
         }
     }
+
 
     public Object interpolate(Object receiver, Map<String, String> data) throws IOException, ClassNotFoundException {
         if (receiver instanceof String)

@@ -24,6 +24,10 @@ class Pattern {
         return patterns.collectMany {
             String lookupPattern = it
 
+            // Remove leading ./ since it is redundant
+            if (lookupPattern.startsWith("./") || lookupPattern.startsWith(".\\"))
+                lookupPattern = lookupPattern.substring(2)
+
             // If pattern means an actual file, use it
             File lookupFile = new File(lookupPattern)
             if (!lookupFile.isDirectory() && lookupFile.exists())
@@ -39,11 +43,14 @@ class Pattern {
                 return [lookupFileRoot]
 
             // Convert Ant pattern to regex
-            def includePattern = FileUtils.convertUnixPath(lookupPattern)
+            def includePatternStr = FileUtils.convertUnixPath(lookupPattern)
                     .replace("/", "\\/")
                     .replace(".", "\\.")
                     .replace("*", ".*")
                     .replace("?", ".*")
+
+            // Create pattern
+            def includePattern = java.util.regex.Pattern.compile("^${includePatternStr}\$".toString())
 
             List<File> included = []
             def walker = { File found ->
@@ -51,14 +58,14 @@ class Pattern {
                 def relativizedFile = FileUtils.convertUnixPath(root.relativePath(found))
 
                 // Check if file should be excluded
-                if (excludePatterns) {
+                if (!excludePatterns.isEmpty()) {
                     // Any file match any exclusion pattern
                     if (excludePatterns.any { relativizedFile ==~ /.*${it}.*/ })
                         return
                 }
 
                 // Check if file should be included
-                if (!(relativizedFile ==~ /^${includePattern}$/))
+                if (!includePattern.matcher(relativizedFile).matches())
                     return
 
                 included.add(found)

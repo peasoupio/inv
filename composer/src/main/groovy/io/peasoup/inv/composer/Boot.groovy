@@ -95,7 +95,7 @@ class Boot {
         def files = Pattern.get(["*"], RepoInvoker.DEFAULT_EXCLUDED, repoFolder, false)
 
         if (!files) {
-            Logger.warn("No files to be found in'${repoFolder.absolutePath}'")
+            Logger.warn("No files to be found in '${repoFolder.absolutePath}'")
             return
         }
 
@@ -117,7 +117,7 @@ class Boot {
         def files = Pattern.get(["*.href"], RepoInvoker.DEFAULT_EXCLUDED, hrefFolder, false)
 
         if (!files) {
-            Logger.warn("No files to be found in'${hrefFolder.absolutePath}'")
+            Logger.warn("No files to be found in '${hrefFolder.absolutePath}'")
             return
         }
 

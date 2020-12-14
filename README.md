@@ -1,4 +1,4 @@
-# ![TiteCan](core/src/main/resources/public/favicon-32x32.png) INV - Intertwined network valuables
+# ![TiteCan](composer/src/main/resources/public/favicon-32x32.png) INV - Intertwined network valuables
 
 ***INV*** is a tool intended to facilitate the implementation of an *environment as a code* solution in your technological ecosystem.  
 It is completely generic, complementing automation with code instead of only configuration files.   
@@ -14,7 +14,6 @@ Look [here](https://github.com/peasoupio/inv/blob/master/LICENSE) to learn more 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=io.peasoup%3Ainv&metric=alert_status)](https://sonarcloud.io/dashboard?id=io.peasoup%3Ainv)
 
 ##  :sparkles: Features
-
 
 | Feature | Implemented | Targeted flavor(s) | Available on *Composer*
 | --- | :---: | --- | :---: |
@@ -41,7 +40,7 @@ It covers:
 * Using Java
 
 #### Installation: Prerequisites  
-* JDK 8 or higher
+* JDK 11 or higher
 * Windows or Linux
 
 ## :question: How to learn INV: A quick example

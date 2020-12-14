@@ -1,4 +1,4 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-mvn -q -f ${DIR}/core exec:java -Dexec.mainClass="io.peasoup.inv.Main" -Dexec.args="$@"
+mvn -q -f ${DIR}/launcher exec:java -Dexec.mainClass="io.peasoup.inv.Main" -Dexec.args="$@"

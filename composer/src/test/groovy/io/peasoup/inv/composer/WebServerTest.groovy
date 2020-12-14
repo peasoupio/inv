@@ -99,7 +99,7 @@ repo {
 }
 """.getBytes(Charset.forName("UTF-8"))
 
-        post("repos/source?name=repo7", sourceText)
+        post("repos/source?name=repo7&mimeType=text/x-groovy", sourceText)
 
         def response = get("repos/view?name=repo7")
         assertNotNull response

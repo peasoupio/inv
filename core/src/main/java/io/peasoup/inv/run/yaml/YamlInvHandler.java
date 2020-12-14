@@ -43,7 +43,7 @@ public class YamlInvHandler {
     }
 
     public void call() throws MissingOptionException, IOException {
-        YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
+        YamlLoader.Descriptor descriptor = yamlLoader.parseYamlFile(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
         if (descriptor == null ||

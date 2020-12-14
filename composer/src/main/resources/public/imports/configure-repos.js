@@ -82,13 +82,42 @@ Vue.component('configure-repos-details', {
                 <div class="columns" v-if="editScript">
                     <div class="column">
                         <h1 class="title is-3">Edit REPO</h1>
-                        <h4 class="subtitle is-6" v-if="mode == 'edit'">source: {{editScript.descriptor.src}}</h4>
+                        <h4 class="subtitle is-6" v-if="mode == 'edit'">Source: {{editScript.descriptor.src || "not defined"}}</h4>
                         <div class="field" v-if="mode == 'new'">
-                            <p class="control is-expanded has-icons-right">
-                                <input class="input" type="text" v-model="newName" placeholder="Name of the new REPO file (.groovy will be added automatically)">
-                                <span class="icon is-small is-right"><i class="fas fa-plus"></i></span>
-                            </p>
+
+                            <div class="field is-horizontal">
+                              <div class="field-label is-normal">
+                                <label class="label">Name:</label>
+                              </div>
+                              <div class="field-body">
+                                <div class="field">
+                                  <div class="control is-expanded has-icons-right">
+                                    <input class="input" type="text" v-model="newName" placeholder="Name of the new REPO file">
+                                    <span class="icon is-small is-right"><i class="fas fa-plus"></i></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="field is-horizontal">
+                              <div class="field-label">
+                                <label class="label">Mimetype</label>
+                              </div>
+                              <div class="field-body">
+                                <div class="field is-narrow">
+                                  <div class="control">
+                                    <label v-for="mime in mimeTypes" class="radio">
+                                        <input
+                                            type="radio"
+                                            name="groovy"
+                                            :checked="mimeType == mime"
+                                            v-on:change="setMimeType(mime)">{{mime}}</label>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                         </div>
+
                     </div>
                     <div class="column is-one-fifth">
                         <div class="buttons has-addons is-right">
@@ -141,7 +170,12 @@ Vue.component('configure-repos-details', {
             sending: false,
             saved: false,
             errorCount: 0,
-            errors: []
+            errors: [],
+            mimeType: "text/x-groovy",
+            mimeTypes: [
+                "text/x-groovy",
+                "text/x-yaml"
+            ]
         }
     },
     computed: {
@@ -194,7 +228,7 @@ Vue.component('configure-repos-details', {
             vm.editScript = {
                 links: {
                     get save() {
-                        return vm.value.api.links.repos.add + "?name=" + vm.newName
+                        return vm.value.api.links.repos.add + "?name=" + vm.newName + "&mimeType=" + vm.mimeType
                     }
                 }
             }
@@ -212,9 +246,11 @@ Vue.component('configure-repos-details', {
                 vm.codeMirror.refresh()
 
                 vm.editScript = latestRepo
+                vm.setMimeType(latestRepo.script.mimeType)
 
                 vm.edited = false
                 vm.mode = 'edit'
+
             })
         },
         canSave: function() {
@@ -294,6 +330,12 @@ Vue.component('configure-repos-details', {
             .catch(err => {
                 vm.$bus.$emit('toast', `error:Failed <strong>to remove ${repo.descriptor.name}</strong>!`)
             })
+        },
+        setMimeType: function(mimeType) {
+            var vm = this
+
+            vm.mimeType = mimeType
+            vm.codeMirror.setOption("mode", mimeType)
         }
     },
     mounted: function() {
@@ -305,16 +347,15 @@ Vue.component('configure-repos-details', {
         }, {
             autoRefresh: true,
             lineNumbers: true,
-            matchBrackets: true,
-            mode: "text/x-groovy"
+            matchBrackets: true
         })
-
-        codeMirror.setSize(null, 640)
 
         codeMirror.on("change",function(cm,change){
             vm.saved = false
             vm.edited = true
         })
+
+        codeMirror.setSize(null, 640)
 
         vm.codeMirror = codeMirror
         vm.searchRepo()

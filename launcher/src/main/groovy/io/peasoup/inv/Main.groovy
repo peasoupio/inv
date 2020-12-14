@@ -157,10 +157,13 @@ Options:
 The subcommands are:
   run          Load and execute INV files.
   syntax       Check the syntax of an INV or REPO file.
-  repo         Create, get, run or test a REPO folder.
+  repo-create  Create a REPO folder.
+  repo-get     Get a REPO folder.
+  repo-run     Run a REPO folder.
+  repo-test    Test a REPO folder.
   composer     Start Composer dashboard
-  init         Start Composer dashboard from an REPO file
-               or create an empty Git init repository.
+  init-run     Start Composer dashboard from an REPO file
+  init-run     Create an empty Git init repository.
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.

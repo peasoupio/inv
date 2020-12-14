@@ -35,7 +35,7 @@ public class YamlRepoHandler {
     }
 
     public void call() throws IOException, MissingOptionException {
-        YamlLoader.Descriptor descriptor = yamlLoader.parseYaml(yamlFile);
+        YamlLoader.Descriptor descriptor = yamlLoader.parseYamlFile(yamlFile);
 
         // Skip if cannot get YamlInvDescriptor's
         if (descriptor == null ||

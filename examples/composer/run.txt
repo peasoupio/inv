@@ -1,10 +1,10 @@
-[INV] [repo1] [C:\workspace\inv\target\...\bin\example\githubHomepage\appA.groovy] [appA]
-[INV] [repo2] [C:\workspace\inv\target\...\bin\example\githubHomepage\appB.groovy] [appB]
-[INV] [repo3] [C:\workspace\inv\target\...\bin\example\githubHomepage\iis.groovy] [iis]
-[INV] [repo4] [C:\workspace\inv\target\...\bin\example\githubHomepage\kubernetes.groovy] [Kubernetes]
-[INV] [repo5] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverA.groovy] [ServerA]
-[INV] [repo6] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverB.groovy] [ServerB]
-[INV] [undefined] [C:\workspace\inv\target\...\bin\example\githubHomepage\serverB.groovy] [my-app-1]
+[INV] [repo1] [example\githubHomepage\appA.groovy] [appA]
+[INV] [repo2] [example\githubHomepage\appB.groovy] [appB]
+[INV] [repo3] [example\githubHomepage\iis.groovy] [iis]
+[INV] [repo4] [example\githubHomepage\kubernetes.groovy] [Kubernetes]
+[INV] [repo5] [example\githubHomepage\serverA.groovy] [ServerA]
+[INV] [repo6] [example\githubHomepage\serverB.groovy] [ServerB]
+[INV] [undefined] [example\githubHomepage\serverB.groovy] [my-app-1]
 
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [ServerA] => [BROADCAST] [Server] [name:server-a]
@@ -20,9 +20,9 @@ Installing service kubectl on 10.22.99.999
 [INV] [appB] => [REQUIRE] [IIS] undefined
 IIS webapp my-web-app has been deployed
 [INV] --- completed ----
-[INV] file: C:\workspace\inv\src\main\example\maven\app1\app1.groovy
-[INV] file: C:\workspace\inv\src\main\example\maven\app2\app2.groovy
-[INV] file: C:\workspace\inv\src\main\example\maven\maven.groovy
+[INV] file: example\maven\app1\app1.groovy
+[INV] file: example\maven\app2\app2.groovy
+[INV] file: example\maven\maven.groovy
 my-app-2 is ready!
 [INV] ---- [DIGEST] #1 (state=RUNNING) ----
 [INV] [files] => [BROADCAST] [Files] undefined

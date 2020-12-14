@@ -427,9 +427,9 @@ public class Inv {
     }
 
     public static class Digestion {
-        private Integer requires = 0;
-        private Integer broadcasts = 0;
-        private Integer unbloats = 0;
+        private int requires = 0;
+        private int broadcasts = 0;
+        private int unbloats = 0;
 
         private boolean interrupt = false;
 
@@ -485,15 +485,15 @@ public class Inv {
                 this.interrupt = true;
         }
 
-        public Integer getRequires() {
+        public int getRequires() {
             return requires;
         }
 
-        public Integer getBroadcasts() {
+        public int getBroadcasts() {
             return broadcasts;
         }
 
-        public Integer getUnbloats() {
+        public int getUnbloats() {
             return unbloats;
         }
 

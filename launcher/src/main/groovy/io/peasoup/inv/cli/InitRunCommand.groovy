@@ -5,6 +5,7 @@ import io.peasoup.inv.Home
 import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.WebServer
 import io.peasoup.inv.repo.RepoExecutor
+import io.peasoup.inv.repo.RepoURLExtractor
 import org.apache.commons.validator.routines.UrlValidator
 import spark.utils.StringUtils
 
@@ -65,13 +66,7 @@ Environment variables:
 
         // Check if init file location is an URL
         if (UrlValidator.instance.isValid(initRepoFileLocation)) {
-            String initFileContent = new URL(initRepoFileLocation).openConnection().inputStream.text
-
-            File tmpFile = new File(System.getenv().TEMP ?: '/tmp', '/inv/init.groovy')
-            tmpFile.delete()
-            tmpFile << initFileContent
-
-            repoFile = tmpFile
+            repoFile = RepoURLExtractor.extract(initRepoFileLocation)
         } else
             repoFile = new File(actualFileLocation)
 

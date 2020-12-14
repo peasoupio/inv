@@ -30,7 +30,10 @@ class WebServer {
     final Settings settings
     final RepoFileCollection repos
     final Execution exec
+
     RunFile run
+
+    private boolean usingSsl = false
 
     WebServer(Map args) {
         if (!(args.appLauncher instanceof CharSequence))
@@ -97,7 +100,7 @@ class WebServer {
 
         // Wait for initialization
         awaitInitialization()
-        println "Ready and listening on http://localhost:${webServerConfigs.port}"
+        println "Ready and listening on ${usingSsl? "https" : "http"}://localhost:${webServerConfigs.port}"
 
         // Execute boot sequence
         boot.run()
@@ -151,6 +154,7 @@ class WebServer {
         // SSL configuratio
         if (configSslKeystore) {
             secure(configSslKeystore, configSslPass, null, null)
+            usingSsl = true
         }
 
         // Exception handling

@@ -163,7 +163,7 @@ The subcommands are:
   repo-test    Test a REPO folder.
   composer     Start Composer dashboard
   init-run     Start Composer dashboard from an REPO file
-  init-run     Create an empty Git init repository.
+  init-create  Create an empty Git init repository.
   promote      Promote a run.txt as the new base.
   delta        Generate delta between two run files.
   graph        Generate a graph representation.

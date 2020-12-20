@@ -110,9 +110,8 @@ Vue.component('configure-run', {
                     return
             }
 
-            vm.opened = false
-            vm.saved = false
-            vm.value.visible = false
+            // Reload to get latest data
+            window.location.reload(true)
         }
     },
     mounted: function() {

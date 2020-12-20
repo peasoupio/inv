@@ -24,11 +24,11 @@ public class NetworkValuablePoolEater {
      */
     @SuppressWarnings("squid:S1181")
     public EatenInv eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
-        Inv.Digestion currentDigest = new Inv.Digestion();
+        Inv.Digestion currentDigest = null;
         boolean hasError = false;
 
         try {
-            currentDigest.concat(inv.digest());
+            currentDigest = inv.digest();
         } catch (Throwable t) {
             poolErrors.add(new PoolReport.PoolError(inv, t));
 

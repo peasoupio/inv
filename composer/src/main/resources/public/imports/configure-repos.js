@@ -22,7 +22,8 @@ Vue.component('configure-repos', {
         close: function() {
             var vm = this
 
-            vm.value.visible = false
+            // Reload to get latest data
+            window.location.reload(true)
         }
     }
 })
@@ -44,7 +45,6 @@ Vue.component('configure-repos-details', {
             <tr class="field">
                 <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchRepo(true)"></th>
                 <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchRepo(true)"></th>
-                <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchRepo(true)"></th>
                 <th style="width: 8%">Timeout</th>
                 <th style="width: 10%">Options</th>
             </tr>
@@ -52,8 +52,10 @@ Vue.component('configure-repos-details', {
             <tbody>
             <tr v-for="repo in filter()">
                 <td><span>{{repo.name}}</span><br/><span style="color: lightgrey">Last edit: {{whenLastEdit(repo)}}</span></td>
-                <td>{{repo.descriptor.src}}</td>
-                <td><p v-for="entry in repo.descriptor.entry">{{entry}}</p></td>
+                <td>
+                    <a :href="repo.descriptor.src" v-if="repo.descriptor.src">{{repo.descriptor.src}}</a>
+                    <span v-else><strong>undefined</strong></span>
+                </td>
                 <td>{{repo.descriptor.timeout}}</td>
                 <td>
                     <button class="button is-link breathe" @click.stop="openEdit(repo)">
@@ -111,6 +113,7 @@ Vue.component('configure-repos-details', {
                                             type="radio"
                                             name="groovy"
                                             :checked="mimeType == mime"
+                                            style="margin-right: 0.25rem"
                                             v-on:change="setMimeType(mime)">{{mime}}</label>
                                   </div>
                                 </div>

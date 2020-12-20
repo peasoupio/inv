@@ -9,8 +9,8 @@ class FileUtilsTest {
 
     @Test
     void addSubordinateSlash() {
-        assertEquals "test/", FileUtils.addSubordinateSlash("test")
-        assertEquals "test/", FileUtils.addSubordinateSlash("test/")
+        assertEquals "test/", FileUtils.addEndingSlash("test")
+        assertEquals "test/", FileUtils.addEndingSlash("test/")
     }
 
     @Test
@@ -22,7 +22,7 @@ class FileUtilsTest {
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            FileUtils.addSubordinateSlash("")
+            FileUtils.addEndingSlash("")
         })
 
         assertThrows(IllegalArgumentException.class, {

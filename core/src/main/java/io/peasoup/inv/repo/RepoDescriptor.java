@@ -5,6 +5,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
+import io.peasoup.inv.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
@@ -24,9 +25,6 @@ public class RepoDescriptor {
     private static final List<String> unixSet = env.entrySet().stream()
             .map(e -> e.getKey() + ":" + e.getValue() )
             .collect(Collectors.toList());
-
-    public final static String SCRIPT_GROOVY_TYPE = "text/x-groovy";
-    public final static String SCRIPT_YAML_TYPE = "text/x-yaml";
 
     public static final String DEFAULT_PATH = ".inv";
     public static final Integer DEFAULT_TIMEOUT = 30000;
@@ -206,20 +204,7 @@ public class RepoDescriptor {
     }
 
     public String mimeType() {
-        String filename = scriptFile.getName();
-
-        // if not extension defined, use groovy mime
-        if (!filename.contains("."))
-            return SCRIPT_GROOVY_TYPE;
-
-        // Get mime from file extension
-        switch(filename.split("\\.")[1]) {
-            case "groovy": return SCRIPT_GROOVY_TYPE;
-            case "yml":
-            case "yaml":
-                return SCRIPT_YAML_TYPE;
-            default: return "";
-        }
+        return FileUtils.getMimeType(scriptFile.getName());
     }
 
     private void generateRepoPaths() {

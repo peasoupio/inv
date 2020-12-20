@@ -89,8 +89,6 @@ Vue.component('layout', {
                 <hr class="navbar-divider">
                 <a class="navbar-item" @click.stop="pullInit()">Pull changes</a>
                 <a class="navbar-item" @click.stop="pushInit()">Push changes</a>
-                <hr class="navbar-divider">
-                <a class="navbar-item has-text-danger">Reset everything (coming soon!)</a>
               </div>
             </div>
 
@@ -341,12 +339,15 @@ Vue.component('layout', {
         },
         pullInit: function() {
             var vm = this
+
             axios.post(vm.shared.api.links.initFile.pull).then(response => {
                 vm.$bus.$emit('toast', `success:Pulled <strong>init file changes</strong> successfully!`)
             })
             .catch(err => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>pull init file changes</strong>!`)
             })
+
+            vm.$bus.$emit('toast', `Pulled <strong>init file changes</strong> requested!`)
         },
         pushInit: function() {
             var vm = this
@@ -356,6 +357,8 @@ Vue.component('layout', {
             .catch(err => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>push init file changes</strong>!`)
             })
+
+            vm.$bus.$emit('toast', `success:Pushed <strong>init file changes</strong> requested!`)
         }
     },
     mounted: function() {
@@ -365,6 +368,7 @@ Vue.component('layout', {
         var hash = window.location.hash
         vm.resetStep()
 
+        // Select step if # defined
         vm.steps.forEach(function(step) {
             if (hash !== '#' + step.template)
                 return

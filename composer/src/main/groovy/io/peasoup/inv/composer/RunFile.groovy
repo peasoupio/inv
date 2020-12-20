@@ -65,6 +65,7 @@ class RunFile {
                 }
                 .unique()
 
+        // Travel staged owners to get their dependency path
         for (String source : stagedOwners) {
             def path = runGraph.navigator.getPaths(new GraphNavigator.Owner(value: source), owner)
 
@@ -144,93 +145,97 @@ class RunFile {
     @CompileDynamic
     synchronized Map propagate() {
 
-        Map<String, StagedId> checkRequiresByAll = staged
+        Map<String, StagedId> selectedStages = staged
                 .findAll { it.value.selected }
 
         Map<String, Integer> output = [
                 all    : staged.size() == nodes.size(),
-                checked: checkRequiresByAll.size(),
+                checked: selectedStages.size(),
                 added  : 0
         ] as Map<String, Integer>
 
         // (Re)init with selected only
         staged.clear()
-        staged.putAll(checkRequiresByAll)
+        staged.putAll(selectedStages)
 
         // Are all nodes required ?
         if (output.all)
             return output
 
-        List<GraphNavigator.Linkable> alreadyStaged = checkRequiresByAll.values().collect { it.link }
+        List<GraphNavigator.Linkable> alreadyStaged = selectedStages.values().collect { it.link }
 
-        // If there's more selected than remaining, we'll seek from non-selected
+        // If there's more selected than remaining, we'll seek from non-selected (reverse mode)
         boolean reverseMode = staged.size() > (nodes.size() / 2)
-        List<StagedId> toCheck
+        List<StagedId> stegedIdsToCheck
 
         if (!reverseMode)
-            toCheck = checkRequiresByAll.values().toList() as List<StagedId>
+            stegedIdsToCheck = selectedStages.values().toList() as List<StagedId>
         else
-            toCheck = nodes.findAll { !checkRequiresByAll.containsKey(it.value) }.collect {
+            stegedIdsToCheck = nodes.findAll { !selectedStages.containsKey(it.value) }.collect {
                 new StagedId(new GraphNavigator.Id(value: it.value))
             }
 
-        while (!toCheck.isEmpty()) {
-            def chosen = toCheck.pop()
-            GraphNavigator.Linkable chosenLink = chosen.link
+        while (!stegedIdsToCheck.isEmpty()) {
 
+            def stageIdToCheck = stegedIdsToCheck.pop()
+            GraphNavigator.Linkable linkToCheck = stageIdToCheck.link
+
+            // In reverse mode, since all selected staged are to check,
+            // We only get the requiredBy, instead of the requireByAll
             if (reverseMode) {
-                def links = runGraph.navigator.requiredBy(chosenLink)
 
-                boolean matched = false
-
-                for (GraphNavigator.Linkable owner : links) {
-                    def node = runGraph.navigator.nodes[owner.value]
-                    if (!staged.containsKey(node.id))
-                        continue
-
-                    matched = true
-                    break
-                }
+                //Determine if stage ID to check has a staged dependency
+                def matched = runGraph.navigator.requiredBy(linkToCheck)
+                    .stream()
+                    .anyMatch(owner -> {
+                        def node = runGraph.navigator.nodes[owner.value]
+                        return staged.containsKey(node.id)
+                    })
 
                 if (!matched)
                     continue
 
-                chosen.required = true
-                staged.put(chosenLink.value, chosen)
+                stageIdToCheck.required = true
+                staged.put(linkToCheck.value, stageIdToCheck)
 
-                alreadyStaged.add(chosenLink)
+                alreadyStaged.add(linkToCheck)
                 output.added++
+            } else {
 
-                continue
-            }
+                // Get all dependencies of the link to check, excluding already staged links
+                Map<GraphNavigator.Linkable, Integer> links = runGraph.navigator.requiresAll(
+                        linkToCheck,
+                        alreadyStaged)
 
-            Map<GraphNavigator.Linkable, Integer> links = runGraph.navigator.requiresAll(
-                    chosenLink,
-                    alreadyStaged)
-
-            if (links == null) {
-                println "${chosen.link.value} is not a valid id"
-                continue
-            }
-
-            for (GraphNavigator.Linkable link : links.keySet()) {
-
-                if (!link.isId())
+                if (links == null) {
+                    println "${stageIdToCheck.link.value} is not a valid id"
                     continue
+                }
 
-                StagedId selectedId = new StagedId(link)
-                selectedId.required = true
+                // Stage all found links
+                for (GraphNavigator.Linkable link : links.keySet()) {
+                    if (!link.isId())
+                        continue
 
-                staged.put(link.value, selectedId)
+                    StagedId selectedId = new StagedId(link)
+                    selectedId.required = true
 
-                alreadyStaged.add(link)
-                output.added++
+                    staged.put(link.value, selectedId)
+
+                    alreadyStaged.add(link)
+                    output.added++
+                }
             }
         }
 
         return output
     }
 
+    /**
+     * Determines if a REPO is selected or not
+     * @param repo Repo name
+     * @return True if selected, otherwise false
+     */
     boolean isSelected(String repo) {
         if (!ownerOfRepo.containsKey(repo))
             return false
@@ -245,6 +250,10 @@ class RunFile {
         }
     }
 
+    /**
+     * Gets selected REPOs
+     * @return List of selected REPOs
+     */
     List<String> selectedRepos() {
         return staged.values()
                 .collect { runGraph.navigator.nodes[it.link.value] }

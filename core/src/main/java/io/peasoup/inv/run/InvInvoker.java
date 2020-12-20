@@ -113,7 +113,7 @@ public class InvInvoker {
                 invExecutor,
                 yamlLoader,
                 scriptFile,
-                FileUtils.addSubordinateSlash(pwd),
+                FileUtils.addEndingSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         try {
@@ -138,7 +138,7 @@ public class InvInvoker {
         InvHandler invHandler = new InvHandler(
                 invExecutor,
                 scriptFile,
-                FileUtils.addSubordinateSlash(pwd),
+                FileUtils.addEndingSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         Binding binding = myNewScript.getBinding();

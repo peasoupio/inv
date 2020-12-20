@@ -38,7 +38,12 @@ Vue.component('configure-init', {
             sending: false,
             saved: false,
             errorCount: 0,
-            errors: []
+            errors: [],
+            mimeType: "text/x-groovy",
+            mimeTypes: [
+                "text/x-groovy",
+                "text/x-yaml"
+            ]
         }
     },
     methods: {
@@ -65,8 +70,7 @@ Vue.component('configure-init', {
             }, {
                 autoRefresh: true,
                 lineNumbers: true,
-                matchBrackets: true,
-                mode: "text/x-groovy"
+                matchBrackets: true
             })
 
             codeMirror.setSize(null, 640)
@@ -82,7 +86,11 @@ Vue.component('configure-init', {
             var vm = this
 
             axios.get(vm.value.shared.api.links.initFile.default).then(response => {
-                vm.codeMirror.setValue(response.data)
+                var initFile = response.data
+
+                vm.setMimeType(initFile.mimeType)
+
+                vm.codeMirror.setValue(initFile.text)
                 vm.codeMirror.refresh()
 
                 vm.edited = false
@@ -123,9 +131,14 @@ Vue.component('configure-init', {
                     return
             }
 
-            vm.opened = false
-            vm.saved = false
-            vm.value.visible = false
+            // Reload to get latest data
+            window.location.reload(true)
+        },
+        setMimeType: function(mimeType) {
+            var vm = this
+
+            vm.mimeType = mimeType
+            vm.codeMirror.setOption("mode", mimeType)
         }
     },
     mounted: function() {

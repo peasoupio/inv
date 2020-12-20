@@ -40,6 +40,11 @@ class RunAPI {
             webServer.run.runFile << source
             webServer.run = new RunFile(webServer.run.runFile)
 
+            // Restage INVs
+            webServer.settings.stagedIds().each {
+                webServer.run.stageWithoutPropagate(it)
+            }
+
             return webServer.showResult("Runfile updated")
         })
 

@@ -59,7 +59,7 @@ Vue.component('configure-settings', {
                 autoRefresh: true,
                 lineNumbers: true,
                 matchBrackets: true,
-                mode: "application/json"
+                mode: "application/ld+json"
             })
 
             codeMirror.setSize(null, 640)
@@ -111,10 +111,8 @@ Vue.component('configure-settings', {
                     return
             }
 
-            vm.opened = false
-            vm.saved = false
-            vm.value.visible = false
-
+            // Reload to get latest data
+            window.location.reload(true)
         }
     },
     mounted: function() {

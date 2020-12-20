@@ -24,15 +24,16 @@ Vue.component('choose-repo', {
             <tr class="field">
                 <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchRepo(true)"></th>
                 <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchRepo(true)"></th>
-                <th><input class="input" type="text" v-model="filters.entry" placeholder="Entry" @keyup="searchRepo(true)"></th>
                 <th style="width: 10%">Options</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="repo in filter()">
                 <td>{{repo.name}}</td>
-                <td>{{repo.descriptor.src}}</td>
-                <td><p v-for="entry in repo.descriptor.entry">{{entry}}</p></td>
+                <td>
+                    <a :href="repo.descriptor.src" v-if="repo.descriptor.src">{{repo.descriptor.src}}</a>
+                    <span v-else><strong>undefined</strong></span>
+                </td>
                 <td v-if="!repo.staged"><button class="button is-link" @click.stop="stage(repo)" :disabled="repo.selected">Stage</button></td>
                 <td v-if="repo.staged"><button class="button is-warning" @click.stop="unstage(repo)">Unstage</button></td>
             </tr>

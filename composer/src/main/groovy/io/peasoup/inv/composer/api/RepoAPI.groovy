@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import io.peasoup.inv.composer.RepoFile
 import io.peasoup.inv.composer.WebServer
+import io.peasoup.inv.io.FileUtils
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.loader.YamlLoader
 import io.peasoup.inv.repo.RepoDescriptor
@@ -169,11 +170,11 @@ class RepoAPI {
             try {
 
                 switch (mimeType) {
-                    case RepoDescriptor.SCRIPT_YAML_TYPE:
+                    case FileUtils.SCRIPT_YAML_TYPE:
                         new YamlLoader().parseYamlText(source)
                         fileExtension = ".yml"
                         break
-                    case RepoDescriptor.SCRIPT_GROOVY_TYPE:
+                    case FileUtils.SCRIPT_GROOVY_TYPE:
                         new GroovyLoader().parseClassText(source)
                         break
                 }

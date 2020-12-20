@@ -5,6 +5,7 @@ import groovy.json.JsonSlurper
 import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.MainHelper
 import io.peasoup.inv.composer.WebServer
+import io.peasoup.inv.io.FileUtils
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.repo.HookExecutor
 import io.peasoup.inv.repo.RepoExecutor
@@ -34,13 +35,13 @@ class SystemAPI {
         get("/v1", { Request req, Response res ->
             return JsonOutput.toJson([
                     links: [
-                            setup    : webServer.API_CONTEXT_ROOT + "/setup",
+                            setup   : webServer.API_CONTEXT_ROOT + "/setup",
                             stop    : webServer.API_CONTEXT_ROOT + "/stop",
-                            settings : [
+                            settings: [
                                     default: webServer.API_CONTEXT_ROOT + "/settings",
-                                    save: webServer.API_CONTEXT_ROOT + "/settings"
+                                    save   : webServer.API_CONTEXT_ROOT + "/settings"
                             ],
-                            initFile : [
+                            initFile: [
                                     default: webServer.API_CONTEXT_ROOT + "/initfile",
                                     save   : webServer.API_CONTEXT_ROOT + "/initfile",
                                     pull   : webServer.API_CONTEXT_ROOT + "/initfile/pull",
@@ -58,7 +59,7 @@ class SystemAPI {
                                     tags      : webServer.API_CONTEXT_ROOT + "/run/tags",
                                     runFile   : webServer.API_CONTEXT_ROOT + "/run/file"
                             ],
-                            repos     : [
+                            repos   : [
                                     default        : webServer.API_CONTEXT_ROOT + "/repos",
                                     search         : webServer.API_CONTEXT_ROOT + "/repos",
                                     add            : webServer.API_CONTEXT_ROOT + "/repos/source",
@@ -110,7 +111,10 @@ class SystemAPI {
             if (!initFile)
                 return webServer.showError(res, "Missing init file")
 
-            return  initFile.text
+            return JsonOutput.toJson([
+                    text    : initFile.text,
+                    mimeType: FileUtils.getMimeType(initFile.name)
+            ])
         })
 
         post("/initfile", { Request req, Response res ->

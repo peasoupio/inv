@@ -149,11 +149,10 @@ public class Inv {
             checkOnce = false;
 
             // Manage statements
-            Digestion latestDigestion = digestStatements();
-            currentDigestion.concat(latestDigestion);
+            digestStatements(currentDigestion);
 
             // Stops processing if a statement told so
-            if (latestDigestion.isInterrupted())
+            if (currentDigestion.isInterrupted())
                 break;
 
             // Look for remaining steps
@@ -171,11 +170,13 @@ public class Inv {
         return currentDigestion;
     }
 
-    private Digestion digestStatements() {
-        Digestion currentDigestion = new Digestion();
+    private void digestStatements(Digestion currentDigestion) {
         Queue<Statement> statementsLeft = new LinkedList<>(this.remainingStatements);
 
-        while(!statementsLeft.isEmpty() && !currentDigestion.isInterrupted()) {
+        while(!statementsLeft.isEmpty() &&
+              // Relevant when an unbloating is prevented)
+              !currentDigestion.isInterrupted()) {
+
             Statement statement = statementsLeft.poll();
             if (statement == null)
                 break;
@@ -184,14 +185,19 @@ public class Inv {
             statement.getMatch().manage(context.pool, statement);
 
             // Process results for digestion
-            currentDigestion.checkStatementResult(context.pool, statement);
+            int currentStatus = Digestion.checkStatementResult(context.pool, statement);
 
-            // Remove statement is completed
-            if (!currentDigestion.isInterrupted())
+            // Update current digestion
+            currentDigestion.concat(currentStatus);
+
+            // If interrupted status, quit right away
+            if (currentStatus == Digestion.INTERRUPT_STATUS)
+                break;
+            else {
+                // Remove statement if completed
                 this.remainingStatements.remove(statement);
+            }
         }
-
-        return currentDigestion;
     }
 
     /**
@@ -427,44 +433,80 @@ public class Inv {
     }
 
     public static class Digestion {
-        private int requires = 0;
-        private int broadcasts = 0;
-        private int unbloats = 0;
 
-        private boolean interrupt = false;
+        // UNBLOATS - REQUIRES - BROADCAST - FAILED
+        public static final int UNBLOAT_STATUS =  0x1000;
+        public static final int REQUIRE_STATUS = 0x1100;
+        public static final int BROADCAST_STATUS = 0x1110;
 
+        public static final int INTERRUPT_STATUS = 0x0001;
+        public static final int UNBLOAT_INTERRUPT_STATUS = 0x1001;
+
+        /**
+         * Check statement result and get its status
+         * @param pool NetworkValuablePool
+         * @param statement Statement
+         * @return Integer status
+         */
         @SuppressWarnings("EqualsBetweenInconvertibleTypes")
-        public void checkStatementResult(NetworkValuablePool pool, Statement statement) {
-            if (pool == null) {
+        public static int checkStatementResult(NetworkValuablePool pool, Statement statement) {
+            if (pool == null)
                 throw new IllegalArgumentException("Pool is required");
-            }
 
-            if (statement == null) {
+            if (statement == null)
                 throw new IllegalArgumentException("Statement is required");
-            }
 
             // Indicates if statement is blocking others
             if (statement.getState() == StatementStatus.FAILED)
-                interrupt = true;
-
-            // Gets metrics if unbloating
-            if (statement.getState() == StatementStatus.SUCCESSFUL) {
-                unbloats++;
-
-                // If the statement prevents unbloating, stop processing the remaining statements
-                if (pool.preventUnbloating(statement))
-                    interrupt = true;
-            }
+                return INTERRUPT_STATUS;
 
             // Gets metrics if successful
             if (statement.getState().level >= StatementStatus.SUCCESSFUL.level) {
-                if (RequireStatement.REQUIRE.equals(statement.getMatch())) {
-                    requires++;
-                }
 
-                if (BroadcastStatement.BROADCAST.equals(statement.getMatch())) {
+                // If the statement prevents unbloating, stop processing the remaining statements
+                if (pool.preventUnbloating(statement))
+                    return UNBLOAT_INTERRUPT_STATUS;
+
+                if (RequireStatement.REQUIRE.equals(statement.getMatch()))
+                    return REQUIRE_STATUS;
+
+                if (BroadcastStatement.BROADCAST.equals(statement.getMatch()))
+                    return BROADCAST_STATUS;
+            }
+
+            // Gets metrics if unbloating
+            if (statement.getState() == StatementStatus.UNBLOADTING)
+                return UNBLOAT_STATUS;
+
+            return 0;
+        }
+
+        private int requires = 0;
+        private int broadcasts = 0;
+        private int unbloats = 0;
+        private boolean interrupt = false;
+
+        /**
+         * Concat status
+         * @param status Status
+         */
+        public synchronized void concat(int status) {
+            switch(status) {
+                case UNBLOAT_STATUS:
+                    unbloats++;
+                    break;
+                case REQUIRE_STATUS:
+                    requires++;
+                    break;
+                case BROADCAST_STATUS:
                     broadcasts++;
-                }
+                    break;
+                case INTERRUPT_STATUS:
+                    interrupt = true;
+                    break;
+                case UNBLOAT_INTERRUPT_STATUS:
+                    broadcasts++; interrupt = true;
+                    break;
             }
         }
 
@@ -473,9 +515,8 @@ public class Inv {
          * @param digestion the other digestion
          */
         public synchronized void concat(Digestion digestion) {
-            if (digestion == null) {
+            if (digestion == null)
                 return;
-            }
 
             this.requires += digestion.getRequires();
             this.broadcasts += digestion.getBroadcasts();

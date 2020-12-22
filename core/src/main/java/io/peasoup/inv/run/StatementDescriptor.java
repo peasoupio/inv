@@ -1,10 +1,12 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
 
+@Getter
 public class StatementDescriptor {
 
     /**
@@ -77,13 +79,5 @@ public class StatementDescriptor {
         this.id = id;
 
         return this;
-    }
-
-    public final String getName() {
-        return name;
-    }
-
-    public Object getId() {
-        return id;
     }
 }

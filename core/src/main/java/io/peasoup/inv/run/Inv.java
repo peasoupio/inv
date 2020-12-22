@@ -3,6 +3,8 @@ package io.peasoup.inv.run;
 import groovy.lang.Closure;
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.HandleMetaClass;
@@ -11,6 +13,7 @@ import org.codehaus.groovy.runtime.StringGroovyMethods;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Getter
 public class Inv {
 
     private final Context context;
@@ -23,8 +26,11 @@ public class Inv {
     private String path;
     private String markdown;
     private Map<String, String> tags;
-    private Boolean tail;
-    private Boolean pop;
+
+    @Accessors(fluent = true)
+    private Boolean isTail;
+    @Accessors(fluent = true)
+    private Boolean isPop;
 
     private Closure<Object> ready;
     private final Queue<Statement> remainingStatements;
@@ -50,6 +56,11 @@ public class Inv {
         this.totalStatements = new LinkedBlockingQueue<>();
     }
 
+    /**
+     * Dump and process delegate data.
+     * Delegate data is resetted.
+     * @return True if something was dumped, otherwise false
+     */
     public synchronized boolean dumpDelegate() {
         initalizeProperties();
 
@@ -104,8 +115,8 @@ public class Inv {
 
         if (markdown == null) markdown = properties.getMarkdown();
         if (ready == null) ready = properties.getReady();
-        if (tail == null) tail = properties.isTail();
-        if (pop == null) pop = properties.isPop();
+        if (isTail == null) isTail = properties.isTail();
+        if (isPop == null) isPop = properties.isPop();
         if (tags == null) {
             tags = delegate.getTags();
 
@@ -115,6 +126,11 @@ public class Inv {
         }
     }
 
+    /**
+     * Adds a property to the delegate metaclass instance.
+     * @param propertyName Property name
+     * @param value Property value
+     */
     public synchronized void addProperty(String propertyName, Object value) {
         if (StringUtils.isEmpty(propertyName)) {
             throw new IllegalArgumentException("PropertyName is required");
@@ -149,28 +165,35 @@ public class Inv {
             checkOnce = false;
 
             // Manage statements
-            digestStatements(currentDigestion);
+            indigestStatements(currentDigestion);
 
             // Stops processing if a statement told so
             if (currentDigestion.isInterrupted())
                 break;
 
             // Look for remaining steps
-            hasDumpedSomething = digestSteps();
+            hasDumpedSomething = indigestSteps();
 
             // If steps dumped something, repeat loop
             if (hasDumpedSomething)
                 continue;
 
             // Check if any when criteria is met
-            hasDumpedSomething = digestWhensEvent();
+            hasDumpedSomething = indigestWhensEvent();
         }
 
         digestionSummary.concat(currentDigestion);
         return currentDigestion;
     }
 
-    private void digestStatements(Digestion currentDigestion) {
+    /**
+     * Ingest require and broadcast statements
+     *
+     * Digestion is calculated here, but analyzed later in the main digestion cycle (in NetworkValuablePool).
+     *
+     * @param currentDigestion Current digestion instance
+     */
+    private void indigestStatements(Digestion currentDigestion) {
         Queue<Statement> statementsLeft = new LinkedList<>(this.remainingStatements);
 
         while(!statementsLeft.isEmpty() &&
@@ -201,15 +224,16 @@ public class Inv {
     }
 
     /**
-     * Check for new steps if :
+     * Ingest new steps.
+     * Conditions:
      *  1. has a remaining step
      *  2. has not (previously dumped something)
      *  3. has no more statements
      *  4. Is not halting
      *
-     * @return True if something was dumped, otherwise false
+     * @return True if something was digested, otherwise false
      */
-    private boolean digestSteps() {
+    private boolean indigestSteps() {
         boolean hasDumpedSomething = false;
 
         while (!steps.isEmpty() &&
@@ -229,7 +253,11 @@ public class Inv {
         return hasDumpedSomething;
     }
 
-    private boolean digestWhensEvent() {
+    /**
+     * Ingest whens event
+     * @return True if something was digested, otherwise false
+     */
+    private boolean indigestWhensEvent() {
 
         boolean hasDumpedSomething = false;
         List<WhenData> completedWhenData = new ArrayList<>();
@@ -290,62 +318,6 @@ public class Inv {
         Inv invO = DefaultGroovyMethods.asType(o, Inv.class);
 
         return name.equals(invO.getName());
-    }
-
-    protected Context getContext() {
-        return context;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getMarkdown() {
-        return markdown;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
-    public Closure<Object> getReady() {
-        return ready;
-    }
-
-    public final Digestion getDigestionSummary() {
-        return digestionSummary;
-    }
-
-    public final InvDescriptor getDelegate() {
-        return delegate;
-    }
-
-    public final Collection<Statement> getRemainingStatements() {
-        return remainingStatements;
-    }
-
-    public final Collection<Statement> getTotalStatements() {
-        return totalStatements;
-    }
-
-    public final Collection<Step> getSteps() {
-        return steps;
-    }
-
-    public final Collection<WhenData> getWhens() {
-        return whens;
-    }
-
-    public boolean isTail() {
-        return tail;
-    }
-
-    public boolean isPop() {
-        return pop;
     }
 
     @Override

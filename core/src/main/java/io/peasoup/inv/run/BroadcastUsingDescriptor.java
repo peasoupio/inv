@@ -1,10 +1,12 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Map;
 
+@Getter
 public class BroadcastUsingDescriptor {
     private Object id;
     private String markdown;
@@ -55,18 +57,6 @@ public class BroadcastUsingDescriptor {
      */
     public void ready(Closure<Object> readyBody) {
         this.ready = readyBody;
-    }
-
-    public Object getId() {
-        return id;
-    }
-
-    public String getMarkdown() {
-        return markdown;
-    }
-
-    public Closure<Object> getReady() {
-        return ready;
     }
 
 

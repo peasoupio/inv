@@ -259,7 +259,6 @@ public class NetworkValuablePool {
         List<Inv> sorted = new ArrayList<>(remainingInvs);
         sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloats()));
         sorted.sort((a, b) -> {
-
             if (a.isPop() == b.isPop() && a.isTail() == b.isTail())
                 return 0;
 

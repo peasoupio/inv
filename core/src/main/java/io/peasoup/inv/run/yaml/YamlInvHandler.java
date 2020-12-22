@@ -25,7 +25,6 @@ public class YamlInvHandler {
     private final String pwd;
     private final String repo;
 
-
     public YamlInvHandler(
             @NonNull InvExecutor invExecutor,
             @NonNull YamlLoader yamlLoader,

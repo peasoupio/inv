@@ -5,7 +5,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
-import io.peasoup.inv.repo.RepoURLExtractor
+import io.peasoup.inv.repo.RepoURLFetcher
 
 @CompileStatic
 class RepoGetCommand implements CliCommand {
@@ -22,7 +22,7 @@ class RepoGetCommand implements CliCommand {
         if (!repoUrl)
             return 1
 
-        def localRepofile = RepoURLExtractor.extract(repoUrl)
+        def localRepofile = RepoURLFetcher.fetch(repoUrl)
         if (localRepofile == null)
             return 2
 

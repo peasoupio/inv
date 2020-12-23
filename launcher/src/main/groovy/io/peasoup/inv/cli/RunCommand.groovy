@@ -38,8 +38,8 @@ class RunCommand implements CliCommand {
         })
 
         // Parse INV Groovy files
-        invFiles.each {
-            invExecutor.addScript(it)
+        for(File invFile : invFiles) {
+            invExecutor.addScript(invFile)
         }
 
         // Do the actual execution

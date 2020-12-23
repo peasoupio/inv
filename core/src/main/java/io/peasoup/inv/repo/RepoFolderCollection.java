@@ -91,9 +91,15 @@ public class RepoFolderCollection {
     /**
      * Read added repos and load invs into the executor
      */
-    public boolean loadInvs() {
+    public boolean bulkRead() {
         // Execute repos descriptors
         for(RepoExecutor.RepoHookExecutionReport report : repoExecutor.execute()) {
+
+            // If repo has not been processed, do not proceed with it
+            if (!report.isProcessed())
+                continue;
+
+            // If report is not ok, stop everything
             if (!report.isOk())
                 return false;
 
@@ -103,10 +109,11 @@ public class RepoFolderCollection {
             this.matchesCache.put(report.getDescriptor(), matches);
         }
 
-        // For every matching repo descriptor and invmatches, parse its files
+        // For every matching repo descriptor and invmatches, parse its REPO file
         for(Map.Entry<RepoDescriptor, FgroupLoader.RepoMatches> kpv : this.matchesCache.entrySet()) {
             parseRepoFolderFiles(kpv.getKey(), kpv.getValue());
         }
+        this.matchesCache.clear();
 
         return true;
     }

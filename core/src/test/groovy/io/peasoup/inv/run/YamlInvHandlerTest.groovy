@@ -26,23 +26,27 @@ class YamlInvHandlerTest {
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            new YamlInvHandler(null, null, null, null, null)
+            new YamlInvHandler(null, null, null, null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new YamlInvHandler(new InvExecutor(), null, null, null, null)
+            new YamlInvHandler(new InvExecutor(), null, null, null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new YamlInvHandler(new InvExecutor(), new YamlLoader(), null, null, null)
+            new YamlInvHandler(new InvExecutor(), new YamlLoader(), null, null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new YamlInvHandler(new InvExecutor(), new YamlLoader(), new File("file.yml"), null, null)
+            new YamlInvHandler(new InvExecutor(), new YamlLoader(), new File("file.yml"), null, null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new YamlInvHandler(new InvExecutor(), new YamlLoader(), new File("file.yml"), "pwd", null)
+            new YamlInvHandler(new InvExecutor(), new YamlLoader(), new File("file.yml"), "pwd", null, null)
+        })
+
+        assertThrows(IllegalArgumentException.class, {
+            new YamlInvHandler(new InvExecutor(), new YamlLoader(), new File("file.yml"), "pwd", "repo", null)
         })
     }
 

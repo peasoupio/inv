@@ -20,6 +20,6 @@ get(links.repos.default) {
     assertNotNull it.descriptors
     assertEquals 2, it.total
 
-    assertTrue it.descriptors.any { it.name.equals("io.peasoup.public.net.http") }
+    assertTrue it.descriptors.any { it.name.equals("io.peasoup.inv.pub.net.http") }
     assertTrue it.descriptors.any { it.name.equals("repo1") }
 }

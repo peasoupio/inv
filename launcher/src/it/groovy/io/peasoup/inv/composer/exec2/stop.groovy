@@ -33,7 +33,7 @@ get(links.repos.default) {
     assertNotNull it.descriptors
     assertEquals 1, it.total
 
-    httpInv = it.descriptors.find { it.name.equals("io.peasoup.public.net.http") }
+    httpInv = it.descriptors.find { it.name.equals("io.peasoup.inv.pub.net.http") }
     assertNotNull httpInv
 }
 post(httpInv.links.stage)

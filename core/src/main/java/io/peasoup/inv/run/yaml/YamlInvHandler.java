@@ -4,6 +4,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.loader.YamlLoader;
+import io.peasoup.inv.repo.RepoGetHandler;
 import io.peasoup.inv.run.*;
 import lombok.NonNull;
 import org.apache.commons.lang.StringUtils;
@@ -25,12 +26,15 @@ public class YamlInvHandler {
     private final String pwd;
     private final String repo;
 
+    private final RepoGetHandler repoGetHandler;
+
     public YamlInvHandler(
             @NonNull InvExecutor invExecutor,
             @NonNull YamlLoader yamlLoader,
             @NonNull File yamlFile,
             @NonNull String pwd,
-            @NonNull String repo) {
+            @NonNull String repo,
+            @NonNull RepoGetHandler repoGetHandler) {
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
@@ -39,6 +43,8 @@ public class YamlInvHandler {
         this.yamlFile = yamlFile;
         this.pwd = pwd;
         this.repo = repo;
+
+        this.repoGetHandler = repoGetHandler;
     }
 
     public void call() throws MissingOptionException, IOException {
@@ -64,8 +70,15 @@ public class YamlInvHandler {
         // Set Script filename
         context.setBaseFilename(yamlFile.getAbsolutePath());
 
-        for (YamlInvDescriptor yamlInvDescriptor : descriptor.getInv()) {
+        // Process "get" statements
+        if (descriptor.getGet() != null) {
+            for (String src : descriptor.getGet()) {
+                repoGetHandler.call(src);
+            }
+        }
 
+        // Process YAML INV descriptor into real INV instances
+        for (YamlInvDescriptor yamlInvDescriptor : descriptor.getInv()) {
             final Inv inv = context.build();
 
             try {

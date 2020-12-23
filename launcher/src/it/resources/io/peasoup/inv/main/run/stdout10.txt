@@ -1,0 +1,42 @@
+[GROOVYLOADER] secure: false
+[VARS] INV_HOME: .*/main/run
+[VARS] VERSION: .*
+---- [DIGEST] opened ----
+[STATEMENT] [main1] => [REQUIRE] [Maven] undefined [INIT]
+[undefined] [.*/run/main10.groovy] [main1]
+[REPO] script: io.peasoup.inv.pub.tools.maven, parameter: .*/run/repo-values.json
+[REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/repo@io.peasoup.inv.pub.tools.maven [.*] start
+[REPO] .*
+[REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/repo@io.peasoup.inv.pub.tools.maven [.*] done
+[STATEMENT] [Script.*] => [REQUIRE] [Files] undefined [INIT]
+[STATEMENT] [Script.*] => [BROADCAST] [Maven] undefined [INIT]
+[io.peasoup.inv.pub.tools.maven] [.*/run/repo@io.peasoup.inv.pub.tools.maven/tools/maven/vars/inv.groovy] [Script.*]
+[REPO] script: io.peasoup.inv.pub.io.files, parameter: .*/run/repo-values.json
+[REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/repo@io.peasoup.inv.pub.io.files [.*] start
+[REPO] .*
+[REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/repo@io.peasoup.inv.pub.io.files [.*] done
+[STATEMENT] [Script.*] => [BROADCAST] [Files] undefined [INIT]
+[io.peasoup.inv.pub.io.files] [.*/run/repo@io.peasoup.inv.pub.io.files/io/files/vars/inv.groovy] [Script.*]
+---- [DIGEST] started ----
+---- [DIGEST] #1 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[EXECUTOR] scheduling: #2
+[EXECUTOR] scheduling: #3
+[Script.*] => [BROADCAST] [Files] undefined
+[POOL] available:1 , staged:1
+[POOL] inv: Script.* COMPLETED
+---- [DIGEST] #2 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[EXECUTOR] scheduling: #2
+[Script.*] => [REQUIRE] [Files] undefined
+[Script.*] => [BROADCAST] [Maven] undefined
+[POOL] available:2 , staged:1
+[POOL] inv: Script.* COMPLETED
+---- [DIGEST] #3 (state=RUNNING) ----
+[EXECUTOR] scheduling: #1
+[main1] => [REQUIRE] [Maven] undefined
+[POOL] available:2 , staged:0
+[POOL] inv: main1 COMPLETED
+---- [DIGEST] completed ----
+Completed INV(s): 3
+Uncompleted INV(s): 0

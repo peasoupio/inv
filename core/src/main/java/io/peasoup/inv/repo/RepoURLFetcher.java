@@ -14,13 +14,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.stream.Collectors;
 
-public class RepoURLExtractor {
+public class RepoURLFetcher {
 
-    private RepoURLExtractor() {
+    private RepoURLFetcher() {
         // private ctor
     }
 
-    public static File extract(String repoUrl) {
+    public static File fetch(String repoUrl) {
         if (!UrlValidator.getInstance().isValid(repoUrl))
             return null;
 

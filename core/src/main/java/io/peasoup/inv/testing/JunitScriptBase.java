@@ -6,7 +6,7 @@ import groovy.lang.Script;
 import io.peasoup.inv.Home;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.repo.RepoFolderCollection;
-import io.peasoup.inv.repo.RepoURLExtractor;
+import io.peasoup.inv.repo.RepoURLFetcher;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
 import io.peasoup.inv.run.PoolReport;
@@ -69,14 +69,14 @@ public abstract class JunitScriptBase extends Script {
 
         // Add repo urls
         for(String repoURL : simulatorDescriptor.getRepoUrls()) {
-            File localRepoFile = RepoURLExtractor.extract(repoURL);
+            File localRepoFile = RepoURLFetcher.fetch(repoURL);
             if (localRepoFile == null)
                 continue;
 
             repoFolderCollection.add(localRepoFile.getAbsolutePath());
         }
 
-        repoFolderCollection.loadInvs();
+        repoFolderCollection.bulkRead();
 
         String packageName = null;
 

@@ -25,21 +25,20 @@ class RepoRunCommand implements CliCommand {
             return 1
 
         def invExecutor = new InvExecutor()
-        def repoFolders = new RepoFolderCollection(invExecutor)
 
         // Check if a single file matches the LIST_FILE_SUFFIX
         if (list) {
-            boolean listResult = readListJsonfile(repoFileLocation, repoFolders)
+            boolean listResult = readListJsonfile(repoFileLocation, invExecutor.getRepoFolderCollection())
             if (!listResult)
                 return 2
         } else {
-            boolean singleResult = readSinglefile(repoFileLocation, repoFolders)
+            boolean singleResult = readSinglefile(repoFileLocation, invExecutor.getRepoFolderCollection())
             if (!singleResult)
                 return 3
         }
 
         // Read repos and load invs
-        if (!repoFolders.loadInvs())
+        if (!invExecutor.getRepoFolderCollection().bulkRead())
             return 4
 
         // Execute invs

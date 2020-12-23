@@ -2,12 +2,12 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[REPO] script: io.peasoup.public.net.http, parameter: .*/repo/get/repo-values.json
-[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [INIT] start
+[REPO] script: io.peasoup.inv.pub.net.http, parameter: .*/repo/get/repo-values.json
+[REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/repo@io.peasoup.inv.pub.net.http [.*] start
 [REPO] .*
-[REPO] name: io.peasoup.public.net.http, path: .*/repo/get/repo@io.peasoup.public.net.http [INIT] done
+[REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/repo@io.peasoup.inv.pub.net.http [.*] done
 [STATEMENT] [Script.*] => [BROADCAST] [HTTP] undefined [INIT]
-[io.peasoup.public.net.http] [.*/repo/get/repo@io.peasoup.public.net.http/net/http/vars/inv.groovy] [Script.*]
+[io.peasoup.inv.pub.net.http] [.*/repo/get/repo@io.peasoup.inv.pub.net.http/net/http/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [EXECUTOR] scheduling: #1

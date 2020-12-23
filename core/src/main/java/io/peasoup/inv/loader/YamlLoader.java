@@ -4,6 +4,8 @@ import groovy.text.GStringTemplateEngine;
 import groovy.text.TemplateEngine;
 import io.peasoup.inv.repo.yaml.YamlRepoDescriptor;
 import io.peasoup.inv.run.yaml.YamlInvDescriptor;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.StackTraceUtils;
@@ -107,26 +109,12 @@ public class YamlLoader {
      * Yaml is designed with a single descriptor.
      * It allows multiple definitations in the same file.
      */
+    @Getter
+    @Setter
     public static class Descriptor {
 
         private List<YamlInvDescriptor> inv;
-
         private List<YamlRepoDescriptor> repo;
-
-        public List<YamlInvDescriptor> getInv() {
-            return inv;
-        }
-
-        public void setInv(List<YamlInvDescriptor> inv) {
-            this.inv = inv;
-        }
-
-        public List<YamlRepoDescriptor> getRepo() {
-            return repo;
-        }
-
-        public void setRepo(List<YamlRepoDescriptor> repo) {
-            this.repo = repo;
-        }
+        private Set<String> get;
     }
 }

@@ -1,16 +1,28 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Logger;
+import io.peasoup.inv.repo.RepoFolderCollection;
+import io.peasoup.inv.repo.RepoURLFetcher;
+import lombok.Getter;
 
 import java.io.File;
+import java.util.Queue;
 
 /**
  * InvExecutor is the main object for parsing, invoking and executing INV files.
  */
 public class InvExecutor {
+
     private final InvInvoker invInvoker;
+
+    @Getter
     private final NetworkValuablePool pool;
+
+    @Getter
     private final PoolReport report;
+
+    @Getter
+    private final RepoFolderCollection repoFolderCollection;
 
     /**
      * Creates a new InvExecutor object.
@@ -19,6 +31,8 @@ public class InvExecutor {
         invInvoker = new InvInvoker(this);
         pool = new NetworkValuablePool();
         report = new PoolReport();
+
+        repoFolderCollection = new RepoFolderCollection(this);
 
         Logger.info("---- [DIGEST] opened ----");
     }
@@ -65,10 +79,13 @@ public class InvExecutor {
      * @return Execution report
      */
     public PoolReport execute() {
+
+        fetchGetRepoSources();
+
         Logger.info("---- [DIGEST] started ----");
 
         // Do the actual digestion
-        executeAndReport();
+        executePoolAndReport();
 
         Logger.info("---- [DIGEST] completed ----");
 
@@ -86,7 +103,41 @@ public class InvExecutor {
         return report;
     }
 
-    private void executeAndReport() {
+    /**
+     * Fetch files added into the RepogGetHandler instance
+     */
+    private void fetchGetRepoSources() {
+        Queue<String> getQueue = invInvoker.getRepoGetHandler().getSources();
+
+        // Check if there's actual get statements from the initial reading
+        // OR
+        // from the bulkRead method
+        // This is why it looks so redundant.
+        while(!getQueue.isEmpty()) {
+
+            while (!getQueue.isEmpty()) {
+                String src = getQueue.poll();
+                if (src == null)
+                    break;
+
+                // Fetch the actual content into a temp file
+                File fetchedTempFile = RepoURLFetcher.fetch(src);
+                if (fetchedTempFile == null) {
+                    Logger.warn("Could not fetch " + src);
+                    continue;
+                }
+
+                // Add temp file location into repo collection
+                repoFolderCollection.add(fetchedTempFile.getAbsolutePath());
+            }
+
+            if (!repoFolderCollection.bulkRead())
+                Logger.warn("Could not read fetched file(s)");
+        }
+
+    }
+
+    private void executePoolAndReport() {
         // If something happened during read, skip execute
         if (!report.isOk()) return;
         report.reset();

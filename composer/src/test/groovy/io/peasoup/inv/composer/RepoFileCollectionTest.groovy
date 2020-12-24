@@ -10,8 +10,8 @@ import static org.junit.Assert.*
 @RunWith(TempHome.class)
 class RepoFileCollectionTest {
 
-    String repos = "../examples/composer/.repos/"
-    String hrefs = "../examples/composer/.repos/"
+    String repos = "../examples/composer/repos/"
+    String hrefs = "../examples/composer/hrefs/"
     RepoFileCollection repoFileCollection
 
     @Before

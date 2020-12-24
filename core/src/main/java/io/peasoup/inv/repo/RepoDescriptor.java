@@ -6,6 +6,7 @@ import groovy.lang.DelegatesTo;
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.io.FileUtils;
+import io.peasoup.inv.run.RunsRoller;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
@@ -209,9 +210,9 @@ public class RepoDescriptor {
 
     private void generateRepoPaths() {
         this.repoPath = new File(
-            scriptFile.getParentFile(),
-            //".repos" +
-            //File.separator +
+            RunsRoller.runsFolder(),
+            ".repos" +
+            File.separator +
             scriptFile.getName().split("\\.")[0] +
             "@" +
             name

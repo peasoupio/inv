@@ -9,11 +9,5 @@ target/
 node_modules/
 
 # Application specific
-reports/
 .runs/
-.repos/
-
-
-# Known tests
-init@main
 

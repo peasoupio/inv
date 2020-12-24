@@ -1,4 +1,4 @@
-[REPO] name: init2, path: .*/hooks/init/init2@init2 [INIT] start
-[REPO] .* .*/hooks/init/.*
-Repository for location '.*/hooks/init/init2@init2' was deleted since hook returned 3
-[REPO] name: init2, path: .*/hooks/init/init2@init2 [INIT] done
+[REPO] name: init2, path: .*/hooks/.runs/.repos/init2@init2 [INIT] start
+[REPO] .* .*/hooks/.*
+Repository for location '.*/hooks/.runs/.repos/init2@init2' was deleted since hook returned 3
+[REPO] name: init2, path: .*/hooks/.runs/.repos/init2@init2 [INIT] done

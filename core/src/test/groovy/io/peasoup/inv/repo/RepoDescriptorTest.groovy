@@ -3,6 +3,7 @@ package io.peasoup.inv.repo
 import io.peasoup.inv.Home
 import io.peasoup.inv.MissingOptionException
 import io.peasoup.inv.TempHome
+import io.peasoup.inv.run.RunsRoller
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -30,12 +31,12 @@ class RepoDescriptorTest {
     void path_ok() {
         String name = "my.name"
         String path = "my.path"
-        File scriptFile = new File(Home.getCurrent(), ".repos/repo.groovy")
+        File scriptFile = new File(Home.getCurrent(), "repos/repo.groovy")
 
         def descriptor = new RepoDescriptor(scriptFile)
         descriptor.name(name)
 
-        File expectedRepopath = new File(scriptFile.getParentFile(), scriptFile.name.split("\\.")[0] + "@" + name)
+        File expectedRepopath = new File(RunsRoller.runsFolder(), ".repos" + File.separator + scriptFile.name.split("\\.")[0] + "@" + name)
 
         assertEquals(RepoDescriptor.DEFAULT_PATH, descriptor.path)
         assertEquals(expectedRepopath, descriptor.repoPath)

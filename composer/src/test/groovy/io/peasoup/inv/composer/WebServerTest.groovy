@@ -25,14 +25,14 @@ class WebServerTest {
     static void clean() {
         new File(base, "executions/").deleteDir()
         new File(base, "settings.json").delete()
-        new File(base + ".repos/", "repo7.groovy").delete()
+        new File(base + "repos/", "repo7.groovy").delete()
     }
 
     @BeforeClass
     static void setup() {
         clean()
 
-        def repo7 = new File(base + ".repos/", "repo7.groovy")
+        def repo7 = new File(base + "repos/", "repo7.groovy")
 
         repo7 << """
 repo {
@@ -115,7 +115,7 @@ repo {
     void repo_applyDefaultAll_and_resetAll() {
 
         // Create repos folder ref and delete existing json files
-        def parametersFolder = new File(base, ".repos/")
+        def parametersFolder = new File(base, "repos/")
         parametersFolder.listFiles()
             .findAll { it.name.endsWith(".json") }
             .each { it.delete() }

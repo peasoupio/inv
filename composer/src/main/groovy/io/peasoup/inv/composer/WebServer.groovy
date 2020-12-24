@@ -50,7 +50,7 @@ class WebServer {
         Logger.system("[COMPOSER] settings: ${webServerConfigs}")
 
         runLocation = webServerConfigs.workspace as String
-        reposLocation = webServerConfigs.workspace + "/.repos" as String
+        reposLocation = webServerConfigs.workspace + "/repos" as String
         hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
         // Create required folders

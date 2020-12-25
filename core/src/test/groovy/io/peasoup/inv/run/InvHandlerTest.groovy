@@ -123,9 +123,9 @@ class InvHandlerTest {
 
             require { Something }
 
-            broadcast { Something { $Something.id } }
+            broadcast { Something { $something.id } }
 
-            require { Something { $Something.id } }
+            require { Something { $something.id } }
         }
 
         def report = executor.execute()

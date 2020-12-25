@@ -195,12 +195,17 @@ public class RequireStatement implements Statement {
         }
 
         private void resolveRequire(RequireStatement requireStatement, BroadcastResponse broadcastResponse) {
+            String intoVariable;
 
-            // Be default, a require statement includes an "into" variable which equals to the
-            // require statement name preceded by a '$'.
-            String intoVariable = "$" + requireStatement.getName();
             if (StringUtils.isNotEmpty(requireStatement.getInto()))
                 intoVariable = requireStatement.getInto();
+            else {
+                // Be default, a require statement includes an "into" variable which equals to the
+                // require statement name first letter lowercase, preceded by a '$'.
+                char c[] = requireStatement.getName().toCharArray();
+                c[0] = Character.toLowerCase(c[0]);
+                intoVariable = "$" + new String(c);
+            }
 
             requireStatement.getInv().addProperty(
                     intoVariable,

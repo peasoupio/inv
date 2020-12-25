@@ -140,7 +140,7 @@ class RequireStatementTest {
             require { Element }
 
             step {
-                assertNotNull $Element
+                assertNotNull $element
             }
         }
 

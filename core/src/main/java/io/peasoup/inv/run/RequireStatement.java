@@ -207,13 +207,20 @@ public class RequireStatement implements Statement {
                 intoVariable = "$" + new String(c);
             }
 
+            Object shell = broadcastResponse;
+            if (broadcastResponse.getResponse() != null)
+                shell = new BroadcastResponseMetaClass(
+                        broadcastResponse,
+                        requireStatement.getInv(),
+                        requireStatement.getDefaults()).getShell();
+
             requireStatement.getInv().addProperty(
                     intoVariable,
-                    new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
+                    shell);
 
             // Sends message to resolved (if defined)
             if (requireStatement.getResolved() != null) {
-                requireStatement.getResolved().setDelegate(new BroadcastResponseDelegate(broadcastResponse, requireStatement.getInv(), requireStatement.getDefaults()));
+                requireStatement.getResolved().setDelegate(shell);
                 requireStatement.getResolved().run();
             }
 

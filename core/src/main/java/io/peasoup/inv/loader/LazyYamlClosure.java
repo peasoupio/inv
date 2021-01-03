@@ -132,12 +132,12 @@ public class LazyYamlClosure extends Closure {
 
                 // Wrap codeBlock inside Closure to make sure we get a Closure object.
                 // Inspired by module.export in Javascript.
-                Class closureScript = GROOVYLOADER.parseClassText("def export = { " + codeBlock + " }; return export");
+                Class<?> closureScript = GROOVYLOADER.parseClassText("def export = { " + codeBlock + " }; return export");
 
                 try {
                     DelegatingScript script = (DelegatingScript) closureScript.getDeclaredConstructor().newInstance();
                     script.setDelegate(owner.getDelegate());
-                    codeClosure = (Closure)script.run();
+                    codeClosure = (Closure<?>)script.run();
                 } catch (Exception e) {
                     Logger.error(e);
                 }

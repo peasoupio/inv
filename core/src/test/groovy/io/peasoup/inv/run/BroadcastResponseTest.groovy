@@ -4,6 +4,7 @@ import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
 class BroadcastResponseTest {
@@ -227,7 +228,7 @@ class BroadcastResponseTest {
 
                     respCls2.myCtx = myNewCtx
 
-                    response.withContext(response.myCtx)
+                    respCls2.withContext(respCls2.myCtx)
                 }
             }
         }
@@ -271,48 +272,61 @@ class BroadcastResponseTest {
 
             broadcast { EndpointMapperProxy } using {
                 ready {
-                    $mapper.defaultContext = myNewCtx
-
                     return $mapper
                 }
             }
         }
 
-        inv {
-            name "my-other-app"
+        def report = executor.execute()
+        assertFalse report.isOk()
+    }
 
-            require { EndpointMapperProxy } using {
-                resolved {
-                    assertEquals myNewCtx, response.defaultContext
+    @Test
+    void delegatedBroadcast_with_other_broadcast_2() {
+        String myCtx = "/my-context"
+        String myNewCtx = "/my-new-context"
+
+        inv {
+            name "my-server-id"
+
+            step {
+                broadcast { EndpointMapper } using {
+                    ready { [my: "value"] }
+                }
+            }
+        }
+
+        inv {
+            name "my-proxy"
+
+            require { EndpointMapper } into '$mapper'
+
+            broadcast { EndpointMapperProxy } using {
+                ready {
+                    return $mapper
                 }
             }
         }
 
         def report = executor.execute()
-        assertTrue report.isOk()
+        assertFalse report.isOk()
     }
 
     class MyResponseClass1 {
-        Closure withContext(String ctx) {
-            {
-                broadcast { Endpoint(context: ctx) }
-            } as Closure
+        void withContext(String ctx) {
+            broadcast { Endpoint(context: ctx) }
         }
     }
 
     class MyResponseClass2 {
         String myCtx
 
-        Closure onDefault() {
-            {
-                return [defaultContext: myCtx]
-            } as Closure
+        Map $default() {
+            return [defaultContext: myCtx]
         }
 
-        Closure withContext(String ctx) {
-            return {
-                broadcast { Endpoint(context: ctx) }
-            } as Closure
+        void withContext(String ctx) {
+            broadcast { Endpoint(context: ctx) }
         }
 
         void withContext2(InvDescriptor myself, String ctx) {

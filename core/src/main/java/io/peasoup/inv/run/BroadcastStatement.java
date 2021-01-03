@@ -1,8 +1,10 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import io.peasoup.inv.Logger;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.codehaus.groovy.runtime.InvokerHelper;
 
 import java.util.Map;
 
@@ -121,29 +123,18 @@ public class BroadcastStatement implements Statement {
         @SuppressWarnings("unchecked")
         private BroadcastResponse createResponse(BroadcastStatement broadcastStatement) {
             Object responseObject = null;
-            Closure<Object> defaultClosure = null;
 
             if (broadcastStatement.getReady() != null) {
                 responseObject = broadcastStatement.getReady().call();
 
-                if (responseObject != null) {
-                    // Shorten hook
-                    Object defaultResponseHook = BroadcastResponseInvoker.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);
-
-                    // Normal hook
-                    if (defaultResponseHook == null)
-                        defaultResponseHook = BroadcastResponseInvoker.tryInvokeMethod(responseObject, BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);
-
-                    if (defaultResponseHook instanceof Closure)
-                        defaultClosure = (Closure<Object>) defaultResponseHook;
-                }
+                if (responseObject != null && InvokerHelper.getMetaClass(responseObject) instanceof BroadcastResponseMetaClass)
+                        throw new IllegalStateException("Cannot return the response object from a previous required statement.");
             }
 
             // Staging response
             return new BroadcastResponse(
                     broadcastStatement.getInv().getName(),
-                    responseObject,
-                    defaultClosure);
+                    responseObject);
         }
 
         private boolean alreadyBroadcast(Map<Object, BroadcastResponse> statements, BroadcastStatement broadcastStatement) {

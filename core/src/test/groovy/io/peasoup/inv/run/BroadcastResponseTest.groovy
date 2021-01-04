@@ -5,6 +5,8 @@ import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertNull
 import static org.junit.Assert.assertTrue
 
 class BroadcastResponseTest {
@@ -135,7 +137,7 @@ class BroadcastResponseTest {
     }
 
     @Test
-    void delegatedBroadcast_ok_withClass2_with_myself() {
+    void delegatedBroadcast_ok_withClass2() {
         String myCtx = "/my-context"
 
         inv {
@@ -167,6 +169,68 @@ class BroadcastResponseTest {
 
         def report = executor.execute()
         assertTrue report.isOk()
+    }
+
+    @Test
+    void delegatedBroadcast_ok_withClass3() {
+
+        inv {
+            name "my-server-id"
+
+            step {
+                broadcast { EndpointMapper } using {
+                    ready { return new MyResponseClass3() }
+                }
+            }
+        }
+
+        String subPath = "subpath1"
+        inv {
+            name "my-webservice"
+            path subPath
+
+            require { EndpointMapper } using {
+                resolved {
+                    def resp = response as MyResponseClass3
+                    assertNotNull resp.myPath
+                    assertEquals path, resp.myPath
+
+                    def respInterface = response as MyResponseClass3Interface
+                    assertEquals "ok", respInterface.interfacable()
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assertTrue report.isOk()
+    }
+
+    @Test
+    void delegatedBroadcast_ok_withClass4() {
+        String context = "my-context"
+        inv {
+            name "my-server-id"
+
+            step {
+                broadcast { EndpointMapper } using {
+                    ready { return new MyResponseClass4(context) }
+                }
+            }
+        }
+
+        inv {
+            name "my-webservice"
+
+            require { EndpointMapper } using {
+                resolved {
+                    //throws "MissingPropertyException"
+                    response.ctorContext
+                }
+            }
+        }
+
+        def report = executor.execute()
+        assertFalse report.isOk()
     }
 
     @Test
@@ -312,13 +376,13 @@ class BroadcastResponseTest {
         assertFalse report.isOk()
     }
 
-    class MyResponseClass1 {
+    static class MyResponseClass1 {
         void withContext(String ctx) {
             broadcast { Endpoint(context: ctx) }
         }
     }
 
-    class MyResponseClass2 {
+    static class MyResponseClass2 {
         String myCtx
 
         Map $default() {
@@ -331,6 +395,31 @@ class BroadcastResponseTest {
 
         void withContext2(InvDescriptor myself, String ctx) {
             myself.broadcast { Endpoint(context: ctx) }
+        }
+    }
+
+    class MyResponseClass3 {
+        Map $default() {
+            String callerPath = getPath()
+            return [myPath: callerPath]
+        }
+
+        String interfacable() { return "ok" }
+    }
+
+    interface MyResponseClass3Interface {
+        String interfacable()
+    }
+
+    static class MyResponseClass4 {
+        private final String context
+
+        MyResponseClass4(String context) {
+            this.context = context
+        }
+
+        String $default() {
+            [ctorContext: context]
         }
     }
 }

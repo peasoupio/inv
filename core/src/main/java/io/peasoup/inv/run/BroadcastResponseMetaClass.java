@@ -38,9 +38,9 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
 
         this.broadcastResponse = broadcastResponse;
         this.caller = caller;
-        this.shell = createShell();
 
         this.responseMetaClass = DefaultGroovyMethods.getMetaClass(broadcastResponse.getResponse());
+        this.shell = createShell();
 
         // Try getting default method
         Tuple2<Boolean, Object> defaultMetaMethod = lookUpMethod(BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);
@@ -65,7 +65,7 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
     public Object invokeMethod(Class sender, Object object, String methodName, Object[] originalArguments, boolean isCallToSuper, boolean fromInsideClass) {
         switch (methodName) {
             case "asBoolean": return true;
-            case "asType": return ((Class<?>)originalArguments[0]).cast(object);
+            case "asType": return DefaultGroovyMethods.asType (object, (Class<?>)originalArguments[0]);
             default:
                 // Try looking through known methods "holders"
                 Tuple2<Boolean, Object> methodValue = lookUpMethod(methodName, originalArguments);
@@ -102,7 +102,11 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
             return;
 
         // Try setting to response
-        if (setProperty(property, newValue, broadcastResponse.getResponse(), responseMetaClass))
+        // IMPORTANT: It does not return since if "false", proceed with "shell", if "true", need to udpate "shell".
+        //            It is ok to assume "shell" would return true, thus returning.
+        setProperty(property, newValue, broadcastResponse.getResponse(), responseMetaClass);
+
+        if (setProperty(property, newValue, shell, responseMetaClass))
             return;
 
         // Try setting property using default behaviour
@@ -117,7 +121,22 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
     private Object createShell() {
         this.initialize();
 
+        // Create actual object
         Object shell = InvokerHelper.invokeNoArgumentsConstructorOf(broadcastResponse.getResponse().getClass());
+
+        // Duplicate values from original to shell
+        if (shell instanceof Map) {
+            ((Map)shell).putAll((Map)broadcastResponse.getResponse());
+        }
+
+        if (shell instanceof GroovyObject) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) DefaultGroovyMethods.getProperties(broadcastResponse.getResponse())).entrySet()) {
+                if ("class".equals(entry.getKey()))
+                    continue;
+
+                responseMetaClass.setProperty(shell, entry.getKey(), entry.getValue());
+            }
+        }
 
         if(shell instanceof GroovyObject)
             DefaultGroovyMethods.setMetaClass((GroovyObject) shell, this);
@@ -141,8 +160,8 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
         if (Boolean.TRUE.equals(methodValue.getV1())) return methodValue;
 
 
-        // Try method from response
-        methodValue = getMethod(methodName, broadcastResponse.getResponse(), args, responseMetaClass);
+        // Try method from shell
+        methodValue = getMethod(methodName, shell, args, responseMetaClass);
         if (Boolean.TRUE.equals(methodValue.getV1())) return methodValue;
 
         return new Tuple2<>(false, null);
@@ -181,9 +200,8 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
         propertyValue = getProperty(propertyName, caller.getDelegate(), CALLER_METACLASS);
         if (Boolean.TRUE.equals(propertyValue.getV1())) return propertyValue;
 
-
         // Try getting from response
-        propertyValue = getProperty(propertyName, broadcastResponse.getResponse(), responseMetaClass);
+        propertyValue = getProperty(propertyName, shell, responseMetaClass);
         if (Boolean.TRUE.equals(propertyValue.getV1())) return propertyValue;
 
         return new Tuple2<>(false ,null);

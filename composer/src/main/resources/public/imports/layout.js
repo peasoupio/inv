@@ -215,7 +215,6 @@ Vue.component('layout', {
                 { name: 'Choose', template: 'choose', index: 1, showHelp: false, description: 'Choose your INVs'  },
                 { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and REPOs' },
                 { name: 'Install', template: 'install', index: 3, showHelp: false, description: 'Generate and install your freshly new INV ecosystem' },
-                { name: 'Review', template: 'review', index: 4, showHelp: false, description: 'Review added or missing broadcasts' },
                 { name: 'Promote', template: 'promote', index: 5, showHelp: false, description: 'Promote latest run' }
             ],
             shared: {

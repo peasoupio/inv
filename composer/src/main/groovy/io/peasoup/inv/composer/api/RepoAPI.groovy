@@ -66,7 +66,7 @@ class RepoAPI {
             }
             webServer.settings.save()
 
-            return webServer.showResult("staged all")
+            return WebServer.showResult("staged all")
         })
 
         post("/repos/unstageAll", { Request req, Response res ->
@@ -77,7 +77,7 @@ class RepoAPI {
             }
             webServer.settings.save()
 
-            return webServer.showResult("unstaged all")
+            return WebServer.showResult("unstaged all")
         })
 
         post("/repos/applyDefaultAll", { Request req, Response res ->
@@ -90,7 +90,7 @@ class RepoAPI {
                 }
             }
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         post("/repos/resetAll", { Request req, Response res ->
@@ -105,7 +105,7 @@ class RepoAPI {
                 element.repoFile.expectedParameterFile.delete()
             }
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         // Specfic
@@ -113,11 +113,11 @@ class RepoAPI {
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             // Make sure to get the latest information
             if (!webServer.repos.reload(name))
-                return webServer.showError(res, "No REPO found for the specified name")
+                return WebServer.showError(res, "No REPO found for the specified name")
 
             def element = webServer.repos.elements[name]
             def output = element.toMap([:])
@@ -129,37 +129,37 @@ class RepoAPI {
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             webServer.repos.stage(name)
             webServer.settings.stageREPO(name)
             webServer.settings.save()
 
-            return webServer.showResult("staged")
+            return WebServer.showResult("staged")
         })
 
         post("/repos/unstage", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             webServer.repos.unstage(name)
             webServer.settings.unstageREPO(name)
             webServer.settings.save()
 
-            return webServer.showResult("unstaged")
+            return WebServer.showResult("unstaged")
         })
 
         post("/repos/source", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             def mimeType = req.queryParams("mimeType")
             if (!mimeType)
-                return webServer.showError(res, "mimeType is required")
+                return WebServer.showError(res, "mimeType is required")
 
             String source = req.body()
             Integer errorCount = 0
@@ -216,18 +216,18 @@ class RepoAPI {
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             webServer.repos.remove(name)
 
-            return webServer.showResult("Deleted")
+            return WebServer.showResult("Deleted")
         })
 
         get("/repos/parametersValues", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             if (!webServer.repos.reload(name))
                 return JsonOutput.toJson([:])
@@ -243,22 +243,22 @@ class RepoAPI {
             if (report[0].isOk())
                 return JsonOutput.toJson(latestElement.getParametersValues())
             else
-                return webServer.showError(res, "could not extract REPO")
+                return WebServer.showError(res, "could not extract REPO")
         })
 
         post("/repos/parameters", { Request req, Response res ->
 
             def name = req.queryParams("name")
             if (!name)
-                return webServer.showError(res, "name is required")
+                return WebServer.showError(res, "name is required")
 
             def parameter = req.queryParams("parameter")
             if (!parameter)
-                return webServer.showError(res, "parameter is required")
+                return WebServer.showError(res, "parameter is required")
 
             def element = webServer.repos.elements[name]
             if (!element)
-                return webServer.showError(res, "No parameter found for the specified name")
+                return WebServer.showError(res, "No parameter found for the specified name")
 
             def payload = req.body()
             def parameterValue = payload
@@ -271,7 +271,7 @@ class RepoAPI {
                     parameter,
                     parameterValue.toString())
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
     }
 }

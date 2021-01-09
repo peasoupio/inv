@@ -24,13 +24,13 @@ class ReviewAPI {
     void routes() {
         get("/review", { Request req, Response res ->
             if (!webServer.exec.latestRun().exists())
-                return webServer.showError(res, "Latest execution log does not exists on filesystem")
+                return WebServer.showError(res, "Latest execution log does not exists on filesystem")
 
             def base = webServer.baseFile()
 
             if (!base.exists()) {
                 if (!webServer.exec.latestRun().exists())
-                    return webServer.showError(res, "Review is not ready yet")
+                    return WebServer.showError(res, "Review is not ready yet")
                 else {
                     base = new File(RunsRoller.latest.folder(), ".base.tmp")
                     base.delete()
@@ -47,10 +47,10 @@ class ReviewAPI {
 
         post("/review/promote", { Request req, Response res ->
             if (!webServer.baseFile().exists())
-                return webServer.showError(res, "Promote is not ready yet")
+                return WebServer.showError(res, "Promote is not ready yet")
 
             if (!webServer.exec.latestRun().exists())
-                return webServer.showError(res, "Promote is not ready yet")
+                return WebServer.showError(res, "Promote is not ready yet")
 
             def review = new Review(webServer.baseFile(), webServer.exec.latestRun(), webServer.repos)
 
@@ -58,7 +58,7 @@ class ReviewAPI {
                 review.merge()
 
             if (!review.promote(webServer.appLauncher() as String))
-                return webServer.showError(res, "failed to promote")
+                return WebServer.showError(res, "failed to promote")
 
             // Recalculate RunFile
             webServer.run = new RunFile(webServer.baseFile())
@@ -69,7 +69,7 @@ class ReviewAPI {
             webServer.settings.unstageAllREPOs()
             webServer.settings.save()
 
-            return webServer.showResult("promoted")
+            return WebServer.showResult("promoted")
         })
     }
 }

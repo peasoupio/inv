@@ -2,6 +2,7 @@ package io.peasoup.inv.composer.api
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.RepoFile
 import io.peasoup.inv.composer.WebServer
 import spark.Request
@@ -9,6 +10,7 @@ import spark.Response
 
 import static spark.Spark.get
 import static spark.Spark.post
+import static spark.Spark.secure
 
 class ExecutionAPI {
 
@@ -27,10 +29,10 @@ class ExecutionAPI {
             File latestLog = webServer.exec.latestLog()
 
             if (!latestLog.exists())
-                return webServer.showError(res, "Latest log file is not present on filesystem")
+                return WebServer.showError(res, "Latest log file is not present on filesystem")
 
             if (latestLog.size() == 0)
-                return webServer.showError(res, "Latest log file is empty")
+                return WebServer.showError(res, "Latest log file is empty")
 
             res.raw().setContentType("application/octet-stream")
             res.raw().setHeader("Content-Disposition", "attachment; filename=${latestLog.parentFile.name}-log.txt")
@@ -48,14 +50,13 @@ class ExecutionAPI {
             toExecute += webServer.repos.staged
 
             boolean debugMode = false
-            boolean systemMode = false
             boolean secureMode = false
 
             def body = req.body()
             if (body) {
                 def options = new JsonSlurper().parseText(body) as Map
                 debugMode = options.debugMode
-                systemMode = options.systemMode
+                secureMode = options.secureMode
             }
 
             // Add selected repos
@@ -64,12 +65,18 @@ class ExecutionAPI {
 
             List<RepoFile> repoFiles = webServer.repos.toFiles(toExecute.unique()) as List<RepoFile>
 
-            webServer.exec.start(
+            // Do the actual execution
+            def error = webServer.exec.start(
                     debugMode,
-                    systemMode,
                     secureMode,
                     repoFiles)
             Thread.sleep(50)
+
+            // If an error occurred, send detail to user.
+            if (error) {
+                Logger.warn(error.message)
+                return WebServer.showError(res, error.message)
+            }
 
             return JsonOutput.toJson([
                     files: repoFiles.collect { it.simpleName() }
@@ -78,12 +85,12 @@ class ExecutionAPI {
 
         post("/execution/stop", { Request req, Response res ->
             if (!webServer.exec.isRunning())
-                return webServer.showError(res, "Already stopped")
+                return WebServer.showError(res, "Already stopped")
 
             webServer.exec.stop()
             Thread.sleep(50)
 
-            return webServer.showResult("Stopped")
+            return WebServer.showResult("Stopped")
         })
     }
 }

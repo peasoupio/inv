@@ -24,7 +24,7 @@ class RunAPI {
         // General
         get("/run/file", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             return webServer.run.runFile.text
         })
@@ -33,7 +33,7 @@ class RunAPI {
             String source = req.body()
 
             if (!source)
-                return webServer.showError(res, "Content is empty")
+                return WebServer.showError(res, "Content is empty")
 
             // Replace run.txt
             webServer.run.runFile.delete()
@@ -45,12 +45,12 @@ class RunAPI {
                 webServer.run.stageWithoutPropagate(it)
             }
 
-            return webServer.showResult("Runfile updated")
+            return WebServer.showResult("Runfile updated")
         })
 
         get("/run", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def output = webServer.run.nodesToMap()
             output.nodes = webServer.pagination.resolve(output.nodes)
@@ -60,7 +60,7 @@ class RunAPI {
 
         get("/run/owners", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             return JsonOutput.toJson(webServer.run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
@@ -78,7 +78,7 @@ class RunAPI {
 
         get("/run/names", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             return JsonOutput.toJson(webServer.run.names.keySet().collect {
                 [
@@ -93,7 +93,7 @@ class RunAPI {
 
         get("/run/tags", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def output = webServer.run.tagsMap()
             //output.nodes = webServer.pagination.resolve(output.nodes)
@@ -103,7 +103,7 @@ class RunAPI {
 
         post("/run", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             String body = req.body()
             Map filter = [:]
@@ -122,7 +122,7 @@ class RunAPI {
 
         post("/run/selected", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             String body = req.body()
             Map filter = [:]
@@ -143,7 +143,7 @@ class RunAPI {
 
         post("/run/stageAll", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             webServer.run.stageAll()
             webServer.run.nodes.each {
@@ -152,23 +152,23 @@ class RunAPI {
 
             webServer.settings.save()
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         post("/run/unstageAll", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             webServer.run.unstageAll()
             webServer.settings.unstageAllIds()
             webServer.settings.save()
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         get("/run/tree", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
 
@@ -177,34 +177,34 @@ class RunAPI {
 
         get("/run/requiredBy", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (!id)
-                return webServer.showError(res, "id is required")
+                return WebServer.showError(res, "id is required")
 
             return JsonOutput.toJson(webServer.run.requiredByMap(id))
         })
 
         post("/run/tags/stage", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def tag = req.queryParams("tag")
             if (!tag)
-                return webServer.showError(res, "Tag is missing")
+                return WebServer.showError(res, "Tag is missing")
 
             def subtag = req.queryParams("subtag")
             if (!subtag)
-                return webServer.showError(res, "Subtag is missing")
+                return WebServer.showError(res, "Subtag is missing")
 
             def tags = webServer.run.runGraph.tags.get(tag)
             if (!tags)
-                return webServer.showError(res, "No matching tag")
+                return WebServer.showError(res, "No matching tag")
 
             def subtags = tags.get(subtag)
             if (!subtags)
-                return webServer.showError(res, "No matching subtag")
+                return WebServer.showError(res, "No matching subtag")
 
             // Fetch all invs
             for(RunGraph.VirtualInv inv : subtags) {
@@ -220,28 +220,28 @@ class RunAPI {
             }
             webServer.run.propagate()
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         post("/run/tags/unstage", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def tag = req.queryParams("tag")
             if (!tag)
-                return webServer.showError(res, "Tag is missing")
+                return WebServer.showError(res, "Tag is missing")
 
             def subtag = req.queryParams("subtag")
             if (!subtag)
-                return webServer.showError(res, "Subtag is missing")
+                return WebServer.showError(res, "Subtag is missing")
 
             def tags = webServer.run.runGraph.tags.get(tag)
             if (!tags)
-                return webServer.showError(res, "No matching tag")
+                return WebServer.showError(res, "No matching tag")
 
             def subtags = tags.get(subtag)
             if (!subtags)
-                return webServer.showError(res, "No matching subtag")
+                return WebServer.showError(res, "No matching subtag")
 
             // Fetch all invs
             for(RunGraph.VirtualInv inv : subtags) {
@@ -257,14 +257,14 @@ class RunAPI {
             }
             webServer.run.propagate()
 
-            return webServer.showResult("Ok")
+            return WebServer.showResult("Ok")
         })
 
         // Specific
 
         post("/run/stage", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (id) {
@@ -272,7 +272,7 @@ class RunAPI {
                 webServer.settings.stageId(id)
                 webServer.settings.save()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
             def name = req.queryParams("name")
@@ -284,7 +284,7 @@ class RunAPI {
                 }
                 webServer.run.propagate()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
             def owner = req.queryParams("owner")
@@ -296,15 +296,15 @@ class RunAPI {
                 }
                 webServer.run.propagate()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
-            return webServer.showError(res, "Nothing was done")
+            return WebServer.showError(res, "Nothing was done")
         })
 
         post("/run/unstage", { Request req, Response res ->
             if (!webServer.run)
-                return webServer.showError(res, "Run is not ready yet")
+                return WebServer.showError(res, "Run is not ready yet")
 
             def id = req.queryParams("id")
             if (id) {
@@ -312,7 +312,7 @@ class RunAPI {
                 webServer.settings.unstageId(id)
                 webServer.settings.save()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
             def name = req.queryParams("name")
@@ -324,7 +324,7 @@ class RunAPI {
                 }
                 webServer.run.propagate()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
             def owner = req.queryParams("owner")
@@ -336,10 +336,10 @@ class RunAPI {
                 }
                 webServer.run.propagate()
 
-                return webServer.showResult("Ok")
+                return WebServer.showResult("Ok")
             }
 
-            return webServer.showError(res, "Nothing was done")
+            return WebServer.showError(res, "Nothing was done")
         })
     }
 

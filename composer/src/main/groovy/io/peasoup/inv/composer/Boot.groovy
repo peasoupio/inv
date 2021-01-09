@@ -41,7 +41,7 @@ class Boot {
 
         // Start boot sequence in a separate thread so Spark initialization is not compromised
         new Thread({
-            println "Boot sequence beginning..."
+            Logger.info "Boot sequence beginning..."
 
             // Notifier
             new Thread({
@@ -59,6 +59,7 @@ class Boot {
 
             // Processor
             new Thread({
+
                 // Process RUNFILE
                 def runFile = webServer.baseFile()
                 if (runFile.exists())
@@ -71,7 +72,7 @@ class Boot {
 
                 isDone = true
 
-                println "Boot sequence... done!"
+                Logger.info "Boot sequence... done!"
             }).start()
         }).start()
     }
@@ -92,10 +93,11 @@ class Boot {
 
     protected void readReposFiles() {
         File repoFolder = webServer.repos.repoFolder
-        def files = Pattern.get(["*"], RepoInvoker.DEFAULT_EXCLUDED, repoFolder, false)
+        Logger.info "Checking for repos files in '${repoFolder.absolutePath}'..."
 
+        def files = Pattern.get(["*"], RepoInvoker.DEFAULT_EXCLUDED, repoFolder, false)
         if (!files) {
-            Logger.warn("No files to be found in '${repoFolder.absolutePath}'")
+            Logger.warn "...files are not present right now."
             return
         }
 
@@ -114,10 +116,12 @@ class Boot {
 
     protected void readReposHrefs() {
         File hrefFolder = webServer.repos.hrefFolder
+        Logger.info "Checking for hrefs files in '${hrefFolder.absolutePath}'..."
+
         def files = Pattern.get(["*.href"], RepoInvoker.DEFAULT_EXCLUDED, hrefFolder, false)
 
         if (!files) {
-            Logger.warn("No files to be found in '${hrefFolder.absolutePath}'")
+            Logger.warn "...files are not present right now."
             return
         }
 
@@ -161,7 +165,7 @@ class Boot {
         def stagedRepos = webServer.settings.stagedREPOs()
         thingsToDo.addAndGet(stagedRepos.size())
 
-        new Progressbar("Staging from 'settings.xml'", stagedIds.size() + stagedRepos.size(), false).start {
+        new Progressbar("[INV] Staging from 'settings.xml'", stagedIds.size() + stagedRepos.size(), false).start {
             stagedIds.each {
                 if (webServer.run)
                     webServer.run.stageWithoutPropagate(it)
@@ -180,16 +184,19 @@ class Boot {
     }
 
     protected void readRunFile() {
-        println "Checking for 'run.txt'..."
+        Logger.info "Checking for 'run.txt'..."
 
         if (webServer.run) {
             webServer.run.propagate()
 
-            println "Found ${webServer.run.owners.size()} INV(s)"
-            println "Found ${webServer.run.names.size()} unique name(s)"
-            println "Found ${webServer.run.nodes.size()} broadcast(s)"
+            Logger.trace "...${webServer.run.owners.size()} INV(s) found."
+            Logger.trace "...${webServer.run.names.size()} unique name(s) found."
+            Logger.trace "...${webServer.run.nodes.size()} broadcast(s) found."
+            Logger.trace "...${webServer.run.staged.values().size()} IDs staged."
+            Logger.trace "...${webServer.repos.staged.size()} repos staged."
+
         } else {
-            println "Not present right now."
+            Logger.warn "...file is not present right now."
         }
     }
 

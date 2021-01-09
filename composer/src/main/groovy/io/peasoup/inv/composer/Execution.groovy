@@ -53,22 +53,18 @@ class Execution {
     }
 
     @CompileDynamic
-    void start(boolean debugMode, boolean systemMode, boolean secureMode, List<RepoFile> repos) {
+    ExecutionError start(boolean debugMode, boolean secureMode, List<RepoFile> repos) {
         if (repos == null)
             throw new IllegalArgumentException('REPO collection is required')
 
-        if (repos.isEmpty()) {
-            Logger.warn "REPO collection is empty. Will NOT try to start execution"
-            return
-        }
+        if (repos.isEmpty())
+            return new ExecutionError(message: "No repos were staged")
 
-        if (!Home.getCurrent().exists()) {
-            Logger.warn "INV_HOME does not exists"
-            return
-        }
+        if (!Home.getCurrent().exists())
+            return new ExecutionError(message: "INV_HOME does not exists")
 
         if (isRunning())
-            return
+            return new ExecutionError(message: "Already running")
 
         // Create new run folder
         RunsRoller.runsFolder().mkdirs()
@@ -278,5 +274,9 @@ class Execution {
         void closed(Session session, int statusCode, String reason) {
             sessions.remove(session)
         }
+    }
+
+    static class ExecutionError {
+        String message
     }
 }

@@ -4,6 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
+import io.peasoup.inv.composer.utils.MapUtils
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
 import io.peasoup.inv.repo.RepoInvoker
@@ -281,19 +282,7 @@ class RepoFile {
                 if (parametersFileText) {
                     Map existing = new JsonSlurper().parseText(parametersFileText) as Map
 
-                    Closure merge
-                    merge = { Map base, Map extend ->
-                        extend.each {
-                            if (base.containsKey(it.key) && it.value instanceof Map) {
-                                merge(base[it.key] as Map, it.value as Map)
-                                return
-                            }
-
-                            base.put(it.key, it.value)
-                        }
-                    }
-
-                    merge(existing, output)
+                    MapUtils.merge(existing, output)
                     output = existing
 
                     repoFile.expectedParameterFile.delete()

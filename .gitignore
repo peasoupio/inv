@@ -1,13 +1,13 @@
 # Avoid maven generated files and folders
-target/
+target
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
 .idea
 *.iml
 
 # Ignore node modules
-node_modules/
+node_modules
 
 # Application specific
-.runs/
+.runs
 

@@ -133,7 +133,7 @@ Vue.component('layout', {
         </div>
 
         <div v-for="element in navbarElements()">
-            <component v-bind:is="element.template" v-model="element.model"  v-if="element.model.shared" />
+            <component v-bind:is="element.template" v-model="element.model"  v-if="element.model.visible" />
         </div>
 
         <div class="columns header">

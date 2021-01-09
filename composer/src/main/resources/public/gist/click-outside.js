@@ -9,6 +9,9 @@ Vue.directive('click-outside',{
           el.removeAttribute('data-dragging')
       }
       el.eventOnClick = function (event) {
+          // Do not proceed if element is not visible
+          if (window.getComputedStyle(el, null).visibility !== "visible") return
+
           var dragging = el.getAttribute('data-dragging')
           // Check that the click was outside the el and its children, and wasn't a drag
           if (!(el == event.target || el.contains(event.target)) && !dragging) {

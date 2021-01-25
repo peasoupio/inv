@@ -18,6 +18,8 @@ class RepoFileCollectionTest {
     void setup() {
         def repoFolder = new File(repos)
         def hrefsFolder = new File(hrefs)
+        hrefsFolder.mkdirs()
+
         repoFileCollection = new RepoFileCollection(repoFolder, hrefsFolder)
 
         // Load repo files

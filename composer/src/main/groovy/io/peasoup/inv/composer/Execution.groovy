@@ -27,9 +27,8 @@ class Execution {
     private long lastExecutionStartedOn = 0
 
     Execution(String appLauncher, File repoFolder) {
-        if (!appLauncher) {
+        if (!appLauncher)
             Logger.warn("AppLauncher is not defined. Classic execution will be used. Classic is for test-purposes only.")
-        }
 
         assert repoFolder, 'REPO location (folder) is required'
         if (!repoFolder.exists())
@@ -53,7 +52,7 @@ class Execution {
     }
 
     @CompileDynamic
-    ExecutionError start(boolean debugMode, boolean secureMode, List<RepoFile> repos) {
+    ExecutionError start(boolean debugMode, boolean systemMode, boolean secureMode, List<RepoFile> repos) {
         if (repos == null)
             throw new IllegalArgumentException('REPO collection is required')
 

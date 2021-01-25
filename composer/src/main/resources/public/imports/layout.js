@@ -107,10 +107,23 @@ Vue.component('layout', {
               <a class="navbar-item" href="https://github.com/peasoupio/inv/issues" target="_blank">Report an issue</a>
             </div>
           </div>
+
+          <div class="navbar-item" @mouseleave="showHelpSecured = false">
+              <div class="buttons" v-if="shared.setup.secured" @mouseover="showHelpSecured = true">
+                <button class="button">
+                  Admin mode
+                </button>
+                <div class="notification is-primary" v-show="showHelpSecured" style="position: absolute; inline-size: fit-content;; top: 100%;">
+                    <p>The current session is secured.</p>
+                    <p>You are allowed to do administrative tasks.</p>
+                </div>
+              </div>
+            </div>
         </div>
 
-        <div class="navbar-end" v-if="shared.setup.initInfo">
-          <div class="navbar-item">
+        <div class="navbar-end" v-if="shared.setup">
+
+          <div class="navbar-item" v-if="shared.setup.initInfo">
             <div class="buttons" v-if="!shared.setup.initInfo.standalone">
                 <a class="button" target="_blank" :href="shared.setup.initInfo.source">
                     <span class="has-text-link has-text-weight-semibold">{{shared.setup.initInfo.version}}</span><span class="has-text-weight-semibold">@{{shared.setup.initInfo.source}}</span>
@@ -188,6 +201,7 @@ Vue.component('layout', {
     data: function() {
         return {
             showBurger: false,
+            showHelpSecured: false,
             currentStep: {},
             bootData: {
                 todo: 0,
@@ -215,7 +229,7 @@ Vue.component('layout', {
                 { name: 'Choose', template: 'choose', index: 1, showHelp: false, description: 'Choose your INVs'  },
                 { name: 'Configure', template: 'configure', index: 2, showHelp: false, description: 'Configure your parameters and REPOs' },
                 { name: 'Install', template: 'install', index: 3, showHelp: false, description: 'Generate and install your freshly new INV ecosystem' },
-                { name: 'Promote', template: 'promote', index: 5, showHelp: false, description: 'Promote latest run' }
+                { name: 'Promote', template: 'promote', index: 4, showHelp: false, description: 'Promote latest run' }
             ],
             shared: {
                 api: {},

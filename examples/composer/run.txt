@@ -18,6 +18,8 @@ Installing service kubectl on 10.22.99.999
 [INV] ---- [DIGEST] #3 (state=RUNNING) ----
 [INV] [appA] => [REQUIRE] [Kubernetes] undefined
 [INV] [appB] => [REQUIRE] [IIS] undefined
+[INV] [appA] => [BROADCAST] [AppA] undefined
+[INV] [appB] => [BROADCAST] [AppB] undefined
 IIS webapp my-web-app has been deployed
 [INV] --- completed ----
 [INV] file: example\maven\app1\app1.groovy

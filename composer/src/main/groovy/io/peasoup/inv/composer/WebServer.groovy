@@ -19,21 +19,22 @@ class WebServer {
     final static String CONFIG_SSL_KEYSTORE = "INV_SSL_KEYSTORE"
     final static String CONFIG_SSL_PASSWORD = "INV_SSL_PASSWORD"
 
-    final Map webServerConfigs
-    final String runLocation
-    final String reposLocation
-    final String hrefsLocation
+    Map webServerConfigs
+    String runLocation
+    String reposLocation
+    String hrefsLocation
 
-    final Boot boot
-    final Pagination pagination
+    Boot boot
+    Settings settings
+    Security security
+    Pagination pagination
 
-    final Settings settings
-    final RepoFileCollection repos
-    final Execution exec
+    RepoFileCollection repos
+    Execution exec
 
     RunFile run
 
-    private boolean usingSsl = false
+    boolean usingSsl = false
 
     WebServer(Map args) {
         if (!(args.appLauncher instanceof CharSequence))
@@ -68,12 +69,13 @@ class WebServer {
         if (!hrefsLocationFolder.exists())
             hrefsLocationFolder.mkdirs()
 
-        settings = new Settings(new File(runLocation, "settings.json"))
+        boot = new Boot(this)
+        settings = new Settings(new File(runLocation, Settings.DEFAULT_SETTINGS_NAME))
+        security = new Security(settings)
+        pagination = new Pagination(settings)
+
         repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
         exec = new Execution(appLauncher(), reposLocationFolder)
-
-        boot = new Boot(this)
-        pagination = new Pagination(settings)
     }
 
     /**
@@ -96,11 +98,14 @@ class WebServer {
             new RepoAPI(this).routes()
             new ExecutionAPI(this).routes()
             new ReviewAPI(this).routes()
+            new AuthorizationAPI(this).routes()
         })
 
         // Wait for initialization
         awaitInitialization()
+
         println "Ready and listening on ${usingSsl? "https" : "http"}://localhost:${webServerConfigs.port}"
+        security.print(webServerConfigs.port as Integer, usingSsl)
 
         // Execute boot sequence
         boot.run()
@@ -151,7 +156,7 @@ class WebServer {
         else
             staticFiles.location("/public")
 
-        // SSL configuratio
+        // SSL configuration
         if (configSslKeystore) {
             secure(configSslKeystore, configSslPass, null, null)
             usingSsl = true
@@ -161,6 +166,10 @@ class WebServer {
         exception(Exception.class, { e, request, response ->
             Logger.error(e)
         })
+    }
+
+    static String notAvailable(Response res) {
+        return showError(res, "Not available")
     }
 
     static String showError(Response res, String message) {

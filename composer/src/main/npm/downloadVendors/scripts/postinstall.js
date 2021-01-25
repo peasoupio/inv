@@ -6,7 +6,7 @@ console.log("Copying node_modules to composer's vendor folder: " + __dirname)
 
 var vendorsFile = path.join(__dirname, "../vendors.json")
 var nodeModulesDir = path.join(__dirname, "../node_modules")
-var composerVendorDir = path.join(__dirname, "../../resources/public/vendor")
+var composerVendorDir = path.join(__dirname, "../../../resources/public/vendor")
 
 // List required vendors subpaths
 var vendors = JSON.parse(fs.readFileSync(vendorsFile))

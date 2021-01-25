@@ -55,12 +55,12 @@ class RunFileTest {
 
     @Test
     void stageWithoutPropagate() {
-        assertTrue runFile.staged.isEmpty()
+        assertTrue runFile.stagedIds.isEmpty()
 
         runFile.stageWithoutPropagate("my-id")
         runFile.stageWithoutPropagate("my-id") // can handle twice
 
-        assertTrue runFile.staged.containsKey("my-id")
+        assertTrue runFile.stagedIds.containsKey("my-id")
     }
 
     @Test
@@ -68,12 +68,12 @@ class RunFileTest {
         String myId = "my-id"
 
         runFile.stageWithoutPropagate(myId)
-        assertTrue runFile.staged.containsKey(myId)
+        assertTrue runFile.stagedIds.containsKey(myId)
 
         runFile.unstage(myId)
         runFile.unstage(myId) // can handle twice
 
-        assertFalse runFile.staged.containsKey(myId)
+        assertFalse runFile.stagedIds.containsKey(myId)
     }
 
     @Test
@@ -130,8 +130,8 @@ class RunFileTest {
     void isSelected() {
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assertTrue runFile.isSelected("repo4")
-        assertFalse runFile.isSelected("repo3")
+        assertTrue runFile.isRepoRequired("repo4")
+        assertFalse runFile.isRepoRequired("repo3")
     }
 
     @Test
@@ -141,18 +141,18 @@ class RunFileTest {
         runFile.stageWithoutPropagate("[Artifact] com.mycompany.app:my-app-1") // undefined repo
         runFile.stageWithoutPropagate("[Kubernetes] undefined")
 
-        assertNotNull runFile.selectedRepos()
-        assertEquals 2, runFile.selectedRepos().size()
-        assertNotNull runFile.selectedRepos().find { it == "repo4" } // from Kubernetes
-        assertNotNull runFile.selectedRepos().find { it == "undefined" } // from Artifact
+        assertNotNull runFile.requiredRepos()
+        assertEquals 2, runFile.requiredRepos().size()
+        assertNotNull runFile.requiredRepos().find { it == "repo4" } // from Kubernetes
+        assertNotNull runFile.requiredRepos().find { it == "undefined" } // from Artifact
     }
 
     @Test
     void isSelected_not_ok() {
-        assertFalse runFile.isSelected("not_existing")
+        assertFalse runFile.isRepoRequired("not_existing")
 
         runFile.ownerOfRepo.put("exists", ["not-exists"])
 
-        assertFalse runFile.isSelected("exists")
+        assertFalse runFile.isRepoRequired("exists")
     }
 }

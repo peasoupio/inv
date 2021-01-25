@@ -53,11 +53,11 @@ post(links.run.search, [id: 'undefined']) {
 }
 
 // Stage id
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 post(idLink.links.stage)
-post(links.run.selected) { assertEquals 1, it.count }
+post(links.run.staged) { assertEquals 1, it.count }
 post(idLink.links.unstage)
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 
 // Get owners
 Map ownerLink
@@ -67,17 +67,17 @@ get(links.run.owners) {
 
     ownerLink = it[0]
     assertNotNull ownerLink.owner
-    assertNotNull ownerLink.selectedBy
+    assertNotNull ownerLink.stagedBy
     assertNotNull ownerLink.requiredBy
     assertNotNull ownerLink.links
 }
 
 // Stage owner
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 post(ownerLink.links.stage)
-post(links.run.selected) { assertEquals 2, it.count}
+post(links.run.staged) { assertEquals 2, it.count}
 post(ownerLink.links.unstage)
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 
 // Get names
 Map nameLink
@@ -91,11 +91,11 @@ get(links.run.names) {
 }
 
 // Stage name
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 post(nameLink.links.stage)
-post(links.run.selected) { assertEquals 1, it.count }
+post(links.run.staged) { assertEquals 1, it.count }
 post(nameLink.links.unstage)
-post(links.run.selected) { assertEquals 0, it.count}
+post(links.run.staged) { assertEquals 0, it.count}
 
 // Get tags
 Map tagsLink
@@ -114,8 +114,8 @@ get(links.run.tags) {
 }
 
 // Stage tag and subtag
-post(links.run.selected) { assertEquals 0, it.count }
+post(links.run.staged) { assertEquals 0, it.count }
 post(subTagsLink.links.stageAll)
-post(links.run.selected) { assertEquals 4, it.count }
+post(links.run.staged) { assertEquals 4, it.count }
 post(subTagsLink.links.unstageAll)
-post(links.run.selected) { assertEquals 0, it.count }
+post(links.run.staged) { assertEquals 0, it.count }

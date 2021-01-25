@@ -10,7 +10,6 @@ import spark.Response
 
 import static spark.Spark.get
 import static spark.Spark.post
-import static spark.Spark.secure
 
 class ExecutionAPI {
 
@@ -22,7 +21,15 @@ class ExecutionAPI {
 
     void routes() {
         get("/execution", { Request req, Response res ->
-            return JsonOutput.toJson(webServer.exec.toMap())
+
+            Map executionMap = webServer.exec.toMap()
+
+            if (!webServer.security.isRequestSecure(req)) {
+                executionMap.links.remove("stop")
+                executionMap.links.remove("start")
+            }
+
+            return JsonOutput.toJson(executionMap)
         })
 
         get("/execution/latest/download", { Request req, Response res ->
@@ -43,6 +50,9 @@ class ExecutionAPI {
         })
 
         post("/execution/start", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             if (webServer.exec.isRunning())
                 return "Already webServer.running"
 
@@ -50,24 +60,27 @@ class ExecutionAPI {
             toExecute += webServer.repos.staged
 
             boolean debugMode = false
+            boolean systemMode = false
             boolean secureMode = false
 
             def body = req.body()
             if (body) {
                 def options = new JsonSlurper().parseText(body) as Map
                 debugMode = options.debugMode
+                systemMode = options.systemMode
                 secureMode = options.secureMode
             }
 
             // Add selected repos
             if (webServer.run)
-                toExecute += webServer.run.selectedRepos()
+                toExecute += webServer.run.requiredRepos()
 
             List<RepoFile> repoFiles = webServer.repos.toFiles(toExecute.unique()) as List<RepoFile>
 
             // Do the actual execution
             def error = webServer.exec.start(
                     debugMode,
+                    systemMode,
                     secureMode,
                     repoFiles)
             Thread.sleep(50)
@@ -84,6 +97,9 @@ class ExecutionAPI {
         })
 
         post("/execution/stop", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             if (!webServer.exec.isRunning())
                 return WebServer.showError(res, "Already stopped")
 

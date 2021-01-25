@@ -46,6 +46,9 @@ class ReviewAPI {
         })
 
         post("/review/promote", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             if (!webServer.baseFile().exists())
                 return WebServer.showError(res, "Promote is not ready yet")
 

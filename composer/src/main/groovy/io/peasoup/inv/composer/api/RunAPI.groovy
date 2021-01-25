@@ -22,37 +22,11 @@ class RunAPI {
 
     void routes() {
         // General
-        get("/run/file", { Request req, Response res ->
-            if (!webServer.run)
-                return WebServer.showError(res, "Run is not ready yet")
-
-            return webServer.run.runFile.text
-        })
-
-        post("/run/file", { Request req, Response res ->
-            String source = req.body()
-
-            if (!source)
-                return WebServer.showError(res, "Content is empty")
-
-            // Replace run.txt
-            webServer.run.runFile.delete()
-            webServer.run.runFile << source
-            webServer.run = new RunFile(webServer.run.runFile)
-
-            // Restage INVs
-            webServer.settings.stagedIds().each {
-                webServer.run.stageWithoutPropagate(it)
-            }
-
-            return WebServer.showResult("Runfile updated")
-        })
-
         get("/run", { Request req, Response res ->
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
-            def output = webServer.run.nodesToMap()
+            def output = webServer.run.toMap(webServer.security.isRequestSecure(req))
             output.nodes = webServer.pagination.resolve(output.nodes)
 
             return JsonOutput.toJson(output)
@@ -62,25 +36,36 @@ class RunAPI {
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
-            return JsonOutput.toJson(webServer.run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
+
+            def ownersMap = webServer.run.owners.collect { String owner, List<GraphNavigator.Id> ids ->
                 [
                         owner     : owner,
-                        selectedBy: ids.findAll { webServer.run.staged[it.value] && webServer.run.staged[it.value].selected }.size(),
-                        requiredBy: ids.findAll { webServer.run.staged[it.value] && webServer.run.staged[it.value].required }.size(),
+                        stagedBy : ids.findAll { webServer.run.stagedIds[it.value] && webServer.run.stagedIds[it.value].staged }.size(),
+                        requiredBy: ids.findAll { webServer.run.stagedIds[it.value] && webServer.run.stagedIds[it.value].required }.size(),
                         links     : [
                                 stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?owner=${owner}",
                                 unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?owner=${owner}",
-                                tree: WebServer.API_CONTEXT_ROOT + "/run/tree?id=${owner}"
+                                tree   : WebServer.API_CONTEXT_ROOT + "/run/tree?id=${owner}"
                         ]
                 ]
-            })
+            }
+
+            if (!webServer.security.isRequestSecure(req)) {
+                for (Map owner : ownersMap) {
+                    owner.links.remove("stage")
+                    owner.links.remove("unstage")
+                }
+            }
+
+            return JsonOutput.toJson(ownersMap)
         })
 
         get("/run/names", { Request req, Response res ->
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
-            return JsonOutput.toJson(webServer.run.names.keySet().collect {
+
+            def namesMap = webServer.run.names.keySet().collect {
                 [
                         name : it,
                         links: [
@@ -88,17 +73,23 @@ class RunAPI {
                                 unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?name=${it}"
                         ]
                 ]
-            })
+            }
+
+            if (!webServer.security.isRequestSecure(req)) {
+                for (Map name : namesMap) {
+                    name.links.remove("stage")
+                    name.links.remove("unstage")
+                }
+            }
+
+            return JsonOutput.toJson(namesMap)
         })
 
         get("/run/tags", { Request req, Response res ->
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
-            def output = webServer.run.tagsMap()
-            //output.nodes = webServer.pagination.resolve(output.nodes)
-
-            return JsonOutput.toJson(output)
+            return JsonOutput.toJson(webServer.run.tagsMap(webServer.security.isRequestSecure(req)))
         })
 
         post("/run", { Request req, Response res ->
@@ -111,7 +102,7 @@ class RunAPI {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            def output = webServer.run.nodesToMap(filter)
+            def output = webServer.run.toMap(webServer.security.isRequestSecure(req), filter)
 
             Integer from = filter.from as Integer
             Integer to = filter.to as Integer
@@ -120,7 +111,7 @@ class RunAPI {
             return JsonOutput.toJson(output)
         })
 
-        post("/run/selected", { Request req, Response res ->
+        post("/run/staged", { Request req, Response res ->
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
@@ -130,9 +121,9 @@ class RunAPI {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            filter.selected = true
+            filter.staged = true
 
-            def output = webServer.run.nodesToMap(filter)
+            def output = webServer.run.toMap(webServer.security.isRequestSecure(req), filter)
 
             Integer from = filter.from as Integer
             Integer to = filter.to as Integer
@@ -207,7 +198,7 @@ class RunAPI {
                 return WebServer.showError(res, "No matching subtag")
 
             // Fetch all invs
-            for(RunGraph.VirtualInv inv : subtags) {
+            for (RunGraph.VirtualInv inv : subtags) {
                 if (!webServer.run.owners[inv.name])
                     continue
 
@@ -244,7 +235,7 @@ class RunAPI {
                 return WebServer.showError(res, "No matching subtag")
 
             // Fetch all invs
-            for(RunGraph.VirtualInv inv : subtags) {
+            for (RunGraph.VirtualInv inv : subtags) {
                 if (!webServer.run.owners[inv.name])
                     continue
 
@@ -341,6 +332,35 @@ class RunAPI {
 
             return WebServer.showError(res, "Nothing was done")
         })
-    }
 
+        // runfile
+        get("/runfile", { Request req, Response res ->
+            if (!webServer.run)
+                return WebServer.showError(res, "Run is not ready yet")
+
+            return webServer.run.runFile.text
+        })
+
+        post("/runfile", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
+            String source = req.body()
+
+            if (!source)
+                return WebServer.showError(res, "Content is empty")
+
+            // Replace run.txt
+            webServer.run.runFile.delete()
+            webServer.run.runFile << source
+            webServer.run = new RunFile(webServer.run.runFile)
+
+            // Restage INVs
+            webServer.settings.stagedIds().each {
+                webServer.run.stageWithoutPropagate(it)
+            }
+
+            return WebServer.showResult("Runfile updated")
+        })
+    }
 }

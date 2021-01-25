@@ -3,7 +3,7 @@
 Vue.component('configure-parameters', {
     template: `
 <div>
-    <div v-if="!areREPOsAvailable">
+    <div v-if="!isAnyRepoAvailable">
         <div class="content">
             <p class="has-text-warning has-text-centered title is-4">Nothing is staged for now.</p>
             <p>Have you considered the following?</p>
@@ -19,10 +19,11 @@ Vue.component('configure-parameters', {
         <div class="field is-grouped is-grouped-right">
             <div class="field">
                 <button @click="toggleHideOnComplete()" v-bind:class="{ 'is-link': filters.hideOnComplete}" class="button breath">
-                    Hide when completed
+                    Hide completed
+                    <span v-if="completed" style="margin-left: 0.25em">({{completed}})</span>
                 </button>
             </div>
-            <div class="field">
+            <div class="field" v-if="canApplyDefaultToAll()">
                 <div class="dropdown is-hoverable">
                     <div class="dropdown-trigger">
                         <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
@@ -49,7 +50,7 @@ Vue.component('configure-parameters', {
         </div>
 
         <hr />
-        <configure-parameters-carousel v-model="selectedSettings" :key="updateIndex" />
+        <configure-parameters-carousel v-model="stagedSettings" :key="updateIndex" />
         <hr />
         <configure-parameters-carousel v-model="requiredSettings" :key="updateIndex" />
 
@@ -100,7 +101,8 @@ Vue.component('configure-parameters', {
     props: ['value'],
     data: function() {
         return {
-            areREPOsAvailable: false,
+            isAnyRepoAvailable: false,
+            completed: 0,
             filters: {
                 hideOnComplete: true
             },
@@ -109,7 +111,7 @@ Vue.component('configure-parameters', {
         }
     },
     computed: {
-        selectedSettings: {
+        stagedSettings: {
             get() {
                 var vm = this
                 return {
@@ -120,13 +122,13 @@ Vue.component('configure-parameters', {
                     reset: function(repo) {
                         vm.resetParameters(repo)
                     },
-                    title: 'Added from the choosing options',
+                    title: 'Required by staging INV(s)',
                     filters: {
                         selected: true,
                         required: false,
-                        hideOnComplete: vm.filters.hideOnComplete
-                    }
-
+                        hideOnComplete: vm.filters.hideOnComplete,
+                    },
+                    count: 0
                 }
             }
         },
@@ -147,22 +149,25 @@ Vue.component('configure-parameters', {
                         selected: false,
                         required: true,
                         hideOnComplete: vm.filters.hideOnComplete
-                    }
+                    },
+                    count: 0
                 }
             }
         }
     },
     methods: {
+
         toggleHideOnComplete: function() {
             var vm = this
 
             vm.filters.hideOnComplete = !vm.filters.hideOnComplete
 
-            vm.selectedSettings.filters.hideOnComplete = vm.filters.hideOnComplete
+            vm.stagedSettings.filters.hideOnComplete = vm.filters.hideOnComplete
             vm.requiredSettings.filters.hideOnComplete = vm.filters.hideOnComplete
 
             vm.updateIndex++
         },
+
         applyDefaultToAll: function() {
             var vm = this
 
@@ -170,8 +175,15 @@ Vue.component('configure-parameters', {
                 vm.updateIndex++
 
                 vm.$bus.$emit('toast', `warn:Applied <strong>all defaults parameters</strong> successfully!`)
-           })
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>apply default value(s) to all</strong>!`)
+            })
         },
+
+        canApplyDefaultToAll: function() {
+            return this.value.api.links.repos.applyDefaultAll
+        },
+
         resetAll: function() {
             var vm = this
 
@@ -179,8 +191,11 @@ Vue.component('configure-parameters', {
                 vm.updateIndex++
 
                 vm.$bus.$emit('toast', `warn:Reset <strong>all parameters</strong> successfully!`)
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>reset value(s) to all</strong>!`)
             })
         },
+
         areValuesUnavailable: function(repoParameters) {
             if (repoParameters.value == undefined)
                 return false
@@ -193,11 +208,13 @@ Vue.component('configure-parameters', {
 
             return repoParameters.values.indexOf(repoParameters.value) < 0
         },
+
         hasAnyChanged: function(repoParameters) {
             return repoParameters.parameters.filter(function(parameter) {
                 return parameter.changed
             }).length > 0
         },
+
         saveParameters: function(repo) {
             var vm = this
 
@@ -210,10 +227,12 @@ Vue.component('configure-parameters', {
 
             vm.$bus.$emit('toast', `success:Saved <strong>parameters</strong> successfully!`)
         },
+
         setDefault: function(parameter) {
             parameter.value = parameter.defaultValue
             parameter.changed = true
         },
+
         resetParameters: function(repo) {
             var vm = this
 
@@ -232,21 +251,23 @@ Vue.component('configure-parameters', {
             repo.updateIndex++
             vm.$bus.$emit('toast', `warn:Reset <strong>parameters</strong> successfully!`)
         },
+
         saveParameter: function(parameter) {
             if (parameter.sending)
                 return
 
             parameter.sending = true
 
-            axios.post(parameter.links.save,{
-                parameterValue: parameter.value
-            }).then(response => {
-
+            axios.post(parameter.links.save,{ parameterValue: parameter.value }).then(response => {
                 parameter.sending = false
                 parameter.saved = true
                 parameter.changed = false
+            }).catch(err => {
+                parameter.sending = false
+                vm.$bus.$emit('toast', `error:Failed to <strong>save parameter</strong>!`)
             })
         },
+
         close: function() {
             var vm = this
 
@@ -265,7 +286,8 @@ Vue.component('configure-parameters', {
 
         // Check if any repo is selected or staged
         axios.get(vm.value.api.links.repos.metadata).then(response => {
-            vm.areREPOsAvailable = (response.data.selected + response.data.staged) > 0
+            vm.isAnyRepoAvailable = (response.data.staged + response.data.required) > 0
+            vm.completed = response.data.completed
         })
     }
 })
@@ -334,7 +356,7 @@ Vue.component('configure-parameters-carousel', {
                     <ul>
                         <li>Has <span class="has-text-weight-bold">{{repo.parameters.length}}</span> parameter(s)</li>
                         <li>Has <span class="has-text-weight-bold">{{repo.requiredCount}}</span> required parameter(s)</li>
-                        <li>Has answered <span class="has-text-weight-bold">{{repocompletedCount}}</span> parameter(s)</li>
+                        <li>Has answered <span class="has-text-weight-bold">{{repo.completedCount}}</span> parameter(s)</li>
                         <li>
                             <span v-if="repo.completed">Has <span class="has-text-weight-bold has-text-success">answered</span> all of its parameters</span>
                             <span v-else>Has <span class="has-text-weight-bold has-text-warning">not answered</span> all of its parameters</span>
@@ -389,12 +411,14 @@ Vue.component('configure-parameters-carousel', {
         }
     },
     methods: {
+
         filterRepos: function() {
             var vm = this
 
             vm.filters.from = 0
             vm.fetchRepos()
         },
+
         fetchRepos: function() {
             var vm = this
 
@@ -406,6 +430,7 @@ Vue.component('configure-parameters-carousel', {
 
                 // Calculate parameters metrics
                 vm.repos.descriptors.forEach(function(repo) {
+
                     // dependency metrics
                     repo.requiredCount = 0
                     repo.requiredNotCompletedCount = 0
@@ -425,12 +450,15 @@ Vue.component('configure-parameters-carousel', {
                 vm.loading = false
             })
         },
+
         whenLastSaved: function(repoParameters) {
             return TimeAgo.inWords(repoParameters.lastModified)
         },
+
         whenError: function(error) {
             return TimeAgo.inWords(error.when)
         },
+
         getStats: function(repo) {
             repo.requiredCount = 0
             repo.requiredNotCompletedCount = 0
@@ -454,6 +482,7 @@ Vue.component('configure-parameters-carousel', {
 
             return true
         },
+
         editParameters: function(repoParameters) {
 
             var vm = this
@@ -495,6 +524,7 @@ Vue.component('configure-parameters-carousel', {
                 vm.$bus.$emit('toast', `error:Failed to <strong>edit parameters</strong>!`)
             })
         },
+
         resetParameters: function(repoParameters) {
             var vm = this
             vm.value.reset(repoParameters)

@@ -24,7 +24,7 @@ class WebServerTest {
 
     static void clean() {
         new File(base, "executions/").deleteDir()
-        new File(base, "settings.json").delete()
+        new File(base, "settings.yml").delete()
         new File(base + "repos/", "repo7.groovy").delete()
     }
 

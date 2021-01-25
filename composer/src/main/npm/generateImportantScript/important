@@ -1,0 +1,27 @@
+# Base
+layout
+
+# Utils
+pagination
+panel
+tabTiles
+toast
+
+steps
+    choose
+        inv
+        broadcast
+        repo
+        tag
+
+    configure
+
+    install
+        review
+
+    promote
+
+configure
+    init
+    parameters
+    repos

@@ -40,6 +40,12 @@
             <version>2.9.3</version>
         </dependency>
 
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.7</version>
+        </dependency>
+
         <!-- Loggers -->
         <dependency>
             <groupId>org.slf4j</groupId>

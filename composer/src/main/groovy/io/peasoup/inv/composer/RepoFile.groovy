@@ -76,12 +76,11 @@ class RepoFile {
         /**
          * Returns a Map representation of this RepoFile
          *
+         * @param secure Indicate if the calling request is secure or not
          * @param filter filter results, including [name, src, entry]
-         * @param selectionState selection results [selected, staged]
-         * @param parametersFile Optional parameters file to parse its values on parameters
          * @return Map object
          */
-        Map toMap(Map filter = [:]) {
+        Map toMap(boolean secure, Map filter = [:]) {
 
             if (filter.name && !descriptor.name.contains(filter.name as CharSequence)) return null
             if (filter.src && !descriptor.src.contains(filter.src as CharSequence)) return null
@@ -109,14 +108,14 @@ class RepoFile {
                 String savedValue
 
                 if (externalProperties) {
-                    savedValue = externalProperties[descriptor.name]?[parameter.name]
+                    savedValue = externalProperties[descriptor.name] ?[parameter.name]
                 }
 
                 if (savedValue) {
                     completedParameters++
                 }
 
-                parameters << [
+                def parameterMap = [
                         name        : parameter.name,
                         usage       : parameter.usage,
                         value       : savedValue,
@@ -124,16 +123,24 @@ class RepoFile {
                         values      : [],
                         required    : parameter.required,
                         links       : [
-                                values: WebServer.API_CONTEXT_ROOT + "/repos/parameters/values?name=${descriptor.name}&parameter=${parameter.name}",
-                                save  : WebServer.API_CONTEXT_ROOT + "/repos/parameters?name=${descriptor.name}&parameter=${parameter.name}"
+                                values: WebServer.API_CONTEXT_ROOT + "/repos/parameters/values?name=${descriptor.name}&parameter=${parameter.name}"
                         ]
                 ]
+
+                if (secure)
+                    MapUtils.merge(parameterMap, [
+                            links: [
+                                    save: WebServer.API_CONTEXT_ROOT + "/repos/parameters?name=${descriptor.name}&parameter=${parameter.name}"
+                            ]
+                    ])
+
+                parameters.add(parameterMap)
             }
 
             if (externalProperties)
                 externalProperties = null
 
-            return [
+            def repoMap = [
                     name        : descriptor.name,
                     script      : [
                             source  : simpleName(),
@@ -146,7 +153,7 @@ class RepoFile {
                     saved       : saved,
                     completed   : completedParameters == parameters.size(),
                     staged      : false,
-                    selected    : false,
+                    required    : false,
                     descriptor  : [
                             name         : descriptor.name,
                             hooks        : descriptor.hooks,
@@ -156,13 +163,21 @@ class RepoFile {
                     ],
                     links       : [
                             default   : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${descriptor.name}",
-                            stage     : WebServer.API_CONTEXT_ROOT + "/repos/stage?name=${descriptor.name}",
-                            unstage   : WebServer.API_CONTEXT_ROOT + "/repos/unstage?name=${descriptor.name}",
-                            save      : WebServer.API_CONTEXT_ROOT + "/repos/source?name=${descriptor.name}&mimeType=${descriptor.mimeType()}",
-                            remove    : WebServer.API_CONTEXT_ROOT + "/repos/remove?name=${descriptor.name}",
                             parameters: WebServer.API_CONTEXT_ROOT + "/repos/parametersValues?name=${descriptor.name}"
                     ]
             ]
+
+            if (secure)
+                MapUtils.merge(repoMap, [
+                        links: [
+                                stage  : WebServer.API_CONTEXT_ROOT + "/repos/stage?name=${descriptor.name}",
+                                unstage: WebServer.API_CONTEXT_ROOT + "/repos/unstage?name=${descriptor.name}",
+                                save   : WebServer.API_CONTEXT_ROOT + "/repos/source?name=${descriptor.name}&mimeType=${descriptor.mimeType()}",
+                                remove : WebServer.API_CONTEXT_ROOT + "/repos/remove?name=${descriptor.name}",
+                        ]
+                ])
+
+            return repoMap
         }
 
         /**

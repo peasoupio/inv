@@ -2,6 +2,7 @@ package io.peasoup.inv.composer
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import io.peasoup.inv.composer.utils.MapUtils
 import io.peasoup.inv.graph.GraphNavigator
 import io.peasoup.inv.graph.RunGraph
 
@@ -17,7 +18,7 @@ class RunFile {
     final private Map<String, List<String>> ownerOfRepo
     final private Map<String, RunGraph.FileStatement> invOfRepo
 
-    final Map<String, StagedId> staged = [:]
+    final Map<String, StagedId> stagedIds = [:]
     final Set<GraphNavigator.Linkable> nodes
 
     final Map<String, List<GraphNavigator.Linkable>> owners
@@ -32,7 +33,7 @@ class RunFile {
         this.runFile = runFile
         runGraph = new RunGraph(runFile.newReader())
 
-        ownerOfRepo = (Map<String, List<String>>) runGraph.files.groupBy { it.repo }.collectEntries { [(it.key): it.value.collect { it.inv }] }
+        ownerOfRepo = (Map<String, List<String>>) runGraph.files.groupBy { it.repo }.collectEntries { [(it.key): it.value.unique { it.inv }.collect { it.inv }] }
         invOfRepo = runGraph.files.collectEntries { [(it.inv): it.repo] }
 
         // Get Id only and filter out unbloated ones
@@ -49,9 +50,9 @@ class RunFile {
         def owner = new GraphNavigator.Owner(value: destination)
 
         // Get owners of required staged
-        def stagedOwners = staged
+        def stagedOwners = stagedIds
                 .values()
-                .findAll { it.selected }
+                .findAll { it.staged }
                 .collect {
                     def node = runGraph.navigator.nodes[it.link.value]
 
@@ -82,13 +83,13 @@ class RunFile {
     synchronized void stage(String id) {
         assert id, 'Id is required'
 
-        if (staged.containsKey(id))
+        if (stagedIds.containsKey(id))
             return
 
         def stagedId = new StagedId(new GraphNavigator.Id(value: id))
-        stagedId.selected = true
+        stagedId.staged = true
 
-        staged.put(id, stagedId)
+        stagedIds.put(id, stagedId)
 
         propagate()
     }
@@ -96,31 +97,31 @@ class RunFile {
     synchronized void stageWithoutPropagate(String id) {
         assert id, 'Id is required'
 
-        if (staged.containsKey(id))
+        if (stagedIds.containsKey(id))
             return
 
         def stagedId = new StagedId(new GraphNavigator.Id(value: id))
-        stagedId.selected = true
+        stagedId.staged = true
 
-        staged.put(id, stagedId)
+        stagedIds.put(id, stagedId)
     }
 
     synchronized void stageAll() {
         nodes.each { GraphNavigator.Linkable link ->
             def stagedId = new StagedId(link)
-            stagedId.selected = true
+            stagedId.staged = true
 
-            staged.put(link.value, stagedId)
+            stagedIds.put(link.value, stagedId)
         }
     }
 
     synchronized void unstage(String id) {
         assert id, 'Id is required'
 
-        if (!staged.containsKey(id))
+        if (!stagedIds.containsKey(id))
             return
 
-        staged.remove(id)
+        stagedIds.remove(id)
 
         propagate()
     }
@@ -128,14 +129,14 @@ class RunFile {
     synchronized void unstageWithoutPropagate(String id) {
         assert id, 'Id is required'
 
-        if (!staged.containsKey(id))
+        if (!stagedIds.containsKey(id))
             return
 
-        staged.remove(id)
+        stagedIds.remove(id)
     }
 
     synchronized void unstageAll() {
-        staged.clear()
+        stagedIds.clear()
     }
 
     /**
@@ -145,33 +146,33 @@ class RunFile {
     @CompileDynamic
     synchronized Map propagate() {
 
-        Map<String, StagedId> selectedStages = staged
-                .findAll { it.value.selected }
+        Map<String, StagedId> stagedIds = stagedIds
+                .findAll { it.value.staged }
 
         Map<String, Integer> output = [
-                all    : staged.size() == nodes.size(),
-                checked: selectedStages.size(),
+                all    : this.stagedIds.size() == nodes.size(),
+                checked: stagedIds.size(),
                 added  : 0
         ] as Map<String, Integer>
-
-        // (Re)init with selected only
-        staged.clear()
-        staged.putAll(selectedStages)
 
         // Are all nodes required ?
         if (output.all)
             return output
 
-        List<GraphNavigator.Linkable> alreadyStaged = selectedStages.values().collect { it.link }
+        // (Re)init with staged only
+        this.stagedIds.clear()
+        this.stagedIds.putAll(stagedIds)
 
-        // If there's more selected than remaining, we'll seek from non-selected (reverse mode)
-        boolean reverseMode = staged.size() > (nodes.size() / 2)
+        List<GraphNavigator.Linkable> alreadyStaged = stagedIds.values().collect { it.link }
+
+        // If there are more staged than remaining, we'll seek from non-staged (reverse mode)
+        boolean reverseMode = this.stagedIds.size() > (nodes.size() / 2)
         List<StagedId> stegedIdsToCheck
 
         if (!reverseMode)
-            stegedIdsToCheck = selectedStages.values().toList() as List<StagedId>
+            stegedIdsToCheck = stagedIds.values().toList() as List<StagedId>
         else
-            stegedIdsToCheck = nodes.findAll { !selectedStages.containsKey(it.value) }.collect {
+            stegedIdsToCheck = nodes.findAll { !stagedIds.containsKey(it.value) }.collect {
                 new StagedId(new GraphNavigator.Id(value: it.value))
             }
 
@@ -180,23 +181,23 @@ class RunFile {
             def stageIdToCheck = stegedIdsToCheck.pop()
             GraphNavigator.Linkable linkToCheck = stageIdToCheck.link
 
-            // In reverse mode, since all selected staged are to check,
+            // In reverse mode, since all staged are to check,
             // We only get the requiredBy, instead of the requireByAll
             if (reverseMode) {
 
                 //Determine if stage ID to check has a staged dependency
                 def matched = runGraph.navigator.requiredBy(linkToCheck)
-                    .stream()
-                    .anyMatch(owner -> {
-                        def node = runGraph.navigator.nodes[owner.value]
-                        return staged.containsKey(node.id)
-                    })
+                        .stream()
+                        .anyMatch(owner -> {
+                            def node = runGraph.navigator.nodes[owner.value]
+                            return stagedIds.containsKey(node.id)
+                        })
 
                 if (!matched)
                     continue
 
                 stageIdToCheck.required = true
-                staged.put(linkToCheck.value, stageIdToCheck)
+                this.stagedIds.put(linkToCheck.value, stageIdToCheck)
 
                 alreadyStaged.add(linkToCheck)
                 output.added++
@@ -217,10 +218,10 @@ class RunFile {
                     if (!link.isId())
                         continue
 
-                    StagedId selectedId = new StagedId(link)
-                    selectedId.required = true
+                    StagedId stagedId = new StagedId(link)
+                    stagedId.required = true
 
-                    staged.put(link.value, selectedId)
+                    this.stagedIds.put(link.value, stagedId)
 
                     alreadyStaged.add(link)
                     output.added++
@@ -232,30 +233,29 @@ class RunFile {
     }
 
     /**
-     * Determines if a REPO is selected or not
+     * Determines if a REPO is required or not
      * @param repo Repo name
-     * @return True if selected, otherwise false
+     * @return True if required, otherwise false
      */
-    boolean isSelected(String repo) {
+    boolean isRepoRequired(String repo) {
         if (!ownerOfRepo.containsKey(repo))
             return false
 
         return ownerOfRepo[repo].any { String inv ->
-            def node = runGraph.navigator.nodes[inv] as GraphNavigator.Node
-
-            if (!node)
+            def statements = owners.get(inv)
+            if (!statements)
                 return false
 
-            return staged.containsKey(node.id) && staged[node.id].selected
+            return statements.any { GraphNavigator.Linkable link -> stagedIds.containsKey(link.value) }
         }
     }
 
     /**
-     * Gets selected REPOs
-     * @return List of selected REPOs
+     * Gets required REPOs
+     * @return List of required REPOs
      */
-    List<String> selectedRepos() {
-        return staged.values()
+    List<String> requiredRepos() {
+        return stagedIds.values()
                 .collect { runGraph.navigator.nodes[it.link.value] }
                 .findAll { it }
                 .collect { invOfRepo[it.owner] }
@@ -263,21 +263,21 @@ class RunFile {
                 .unique() as List<String>
     }
 
-    Map nodesToMap(Map filter = [:]) {
+    Map toMap(boolean secure = true, Map filter = [:]) {
 
         Collection<GraphNavigator.Linkable> links = nodes
-        Collection<GraphNavigator.Linkable> selectedLinks = staged.values()
-                .findAll { it.selected }
+        Collection<GraphNavigator.Linkable> stagedLinks = stagedIds.values()
+                .findAll { it.staged }
                 .collect { it.link }
                 .findAll { it.isId() }
 
-        Collection<GraphNavigator.Linkable> requiredLinks = staged.values()
+        Collection<GraphNavigator.Linkable> requiredLinks = stagedIds.values()
                 .findAll { it.required }
                 .collect { it.link }
                 .findAll { it.isId() }
 
-        if (filter.selected)
-            links = selectedLinks
+        if (filter.staged)
+            links = stagedLinks
 
         if (filter.required)
             links = requiredLinks
@@ -306,13 +306,13 @@ class RunFile {
         List<String> owners = reduced.collect { it.node.owner }.unique()
 
         return [
-                total                : nodes.size(),
-                count                : reduced.size(),
-                selected             : (reduced.sum { (staged.containsKey(it.link.value) && staged[it.link.value].selected) ? 1 : 0 } as Integer) ?: 0,
-                requiredByAssociation: (reduced.sum { (staged.containsKey(it.link.value) && staged[it.link.value].required) ? 1 : 0 } as Integer) ?: 0,
-                names                : names,
-                owners               : owners,
-                nodes                : reduced.collect {
+                total   : nodes.size(),
+                count   : reduced.size(),
+                staged  : (reduced.sum { (stagedIds.containsKey(it.link.value) && stagedIds[it.link.value].staged) ? 1 : 0 } as Integer) ?: 0,
+                required: (reduced.sum { (stagedIds.containsKey(it.link.value) && stagedIds[it.link.value].required) ? 1 : 0 } as Integer) ?: 0,
+                names   : names,
+                owners  : owners,
+                nodes   : reduced.collect {
 
                     String value = it.link.value as String
                     String owner = it.node.owner as String
@@ -321,20 +321,29 @@ class RunFile {
 
                     String urlifiedValue = URLUtils.urlify(value)
 
-                    return [
-                            required: staged[value] && staged[value].required,
-                            selected: staged[value] && staged[value].selected,
+                    def invMap = [
+                            required: stagedIds[value] && stagedIds[value].required,
+                            staged  : stagedIds[value] && stagedIds[value].staged,
                             owner   : owner,
                             name    : it.name,
                             id      : it.subId,
-                            repo     : repo,
+                            repo    : repo,
                             links   : [
                                     viewRepo  : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${repo}",
-                                    requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${urlifiedValue}",
-                                    stage     : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${urlifiedValue}",
-                                    unstage   : WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${urlifiedValue}"
+                                    requiredBy: WebServer.API_CONTEXT_ROOT + "/run/requiredBy?id=${urlifiedValue}"
                             ]
                     ]
+
+                    if (secure) {
+                        MapUtils.merge(invMap, [
+                                links: [
+                                        stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?id=${urlifiedValue}",
+                                        unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?id=${urlifiedValue}"
+                                ]
+                        ])
+                    }
+
+                    return invMap
                 }
         ]
     }
@@ -342,7 +351,7 @@ class RunFile {
     Map requiredByMap(String id) {
 
         def nodes = []
-        def linkableToCheck = staged.find { it.value.link.value == id }
+        def linkableToCheck = stagedIds.find { it.value.link.value == id }
 
         if (linkableToCheck) {
             for (Map.Entry<GraphNavigator.Linkable, Integer> entry : runGraph.navigator.requiredByAll(linkableToCheck.value.link)) {
@@ -365,8 +374,8 @@ class RunFile {
                         id       : subId,
                         owner    : node.owner,
                         iteration: iteration,
-                        required : staged[node.id] && staged[node.id].required,
-                        selected : staged[node.id] && staged[node.id].selected,
+                        required : stagedIds[node.id] && stagedIds[node.id].required,
+                        staged   : stagedIds[node.id] && stagedIds[node.id].staged,
                 ])
             }
         }
@@ -376,42 +385,55 @@ class RunFile {
         ]
     }
 
-    Map tagsMap() {
+    Map tagsMap(boolean secure = true) {
         List<Map> tags = []
         Map output = [
                 tags: tags
         ]
 
-        for(Map.Entry<String, Map<String, List<RunGraph.VirtualInv>>> tag : runGraph.tags) {
+        for (Map.Entry<String, Map<String, List<RunGraph.VirtualInv>>> tag : runGraph.tags) {
             List<Map> subTags = []
             Map tagOutput = [
-                label: tag.key,
-                subTags: subTags
+                    label  : tag.key,
+                    subTags: subTags
             ]
 
-            for(Map.Entry<String, List<RunGraph.VirtualInv>> subTag : tag.value) {
+            for (Map.Entry<String, List<RunGraph.VirtualInv>> subTag : tag.value) {
                 List<Map> invs = []
                 Map subTagOutput = [
                         label: subTag.key,
-                        invs: invs,
-                        links: [
-                                stageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/stage?tag=${tag.key}&subtag=${subTag.key}",
-                                unstageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/unstage?tag=${tag.key}&subtag=${subTag.key}"
-                        ]
+                        invs : invs,
+                        links: [:]
+
                 ]
 
-                for(RunGraph.VirtualInv inv : subTag.value) {
-                    def ids = owners.get(inv.name)
-
-                    invs.add([
-                            label: inv.name,
-                            selected: !ids ? 0 : ids.findAll { staged[it.value] && staged[it.value].selected }.size(),
-                            required: !ids ? 0 : ids.findAll { staged[it.value] && staged[it.value].required }.size(),
+                if (secure)
+                    MapUtils.merge(subTagOutput, [
                             links: [
-                                    stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?owner=${inv.name}",
-                                    unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?owner=${inv.name}"
+                                    stageAll  : WebServer.API_CONTEXT_ROOT + "/run/tags/stage?tag=${tag.key}&subtag=${subTag.key}",
+                                    unstageAll: WebServer.API_CONTEXT_ROOT + "/run/tags/unstage?tag=${tag.key}&subtag=${subTag.key}"
                             ]
                     ])
+
+                for (RunGraph.VirtualInv inv : subTag.value) {
+                    def ids = owners.get(inv.name)
+
+                    def invMap = [
+                            label   : inv.name,
+                            staged  : !ids ? 0 : ids.findAll { stagedIds[it.value] && stagedIds[it.value].staged }.size(),
+                            required: !ids ? 0 : ids.findAll { stagedIds[it.value] && stagedIds[it.value].required }.size(),
+                            links   : [:]
+                    ]
+
+                    if (secure)
+                        MapUtils.merge(invMap, [
+                                links: [
+                                        stage  : WebServer.API_CONTEXT_ROOT + "/run/stage?owner=${inv.name}",
+                                        unstage: WebServer.API_CONTEXT_ROOT + "/run/unstage?owner=${inv.name}"
+                                ]
+                        ])
+
+                    invs.add(invMap)
                 }
 
                 subTags.add(subTagOutput)
@@ -426,8 +448,15 @@ class RunFile {
     private static class StagedId {
         final GraphNavigator.Linkable link
 
+        /**
+         * True when another ID needs this one to work.
+         */
         boolean required
-        boolean selected
+
+        /**
+         * True when this ID is staged manually by the end-user.
+         */
+        boolean staged
 
         StagedId(GraphNavigator.Linkable link) {
             assert link, 'Link is required'

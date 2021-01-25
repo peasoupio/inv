@@ -1,20 +1,27 @@
 package io.peasoup.inv.composer
 
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
+import io.peasoup.inv.composer.utils.MapUtils
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
 
 class Settings {
 
-    private volatile Map settings = [
+    final static DEFAULT_SETTINGS_NAME = "settings.yml"
+
+    private Map settings = [
             filters: [
                     defaultStep: 20
             ],
             staged : [
                     ids : [],
                     repos: []
+            ],
+            security: [
+                    enabled: false
             ]
     ]
-    final private File settingsFile
+
+    private final File settingsFile
 
     /**
      * Create a new Settings
@@ -27,15 +34,30 @@ class Settings {
         this.settingsFile = settingsFile
 
         if (settingsFile.exists())
-            apply(new JsonSlurper().parse(settingsFile.newReader()) as Map)
+            apply(load())
+        else
+            save()
     }
 
     Map filters() {
         return settings.filters as Map
     }
 
+    // Security
+
+    boolean isSecurityEnabled() {
+        return settings.security?.enabled
+    }
+
+
+    // IDs (INVS)
+
     void stageId(String id) {
         settings.staged.ids << id
+    }
+
+    List<String> stagedIds() {
+        return settings.staged.ids
     }
 
     void unstageId(String id) {
@@ -46,12 +68,15 @@ class Settings {
         settings.staged.ids.clear()
     }
 
-    List<String> stagedIds() {
-        return settings.staged.ids
-    }
+
+    // Repos
 
     void stageREPO(String id) {
         settings.staged.repos << id
+    }
+
+    List<String> stagedREPOs() {
+        return settings.staged.repos
     }
 
     void unstageREPO(String id) {
@@ -62,20 +87,41 @@ class Settings {
         settings.staged.repos.clear()
     }
 
-    List<String> stagedREPOs() {
-        return settings.staged.repos
+    /**
+     * Load the current settings as a Map object
+     * @return Map representation of the YAML settings file
+     */
+    synchronized Map load() {
+        new Yaml().load(settingsFile.newReader())
     }
 
+    /**
+     * Save current settings to the filesystem.
+     */
     synchronized void save() {
         settingsFile.write(toString())
     }
 
+    /**
+     * Apply new (or update existing) values to settings
+     * @param values Values to apply
+     */
     void apply(Map values) {
-        settings += values
+        MapUtils.merge(settings, values)
     }
 
     @Override
     String toString() {
-        return JsonOutput.prettyPrint(JsonOutput.toJson(settings))
+        StringWriter sw = new StringWriter()
+
+        DumperOptions options = new DumperOptions();
+        options.setIndent(2);
+        options.setPrettyFlow(true);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+
+        def yaml = new Yaml(options)
+        yaml.dump(settings, sw)
+
+        return sw.toString()
     }
 }

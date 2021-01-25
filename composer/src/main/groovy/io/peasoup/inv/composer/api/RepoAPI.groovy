@@ -27,7 +27,7 @@ class RepoAPI {
     void routes() {
         // General
         get("/repos", { Request req, Response res ->
-            Map output = webServer.repos.toMap(webServer.run)
+            Map output = webServer.repos.toMap(webServer.security.isRequestSecure(req), webServer.run)
             output.descriptors = webServer.pagination.resolve(output.descriptors) as List<Map>
 
             return JsonOutput.toJson(output)
@@ -41,7 +41,7 @@ class RepoAPI {
             if (body)
                 filter = new JsonSlurper().parseText(body) as Map
 
-            Map output = webServer.repos.toMap(webServer.run, filter)
+            Map output = webServer.repos.toMap(webServer.security.isRequestSecure(req), webServer.run, filter)
             output.descriptors = webServer.pagination.resolve(
                     output.descriptors,
                     filter.from as Integer,
@@ -51,13 +51,16 @@ class RepoAPI {
         })
 
         get("/repos/metadata", { Request req, Response res ->
-            Map output = webServer.repos.toMap(webServer.run)
+            Map output = webServer.repos.toMap(webServer.security.isRequestSecure(req), webServer.run)
             output.descriptors = null
 
             return JsonOutput.toJson(output)
         })
 
         post("/repos/stageAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             webServer.settings.unstageAllREPOs()
 
             webServer.repos.elements.keySet().each {
@@ -70,6 +73,9 @@ class RepoAPI {
         })
 
         post("/repos/unstageAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             webServer.settings.unstageAllREPOs()
 
             webServer.repos.elements.keySet().each {
@@ -81,8 +87,11 @@ class RepoAPI {
         })
 
         post("/repos/applyDefaultAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             webServer.repos.elements.values().each { RepoFile.SourceFileElement element ->
-                if (webServer.run != null && !webServer.run.isSelected(element.descriptor.name))
+                if (webServer.run != null && !webServer.run.isRepoRequired(element.descriptor.name))
                     return
 
                 element.descriptor.ask.parameters.each { RepoDescriptor.AskParameter parameter ->
@@ -94,9 +103,11 @@ class RepoAPI {
         })
 
         post("/repos/resetAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             webServer.repos.elements.values().each { RepoFile.SourceFileElement element ->
-                if (webServer.run != null && !webServer.run.isSelected(element.descriptor.name))
+                if (webServer.run != null && !webServer.run.isRepoRequired(element.descriptor.name))
                     return
 
                 if (!element.repoFile.expectedParameterFile.exists())
@@ -120,12 +131,14 @@ class RepoAPI {
                 return WebServer.showError(res, "No REPO found for the specified name")
 
             def element = webServer.repos.elements[name]
-            def output = element.toMap([:])
+            def output = element.toMap(webServer.security.isRequestSecure(req), [:])
 
             return JsonOutput.toJson(output)
         })
 
         post("/repos/stage", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             def name = req.queryParams("name")
             if (!name)
@@ -139,6 +152,8 @@ class RepoAPI {
         })
 
         post("/repos/unstage", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             def name = req.queryParams("name")
             if (!name)
@@ -152,6 +167,8 @@ class RepoAPI {
         })
 
         post("/repos/source", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             def name = req.queryParams("name")
             if (!name)
@@ -213,6 +230,8 @@ class RepoAPI {
         })
 
         post("/repos/remove", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             def name = req.queryParams("name")
             if (!name)
@@ -247,6 +266,8 @@ class RepoAPI {
         })
 
         post("/repos/parameters", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
 
             def name = req.queryParams("name")
             if (!name)

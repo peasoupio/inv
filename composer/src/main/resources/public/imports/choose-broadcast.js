@@ -5,14 +5,14 @@ Vue.component('choose-broadcast', {
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="toggleSearchOptions('selected')" v-bind:class="{ 'is-link': filters.selected}" class="button breath">
-                    Show only selected ({{invs.selected}}/{{invs.count}})
+                <button @click="toggleSearchOptions('staged')" v-bind:class="{ 'is-link': filters.staged}" class="button breath">
+                    Show only staged ({{invs.staged}}/{{invs.count}})
                 </button>
                 <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button breath">
-                    Show all required ({{invs.requiredByAssociation}}/{{invs.count}})
+                    Show all required ({{invs.required}}/{{invs.count}})
                 </button>
             </div>
-            <div class="field">
+            <div class="field" v-if="canStageAll()">
                 <div class="dropdown is-hoverable">
                     <div class="dropdown-trigger">
                         <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
@@ -24,13 +24,13 @@ Vue.component('choose-broadcast', {
                     </div>
                     <div class="dropdown-menu" id="dropdown-menu" role="menu">
                         <div class="dropdown-content">
-                            <a @click="setStageAll(true)" class="dropdown-item">
-                                Select all ({{invs.total}})
+                            <a @click="doStageAll(true)" class="dropdown-item">
+                                Stage all ({{invs.total}})
                             </a>
                         </div>
                         <div class="dropdown-content">
-                            <a @click="setStageAll(false)" class="dropdown-item">
-                                Un-select all
+                            <a @click="doStageAll(false)" class="dropdown-item">
+                                Un-stage all
                             </a>
                         </div>
                     </div>
@@ -40,14 +40,15 @@ Vue.component('choose-broadcast', {
         <table class="table is-striped is-narrow is-hoverable is-fullwidth" v-if="invs.nodes">
             <thead>
             <tr class="field">
-                <th style="width: 6%">Selected</th>
+                <th style="width: 6%">Staged</th>
+                <th style="width: 6%">Required</th>
                 <th style="width: 20%">
                 <div class="dropdown" v-bind:class="{ 'is-active': filterOwners().length > 0 }" style="width: 100%">
                     <div class="dropdown-trigger" style="width: 100%">
                         <div class="field">
                             <p class="control is-expanded has-icons-right">
                                 <input class="input" type="text" v-model="filters.owner" placeholder="Owner" @keyup="searchNodes(true)">
-                                <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                                <span class="icon is-small is-right"><i class="fas fa-list"></i></span>
                             </p>
                         </div>
                     </div>
@@ -63,8 +64,8 @@ Vue.component('choose-broadcast', {
                     <div class="dropdown-trigger" style="width: 100%">
                         <div class="field">
                             <p class="control is-expanded has-icons-right">
-                                <input class="input" type="text" v-model="filters.name" placeholder="Name"@keyup="searchNodes(true)">
-                                <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                                <input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchNodes(true)">
+                                <span class="icon is-small is-right"><i class="fas fa-list"></i></span>
                             </p>
                         </div>
                     </div>
@@ -81,7 +82,8 @@ Vue.component('choose-broadcast', {
             </thead>
             <tbody>
             <tr v-for="inv in filter()">
-                <td align="center"><input type="checkbox" v-model="inv.selected" @change="doSelect(inv)" :disabled="inv.required" /></td>
+                <td align="center"><input type="checkbox" v-model="inv.staged" @change="doStage(inv)" :disabled="!canStage(inv)" /></td>
+                <td align="center"><input type="checkbox" v-model="inv.required" disabled /></td>
                 <td><p class="truncate">{{inv.owner}}</p></td>
                 <td><p class="truncate">{{inv.name}}</p></td>
                 <td><p class="truncate">{{inv.id}}</p></td>
@@ -136,7 +138,7 @@ Vue.component('choose-broadcast', {
                 owner: '',
                 repo: '',
                 required: false,
-                selected: false
+                staged: false
             }
         }
     },
@@ -180,6 +182,7 @@ Vue.component('choose-broadcast', {
                 vm.value.requiredInvs = {}
             })
         },
+
         toggleSearchOptions: function(option) {
             this.filters[option] = !this.filters[option]
             this.searchNodes(true)
@@ -207,12 +210,6 @@ Vue.component('choose-broadcast', {
 
             return filtered.sort()
         },
-        selectOwnerFilterRecommendation: function(owner) {
-            var vm = this
-
-            vm.filters.owner = owner
-            vm.searchNodes(true)
-        },
 
         filterNames: function() {
             var vm = this
@@ -236,6 +233,15 @@ Vue.component('choose-broadcast', {
 
             return filtered.sort()
         },
+
+        selectOwnerFilterRecommendation: function(owner) {
+            var vm = this
+
+            vm.filters.owner = owner
+            vm.searchNodes(true)
+        },
+
+
         selectNameFilterRecommendation: function(name) {
             var vm = this
 
@@ -243,38 +249,52 @@ Vue.component('choose-broadcast', {
             vm.searchNodes(true)
         },
 
-        setStageAll: function(stage) {
+        doStage: function(inv) {
             var vm = this
 
-            vm.invs.nodes.forEach(function(inv) {
-                if (inv.required)
-                    return
-
-                inv.selected = stage
-            })
-
-            if (stage)
-                axios.post(vm.value.api.links.run.stageAll, vm.filters).then(response => {
-                    vm.searchNodes()
-                })
-            else
-                axios.post(vm.value.api.links.run.unstageAll, vm.filters).then(response => {
-                    vm.searchNodes()
-                })
-
-        },
-        doSelect: function(inv) {
-            var vm = this
-
-            if (inv.selected) {
+            if (inv.staged) {
                 axios.post(inv.links.stage, vm.filters).then(response => {
                     vm.searchNodes()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>stage broadcast</strong>!`)
                 })
             } else {
                 axios.post(inv.links.unstage, vm.filters).then(response => {
                     vm.searchNodes()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>unstage broadcast</strong>!`)
                 })
             }
+        },
+
+        doStageAll: function(stage) {
+            var vm = this
+
+            var toggleStaged = function() {
+                vm.invs.nodes.forEach(function(inv) {
+                    if (inv.required)
+                        return
+
+                    inv.staged = stage
+                })
+            }
+
+            if (stage)
+                axios.post(vm.value.api.links.run.stageAll, vm.filters).then(response => {
+                    vm.searchNodes()
+                    toggleStaged()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>stage all broadcasts</strong>!`)
+                })
+
+            else
+                axios.post(vm.value.api.links.run.unstageAll, vm.filters).then(response => {
+                    vm.searchNodes()
+                    toggleStaged()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>unstage all broadcasts</strong>!`)
+                })
+
         },
 
         showRepo: function(inv) {
@@ -287,8 +307,20 @@ Vue.component('choose-broadcast', {
                 vm.$bus.$emit('toast', `error:${err.response.data.message}!`)
             })
         },
+
         close: function() {
             this.viewRepo = null
+        },
+
+        canStageAll: function() {
+            return this.value.api.links.run.stageAll
+        },
+
+        canStage: function(inv) {
+            if (!inv) return false
+            if (inv.required) return false
+
+            return inv.links.stage
         }
     },
     created: function() {

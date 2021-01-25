@@ -8,23 +8,24 @@ Vue.component('choose-tags', {
     <div v-else>
         <div class="columns">
             <div class="column is-half">
-                <p class="title is-4">Refine your selection :</p>
+                <p class="title is-4">Refine your selection:</p>
                 <aside class="menu">
                   <ul class="menu-list">
                     <li v-for="tag in tags">
                         <a>{{tag.label}}</a>
                         <ul>
                             <li v-for="subtag in tag.subTags">
-                                <a @click="selectTag(subtag)" v-bind:class="{ 'is-active' : previewTag == subtag }">
+                                <a @click="stageTag(subtag)" v-bind:class="{ 'is-active' : previewTag == subtag }">
                                     {{subtag.label}}
-                                    <span class="tag is-info is-pulled-right" v-if="subtag.selectedCount > 0" style="margin-left: 1em">{{subtag.selectedCount}} selected</span>
-                                    <span class="tag is-primary is-pulled-right" v-if="subtag.requiredCount > 0">{{subtag.requiredCount}} required</span>
+                                    <span class="tag is-primary is-pulled-right" v-if="subtag.required > 0" style="margin-left: 1em">{{subtag.required}} required</span>
+                                    <span class="tag is-info is-pulled-right" v-if="subtag.staged > 0" >{{subtag.staged}} staged</span>
+
                                 </a>
                                 <ul v-if="previewTag == subtag">
                                     <li v-for="inv in subtag.invs">
-                                        <a @click="selectInv(inv)" v-bind:class="{ 'is-active' : previewInv == inv }">
+                                        <a @click="stageInv(inv)" v-bind:class="{ 'is-active' : previewInv == inv }">
                                             {{inv.label}}
-                                            <span class="tag is-info is-pulled-right" v-if="inv.selected > 0" style="margin-left: 1em">selected</span>
+                                            <span class="tag is-info is-pulled-right" v-if="inv.staged > 0" style="margin-left: 1em">staged</span>
                                             <span class="tag is-primary is-pulled-right" v-if="inv.required > 0">required</span>
                                         </a>
                                     </li>
@@ -36,15 +37,15 @@ Vue.component('choose-tags', {
                 </aside>
             </div>
             <div class="column is-half">
-                <p class="title is-4">Current selection :</p>
+                <p class="title is-4">Current selection:</p>
                 <div v-if="!previewTag && !previewInv"><p>Nothing selected yet. Click on an element from menu to the left.</p></div>
                 <div class="notification content" v-if="previewTag">
                     <button class="delete" @click="previewTag = null"></button>
                     <p class="title is-4">Tag: <strong>{{previewTag.parent.label}}:<strong>{{previewTag.label}}</strong></p>
                     <p>INV's: <strong>{{previewTag.invs.length}}</strong></p>
-                    <p>Selected: <strong>{{previewTag.selectedCount}}</strong>/{{previewTag.invs.length}}</p>
-                    <p>Required: <strong>{{previewTag.requiredCount}}</strong>/{{previewTag.invs.length}}</p>
-                    <div class="field is-grouped">
+                    <p>Staged: <strong>{{previewTag.staged}}</strong>/{{previewTag.invs.length}}</p>
+                    <p>Required: <strong>{{previewTag.required}}</strong>/{{previewTag.invs.length}}</p>
+                    <div class="field is-grouped" v-if="canStageAll()">
                       <p class="control is-expanded">
                         <button class="button is-fullwidth" @click="unstageAll()">
                           <span>Unstage</span>
@@ -60,20 +61,20 @@ Vue.component('choose-tags', {
                 <div class="notification content" v-if="previewInv">
                     <button class="delete" @click="previewInv = null"></button>
                     <p class="title is-4">INV: <strong>{{previewInv.label}}</strong></p>
-                    <p>Selected :
-                        <span class="tag is-info" v-if="previewInv.selected > 0">selected</span>
-                        <span class="tag" v-else>not selected</span>
+                    <p>Status:
+                        <span class="tag is-info" v-if="previewInv.staged > 0">staged</span>
+                        <span class="tag" v-else>not staged</span>
                     </p>
                     <p>Required by: <strong>{{previewInv.required}}</strong></p>
 
-                    <div class="field is-grouped">
+                    <div class="field is-grouped" v-if="canStage()">
                       <p class="control is-expanded">
-                        <button class="button is-fullwidth" :disabled="previewInv.required > 0 || previewInv.selected == 0" @click="unstage()">
+                        <button class="button is-fullwidth" :disabled="previewInv.required > 0 || previewInv.staged == 0" @click="unstage()">
                           <span>Unstage</span>
                         </button>
                       </p>
                       <p class="control is-expanded">
-                        <button class="button is-fullwidth" :disabled="previewInv.required > 0 || previewInv.selected > 0" @click="stage()">
+                        <button class="button is-fullwidth" :disabled="previewInv.required > 0 || previewInv.staged > 0" @click="stage()">
                           <span>Stage</span>
                         </button>
                       </p>
@@ -106,11 +107,11 @@ Vue.component('choose-tags', {
                     var subTags = []
                     tag.subTags.forEach(subTag => {
 
-                        var selectedCount = 0
+                        var stagedCount = 0
                         var requiredCount = 0
                         subTag.invs.forEach(inv => {
-                            if (inv.selected > 0)
-                                selectedCount++
+                            if (inv.staged > 0)
+                                stagedCount++
                             if (inv.required)
                                 requiredCount++
                         })
@@ -122,8 +123,8 @@ Vue.component('choose-tags', {
                             links: subTag.links,
                             active: false,
                             invs: subTag.invs,
-                            selectedCount: selectedCount,
-                            requiredCount: requiredCount
+                            staged: stagedCount,
+                            required: requiredCount
                         })
 
                     })
@@ -141,7 +142,7 @@ Vue.component('choose-tags', {
                 vm.tags.sort(compareValues('label'))
             })
         },
-        selectTag: function(tag) {
+        stageTag: function(tag) {
             var vm = this
 
             if (vm.previewTag == tag)
@@ -149,7 +150,7 @@ Vue.component('choose-tags', {
             else
                 vm.previewTag = tag
         },
-        selectInv: function(inv) {
+        stageInv: function(inv) {
             var vm = this
 
             if (vm.previewInv == inv)
@@ -157,7 +158,7 @@ Vue.component('choose-tags', {
             else
                 vm.previewInv = inv
         },
-        stage: function(tag) {
+        stage: function() {
             var vm = this
 
             if (!vm.previewInv)
@@ -165,9 +166,12 @@ Vue.component('choose-tags', {
 
             axios.post(vm.previewInv.links.stage).then(response => {
                 vm.searchTags()
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>stage INV</strong>!`)
             })
+
         },
-        unstage: function(tag) {
+        unstage: function() {
             var vm = this
 
             if (!vm.previewInv)
@@ -175,7 +179,10 @@ Vue.component('choose-tags', {
 
             axios.post(vm.previewInv.links.unstage).then(response => {
                 vm.searchTags()
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>unstage INV</strong>!`)
             })
+
         },
         stageAll: function() {
             var vm = this
@@ -185,6 +192,8 @@ Vue.component('choose-tags', {
 
             axios.post(vm.previewTag.links.stageAll).then(response => {
                 vm.searchTags()
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>stage INVs</strong>!`)
             })
         },
         unstageAll: function() {
@@ -195,7 +204,19 @@ Vue.component('choose-tags', {
 
             axios.post(vm.previewTag.links.unstageAll).then(response => {
                 vm.searchTags()
+            }).catch(err => {
+                vm.$bus.$emit('toast', `error:Failed to <strong>unstage INVs</strong>!`)
             })
+        },
+        canStage: function() {
+            if (!this.previewInv) return false
+
+            return this.previewInv.links.stage
+        },
+        canStageAll: function() {
+            if (!this.previewTag) return false
+
+            return this.previewTag.links.stageAll
         }
     },
     created: function() {

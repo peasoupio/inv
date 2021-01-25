@@ -24,13 +24,13 @@ waitFor(10) {
 def runFileTxt = new File(Home.getCurrent(), "run.txt").text
 
 // Get content
-getAsString(links.run.runFile) {
+getAsString(links.runFile.default) {
     assertNotNull it
     assertEquals runFileTxt, it
 }
 
 // Update content
-post(links.run.runFile, runFileTxt) {
+post(links.runFile.save, runFileTxt) {
     assertNotNull it
     assertEquals "Runfile updated", it.result
 }

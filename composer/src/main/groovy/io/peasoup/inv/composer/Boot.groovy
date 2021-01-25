@@ -192,7 +192,7 @@ class Boot {
             Logger.trace "...${webServer.run.owners.size()} INV(s) found."
             Logger.trace "...${webServer.run.names.size()} unique name(s) found."
             Logger.trace "...${webServer.run.nodes.size()} broadcast(s) found."
-            Logger.trace "...${webServer.run.staged.values().size()} IDs staged."
+            Logger.trace "...${webServer.run.stagedIds.values().size()} IDs staged."
             Logger.trace "...${webServer.repos.staged.size()} repos staged."
 
         } else {

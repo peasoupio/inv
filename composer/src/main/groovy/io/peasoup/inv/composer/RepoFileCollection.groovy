@@ -116,59 +116,64 @@ class RepoFileCollection {
                 .collect { elements[it].repoFile }
     }
 
-    Map toMap(RunFile runFile = null, Map filter = [:]) {
+    Map toMap(boolean secure = true, RunFile runFile = null, Map filter = [:]) {
 
         List<Map> filtered = []
-        Integer selectedCount = 0
+        Integer requiredCount = 0
         Integer stagedCount = 0
+        Integer completedCount = 0
 
         String filterName = filter.name as String
 
         elements
-            .values()
-            .sort { it.descriptor.name }
-            .each {
-                if (filterName && !it.descriptor.name.contains(filterName))
-                    return
+                .values()
+                .sort { it.descriptor.name }
+                .each {
+                    if (filterName && !it.descriptor.name.contains(filterName))
+                        return
 
-                boolean isStaged = staged.contains(it.descriptor.name)
-                if (isStaged)
-                    stagedCount++
+                    boolean isStaged = staged.contains(it.descriptor.name)
+                    if (isStaged)
+                        stagedCount++
 
-                boolean isSelected = false
+                    boolean isRequired = false
 
-                if (runFile) {
-                    isSelected = runFile.isSelected(it.descriptor.name)
-                    if (isSelected)
-                        selectedCount++
+                    if (runFile) {
+                        isRequired = runFile.isRepoRequired(it.descriptor.name)
+                        if (isRequired)
+                            requiredCount++
+                    }
+
+                    if (filter.required && !isRequired)
+                        return
+
+                    if (filter.staged && !isStaged)
+                        return
+
+                    def repo = it.toMap(secure, filter)
+                    if (!repo)
+                        return
+
+                    if (repo.completed)
+                        completedCount++
+
+                    boolean filteredOutHideOnComplete = filter.hideOnComplete && repo.completed
+                    if (filteredOutHideOnComplete)
+                        return
+
+                    repo.required = isRequired
+                    repo.staged = isStaged
+
+                    filtered.add(repo)
                 }
-
-                if (filter.selected && !isSelected)
-                    return
-
-                if (filter.staged && !isStaged)
-                    return
-
-                def repo = it.toMap(filter)
-                if (!repo)
-                    return
-
-                boolean filteredOutHideOnComplete = filter.hideOnComplete && repo.completed
-                if (filteredOutHideOnComplete)
-                    return
-
-                repo.selected = isSelected
-                repo.staged = isStaged
-
-                filtered.add(repo)
-            }
 
         return [
                 descriptors: filtered,
                 total      : elements.size(),
                 count      : filtered.size(),
-                selected   : selectedCount,
-                staged     : stagedCount
+                required   : requiredCount,
+                staged     : stagedCount,
+                completed  : completedCount
         ]
     }
 }

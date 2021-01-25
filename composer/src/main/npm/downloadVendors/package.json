@@ -1,5 +1,5 @@
 {
-  "name": "composer",
+  "name": "downloadVendors",
   "version": "0.6.0",
   "description": "Composer allow you to interactively work with your INV ecosystem.",
   "main": "index.html",
@@ -10,7 +10,6 @@
     "codemirror-minified": "^5.52.0",
     "vue": "^2.6.11"
   },
-  "devDependencies": {},
   "scripts": {
     "postinstall": "node scripts/postinstall.js"
   },
@@ -19,7 +18,7 @@
     "url": "git+https://github.com/peasoupio/inv.git"
   },
   "author": "peasoupio",
-  "license": "MIT",
+  "license": "LGPLv3",
   "bugs": {
     "url": "https://github.com/peasoupio/inv/issues"
   },

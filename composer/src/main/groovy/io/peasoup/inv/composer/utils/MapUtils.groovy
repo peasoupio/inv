@@ -12,7 +12,7 @@ class MapUtils {
      * @param lhs Receiving map
      * @param rhs Giving map
      */
-    static Map merge(Map lhs, Map rhs) {
+    static Map merge(Map<?,?> lhs, Map<?,?> rhs) {
         rhs.each {k, v ->
             lhs[k] = lhs[k] in Map ?
                     merge(lhs[k], v) :

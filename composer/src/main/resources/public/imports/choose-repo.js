@@ -8,34 +8,57 @@ Vue.component('choose-repo', {
     <div v-else>
         <div class="field is-grouped is-grouped-right">
             <div class="field">
-                <button @click="stageAll()"class="button breath">
-                    Stage all ({{repos.total - repos.staged}})
+                <button @click="toggleSearchOptions('staged')" v-bind:class="{ 'is-link': filters.staged}" class="button breath">
+                    Show only staged ({{repos.staged}}/{{repos.count}})
+                </button>
+                <button @click="toggleSearchOptions('required')" v-bind:class="{ 'is-link': filters.required}" class="button breath">
+                    Show all required ({{repos.required}}/{{repos.count}})
                 </button>
             </div>
-            <div class="field">
-                <button @click="unstageAll()"class="button">
-                    Unstage all ({{repos.staged}})
-                </button>
+            <div class="field" v-if="canStageAll()">
+                <div class="dropdown is-hoverable">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>Options</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a @click="doStageAll(true)" class="dropdown-item">
+                                Stage all ({{repos.total}})
+                            </a>
+                        </div>
+                        <div class="dropdown-content">
+                            <a @click="doStageAll(false)" class="dropdown-item">
+                                Un-stage all
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <table class="table is-striped is-narrow is-hoverable is-fullwidth" >
             <thead>
             <tr class="field">
-                <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchRepo(true)"></th>
-                <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchRepo(true)"></th>
-                <th style="width: 10%">Options</th>
+                <th style="width: 6%">Staged</th>
+                <th style="width: 6%">Required</th>
+                <th ><input class="input" type="text" v-model="filters.name" placeholder="Name" @keyup="searchRepos(true)"></th>
+                <th><input class="input" type="text" v-model="filters.src" placeholder="Source" @keyup="searchRepos(true)"></th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="repo in filter()">
+                <td align="center"><input type="checkbox" v-model="repo.staged" @change="doStage(repo)" :disabled="!canStage(repo)" /></td>
+                <td align="center"><input type="checkbox" v-model="repo.required" disabled /></td>
                 <td>{{repo.name}}</td>
                 <td>
                     <a :href="repo.descriptor.src" v-if="repo.descriptor.src">{{repo.descriptor.src}}</a>
                     <span v-else><strong>undefined</strong></span>
                 </td>
-                <td v-if="!repo.staged"><button class="button is-link" @click.stop="stage(repo)" :disabled="repo.selected">Stage</button></td>
-                <td v-if="repo.staged"><button class="button is-warning" @click.stop="unstage(repo)">Unstage</button></td>
             </tr>
             </tbody>
         </table>
@@ -53,7 +76,8 @@ Vue.component('choose-repo', {
                 step: 20,
                 name: '',
                 src: '',
-                entry: ''
+                entry: '',
+                staged: false
             }
         }
     },
@@ -64,7 +88,7 @@ Vue.component('choose-repo', {
                 return {
                     refresh: function(from) {
                         vm.filters.from = from
-                        vm.searchRepo()
+                        vm.searchRepos()
                     },
                     from: vm.filters.from,
                     step: vm.filters.step,
@@ -74,6 +98,7 @@ Vue.component('choose-repo', {
         }
     },
     methods: {
+
         filter: function() {
             var vm = this
 
@@ -85,7 +110,8 @@ Vue.component('choose-repo', {
 
             return filtered.sort(compareValues('name'))
         },
-        searchRepo: function(fromFilter) {
+
+        searchRepos: function(fromFilter) {
             var vm = this
 
             if (fromFilter)
@@ -95,38 +121,74 @@ Vue.component('choose-repo', {
                 vm.repos = response.data
             })
         },
-        stage: function(repo) {
-            var vm = this
 
-            axios.post(repo.links.stage).then(response => {
-                repo.staged = true
-                vm.repos.staged++
-            })
+        toggleSearchOptions: function(option) {
+            this.filters[option] = !this.filters[option]
+            this.searchRepos(true)
         },
-        unstage: function(repo) {
+
+        doStage: function(repo) {
             var vm = this
 
-            axios.post(repo.links.unstage).then(response => {
-                repo.staged = false
-                vm.repos.staged--
-            })
+            if (repo.staged) {
+                axios.post(repo.links.stage).then(response => {
+                    repo.staged = true
+                    vm.repos.staged++
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>stage REPO</strong>!`)
+                })
+            } else {
+                axios.post(repo.links.unstage).then(response => {
+                    repo.staged = false
+                    vm.repos.staged--
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>unstage REPO</strong>!`)
+                })
+            }
         },
-        stageAll: function() {
+
+        doStageAll: function(stage) {
             var vm = this
 
-            axios.post(vm.value.api.links.repos.stageAll).then(response => {
-                vm.searchRepo()
-            })
+            var toggleStaged = function() {
+                vm.repos.descriptors.forEach(function(repo) {
+                    if (repo.required)
+                        return
+
+                    repo.staged = stage
+                })
+            }
+
+            if (stage)
+                axios.post(vm.value.api.links.repos.stageAll).then(response => {
+                    toggleStaged()
+                    vm.searchRepos()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>stage all REPOs</strong>!`)
+                })
+            else
+                axios.post(vm.value.api.links.repos.unstageAll).then(response => {
+                    toggleStaged()
+                    vm.searchRepos()
+                }).catch(err => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>unstage all REPOs</strong>!`)
+                })
+
         },
-        unstageAll: function() {
-            var vm = this
 
-            axios.post(vm.value.api.links.repos.unstageAll).then(response => {
-                vm.searchRepo()
-            })
+        canStage: function(repo) {
+            if (!repo) return false
+            if (repo.required) return false
+
+            return repo.links.stage
+        },
+
+        canStageAll: function() {
+            return this.value.api.links.repos.stageAll
         }
+
     },
     created: function() {
-        this.searchRepo()
+        this.searchRepos()
     }
 })

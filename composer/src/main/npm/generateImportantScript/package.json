@@ -1,0 +1,18 @@
+{
+  "name": "generateImportantScript",
+  "version": "0.6.0",
+  "description": "Composer allow you to interactively work with your INV ecosystem.",
+  "scripts": {
+    "postinstall": "node scripts/generate.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peasoupio/inv.git"
+  },
+  "author": "peasoupio",
+  "license": "LGPLv3",
+  "bugs": {
+    "url": "https://github.com/peasoupio/inv/issues"
+  },
+  "homepage": "https://github.com/peasoupio/inv#readme"
+}

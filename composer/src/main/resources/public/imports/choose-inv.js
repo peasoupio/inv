@@ -18,7 +18,7 @@ Vue.component('choose-inv', {
             <div class="box" v-click-outside="closeWhoBroughtMe">
                 <h1 class="title is-3">Who brought: {{whoBroughtMe}}</h1>
                 <div v-if="!whoBroughtMeTree || !whoBroughtMeTree.length">
-                    <p class="has-text-centered" style="padding: 1em"><strong>Nobody</strong>. Maybe it is selected without any requirement?</p>
+                    <p class="has-text-centered" style="padding: 1em"><strong>Nobody</strong>. Maybe it is staged without any requirement?</p>
                 </div>
                 <div class="columns is-multiline is-centered">
                     <div class="column is-4 is-primary" v-for="branch in whoBroughtMeTree">
@@ -74,7 +74,7 @@ Vue.component('choose-inv', {
 <li>Each <i>INV</i> are under <i>owner</i>.</li>
 <li>An <i>owner</i> has many <i>statements</i> obtained from a previous execution.</li>
 <li>A <i>Statement</i> is either a <strong>require</strong> or a <strong>broadcast</strong>.</li>
-<li>When selected, only <strong>broadcasts</strong> of the <i>owner</i> are shown to the right</li>
+<li>When staged, only <strong>broadcasts</strong> of the <i>owner</i> are shown to the right</li>
 </ul>
 `,
                 clickable: true,
@@ -115,7 +115,7 @@ Vue.component('choose-inv', {
                 // Filter elements
                 settings.elements = owners.filter(function(owner) {
                     if (filters.owner && owner.data.owner.indexOf(filters.owner) < 0) return
-                    if (filters.staged && (owner.data.selectedBy + owner.data.requiredBy) == 0) return
+                    if (filters.staged && (owner.data.stagedBy + owner.data.requiredBy) == 0) return
 
                     return true
                 })
@@ -155,15 +155,15 @@ Vue.component('choose-inv', {
             }
 
             // Check if active
-            if (owner.requiredBy > 0 || owner.selectedBy > 0) {
+            if (owner.requiredBy > 0 || owner.stagedBy > 0) {
                 element.active = true
-                element.subLabel = owner.requiredBy + owner.selectedBy
+                element.subLabel = owner.requiredBy + owner.stagedBy
             }
 
-            // Add 'Pick' option
-            if (!element.active) {
+            // Add 'stage' option (if links available)
+            if (!element.active && element.links.stage) {
                 element.options.push({
-                  label: 'Pick',
+                  label: 'Stage',
                   click: function(e) {
                      if (e.sending)
                          return
@@ -175,15 +175,20 @@ Vue.component('choose-inv', {
                         fetch()
                         e.icon = ''
                         e.sending = false
+                     }).catch(err => {
+                        e.icon = ''
+                        e.sending = false
+
+                        vm.$bus.$emit('toast', `error:Failed to <strong>stage INV</strong>!`)
                      })
                   }
                 })
             }
 
-            // Add 'unpick'
-            if (owner.selectedBy > 0) {
+            // Add 'unstage' (if links available)
+            if (owner.stagedBy > 0  && element.links.unstage) {
                 element.options.push({
-                    label: 'Unpick?',
+                    label: 'Un-stage',
                     click: function(e) {
                         e.icon = 'fa-spinner fa-pulse'
                         e.sending = true
@@ -192,7 +197,12 @@ Vue.component('choose-inv', {
                             fetch()
                             e.icon = ''
                             e.sending = false
-                        })
+                        }).catch(err => {
+                          e.icon = ''
+                          e.sending = false
+
+                          vm.$bus.$emit('toast', `error:Failed to <strong>un-stage INV</strong>!`)
+                       })
                     }
                 })
             }
@@ -216,7 +226,7 @@ Vue.component('choose-inv', {
             var vm = this
 
             var filters = {
-                selected: false,
+                staged: false,
                 required: false,
                 owner: ownerElement.label,
                 id: '',
@@ -232,9 +242,9 @@ Vue.component('choose-inv', {
 <li>The <strong>id</strong> is the unique identifier for its <strong>name</strong>.</li>
 <li>Per example, for <pre>[Endpoint] context:"/my-api"</pre>, <strong>name</strong> is <pre>Endpoint</pre> and <strong>id</strong> is <pre>context:"/my-api"</pre></li>
 <li>When the icon <i class="fas fa-fingerprint" aria-hidden="true"></i> is highlighted, the <strong>broadcast</strong> (and its <i>INV</i>) is staged for the next execution.</li>
-<li>Since everything is intertwined, by selecting <strong>one broadcast</strong>, you will bring all its <strong>predecessors</strong>.</li>
-<li>When the icon <i class="fas fa-lock" aria-hidden="true"></i> is highlighted, the <strong>broadcast</strong> has been selected as a <strong>predecessor</strong>.</li>
-<li>A <strong>predecessor cannot be un-selected</strong>. You <strong>must</strong> remove the selected <strong>successor(s)</strong>.</li>
+<li>Since everything is intertwined, by staging <strong>one broadcast</strong>, you will bring all its <strong>predecessors</strong>.</li>
+<li>When the icon <i class="fas fa-lock" aria-hidden="true"></i> is highlighted, the <strong>broadcast</strong> has been staged as a <strong>predecessor</strong>.</li>
+<li>A <strong>predecessor cannot be un-staged</strong>. You <strong>must</strong> remove the staged <strong>successor(s)</strong>.</li>
 </ul>
 `,
                 clickable: true,
@@ -255,14 +265,14 @@ Vue.component('choose-inv', {
                             icon: '',
                             label: inv.id,
                             subLabel: inv.name,
-                            active: inv.selected || inv.required,
+                            active: inv.staged || inv.required,
                             clickable: !inv.required,
                             inv: inv
                         })
                     })
 
                     settings.total = response.data.count
-                    settings.activeCount = response.data.requiredByAssociation + response.data.selected
+                    settings.activeCount = response.data.requiredByAssociation + response.data.staged
                     settings.elements.sort(compareValues('label'))
                 })
             }
@@ -275,10 +285,10 @@ Vue.component('choose-inv', {
                 if (element.sending)
                     return
 
-                element.icon = 'fa-spinner fa-pulse'
-                element.sending = true
+                if (!element.inv.staged && element.inv.links.stage) {
+                    element.icon = 'fa-spinner fa-pulse'
+                    element.sending = true
 
-                if (!element.inv.selected) {
                     axios.post(element.inv.links.stage, vm.filters).then(response => {
                         fetch()
 
@@ -287,8 +297,15 @@ Vue.component('choose-inv', {
                             ownerElement.subLabel = 1
                         else
                             ownerElement.subLabel++
+                    }).catch(err => {
+                        element.sending = false
+
+                        vm.$bus.$emit('toast', `error:Failed to <strong>stage broadcast</strong>!`)
                     })
-                } else {
+                } else if(element.inv.links.unstage) {
+                    element.icon = 'fa-spinner fa-pulse'
+                    element.sending = true
+
                     axios.post(element.inv.links.unstage, vm.filters).then(response => {
                         fetch()
 
@@ -298,6 +315,10 @@ Vue.component('choose-inv', {
                             ownerElement.active = false
                             ownerElement.subLabel = null
                         }
+                    }).catch(err => {
+                        element.sending = false
+
+                        vm.$bus.$emit('toast', `error:Failed to <strong>unstage broadcast</strong>!`)
                     })
                 }
             }

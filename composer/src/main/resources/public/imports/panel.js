@@ -78,7 +78,7 @@ Vue.component('panel', {
 
             <span style="width: 100%" v-html="element.label"></span>
 
-            <div class="dropdown is-hoverable is-right" v-if="element.options">
+            <div class="dropdown is-hoverable is-right" v-if="element.options && element.options.length > 0">
                 <div class="dropdown-trigger">
                     <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
                         <span>Options</span>

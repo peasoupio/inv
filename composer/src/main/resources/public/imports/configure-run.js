@@ -1,5 +1,5 @@
 Vue.component('configure-run', {
-    template: `
+    template: /*html*/ `
 <div class="modal is-active code" v-bind:class=" { 'hidden': !isVisible() } ">
     <div class="modal-background"></div>
     <div class="modal-content">
@@ -10,7 +10,7 @@ Vue.component('configure-run', {
                 </div>
                 <div class="column is-one-fifth">
                     <div class="buttons has-addons is-right">
-                        <button class="button is-success" @click="save()" v-bind:class=" { 'is-loading': sending }" :disabled="!edited">
+                        <button class="button is-success" @click="save()" v-bind:class=" { 'is-loading': sending }" :disabled="!canSave()">
                             <span class="icon is-small" v-if="saved">
                                 <i class="fas fa-check"></i>
                             </span>
@@ -31,7 +31,11 @@ Vue.component('configure-run', {
             opened: false,
             edited: false,
             sending: false,
-            saved: false
+            saved: false,
+
+            accesses: {
+                save: false
+            }
         }
     },
     methods: {
@@ -49,7 +53,7 @@ Vue.component('configure-run', {
 
             return true
         },
-        openEditor: function() {
+        enableEditor: function() {
             var vm = this
 
             var codeMirror = CodeMirror(function(elt) {
@@ -73,12 +77,23 @@ Vue.component('configure-run', {
         fetch: function() {
             var vm = this
 
-            axios.get(vm.value.shared.api.links.run.runFile).then(response => {
+            axios.get(vm.value.shared.api.links.runFile.default).then(response => {
                 vm.codeMirror.setValue(response.data)
                 vm.codeMirror.refresh()
 
                 vm.edited = false
             })
+        },
+        canSave: function() {
+            var vm = this
+
+            if (!vm.accesses.save)
+                return false
+
+            if (!vm.edited)
+                return false
+
+            return true
         },
         save: function() {
             var vm = this
@@ -86,7 +101,7 @@ Vue.component('configure-run', {
 
             vm.sending = true
 
-            axios.post(vm.value.shared.api.links.run.runFile, content, {
+            axios.post(vm.value.shared.api.links.runFile.save, content, {
                 headers: { 'Content-Type': 'text/plain' }
             }).then(response => {
 
@@ -98,6 +113,10 @@ Vue.component('configure-run', {
             })
             .catch(err => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>save init file</strong>!`)
+
+                vm.sending = false
+                vm.edited = true
+                vm.saved = false
             })
         },
         close: function() {
@@ -115,6 +134,13 @@ Vue.component('configure-run', {
         }
     },
     mounted: function() {
-        this.openEditor()
+        var vm = this
+
+        // Manage accesses
+        if (vm.value.shared.api.links.runFile.save !== undefined)
+            vm.accesses.save = true
+
+        vm.enableEditor()
+
     }
 })

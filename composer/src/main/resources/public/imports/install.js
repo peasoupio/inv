@@ -18,10 +18,17 @@ Vue.component('install', {
             </div>
             <div class="dropdown-menu" id="dropdown-menu" role="menu" v-if="!execution.running">
                 <div class="dropdown-content">
-                    <a class="dropdown-item is-link" @click="toggleFeature('debugMode') + turnOffFeature('debugMode')">
+                    <a class="dropdown-item is-link" @click="toggleFeature('debugMode') + turnOffFeature('systemMode')">
                         <span>Debug</span>
                         <span class="icon is-small" v-show="features.debugMode"><i class="fas fa-check-square"></i></span>
                         <span class="icon is-small" v-if="!features.debugMode"><i class="far fa-square"></i></span>
+                    </a>
+                </div>
+                <div class="dropdown-content">
+                    <a class="dropdown-item is-link" @click="toggleFeature('systemMode') + turnOffFeature('debugMode')" :disabled="execution.running">
+                        <span>System</span>
+                        <span class="icon is-small" v-show="features.systemMode"><i class="fas fa-check-square"></i></span>
+                        <span class="icon is-small" v-if="!features.systemMode"><i class="far fa-square"></i></span>
                     </a>
                 </div>
                 <div class="dropdown-content">
@@ -85,8 +92,9 @@ Vue.component('install', {
 
             features: {
                 autoRefresh: true,
-                secureMode: false,
-                debugMode: false
+                debugMode: false,
+                systemMode: false,
+                secureMode: false
             },
 
             execution: {},
@@ -146,6 +154,7 @@ Vue.component('install', {
 
             var cfg = {
                 debugMode: vm.features.debugMode,
+                systemMode: vm.features.systemMode,
                 secureMode: vm.features.secureMode
             }
 
@@ -288,13 +297,16 @@ Vue.component('install', {
     mounted: function() {
         var vm = this
 
-        if (localStorage.autoRefresh == "true")
+        if (localStorage.autoRefresh === "true")
             vm.turnOnFeature('autoRefresh')
 
-        if (localStorage.debugMode == "true")
+        if (localStorage.debugMode === "true")
             vm.turnOnFeature('debugMode')
 
-        if (localStorage.secureMode == undefined || localStorage.secureMode == "true")
+        if (localStorage.systemMode === "true")
+            vm.turnOnFeature('systemMode')
+
+        if (localStorage.secureMode === undefined || localStorage.secureMode === "true")
             vm.turnOnFeature('secureMode')
 
         vm.refresh()

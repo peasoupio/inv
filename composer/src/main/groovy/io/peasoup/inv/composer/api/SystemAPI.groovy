@@ -5,6 +5,7 @@ import groovy.json.JsonSlurper
 import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.MainHelper
 import io.peasoup.inv.composer.WebServer
+import io.peasoup.inv.composer.utils.MapUtils
 import io.peasoup.inv.io.FileUtils
 import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.repo.HookExecutor
@@ -22,51 +23,41 @@ class SystemAPI {
 
     SystemAPI(WebServer webServer) {
         this.webServer = webServer
-
         this.initInfo = initInfo()
     }
 
     void routes() {
         post("/stop", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             stop()
             awaitStop()
         })
 
         get("/v1", { Request req, Response res ->
-            return JsonOutput.toJson([
+
+            def apis = [
                     links: [
-                            setup   : webServer.API_CONTEXT_ROOT + "/setup",
-                            stop    : webServer.API_CONTEXT_ROOT + "/stop",
-                            settings: [
-                                    default: webServer.API_CONTEXT_ROOT + "/settings",
-                                    save   : webServer.API_CONTEXT_ROOT + "/settings"
-                            ],
-                            initFile: [
-                                    default: webServer.API_CONTEXT_ROOT + "/initfile",
-                                    save   : webServer.API_CONTEXT_ROOT + "/initfile",
-                                    pull   : webServer.API_CONTEXT_ROOT + "/initfile/pull",
-                                    push   : webServer.API_CONTEXT_ROOT + "/initfile/push"
+                            setup    : webServer.API_CONTEXT_ROOT + "/setup",
+                            initFile : [
+                                    default: webServer.API_CONTEXT_ROOT + "/initfile"
                             ],
                             run      : [
                                     default   : webServer.API_CONTEXT_ROOT + "/run",
                                     search    : webServer.API_CONTEXT_ROOT + "/run",
                                     owners    : webServer.API_CONTEXT_ROOT + "/run/owners",
                                     names     : webServer.API_CONTEXT_ROOT + "/run/names",
-                                    selected  : webServer.API_CONTEXT_ROOT + "/run/selected",
-                                    stageAll  : webServer.API_CONTEXT_ROOT + "/run/stageAll",
-                                    unstageAll: webServer.API_CONTEXT_ROOT + "/run/unstageAll",
+                                    staged  : webServer.API_CONTEXT_ROOT + "/run/staged",
                                     tree      : webServer.API_CONTEXT_ROOT + "/run/tree",
                                     tags      : webServer.API_CONTEXT_ROOT + "/run/tags",
-                                    runFile   : webServer.API_CONTEXT_ROOT + "/run/file"
                             ],
-                            repos   : [
+                            runFile  : [
+                                    default: webServer.API_CONTEXT_ROOT + "/runfile"
+                            ],
+                            repos    : [
                                     default        : webServer.API_CONTEXT_ROOT + "/repos",
                                     search         : webServer.API_CONTEXT_ROOT + "/repos",
-                                    add            : webServer.API_CONTEXT_ROOT + "/repos/source",
-                                    stageAll       : webServer.API_CONTEXT_ROOT + "/repos/stageAll",
-                                    unstageAll     : webServer.API_CONTEXT_ROOT + "/repos/unstageAll",
-                                    applyDefaultAll: webServer.API_CONTEXT_ROOT + "/repos/applyDefaultAll",
-                                    resetAll       : webServer.API_CONTEXT_ROOT + "/repos/resetAll",
                                     metadata       : webServer.API_CONTEXT_ROOT + "/repos/metadata",
                             ],
                             execution: [
@@ -74,10 +65,45 @@ class SystemAPI {
                             ],
                             review   : [
                                     default: webServer.API_CONTEXT_ROOT + "/review",
-                                    promote: webServer.API_CONTEXT_ROOT + "/review/promote"
                             ]
                     ]
-            ])
+            ]
+
+            if (webServer.security.isRequestSecure(req)) {
+                MapUtils.merge(apis, [
+                        links: [
+                                stop    : webServer.API_CONTEXT_ROOT + "/stop",
+                                settings: [
+                                        default: webServer.API_CONTEXT_ROOT + "/settings",
+                                        save   : webServer.API_CONTEXT_ROOT + "/settings"
+                                ],
+                                run: [
+                                        stageAll  : webServer.API_CONTEXT_ROOT + "/run/stageAll",
+                                        unstageAll: webServer.API_CONTEXT_ROOT + "/run/unstageAll",
+                                ],
+                                repos: [
+                                        add            : webServer.API_CONTEXT_ROOT + "/repos/source",
+                                        stageAll       : webServer.API_CONTEXT_ROOT + "/repos/stageAll",
+                                        unstageAll     : webServer.API_CONTEXT_ROOT + "/repos/unstageAll",
+                                        applyDefaultAll: webServer.API_CONTEXT_ROOT + "/repos/applyDefaultAll",
+                                        resetAll       : webServer.API_CONTEXT_ROOT + "/repos/resetAll"
+                                ],
+                                initFile: [
+                                        save: webServer.API_CONTEXT_ROOT + "/initfile",
+                                        pull: webServer.API_CONTEXT_ROOT + "/initfile/pull",
+                                        push: webServer.API_CONTEXT_ROOT + "/initfile/push"
+                                ],
+                                runFile : [
+                                        save: webServer.API_CONTEXT_ROOT + "/runfile"
+                                ],
+                                review: [
+                                        promote: webServer.API_CONTEXT_ROOT + "/review/promote"
+                                ]
+                        ]
+                ])
+            }
+
+            return JsonOutput.toJson(apis)
         })
 
         get("/setup", { Request req, Response res ->
@@ -87,6 +113,7 @@ class SystemAPI {
                     releaseVersion: webServer.version(),
                     initInfo      : initInfo,
                     firstTime     : webServer.run == null,
+                    secured       : webServer.security.isRequestSecure(req),
                     links         : [
                             stream: "/boot/stream"
                     ]
@@ -98,18 +125,22 @@ class SystemAPI {
         })
 
         post("/settings", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             String body = req.body()
             Map values = new JsonSlurper().parseText(body) as Map
 
             webServer.settings.apply(values)
+            webServer.settings.save()
 
-            return webServer.showResult("Values parsed")
+            return WebServer.showResult("Values parsed")
         })
 
         get("/initfile", { Request req, Response res ->
             def initFile = webServer.initFile()
             if (!initFile)
-                return webServer.showError(res, "Missing init file")
+                return WebServer.showError(res, "Missing init file")
 
             return JsonOutput.toJson([
                     text    : initFile.text,
@@ -118,10 +149,13 @@ class SystemAPI {
         })
 
         post("/initfile", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             String fileContent = req.body()
 
             if (fileContent.isEmpty())
-                return webServer.showError(res, "Content is empty")
+                return WebServer.showError(res, "Content is empty")
 
             Integer errorCount = 0
             List<String> exceptionMessages = []
@@ -146,14 +180,17 @@ class SystemAPI {
 
             return JsonOutput.toJson([
                     errorCount: errorCount,
-                    errors: exceptionMessages
+                    errors    : exceptionMessages
             ])
         })
 
         post("/initfile/pull", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             def initFile = webServer.initFile()
             if (!initFile)
-                return webServer.showError(res, "Missing init file")
+                return WebServer.showError(res, "Missing init file")
 
             // Reuse InitRunCommand to pull init file
             def exitValue = MainHelper.execute(
@@ -161,15 +198,18 @@ class SystemAPI {
                     ["repo-run", initFile.absolutePath])
 
             if (exitValue != 0)
-                return webServer.showError(res, "Could not pull init")
+                return WebServer.showError(res, "Could not pull init")
 
-            return webServer.showResult("Pulled init successfully")
+            return WebServer.showResult("Pulled init successfully")
         })
 
         post("/initfile/push", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             def initFile = webServer.initFile()
             if (!initFile)
-                return webServer.showError(res, "Missing init file")
+                return WebServer.showError(res, "Missing init file")
 
             // Invoke push hook manually
             RepoExecutor.RepoHookExecutionReport report = new RepoExecutor().with {
@@ -185,9 +225,9 @@ class SystemAPI {
             }
 
             if (!report || !report.isOk())
-                return webServer.showError(res, "Could not push init")
+                return WebServer.showError(res, "Could not push init")
 
-            return webServer.showResult("Pushed init successfully")
+            return WebServer.showResult("Pushed init successfully")
         })
     }
 
@@ -216,7 +256,7 @@ class SystemAPI {
         }
 
         return [
-                source: report.descriptor.src,
+                source : report.descriptor.src,
                 version: report.stdout ? report.stdout.trim() : "undefined"
         ]
     }

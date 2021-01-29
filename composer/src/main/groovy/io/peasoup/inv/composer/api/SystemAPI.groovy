@@ -44,21 +44,21 @@ class SystemAPI {
                                     default: webServer.API_CONTEXT_ROOT + "/initfile"
                             ],
                             run      : [
-                                    default   : webServer.API_CONTEXT_ROOT + "/run",
-                                    search    : webServer.API_CONTEXT_ROOT + "/run",
-                                    owners    : webServer.API_CONTEXT_ROOT + "/run/owners",
-                                    names     : webServer.API_CONTEXT_ROOT + "/run/names",
-                                    staged  : webServer.API_CONTEXT_ROOT + "/run/staged",
-                                    tree      : webServer.API_CONTEXT_ROOT + "/run/tree",
-                                    tags      : webServer.API_CONTEXT_ROOT + "/run/tags",
+                                    default: webServer.API_CONTEXT_ROOT + "/run",
+                                    search : webServer.API_CONTEXT_ROOT + "/run",
+                                    owners : webServer.API_CONTEXT_ROOT + "/run/owners",
+                                    names  : webServer.API_CONTEXT_ROOT + "/run/names",
+                                    staged : webServer.API_CONTEXT_ROOT + "/run/staged",
+                                    tree   : webServer.API_CONTEXT_ROOT + "/run/tree",
+                                    tags   : webServer.API_CONTEXT_ROOT + "/run/tags",
                             ],
                             runFile  : [
                                     default: webServer.API_CONTEXT_ROOT + "/runfile"
                             ],
                             repos    : [
-                                    default        : webServer.API_CONTEXT_ROOT + "/repos",
-                                    search         : webServer.API_CONTEXT_ROOT + "/repos",
-                                    metadata       : webServer.API_CONTEXT_ROOT + "/repos/metadata",
+                                    default : webServer.API_CONTEXT_ROOT + "/repos",
+                                    search  : webServer.API_CONTEXT_ROOT + "/repos",
+                                    metadata: webServer.API_CONTEXT_ROOT + "/repos/metadata",
                             ],
                             execution: [
                                     default: webServer.API_CONTEXT_ROOT + "/execution"
@@ -77,11 +77,11 @@ class SystemAPI {
                                         default: webServer.API_CONTEXT_ROOT + "/settings",
                                         save   : webServer.API_CONTEXT_ROOT + "/settings"
                                 ],
-                                run: [
+                                run   : [
                                         stageAll  : webServer.API_CONTEXT_ROOT + "/run/stageAll",
                                         unstageAll: webServer.API_CONTEXT_ROOT + "/run/unstageAll",
                                 ],
-                                repos: [
+                                repos : [
                                         add            : webServer.API_CONTEXT_ROOT + "/repos/source",
                                         stageAll       : webServer.API_CONTEXT_ROOT + "/repos/stageAll",
                                         unstageAll     : webServer.API_CONTEXT_ROOT + "/repos/unstageAll",
@@ -121,7 +121,7 @@ class SystemAPI {
         })
 
         get("/settings", { Request req, Response res ->
-            return webServer.settings
+            return JsonOutput.toJson(webServer.settings)
         })
 
         post("/settings", { Request req, Response res ->

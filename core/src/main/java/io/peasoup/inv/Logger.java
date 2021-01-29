@@ -146,7 +146,10 @@ public final class Logger {
 
     private static void writeStdout(String type, String message) {
         try {
-            writingQueue.put(type + " " + message);
+            if (StringUtils.isNotEmpty(type))
+                writingQueue.put(type + " " + message);
+            else
+                writingQueue.put(message);
 
             synchronized (notifier) {
                 notifier.notify();

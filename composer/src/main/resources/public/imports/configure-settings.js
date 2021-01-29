@@ -35,8 +35,9 @@ Vue.component('configure-settings', {
         }
     },
     methods: {
+
         isVisible: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.value.visible)
                 return false
@@ -49,11 +50,12 @@ Vue.component('configure-settings', {
 
             return true
         },
-        openEditor: function() {
-            var vm = this
 
-            var codeMirror = CodeMirror(function(elt) {
-                var element = document.querySelector('#configure-settings-editarea')
+        openEditor: function() {
+            const vm = this
+
+            const codeMirror = CodeMirror(function(elt) {
+                const element = document.querySelector('#configure-settings-editarea')
                 element.appendChild(elt)
             }, {
                 autoRefresh: true,
@@ -64,15 +66,16 @@ Vue.component('configure-settings', {
 
             codeMirror.setSize(null, 640)
 
-            codeMirror.on("change",function(cm,change){
+            codeMirror.on("change",function(){
                 vm.saved = false
                 vm.edited = true
             })
 
             vm.codeMirror = codeMirror
         },
+
         fetch: function() {
-            var vm = this
+            const vm = this
 
             axios.get(vm.value.shared.api.links.settings.default).then(response => {
                 vm.codeMirror.setValue(JSON.stringify(response.data, null, 2))
@@ -81,15 +84,16 @@ Vue.component('configure-settings', {
                 vm.edited = false
             })
         },
+
         save: function() {
-            var vm = this
-            var content = vm.codeMirror.getValue()
+            const vm = this
+            const content = vm.codeMirror.getValue()
 
             vm.sending = true
 
             axios.post(vm.value.shared.api.links.settings.save, content, {
                 headers: { 'Content-Type': 'text/plain' }
-            }).then(response => {
+            }).then(() => {
 
                 vm.sending = false
                 vm.edited = false
@@ -97,15 +101,15 @@ Vue.component('configure-settings', {
 
                 vm.$bus.$emit('toast', `success:Saved <strong>settings.xml</strong> successfully!`)
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed <strong>to save settings.xml</strong>!`)
             })
         },
         close: function() {
-            var vm = this
+            const vm = this
 
             if (vm.edited) {
-                var ok = confirm("Clear unsaved work ?")
+                const ok = confirm("Clear unsaved work ?")
 
                 if (!ok)
                     return

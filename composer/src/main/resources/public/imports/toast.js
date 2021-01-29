@@ -17,7 +17,7 @@ Vue.component('toast', {
     },
     methods: {
         showToast: function(message) {
-            var vm = this
+            const vm = this
 
             // Check if already showing something
             if (!message)

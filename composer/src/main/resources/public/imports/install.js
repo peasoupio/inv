@@ -109,17 +109,18 @@ Vue.component('install', {
         }
     },
     methods: {
+
         downloadLatestLog: function() {
-            var vm = this
-            var latestLog = vm.execution.lastExecution.startedOn
+            const vm = this
+            const latestLog = vm.execution.lastExecution.startedOn
 
             axios({
                 url: vm.execution.links.download,
                 method: 'GET',
                 responseType: 'blob',
             }).then((response) => {
-                var fileURL = window.URL.createObjectURL(new Blob([response.data]));
-                var fileLink = document.createElement('a');
+                const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+                const fileLink = document.createElement('a');
 
                 fileLink.href = fileURL;
                 fileLink.setAttribute('download', 'inv-' + latestLog + '-log.txt');
@@ -128,31 +129,35 @@ Vue.component('install', {
                 fileLink.click();
             })
         },
+
         toggleFeature: function(name) {
-            var vm = this
+            const vm = this
 
             vm.features[name] = !vm.features[name]
             localStorage[name] = vm.features[name]
         },
+
         turnOffFeature: function(name) {
-            var vm = this
+            const vm = this
 
             vm.features[name] = false
             localStorage[name] = false
         },
+
         turnOnFeature: function(name) {
-            var vm = this
+            const vm = this
 
             vm.features[name] = true
             localStorage[name] = true
         },
+
         start: function() {
-            var vm = this
+            const vm = this
 
             if (vm.execution.running)
                 return
 
-            var cfg = {
+            const cfg = {
                 debugMode: vm.features.debugMode,
                 systemMode: vm.features.systemMode,
                 secureMode: vm.features.secureMode
@@ -169,8 +174,9 @@ Vue.component('install', {
               vm.$bus.$emit('toast', `error:Failed to start execution: ${err.response.data.message}.`)
           })
         },
+
         stop: function() {
-            var vm = this
+            const vm = this
 
             if (!confirm("Do you really want to stop the current install execution?"))
                 return
@@ -184,20 +190,21 @@ Vue.component('install', {
                }, 1000)
             })
         },
+
         refresh: function() {
-            var vm = this
+            const vm = this
 
             axios.get(vm.value.api.links.execution.default).then(async (response) => {
 
                 // Check if was running
-                var wasRunning = false
+                let wasRunning = false
                 if (vm.execution && vm.execution.running)
                     wasRunning = true
 
                 vm.execution = response.data
 
                 // Check if still running
-                var stillRunning = false
+                let stillRunning = false
                 if (vm.execution && vm.execution.running)
                     stillRunning = true
 
@@ -208,8 +215,9 @@ Vue.component('install', {
                     vm.$bus.$emit('toast', `Refreshing <strong>completed</strong>!`)
             })
         },
+
         autoRefresh: function() {
-            var vm = this
+            const vm = this
 
             vm.remainingRefresh = vm.refreshRate
             setInterval(function() {
@@ -229,16 +237,18 @@ Vue.component('install', {
                 vm.remainingRefresh = vm.refreshRate
             }, 1000)
         },
+
         getEndedAgo: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.execution.lastExecution)
                 return "never happened"
 
             return TimeAgo.inWords(vm.execution.lastExecution.endedOn)
         },
+
         getDuration: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.execution.lastExecution)
                 return "never happened"
@@ -253,38 +263,41 @@ Vue.component('install', {
                 .toISOString()
                 .slice(11, -1)
         },
+
         getStartedAgo: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.execution.running)
                 return
 
             return TimeAgo.inWords(vm.execution.lastExecution.startedOn)
         },
+
         getFileSize: function() {
-            var logSize = this.execution.lastExecution.logSize
+            let logSize = this.execution.lastExecution.logSize
             if (!logSize)
                 return undefined
 
-            var thresh = 1024;
+            const thresh = 1024;
             if(Math.abs(logSize) < thresh) {
                 return logSize + ' B'
             }
-            var units = ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB']
-            var u = -1;
+            const units = ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB']
+            let u = -1;
             do {
                 logSize /= thresh;
                 ++u;
             } while(Math.abs(logSize) >= thresh && u < units.length - 1);
             return logSize.toFixed(1)+' '+units[u];
         },
+
         getLastExecutedRepo: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.execution || !vm.execution.lastExecution)
                 return []
 
-            var filtered = vm.execution.lastExecution.repos.filter(function(repo) {
+            const filtered = vm.execution.lastExecution.repos.filter(function(repo) {
                 if (repo.indexOf(vm.filters.repo) < 0) return
 
                 return true
@@ -295,7 +308,7 @@ Vue.component('install', {
         }
     },
     mounted: function() {
-        var vm = this
+        const vm = this
 
         if (localStorage.autoRefresh === "true")
             vm.turnOnFeature('autoRefresh')

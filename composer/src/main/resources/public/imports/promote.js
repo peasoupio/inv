@@ -24,11 +24,11 @@ Vue.component('promote', {
     },
     methods: {
         promote: function() {
-            var vm = this
+            const vm = this
 
             vm.promoting = true
 
-            axios.post(vm.value.api.links.review.promote).then(response => {
+            axios.post(vm.value.api.links.review.promote).then(() => {
                 vm.promoted = true
                 vm.promoting = false
 
@@ -39,7 +39,7 @@ Vue.component('promote', {
                     window.location.href = '#choose'
                     window.location.reload(true)
                 }, 1000)
-            }).catch(err => {
+            }).catch(() => {
                 vm.promoted = false
                 vm.promoting = false
                 vm.error = true

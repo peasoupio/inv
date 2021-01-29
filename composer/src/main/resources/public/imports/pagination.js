@@ -20,7 +20,7 @@ Vue.component('pagination', {
     props: ['value'],
     data: function() {
 
-       var threshold = this.value.threshold ? this.value.threshold : 4
+       const threshold = this.value.threshold ? this.value.threshold : 4
 
         return {
             threshold: threshold,
@@ -28,23 +28,26 @@ Vue.component('pagination', {
         }
     },
     computed: {
+
         remainings: {
             get() {
                 return Math.ceil(this.value.total / this.value.step)
             }
         },
+
         startSlice: {
             get() {
-                var startSlice = 0
+                let startSlice = 0
                 if (this.currentIndex - this.threshold + 1 > 0)
                     startSlice = this.currentIndex - this.threshold + 1
 
                 return startSlice
             }
         },
+
         endSlice: {
             get() {
-                var endSlice = this.remainings
+                let endSlice = this.remainings
 
                 if (this.currentIndex + this.threshold < this.remainings)
                     endSlice = Math.max(this.threshold * 2 - 1, this.currentIndex + this.threshold)
@@ -54,46 +57,52 @@ Vue.component('pagination', {
         }
     },
     methods: {
+
         seeNext: function() {
-            var vm = this
+            const vm = this
 
             ++vm.currentIndex
             vm.value.from += vm.value.step
             vm.value.refresh(vm.value.from)
         },
+
         seePrevious: function() {
-            var vm = this
+            const vm = this
 
             --vm.currentIndex
             vm.value.from -= vm.value.step
             vm.value.refresh(vm.value.from)
         },
+
         indexes: function() {
-            var vm = this
+            const vm = this
 
-            var indexes = []
+            const indexes = []
 
-            if (vm.value.from == 0)
+            if (vm.value.from === 0)
                 vm.currentIndex = 0
 
-            for(var i = 0; i < this.remainings; i++) {
+            for(let i = 0; i < this.remainings; i++) {
                 indexes.push(i)
             }
 
-            var highestPossibleStart = Math.min(this.startSlice, this.remainings - (2 * this.threshold) + 1)
+            const highestPossibleStart = Math.min(this.startSlice, this.remainings - (2 * this.threshold) + 1)
             return indexes.slice(highestPossibleStart, this.endSlice)
         },
+
         seeAt: function(index) {
-            var vm = this
+            const vm = this
 
             vm.currentIndex = index
             vm.value.from = index * vm.value.step
 
             vm.value.refresh(vm.value.from)
         },
+
         isStartOutOfSight: function() {
             return this.remainings > (this.threshold * 2) - 1 &&  (this.currentIndex - this.threshold + 1) > 0
         },
+
         isEndOutOfSight: function() {
             return this.remainings > (this.threshold * 2) - 1 && (this.currentIndex + this.threshold) < this.remainings
         }

@@ -104,7 +104,6 @@ class WebServer {
         // Wait for initialization
         awaitInitialization()
 
-        println "Ready and listening on ${usingSsl? "https" : "http"}://localhost:${webServerConfigs.port}"
         security.print(webServerConfigs.port as Integer, usingSsl)
 
         // Execute boot sequence

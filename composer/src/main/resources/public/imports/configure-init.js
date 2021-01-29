@@ -48,7 +48,7 @@ Vue.component('configure-init', {
     },
     methods: {
         isVisible: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.value.visible)
                 return false
@@ -62,10 +62,10 @@ Vue.component('configure-init', {
             return true
         },
         openEditor: function() {
-            var vm = this
+            const vm = this
 
-            var codeMirror = CodeMirror(function(elt) {
-                var element = document.querySelector('#configure-init-editarea')
+            const codeMirror = CodeMirror(function(elt) {
+                const element = document.querySelector('#configure-init-editarea')
                 element.appendChild(elt)
             }, {
                 autoRefresh: true,
@@ -75,7 +75,7 @@ Vue.component('configure-init', {
 
             codeMirror.setSize(null, 640)
 
-            codeMirror.on("change",function(cm,change){
+            codeMirror.on("change",function (){
                 vm.saved = false
                 vm.edited = true
             })
@@ -83,10 +83,10 @@ Vue.component('configure-init', {
             vm.codeMirror = codeMirror
         },
         fetch: function() {
-            var vm = this
+            const vm = this
 
             axios.get(vm.value.shared.api.links.initFile.default).then(response => {
-                var initFile = response.data
+                const initFile = response.data
 
                 vm.setMimeType(initFile.mimeType)
 
@@ -97,8 +97,8 @@ Vue.component('configure-init', {
             })
         },
         save: function() {
-            var vm = this
-            var content = vm.codeMirror.getValue()
+            const vm = this
+            const content = vm.codeMirror.getValue()
 
             vm.sending = true
 
@@ -111,21 +111,21 @@ Vue.component('configure-init', {
                 vm.sending = false
                 vm.edited = false
 
-                if (vm.errorCount == 0) {
+                if (vm.errorCount === 0) {
                     vm.saved = true
 
                     vm.$bus.$emit('toast', `success:Saved <strong>init file</strong> successfully!`)
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>save init file</strong>!`)
             })
         },
         close: function() {
-            var vm = this
+            const vm = this
 
             if (vm.edited) {
-                var ok = confirm("Clear unsaved work ?")
+                const ok = confirm("Clear unsaved work ?")
 
                 if (!ok)
                     return
@@ -135,7 +135,7 @@ Vue.component('configure-init', {
             window.location.reload(true)
         },
         setMimeType: function(mimeType) {
-            var vm = this
+            const vm = this
 
             vm.mimeType = mimeType
             vm.codeMirror.setOption("mode", mimeType)

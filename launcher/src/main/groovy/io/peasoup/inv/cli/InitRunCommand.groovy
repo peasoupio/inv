@@ -22,6 +22,7 @@ class InitRunCommand implements CliCommand {
         if (StringUtils.isEmpty(initRepoFileLocation))
             return 1
 
+        Logger.trace "[COMPOSER] Pulling files from REPO..."
         RepoExecutor.RepoHookExecutionReport report = processREPO(initRepoFileLocation)
         if (!report) {
             return 2
@@ -30,6 +31,7 @@ class InitRunCommand implements CliCommand {
         // Change currentHome for current process (and others spawned by composer.Execution
         Home.setCurrent(report.descriptor.getRepoPath())
 
+        Logger.trace "[COMPOSER] Starting server..."
         def composerCommand = new ComposerCommand(initRepoFileLocation)
         return composerCommand.call(args)
     }

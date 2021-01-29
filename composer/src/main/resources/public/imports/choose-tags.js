@@ -94,21 +94,24 @@ Vue.component('choose-tags', {
         }
     },
     methods: {
+
         searchTags: function() {
-            var vm = this
+            const vm = this
             vm.tags = []
             vm.previewTag = null
             vm.previewInv = null
 
             axios.get(vm.value.api.links.run.tags).then(response => {
-                var tags = response.data.tags
+                const tags = response.data.tags
                 tags.forEach(tag => {
-                    // Process subtags
-                    var subTags = []
+
+                    // Process sub-tags
+                    const subTags = []
                     tag.subTags.forEach(subTag => {
 
-                        var stagedCount = 0
-                        var requiredCount = 0
+                        let stagedCount = 0
+                        let requiredCount = 0
+
                         subTag.invs.forEach(inv => {
                             if (inv.staged > 0)
                                 stagedCount++
@@ -130,7 +133,7 @@ Vue.component('choose-tags', {
                     })
                     subTags.sort(compareValues('label'))
 
-                    var tagObj = {
+                    const tagObj = {
                         label: tag.label,
                         links: tag.links,
                         subTags: subTags
@@ -142,69 +145,72 @@ Vue.component('choose-tags', {
                 vm.tags.sort(compareValues('label'))
             })
         },
-        stageTag: function(tag) {
-            var vm = this
 
-            if (vm.previewTag == tag)
+        stageTag: function(tag) {
+            const vm = this
+
+            if (vm.previewTag === tag)
                 vm.previewTag = null
             else
                 vm.previewTag = tag
         },
-        stageInv: function(inv) {
-            var vm = this
 
-            if (vm.previewInv == inv)
+        stageInv: function(inv) {
+            const vm = this
+
+            if (vm.previewInv === inv)
                 vm.previewInv = null
             else
                 vm.previewInv = inv
         },
+
         stage: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.previewInv)
                 return
 
-            axios.post(vm.previewInv.links.stage).then(response => {
+            axios.post(vm.previewInv.links.stage).then(() => {
                 vm.searchTags()
-            }).catch(err => {
+            }).catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>stage INV</strong>!`)
             })
 
         },
         unstage: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.previewInv)
                 return
 
-            axios.post(vm.previewInv.links.unstage).then(response => {
+            axios.post(vm.previewInv.links.unstage).then(() => {
                 vm.searchTags()
-            }).catch(err => {
+            }).catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>unstage INV</strong>!`)
             })
 
         },
         stageAll: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.previewTag)
                 return
 
-            axios.post(vm.previewTag.links.stageAll).then(response => {
+            axios.post(vm.previewTag.links.stageAll).then(() => {
                 vm.searchTags()
-            }).catch(err => {
+            }).catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>stage INVs</strong>!`)
             })
         },
         unstageAll: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.previewTag)
                 return
 
-            axios.post(vm.previewTag.links.unstageAll).then(response => {
+            axios.post(vm.previewTag.links.unstageAll).then(() => {
                 vm.searchTags()
-            }).catch(err => {
+            }).catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>unstage INVs</strong>!`)
             })
         },

@@ -22,7 +22,7 @@ Vue.component('configure', {
     computed: {
         tabTilesSettings: {
             get() {
-                var vm = this
+                const vm = this
 
                 return {
                     tabs: [
@@ -38,12 +38,12 @@ Vue.component('configure', {
     },
     methods: {
         completedCount: function() {
-            var vm = this
+            const vm = this
 
-            if (vm.value.selectedRepos.descriptors.length == 0)
+            if (vm.value.selectedRepos.descriptors.length === 0)
                 return 0
 
-            var count = 0
+            let count = 0
 
             vm.value.selectedRepos.descriptors.forEach(function(repo) {
                 if (!repo.completed) return

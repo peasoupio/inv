@@ -84,7 +84,7 @@ Vue.component('choose-repo', {
     computed: {
         paginationSettings: {
             get() {
-                var vm = this
+                const vm = this
                 return {
                     refresh: function(from) {
                         vm.filters.from = from
@@ -100,9 +100,9 @@ Vue.component('choose-repo', {
     methods: {
 
         filter: function() {
-            var vm = this
+            const vm = this
 
-            var filtered = []
+            const filtered = []
 
             vm.repos.descriptors.forEach(function(repo) {
                 filtered.push(repo)
@@ -112,7 +112,7 @@ Vue.component('choose-repo', {
         },
 
         searchRepos: function(fromFilter) {
-            var vm = this
+            const vm = this
 
             if (fromFilter)
                 vm.filters.from = 0
@@ -128,29 +128,29 @@ Vue.component('choose-repo', {
         },
 
         doStage: function(repo) {
-            var vm = this
+            const vm = this
 
             if (repo.staged) {
-                axios.post(repo.links.stage).then(response => {
+                axios.post(repo.links.stage).then(() => {
                     repo.staged = true
                     vm.repos.staged++
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>stage REPO</strong>!`)
                 })
             } else {
-                axios.post(repo.links.unstage).then(response => {
+                axios.post(repo.links.unstage).then(() => {
                     repo.staged = false
                     vm.repos.staged--
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>unstage REPO</strong>!`)
                 })
             }
         },
 
         doStageAll: function(stage) {
-            var vm = this
+            const vm = this
 
-            var toggleStaged = function() {
+            const toggleStaged = function() {
                 vm.repos.descriptors.forEach(function(repo) {
                     if (repo.required)
                         return
@@ -160,18 +160,18 @@ Vue.component('choose-repo', {
             }
 
             if (stage)
-                axios.post(vm.value.api.links.repos.stageAll).then(response => {
+                axios.post(vm.value.api.links.repos.stageAll).then(_ => {
                     toggleStaged()
                     vm.searchRepos()
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>stage all REPOs</strong>!`)
                 })
             else
-                axios.post(vm.value.api.links.repos.unstageAll).then(response => {
+                axios.post(vm.value.api.links.repos.unstageAll).then(_ => {
                     toggleStaged()
                     vm.searchRepos()
-                }).catch(err => {
-                    vm.$bus.$emit('toast', `error:Failed to <strong>unstage all REPOs</strong>!`)
+                }).catch(() => {
+                    vm.$bus.$emit('toast', `error:Failed to <strong>un-stage all REPOs</strong>!`)
                 })
 
         },

@@ -20,7 +20,7 @@ Vue.component('configure-repos', {
     },
     methods: {
         close: function() {
-            var vm = this
+            const vm = this
 
             // Reload to get latest data
             window.location.reload(true)
@@ -184,7 +184,7 @@ Vue.component('configure-repos-details', {
     computed: {
         paginationSettings: {
             get() {
-                var vm = this
+                const vm = this
                 return {
                     refresh: function(from) {
                         vm.filters.from = from
@@ -198,10 +198,11 @@ Vue.component('configure-repos-details', {
         }
     },
     methods: {
-        filter: function() {
-            var vm = this
 
-            var filtered = []
+        filter: function() {
+            const vm = this
+
+            const filtered = []
 
             vm.repos.descriptors.forEach(function(repo) {
                 filtered.push(repo)
@@ -209,8 +210,9 @@ Vue.component('configure-repos-details', {
 
             return filtered.sort(compareValues('name'))
         },
+
         searchRepo: function(fromFilter) {
-            var vm = this
+            const vm = this
 
             if (fromFilter)
                 vm.filters.from = 0
@@ -219,11 +221,13 @@ Vue.component('configure-repos-details', {
                 vm.repos = response.data
             })
         },
+
         whenLastEdit: function(repo) {
             return TimeAgo.inWords(repo.script.lastEdit)
         },
+
         openAdd: function() {
-            var vm = this
+            const vm = this
 
             vm.codeMirror.setValue('')
             vm.codeMirror.refresh()
@@ -239,11 +243,12 @@ Vue.component('configure-repos-details', {
             vm.edited = false
             vm.mode = 'new'
         },
+
         openEdit: function(repo) {
-            var vm = this
+            const vm = this
 
             axios.get(repo.links.default).then(response => {
-                var latestRepo = response.data
+                const latestRepo = response.data
 
                 vm.codeMirror.setValue(latestRepo.script.text)
                 vm.codeMirror.refresh()
@@ -256,26 +261,25 @@ Vue.component('configure-repos-details', {
 
             })
         },
+
         canSave: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.edited)
                 return false
 
-            if (vm.mode == 'new' && vm.newName.length < 3)
-                return false
-
-            return true
+            return !(vm.mode === 'new' && vm.newName.length < 3)
         },
+
         saveSource: function() {
-            var vm = this
+            const vm = this
 
             if (vm.sending)
                 return
 
             vm.sending = true
 
-            var content = vm.codeMirror.getValue()
+            const content = vm.codeMirror.getValue()
 
             axios.post(vm.editScript.links.save, content, {
                 headers: { 'Content-Type': 'text/plain' }
@@ -287,31 +291,32 @@ Vue.component('configure-repos-details', {
                 vm.sending = false
                 vm.edited = false
 
-                if (vm.errorCount == 0) {
+                if (vm.errorCount === 0) {
                     vm.saved = true
 
-                    if (vm.mode == 'edit')
+                    if (vm.mode === 'edit')
                         vm.$bus.$emit('toast', `success:Saved <strong>${vm.editScript.descriptor.name}</strong> successfully!`)
 
-                    if (vm.mode == 'new')
+                    if (vm.mode === 'new')
                         vm.$bus.$emit('toast', `success:Saved <strong>${vm.newName}</strong> successfully!`)
 
                     vm.searchRepo()
                 }
             })
-            .catch(err => {
-                if (vm.mode == 'edit')
+            .catch(() => {
+                if (vm.mode === 'edit')
                     vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.editScript.descriptor.name}</strong>!`)
 
-                if (vm.mode == 'new')
+                if (vm.mode === 'new')
                     vm.$bus.$emit('toast', `success:Failed <strong>to save ${vm.newName}</strong>!`)
             })
         },
+
         closeEdit: function() {
-            var vm = this
+            const vm = this
 
             if (vm.edited && !vm.saved) {
-                var ok = confirm("Clear unsaved work ?")
+                const ok = confirm("Clear unsaved work ?")
 
                 if (!ok)
                     return
@@ -323,29 +328,31 @@ Vue.component('configure-repos-details', {
             vm.saved = false
             vm.edited = false
         },
-        removeREPO: function(repo) {
-            var vm = this
 
-            axios.post(repo.links.remove).then(response => {
+        removeREPO: function(repo) {
+            const vm = this
+
+            axios.post(repo.links.remove).then(() => {
                 vm.$bus.$emit('toast', `warn:Removed <strong>${repo.descriptor.name}</strong> successfully!`)
                 vm.searchRepo()
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed <strong>to remove ${repo.descriptor.name}</strong>!`)
             })
         },
+
         setMimeType: function(mimeType) {
-            var vm = this
+            const vm = this
 
             vm.mimeType = mimeType
             vm.codeMirror.setOption("mode", mimeType)
         }
     },
     mounted: function() {
-        var vm = this
+        const vm = this
 
-        var codeMirror = CodeMirror(function(elt) {
-            var element = document.querySelector('#configure-repos-editarea')
+        const codeMirror = CodeMirror(function(elt) {
+            const element = document.querySelector('#configure-repos-editarea')
             element.appendChild(elt)
         }, {
             autoRefresh: true,
@@ -353,7 +360,7 @@ Vue.component('configure-repos-details', {
             matchBrackets: true
         })
 
-        codeMirror.on("change",function(cm,change){
+        codeMirror.on("change",function(){
             vm.saved = false
             vm.edited = true
         })

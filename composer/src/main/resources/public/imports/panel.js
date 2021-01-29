@@ -118,14 +118,16 @@ Vue.component('panel', {
         }
     },
     computed: {
+
         isStatic: {
             get() {
                 return this.value.refresh == null
             }
         },
+
         from: {
             get() {
-                var vm = this
+                const vm = this
 
                 if (vm.isStatic)
                     return vm.filters.from
@@ -133,14 +135,15 @@ Vue.component('panel', {
                 return 0
             }
         },
+
         selected: {
             get() {
-                var vm = this
+                const vm = this
 
                 if (!vm.isStatic)
                     return vm.value.activeCount
 
-                var count = 0
+                let count = 0
 
                 vm.value.elements.forEach(function(element) {
                     if (!element.active) return
@@ -155,12 +158,12 @@ Vue.component('panel', {
     methods: {
 
         paginationSettings: function() {
-            var vm = this
+            const vm = this
             return {
                 refresh: function(from) {
                     vm.filters.from = from
 
-                    if (vm.value.refresh != undefined)
+                    if (vm.value.refresh !== undefined)
                         vm.value.refresh(from)
                 },
                 threshold: 2,
@@ -171,36 +174,36 @@ Vue.component('panel', {
         },
 
         filter: function() {
-            var vm = this
+            const vm = this
             return vm.value.elements.slice(vm.from, vm.from + vm.filters.step)
         },
 
         click: function(element) {
-            var vm = this
+            const vm = this
 
             if (!element.clickable)
                 return
 
-            if (vm.value.click == undefined)
+            if (vm.value.click === undefined)
                 return
 
             vm.value.click(element)
         },
 
         pick: function(element) {
-            var vm = this
+            const vm = this
 
             if (!element.pickable)
                 return
 
-            if (vm.value.pick == undefined)
+            if (vm.value.pick === undefined)
                 return
 
             vm.value.pick(element)
         },
 
         reset: function() {
-            var vm = this
+            const vm = this
 
             vm.filters.from = 0
             vm.filters.input = ''
@@ -208,7 +211,7 @@ Vue.component('panel', {
         },
 
         raiseFilterKeyUp: function() {
-            var vm = this
+            const vm = this
 
             vm.filters.from = 0
             vm.value.filter(vm.filters.input)
@@ -220,11 +223,11 @@ Vue.component('panel', {
             if (!option.click)
                 return
 
-            var vm = this
+            const vm = this
 
             option.click()
 
-            if (option.toggle != undefined)
+            if (option.toggle !== undefined)
                 option.toggle = !option.toggle
 
             vm.$forceUpdate()

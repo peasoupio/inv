@@ -125,7 +125,7 @@ Vue.component('review', {
     computed: {
         paginationSettings: {
             get() {
-                var vm = this
+                const vm = this
                 return {
                     refresh: function(from) {
                         vm.paginationFilters.from = from
@@ -139,15 +139,16 @@ Vue.component('review', {
         }
     },
     methods: {
+
         filter: function() {
-            var vm = this
-            var filtered = []
+            const vm = this
+            const filtered = []
 
             Object.values(vm.deltaLines).forEach(function(line) {
-                if (vm.filters.hideEquals.value && line.state == '=') return
-                if (vm.filters.hideMissing.value && line.state == '-') return
-                if (vm.filters.hideAdded.value && line.state == '+') return
-                if (vm.filters.hideRemoved.value && line.state == 'x') return
+                if (vm.filters.hideEquals.value && line.state === '=') return
+                if (vm.filters.hideMissing.value && line.state === '-') return
+                if (vm.filters.hideAdded.value && line.state === '+') return
+                if (vm.filters.hideRemoved.value && line.state === 'x') return
 
                 if (line.link.value.indexOf(vm.labelFilter) < 0) return
 
@@ -166,16 +167,19 @@ Vue.component('review', {
                         vm.paginationFilters.from,
                         vm.paginationFilters.from + vm.paginationFilters.step)
         },
+
         getBaseRunTimestamp: function() {
-            var vm = this
+            const vm = this
             return TimeAgo.inWords(vm.review.baseExecution)
         },
+
         getLatestTimestamp: function() {
-            var vm = this
+            const vm = this
             return TimeAgo.inWords(vm.review.lastExecution)
         },
+
         getDelta: function() {
-            var vm = this
+            const vm = this
 
             vm.loading = true
 
@@ -184,10 +188,10 @@ Vue.component('review', {
                 vm.statsValues = vm.review.stats
 
                 response.data.lines.forEach(function(line) {
-                    if (vm.deltaLines[line.link.value] == undefined)
+                    if (vm.deltaLines[line.link.value] === undefined)
                         vm.$set(vm.deltaLines, line.link.value, line)
                     else {
-                        var existing = vm.deltaLines[line.link.value]
+                        const existing = vm.deltaLines[line.link.value]
                         existing.state = line.state
                         existing.owner.index = line.owner.index
                     }
@@ -198,17 +202,18 @@ Vue.component('review', {
                 vm.loading = false
                 vm.ready = true
             })
-            .catch(err => {
+            .catch(() => {
                 vm.loading = false
             })
         },
+
         toggleFilter: function(filter) {
             filter.value = !filter.value
             localStorage.reviewFilters = JSON.stringify(this.filters)
         }
     },
     mounted: function() {
-        var vm = this
+        const vm = this
 
         if (localStorage.reviewFilters) {
             vm.filters = JSON.parse(localStorage.reviewFilters)
@@ -217,8 +222,8 @@ Vue.component('review', {
         vm.getDelta()
     },
     watch: {
-        update: function(newVal, oldVal) {
-            var vm = this
+        update: function() {
+            const vm = this
             vm.getDelta()
         }
     }

@@ -29,32 +29,32 @@ Vue.component('tab-tiles', {
     },
     methods: {
         availableTabs: function() {
-            var vm = this
+            const vm = this
 
             return vm.value.tabs.filter(function(tab) {
                 return !tab.disabled
             })
         },
         clickTab: function(tab) {
-            var vm = this
+            const vm = this
 
             // Is it already active?
-            if (vm.activeTab == tab)
+            if (vm.activeTab === tab)
                 return
 
-            var element = window.document.scrollingElement
+            const element = window.document.scrollingElement
 
             element.scrollTo(0, 0)
 
-            var scrollIndex = 0
-            var lastScrollIndex = -1
+            let scrollIndex = 0
+            let lastScrollIndex = -1
             window.onscroll = function() {
                 scrollIndex++
             }
 
-            var interval = setInterval(function() {
+            const interval = setInterval(function() {
 
-                if (lastScrollIndex != scrollIndex) {
+                if (lastScrollIndex !== scrollIndex) {
                     lastScrollIndex = scrollIndex
                     return
                 }
@@ -67,16 +67,16 @@ Vue.component('tab-tiles', {
             }, 50);
         },
         setTab: function(tab) {
-            var vm = this
+            const vm = this
 
             vm.activeTab=tab
             vm.value.tabSet(tab)
         }
     },
     mounted: function() {
-        var vm = this
-        var tabs = vm.availableTabs()
-        if (tabs.length == 0)
+        const vm = this
+        const tabs = vm.availableTabs()
+        if (tabs.length === 0)
             return
 
         if (!vm.value.defaultTab)

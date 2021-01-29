@@ -36,13 +36,12 @@ class Boot {
     synchronized void run() {
         if (isRunning)
             return
-
         isRunning = true
+
+        Logger.trace "[COMPOSER] Reading files from REPO..."
 
         // Start boot sequence in a separate thread so Spark initialization is not compromised
         new Thread({
-            Logger.info "Boot sequence beginning..."
-
             // Notifier
             new Thread({
                 while (!isDone) {
@@ -71,8 +70,6 @@ class Boot {
                 readRunFile()
 
                 isDone = true
-
-                Logger.info "Boot sequence... done!"
             }).start()
         }).start()
     }
@@ -93,7 +90,7 @@ class Boot {
 
     protected void readReposFiles() {
         File repoFolder = webServer.repos.repoFolder
-        Logger.info "Checking for repos files in '${repoFolder.absolutePath}'..."
+        Logger.trace "[COMPOSER] Checking for repos files in '${repoFolder.absolutePath}'..."
 
         def files = Pattern.get(["*"], RepoInvoker.DEFAULT_EXCLUDED, repoFolder, false)
         if (!files) {
@@ -103,7 +100,7 @@ class Boot {
 
         thingsToDo.addAndGet(files.size())
 
-        def progress = new Progressbar("Reading from '${repoFolder.absolutePath}'".toString(), files.size(), false)
+        def progress = new Progressbar("[COMPOSER] Reading from '${repoFolder.absolutePath}'".toString(), files.size(), false)
         progress.start {
             files.each {
                 webServer.repos.load(it)
@@ -116,7 +113,7 @@ class Boot {
 
     protected void readReposHrefs() {
         File hrefFolder = webServer.repos.hrefFolder
-        Logger.info "Checking for hrefs files in '${hrefFolder.absolutePath}'..."
+        Logger.trace "[COMPOSER] Checking for hrefs files in '${hrefFolder.absolutePath}'..."
 
         def files = Pattern.get(["*.href"], RepoInvoker.DEFAULT_EXCLUDED, hrefFolder, false)
 
@@ -127,7 +124,7 @@ class Boot {
 
         thingsToDo.addAndGet(files.size())
 
-        def progress = new Progressbar("Reading from '${hrefFolder.absolutePath}'".toString(), files.size(), false)
+        def progress = new Progressbar("[COMPOSER] Reading from '${hrefFolder.absolutePath}'".toString(), files.size(), false)
         progress.start {
             files.each {
                 String href = it.text
@@ -165,7 +162,7 @@ class Boot {
         def stagedRepos = webServer.settings.stagedREPOs()
         thingsToDo.addAndGet(stagedRepos.size())
 
-        new Progressbar("[INV] Staging from 'settings.xml'", stagedIds.size() + stagedRepos.size(), false).start {
+        new Progressbar("[COMPOSER] Staging from 'settings.xml'", stagedIds.size() + stagedRepos.size(), false).start {
             stagedIds.each {
                 if (webServer.run)
                     webServer.run.stageWithoutPropagate(it)
@@ -184,19 +181,19 @@ class Boot {
     }
 
     protected void readRunFile() {
-        Logger.info "Checking for 'run.txt'..."
+        Logger.trace "[COMPOSER] Checking for 'run.txt'..."
 
         if (webServer.run) {
             webServer.run.propagate()
 
-            Logger.trace "...${webServer.run.owners.size()} INV(s) found."
-            Logger.trace "...${webServer.run.names.size()} unique name(s) found."
-            Logger.trace "...${webServer.run.nodes.size()} broadcast(s) found."
-            Logger.trace "...${webServer.run.stagedIds.values().size()} IDs staged."
-            Logger.trace "...${webServer.repos.staged.size()} repos staged."
+            Logger.trace "[COMPOSER] ...${webServer.run.owners.size()} INV(s) found."
+            Logger.trace "[COMPOSER] ...${webServer.run.names.size()} unique name(s) found."
+            Logger.trace "[COMPOSER] ...${webServer.run.nodes.size()} broadcast(s) found."
+            Logger.trace "[COMPOSER] ...${webServer.run.stagedIds.values().size()} IDs staged."
+            Logger.trace "[COMPOSER] ...${webServer.repos.staged.size()} repos staged."
 
         } else {
-            Logger.warn "...file is not present right now."
+            Logger.warn "[COMPOSER] ...file is not present right now."
         }
     }
 

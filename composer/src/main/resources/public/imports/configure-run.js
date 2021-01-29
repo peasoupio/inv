@@ -39,8 +39,9 @@ Vue.component('configure-run', {
         }
     },
     methods: {
+
         isVisible: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.value.visible)
                 return false
@@ -53,11 +54,12 @@ Vue.component('configure-run', {
 
             return true
         },
-        enableEditor: function() {
-            var vm = this
 
-            var codeMirror = CodeMirror(function(elt) {
-                var element = document.querySelector('#configure-run-editarea')
+        enableEditor: function() {
+            const vm = this
+
+            const codeMirror = CodeMirror(function(elt) {
+                const element = document.querySelector('#configure-run-editarea')
                 element.appendChild(elt)
             }, {
                 autoRefresh: true,
@@ -67,15 +69,16 @@ Vue.component('configure-run', {
 
             codeMirror.setSize(null, 640)
 
-            codeMirror.on("change",function(cm,change){
+            codeMirror.on("change",function(){
                 vm.saved = false
                 vm.edited = true
             })
 
             vm.codeMirror = codeMirror
         },
+
         fetch: function() {
-            var vm = this
+            const vm = this
 
             axios.get(vm.value.shared.api.links.runFile.default).then(response => {
                 vm.codeMirror.setValue(response.data)
@@ -84,26 +87,25 @@ Vue.component('configure-run', {
                 vm.edited = false
             })
         },
+
         canSave: function() {
-            var vm = this
+            const vm = this
 
             if (!vm.accesses.save)
                 return false
 
-            if (!vm.edited)
-                return false
-
-            return true
+            return vm.edited;
         },
+
         save: function() {
-            var vm = this
-            var content = vm.codeMirror.getValue()
+            const vm = this
+            const content = vm.codeMirror.getValue()
 
             vm.sending = true
 
             axios.post(vm.value.shared.api.links.runFile.save, content, {
                 headers: { 'Content-Type': 'text/plain' }
-            }).then(response => {
+            }).then(() => {
 
                 vm.sending = false
                 vm.edited = false
@@ -111,7 +113,7 @@ Vue.component('configure-run', {
 
                 vm.$bus.$emit('toast', `success:Saved <strong>init file</strong> successfully!`)
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>save init file</strong>!`)
 
                 vm.sending = false
@@ -119,11 +121,12 @@ Vue.component('configure-run', {
                 vm.saved = false
             })
         },
+
         close: function() {
-            var vm = this
+            const vm = this
 
             if (vm.edited) {
-                var ok = confirm("Clear unsaved work ?")
+                const ok = confirm("Clear unsaved work ?")
 
                 if (!ok)
                     return
@@ -134,7 +137,7 @@ Vue.component('configure-run', {
         }
     },
     mounted: function() {
-        var vm = this
+        const vm = this
 
         // Manage accesses
         if (vm.value.shared.api.links.runFile.save !== undefined)

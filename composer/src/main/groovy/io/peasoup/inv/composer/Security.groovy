@@ -1,6 +1,7 @@
 package io.peasoup.inv.composer
 
 import groovy.transform.CompileStatic
+import io.peasoup.inv.Logger
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.commons.validator.routines.EmailValidator
@@ -57,8 +58,10 @@ class Security {
         if (isSecurityless())
             return
 
-        println "Open th following URL in your browser to have administrative accesses: "
-        println "\t${usingSsl? "https" : "http"}://localhost:${port}/api/security/apply?t=${generatedToken}"
+        Logger.trace "[COMPOSER] Open the following URL in your browser:"
+        Logger.trace "[COMPOSER] \t${usingSsl? "https" : "http"}://localhost:${port}"
+        Logger.trace "[COMPOSER] For administrative privileges, open the following URL in your browser: "
+        Logger.trace "[COMPOSER] \t${usingSsl? "https" : "http"}://localhost:${port}/api/security/apply?t=${generatedToken}"
     }
 
     /**

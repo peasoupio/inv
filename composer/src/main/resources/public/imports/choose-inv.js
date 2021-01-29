@@ -58,17 +58,19 @@ Vue.component('choose-inv', {
         }
     },
     methods: {
-        createOwnersSettings: function() {
-            var vm = this
 
-            var defaultIcon = 'fa-file-signature'
-            var owners = []
-            var filters = {
+        createOwnersSettings: function() {
+            const vm = this
+
+            const defaultIcon = 'fa-file-signature'
+            const filters = {
                 owner: '',
                 staged: false
             }
 
-            var settings = {
+            let owners = []
+
+            const settings = {
                 help: `
 <ul>
 <li>Each <i>INV</i> are under <i>owner</i>.</li>
@@ -93,8 +95,9 @@ Vue.component('choose-inv', {
                 }]
             }
 
-            var fetch = function() {
-                owners = []
+
+            const fetch = function() {
+                owners = [];
 
                 axios.get(vm.value.api.links.run.owners).then(response => {
                     // Create elements from owner's data
@@ -104,18 +107,18 @@ Vue.component('choose-inv', {
 
                     filter()
                 })
-                .catch(err => {
+                .catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>fetch broadcast owners</strong>!`)
                 })
             }
 
-            var filter = function() {
+            const filter = function() {
                 settings.elements = []
 
                 // Filter elements
                 settings.elements = owners.filter(function(owner) {
                     if (filters.owner && owner.data.owner.indexOf(filters.owner) < 0) return
-                    if (filters.staged && (owner.data.stagedBy + owner.data.requiredBy) == 0) return
+                    if (filters.staged && (owner.data.stagedBy + owner.data.requiredBy) === 0) return
 
                     return true
                 })
@@ -141,10 +144,11 @@ Vue.component('choose-inv', {
 
             return settings
         },
-        createOwnerElement: function(owner, fetch) {
-            var vm = this
 
-            var element = {
+        createOwnerElement: function(owner, fetch) {
+            const vm = this
+
+            const element = {
               data: owner,
               active: false,
               label: owner.owner,
@@ -171,11 +175,11 @@ Vue.component('choose-inv', {
                      e.icon = 'fa-spinner fa-pulse'
                      e.sending = true
 
-                     axios.post(e.links.stage).then(response => {
+                     axios.post(e.links.stage).then(() => {
                         fetch()
                         e.icon = ''
                         e.sending = false
-                     }).catch(err => {
+                     }).catch(() => {
                         e.icon = ''
                         e.sending = false
 
@@ -193,11 +197,11 @@ Vue.component('choose-inv', {
                         e.icon = 'fa-spinner fa-pulse'
                         e.sending = true
 
-                        axios.post(e.links.unstage).then(response => {
+                        axios.post(e.links.unstage).then(() => {
                             fetch()
                             e.icon = ''
                             e.sending = false
-                        }).catch(err => {
+                        }).catch(() => {
                           e.icon = ''
                           e.sending = false
 
@@ -222,10 +226,11 @@ Vue.component('choose-inv', {
 
             return element
         },
-        addIdSettings: function(ownerElement) {
-            var vm = this
 
-            var filters = {
+        addIdSettings: function(ownerElement) {
+            const vm = this
+
+            const filters = {
                 staged: false,
                 required: false,
                 owner: ownerElement.label,
@@ -234,7 +239,7 @@ Vue.component('choose-inv', {
                 from: 0
             }
 
-            var settings = {
+            const settings = {
                 help: `
 <ul>
 <li>Each <i>broadcasts</i> have a <strong>name</strong> and an </strong>id</strong>.</li>
@@ -255,7 +260,7 @@ Vue.component('choose-inv', {
                 elements: []
             }
 
-            var fetch = function() {
+            const fetch = function() {
 
                 axios.post(vm.value.api.links.run.search, filters).then(response => {
                     settings.elements = []
@@ -289,7 +294,7 @@ Vue.component('choose-inv', {
                     element.icon = 'fa-spinner fa-pulse'
                     element.sending = true
 
-                    axios.post(element.inv.links.stage, vm.filters).then(response => {
+                    axios.post(element.inv.links.stage, vm.filters).then(() => {
                         fetch()
 
                         ownerElement.active = true
@@ -297,7 +302,7 @@ Vue.component('choose-inv', {
                             ownerElement.subLabel = 1
                         else
                             ownerElement.subLabel++
-                    }).catch(err => {
+                    }).catch(() => {
                         element.sending = false
 
                         vm.$bus.$emit('toast', `error:Failed to <strong>stage broadcast</strong>!`)
@@ -306,16 +311,16 @@ Vue.component('choose-inv', {
                     element.icon = 'fa-spinner fa-pulse'
                     element.sending = true
 
-                    axios.post(element.inv.links.unstage, vm.filters).then(response => {
+                    axios.post(element.inv.links.unstage, vm.filters).then(() => {
                         fetch()
 
                         ownerElement.subLabel--
 
-                        if (ownerElement.subLabel == 0) {
+                        if (ownerElement.subLabel === 0) {
                             ownerElement.active = false
                             ownerElement.subLabel = null
                         }
-                    }).catch(err => {
+                    }).catch(() => {
                         element.sending = false
 
                         vm.$bus.$emit('toast', `error:Failed to <strong>unstage broadcast</strong>!`)
@@ -336,6 +341,7 @@ Vue.component('choose-inv', {
             fetch()
             vm.idPanels.push(settings)
         },
+
         closeWhoBroughtMe: function() {
             this.whoBroughtMeTree = null
         }

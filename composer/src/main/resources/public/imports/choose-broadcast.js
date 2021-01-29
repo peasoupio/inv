@@ -145,7 +145,7 @@ Vue.component('choose-broadcast', {
     computed: {
         paginationSettings: {
             get() {
-                var vm = this
+                const vm = this
                 return {
                     refresh: function(from) {
                         vm.filters.from = from
@@ -160,9 +160,9 @@ Vue.component('choose-broadcast', {
     },
     methods: {
         filter: function() {
-            var vm = this
+            const vm = this
 
-            var filtered = []
+            const filtered = []
 
             vm.invs.nodes.forEach(function(node) {
                 filtered.push(node)
@@ -172,7 +172,7 @@ Vue.component('choose-broadcast', {
         },
 
         searchNodes: function(fromFilter) {
-            var vm = this
+            const vm = this
 
             if (fromFilter)
                 vm.filters.from = 0
@@ -189,15 +189,15 @@ Vue.component('choose-broadcast', {
         },
 
         filterOwners: function() {
-            var vm = this
+            const vm = this
 
-            if (vm.invs.owners.length == 0)
+            if (vm.invs.owners.length === 0)
                 return []
 
-            if (vm.filters.owner == '')
+            if (vm.filters.owner === '')
                 return []
 
-            var filtered = []
+            const filtered = []
 
            vm.invs.owners.forEach(function(owner) {
                 if (vm.filters.owner && owner.indexOf(vm.filters.owner) < 0) return
@@ -205,22 +205,22 @@ Vue.component('choose-broadcast', {
                 filtered.push(owner)
             })
 
-            if (filtered.length == 1)
+            if (filtered.length === 1)
                 return []
 
             return filtered.sort()
         },
 
         filterNames: function() {
-            var vm = this
+            const vm = this
 
-            if (vm.invs.names.length == 0)
+            if (vm.invs.names.length === 0)
                 return []
 
-            if (vm.filters.name == '')
+            if (vm.filters.name === '')
                 return []
 
-            var filtered = []
+            const filtered = []
 
             vm.invs.names.forEach(function(name) {
                 if (vm.filters.name && name.indexOf(vm.filters.name) < 0) return
@@ -228,14 +228,14 @@ Vue.component('choose-broadcast', {
                 filtered.push(name)
             })
 
-            if (filtered.length == 1)
+            if (filtered.length === 1)
                 return []
 
             return filtered.sort()
         },
 
         selectOwnerFilterRecommendation: function(owner) {
-            var vm = this
+            const vm = this
 
             vm.filters.owner = owner
             vm.searchNodes(true)
@@ -243,34 +243,34 @@ Vue.component('choose-broadcast', {
 
 
         selectNameFilterRecommendation: function(name) {
-            var vm = this
+            const vm = this
 
             vm.filters.name = name
             vm.searchNodes(true)
         },
 
         doStage: function(inv) {
-            var vm = this
+            const vm = this
 
             if (inv.staged) {
-                axios.post(inv.links.stage, vm.filters).then(response => {
+                axios.post(inv.links.stage, vm.filters).then(() => {
                     vm.searchNodes()
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>stage broadcast</strong>!`)
                 })
             } else {
-                axios.post(inv.links.unstage, vm.filters).then(response => {
+                axios.post(inv.links.unstage, vm.filters).then(() => {
                     vm.searchNodes()
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>unstage broadcast</strong>!`)
                 })
             }
         },
 
         doStageAll: function(stage) {
-            var vm = this
+            const vm = this
 
-            var toggleStaged = function() {
+            const toggleStaged = function() {
                 vm.invs.nodes.forEach(function(inv) {
                     if (inv.required)
                         return
@@ -280,25 +280,25 @@ Vue.component('choose-broadcast', {
             }
 
             if (stage)
-                axios.post(vm.value.api.links.run.stageAll, vm.filters).then(response => {
+                axios.post(vm.value.api.links.run.stageAll, vm.filters).then(() => {
                     vm.searchNodes()
                     toggleStaged()
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>stage all broadcasts</strong>!`)
                 })
 
             else
-                axios.post(vm.value.api.links.run.unstageAll, vm.filters).then(response => {
+                axios.post(vm.value.api.links.run.unstageAll, vm.filters).then(() => {
                     vm.searchNodes()
                     toggleStaged()
-                }).catch(err => {
+                }).catch(() => {
                     vm.$bus.$emit('toast', `error:Failed to <strong>unstage all broadcasts</strong>!`)
                 })
 
         },
 
         showRepo: function(inv) {
-            var vm = this
+            const vm = this
 
             axios.get(inv.links.viewRepo).then(response => {
                 vm.viewRepo = response.data
@@ -324,12 +324,12 @@ Vue.component('choose-broadcast', {
         }
     },
     created: function() {
-        var vm = this
+        const vm = this
 
         axios.get(vm.value.api.links.run.default).then(response => {
             vm.invs = response.data
         })
-        .catch(err => {
+        .catch(() => {
             vm.notAvailable = true
         })
     }

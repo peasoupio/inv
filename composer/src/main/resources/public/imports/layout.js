@@ -31,12 +31,14 @@ Vue.component('first-time', {
         }
     },
     methods: {
+
         firstTimeNotShowAgain: function() {
-            if (localStorage.firstTimeNotShowAgain == undefined)
+            if (localStorage.firstTimeNotShowAgain === undefined)
                 return false
 
             return localStorage.firstTimeNotShowAgain === "false"
         },
+
         toggleFirstTimeNotShowAgain: function() {
             if (this.firstTimeNotShowAgain())
                 localStorage.firstTimeNotShowAgain = "true"
@@ -46,6 +48,7 @@ Vue.component('first-time', {
             this.$forceUpdate()
 
         },
+
         close: function() {
             this.closed = true
         }
@@ -238,9 +241,10 @@ Vue.component('layout', {
         }
     },
     methods: {
+
         navbarElements: function() {
-            var vm = this
-            var list = []
+            const vm = this
+            const list = []
 
             Object.keys(vm.navbar).forEach(function(element) {
                 list.push(vm.navbar[element])
@@ -249,8 +253,9 @@ Vue.component('layout', {
             return list
 
         },
+
         setup: function() {
-            var vm = this
+            const vm = this
 
             // Get Setup Data
             axios.get(vm.shared.api.links.setup).then(response => {
@@ -261,12 +266,13 @@ Vue.component('layout', {
                 }
             })
         },
+
         followBoot: function() {
-            var vm = this
+            const vm = this
 
             const socket = new WebSocket(websocketHost() + vm.shared.setup.links.stream)
             socket.addEventListener('message', function (event) {
-                var data = JSON.parse(event.data)
+                const data = JSON.parse(event.data)
 
                 vm.bootData.todo = data.thingsToDo
                 vm.bootData.done = data.thingsDone
@@ -278,61 +284,69 @@ Vue.component('layout', {
                 vm.setup()
             })
         },
+
         progression: function() {
-            var done = this.bootData.done
-            var todo = this.bootData.todo
+            const done = this.bootData.done
+            const todo = this.bootData.todo
 
             if (!done || !todo)
                 return '0%'
 
-            var percent = done / todo * 100
+            const percent = done / todo * 100
             return parseFloat(percent).toFixed(0)+"%"
         },
+
         ready: function() {
-            var vm = this
+            const vm = this
 
             return vm.currentStep &&
-                   vm.shared.api.links != undefined &&
+                   vm.shared.api.links !== undefined &&
                    vm.shared.setup.booted
         },
+
         setCurrentStep: function(step) {
-            var vm = this
+            const vm = this
 
             document.title = "INV - Composer - " + step.name
             window.location.hash = "#" + step.template
 
             vm.currentStep = step
         },
+
         resetStep: function() {
-            var vm = this
+            const vm = this
             vm.setCurrentStep(vm.steps[0])
         },
+
         isSelected: function(step) {
-            return this.currentStep == step
+            return this.currentStep === step
         },
+
         isCompleted: function(step) {
             return step.index < this.currentStep.index
         },
-        nextStep: function() {
-            var vm  = this
 
-            if (vm.currentStep.index == vm.steps.length)
+        nextStep: function() {
+            const vm  = this
+
+            if (vm.currentStep.index === vm.steps.length)
                 return
 
-            var next = vm.steps.filter(function(other) {
-                return other.index == vm.currentStep.index + 1
+            const next = vm.steps.filter(function(other) {
+                return other.index === vm.currentStep.index + 1
             })
 
             vm.setCurrentStep(next[0])
         },
-        previousStep: function() {
-            var vm  = this
 
-            if (vm.currentStep.index - 1 == 0)
+        previousStep: function() {
+            const vm  = this
+
+            if (vm.currentStep.index - 1 === 0)
                 return
 
-            var previous = vm.steps.filter(function(other) {
-                return other.index == vm.currentStep.index - 1
+            const previous = vm.steps.filter(function(other) {
+                return other.index === vm.currentStep.index - 1
             })
 
             vm.setCurrentStep(previous[0])
@@ -341,33 +355,38 @@ Vue.component('layout', {
         showConfigureRun: function() {
             this.navbar.configureRun.model.visible = true
         },
+
         showGlobalSettings: function() {
             this.navbar.configureSettings.model.visible = true
         },
+
         showConfigureREPOs: function() {
             this.navbar.configureREPOs.model.visible = true
         },
+
         showConfigureInit: function() {
             this.navbar.configureInit.model.visible = true
         },
-        pullInit: function() {
-            var vm = this
 
-            axios.post(vm.shared.api.links.initFile.pull).then(response => {
+        pullInit: function() {
+            const vm = this
+
+            axios.post(vm.shared.api.links.initFile.pull).then(() => {
                 vm.$bus.$emit('toast', `success:Pulled <strong>init file changes</strong> successfully!`)
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>pull init file changes</strong>!`)
             })
 
             vm.$bus.$emit('toast', `Pulled <strong>init file changes</strong> requested!`)
         },
+
         pushInit: function() {
-            var vm = this
-            axios.post(vm.shared.api.links.initFile.push).then(response => {
+            const vm = this
+            axios.post(vm.shared.api.links.initFile.push).then(() => {
                 vm.$bus.$emit('toast', `success:Pushed <strong>init file changes</strong> successfully!`)
             })
-            .catch(err => {
+            .catch(() => {
                 vm.$bus.$emit('toast', `error:Failed to <strong>push init file changes</strong>!`)
             })
 
@@ -375,10 +394,10 @@ Vue.component('layout', {
         }
     },
     mounted: function() {
-        var vm = this
+        const vm = this
 
         // Init steps
-        var hash = window.location.hash
+        const hash = window.location.hash
         vm.resetStep()
 
         // Select step if # defined

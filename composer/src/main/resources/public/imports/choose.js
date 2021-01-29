@@ -22,7 +22,7 @@ Vue.component('choose', {
     computed: {
         tabTilesSettings: {
             get() {
-                var vm = this
+                const vm = this
 
                 return {
                     tabs: [
@@ -43,15 +43,19 @@ Vue.component('choose', {
         }
     },
     created: function() {
-        if (!localStorage.chooseCurrentTab)
-            return
+        const vm = this
 
-        var vm = this
         vm.tabTilesSettings.tabs.forEach(tab => {
-            if (tab.template != localStorage.chooseCurrentTab)
+            if (vm.defaultTab.label)
                 return
 
-            vm.defaultTab = tab
+            if (!localStorage.chooseCurrentTab && !tab.disabled) {
+                vm.defaultTab = tab
+                return
+            }
+
+            if (tab.template === localStorage.chooseCurrentTab)
+                vm.defaultTab = tab
         })
     }
 })

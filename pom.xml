@@ -6,6 +6,42 @@
     <version>0.7-beta-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>inv</name>
+    <url>https://github.com/peasoupio/inv</url>
+    <description>INV is a tool intended to facilitate the implementation of an *environment as a code* solution in your technological ecosystem.</description>
+
+    <organization>
+        <name>PeasoupIO</name>
+        <url>http://www.peasoup.io</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>GNU LGPL 3</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:peasoupio/inv.git</connection>
+        <developerConnection>scm:git:git@github.com:peasoupio/inv.git</developerConnection>
+        <url>https://github.com/peasoupio/inv</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/peasoupio/inv/issues/</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <id>benjboyer</id>
+            <name>Benjamin Boyer</name>
+        </developer>
+    </developers>
+
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>

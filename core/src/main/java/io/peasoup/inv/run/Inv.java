@@ -325,6 +325,7 @@ public class Inv {
         return "[" + name + "]";
     }
 
+    @Getter
     public static class Context {
         public static final String WORKING_DIR = System.getProperty("user.dir");
 
@@ -383,24 +384,6 @@ public class Inv {
             }
 
             return inv;
-        }
-
-        @SuppressWarnings("unused")
-        public String getDefaultName() {
-            return defaultName;
-        }
-
-        @SuppressWarnings("unused")
-        public String getDefaultPath() {
-            return defaultPath;
-        }
-
-        public String getRepo() {
-            return repo;
-        }
-
-        public String getBaseFilename() {
-            return baseFilename;
         }
     }
 

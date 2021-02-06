@@ -105,8 +105,6 @@ class DeltaGraph {
                 .findAll { it.link.isOwner() }
                 .collect { files[it.owner.owner] }
 
-
-
         // Write files
         approuvedFiles.each { RunGraph.FileStatement fileStatement ->
             builder.append "[INV] [${fileStatement.repo}] [${fileStatement.file}] [${fileStatement.inv}]${System.lineSeparator()}"

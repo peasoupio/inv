@@ -15,9 +15,19 @@ public class InvExecutor {
 
     private final InvInvoker invInvoker;
 
+    /**
+     * Gets the NetworkValuablePool used for execution.
+     * It is a singleton and it is accessible while running.
+     * @return NetworkValuablePool object reference
+     */
     @Getter
     private final NetworkValuablePool pool;
 
+    /**
+     * Gets the (ongoind) PoolReport used for execution.
+     * It is a singleton and it is accessible while running.
+     * @return PoolReport object reference
+     */
     @Getter
     private final PoolReport report;
 
@@ -172,23 +182,5 @@ public class InvExecutor {
         }
 
         report.setCycleCount(count);
-    }
-
-    /**
-     * Gets the NetworkValuablePool used for execution.
-     * It is a singleton and it is accessible while running.
-     * @return NetworkValuablePool object reference
-     */
-    public final NetworkValuablePool getPool() {
-        return pool;
-    }
-
-    /**
-     * Gets the (ongoind) PoolReport used for execution.
-     * It is a singleton and it is accessible while running.
-     * @return PoolReport object reference
-     */
-    public final PoolReport getReport() {
-        return report;
     }
 }

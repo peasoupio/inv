@@ -57,22 +57,22 @@ public class FgroupLoader {
 
         // Load groovy files right now
         for (FileMatches.FileMatchRecord match : fileMatches.get("groovyFiles")) {
-            repoMatches.getGroovyFiles().add(match.getCurrent());
+            repoMatches.getGroovyFiles().add(match.getMatch());
         }
 
         // Load groovy test files if included
         for (FileMatches.FileMatchRecord match : fileMatches.get("groovyTestFiles")) {
-            repoMatches.getGroovyTestFiles().add(match.getCurrent());
+            repoMatches.getGroovyTestFiles().add(match.getMatch());
         }
 
         // Add invs
         for (FileMatches.FileMatchRecord match : fileMatches.get("invFiles")) {
-            repoMatches.getInvFiles().add(match.getCurrent());
+            repoMatches.getInvFiles().add(match.getMatch());
         }
 
         // Add repo file
         for (FileMatches.FileMatchRecord match : fileMatches.get("repoFile")) {
-            repoMatches.setRepoFile(match.getCurrent());
+            repoMatches.setRepoFile(match.getMatch());
         }
 
         return repoMatches;

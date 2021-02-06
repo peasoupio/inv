@@ -1,14 +1,21 @@
+# Capture Groovy class files from the /src directory.
 ./
     src
         (*.groovy as 'groovyFiles')
+
+# Capture Groovy test (Junit) files from the /test directory.
 ./
     test
         (*.groovy as 'groovyTestFiles')
+
+# Capture different flavors of INV files.
 ./
     vars
         (*.groovy as 'invFiles')
         (*.yml as 'invFiles')
         (*.yaml as 'invFiles')
+
+# Capture different flavors of REPO files. Expect only one.
 ./
     (repo.groovy as 'repoFile')
     (repo.yml as 'repoFile')

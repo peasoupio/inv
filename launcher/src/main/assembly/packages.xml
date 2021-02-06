@@ -7,7 +7,6 @@
     <formats>
         <format>tar.gz</format>
         <format>zip</format>
-        <!-- LOCAL USAGE <format>dir</format> -->
         <format>dir</format>
     </formats>
     <fileSets>

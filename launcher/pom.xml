@@ -115,7 +115,6 @@
     <profiles>
         <profile>
 
-            <!-- used only to distribute to github release page -->
             <id>distribute</id>
             <build>
                 <plugins>
@@ -154,7 +153,16 @@
                         </executions>
                     </plugin>
 
-                    <!--<plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>sign</id>
+            <build>
+                <plugins>
+
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
@@ -167,10 +175,12 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>-->
+                    </plugin>
+
                 </plugins>
             </build>
         </profile>
+
     </profiles>
 
 </project>

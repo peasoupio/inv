@@ -102,8 +102,9 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
             return;
 
         // Try setting to response
-        // IMPORTANT: It does not return since if "false", proceed with "shell", if "true", need to udpate "shell".
-        //            It is ok to assume "shell" would return true, thus returning.
+        // IMPORTANT: Return value will not be processed since:
+        //                   if "false", proceed with "shell",
+        //                   if "true", need to update "shell" also.
         setProperty(property, newValue, broadcastResponse.getResponse(), responseMetaClass);
 
         if (setProperty(property, newValue, shell, responseMetaClass))

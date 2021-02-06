@@ -19,6 +19,55 @@ class InvTest {
     }
 
     @Test
+    void equals() {
+        assertNull inv.name
+        assertFalse inv.equals(ctx.build())
+
+        inv.name = "my-inv"
+
+        assertFalse inv.equals(null)
+        assertFalse inv.equals("inv")
+        assertFalse inv.equals(ctx.build())
+
+        def other = ctx.build()
+        other.name = "my-inv"
+
+        assertTrue inv.equals(other)
+    }
+
+    @Test
+    void context_defaultName() {
+        def context = new Inv.Context(pool)
+        context.setDefaultName("")
+
+        assertNull context.getDefaultName()
+    }
+
+    @Test
+    void context_defaultPath() {
+        def context = new Inv.Context(pool)
+        context.setDefaultPath("")
+
+        assertEquals Inv.Context.WORKING_DIR, context.getDefaultPath()
+    }
+
+    @Test
+    void context_repo() {
+        def context = new Inv.Context(pool)
+        context.setRepo("")
+
+        assertNull context.getRepo()
+    }
+
+    @Test
+    void context_baseFilename() {
+        def context = new Inv.Context(pool)
+        context.setBaseFilename("")
+
+        assertNull context.getBaseFilename()
+    }
+
+    @Test
     void dumpDelegate_ok() {
         assertTrue pool.totalInvs.isEmpty()
         assertNull inv.name
@@ -75,23 +124,5 @@ class InvTest {
         assertThrows(IllegalArgumentException.class, {
             new Inv.Digestion().checkStatementResult(null, new RequireStatement())
         })
-    }
-
-
-    @Test
-    void equals() {
-        assertNull inv.name
-        assertFalse inv.equals(ctx.build())
-
-        inv.name = "my-inv"
-
-        assertFalse inv.equals(null)
-        assertFalse inv.equals("inv")
-        assertFalse inv.equals(ctx.build())
-
-        def other = ctx.build()
-        other.name = "my-inv"
-
-        assertTrue inv.equals(other)
     }
 }

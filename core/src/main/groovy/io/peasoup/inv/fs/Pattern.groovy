@@ -2,6 +2,7 @@ package io.peasoup.inv.fs
 
 import groovy.io.FileType
 import io.peasoup.inv.io.FileUtils
+
 import java.util.regex.Pattern as regexPattern
 
 class Pattern {

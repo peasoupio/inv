@@ -27,7 +27,7 @@ public class RepoInvoker {
             throw new IllegalArgumentException("repoExecutor");
 
         this.repoExecutor = repoExecutor;
-        this.groovyLoader = new GroovyLoader();
+        this.groovyLoader = GroovyLoader.newBuilder().build();
         this.yamlLoader = new YamlLoader();
     }
 

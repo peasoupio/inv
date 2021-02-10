@@ -1,10 +1,7 @@
 package io.peasoup.inv.composer.boot2
 
-import org.codehaus.groovy.control.CompilationUnit
-import org.codehaus.groovy.control.CompilerConfiguration
-
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
-import static junit.framework.TestCase.*
+import static org.junit.Assert.*
 
 // Get links
 Map links = links()

@@ -9,6 +9,7 @@ import io.peasoup.inv.loader.GroovyLoader
 import io.peasoup.inv.loader.YamlLoader
 import io.peasoup.inv.repo.RepoDescriptor
 import io.peasoup.inv.repo.RepoExecutor
+import org.apache.commons.lang.StringUtils
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import spark.Request
 import spark.Response
@@ -166,7 +167,7 @@ class RepoAPI {
             return WebServer.showResult("unstaged")
         })
 
-        post("/repos/source", { Request req, Response res ->
+        post("/repos/add", { Request req, Response res ->
             if (!webServer.security.isRequestSecure(req))
                 return WebServer.notAvailable(res)
 
@@ -192,7 +193,7 @@ class RepoAPI {
                         fileExtension = ".yml"
                         break
                     case FileUtils.SCRIPT_GROOVY_TYPE:
-                        new GroovyLoader().parseClassText(source)
+                        GroovyLoader.newBuilder().build().parseClassText(source)
                         break
                 }
 
@@ -253,16 +254,19 @@ class RepoAPI {
 
             def latestElement = webServer.repos.elements[name]
 
-            // Make sure we at least try to get repository with default or no parameters
-            List<RepoExecutor.RepoHookExecutionReport> report = new RepoExecutor().with {
-                add(latestElement.descriptor)
-                return execute()
+            if (StringUtils.isNotEmpty(latestElement.descriptor.hooks.init)) {
+
+                // Make sure we at least try to get repository with default or no parameters
+                List<RepoExecutor.RepoHookExecutionReport> report = new RepoExecutor().with {
+                    add(latestElement.descriptor)
+                    return execute()
+                }
+
+                if (!report[0].isOk())
+                    return WebServer.showError(res, "could not extract REPO")
             }
 
-            if (report[0].isOk())
-                return JsonOutput.toJson(latestElement.getParametersValues())
-            else
-                return WebServer.showError(res, "could not extract REPO")
+            return JsonOutput.toJson(latestElement.getParametersValues())
         })
 
         post("/repos/parameters", { Request req, Response res ->
@@ -292,7 +296,7 @@ class RepoAPI {
                     parameter,
                     parameterValue.toString())
 
-            return WebServer.showResult("Ok")
+            return WebServer.showResult("Updated")
         })
     }
 }

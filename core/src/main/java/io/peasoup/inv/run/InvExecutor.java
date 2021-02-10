@@ -117,14 +117,12 @@ public class InvExecutor {
      * Fetch files added into the RepogGetHandler instance
      */
     private void fetchGetRepoSources() {
-        Queue<String> getQueue = invInvoker.getRepoGetHandler().getSources();
+        Queue<String> getQueue = invInvoker.getRepoLoadHandler().getSources();
 
-        // Check if there's actual get statements from the initial reading
-        // OR
-        // from the bulkRead method
-        // This is why it looks so redundant.
+        // Has any INV declared a load statement
         while(!getQueue.isEmpty()) {
 
+            // Process current batch
             while (!getQueue.isEmpty()) {
                 String src = getQueue.poll();
                 if (src == null)
@@ -141,6 +139,7 @@ public class InvExecutor {
                 repoFolderCollection.add(fetchedTempFile.getAbsolutePath());
             }
 
+            // Read current batch
             if (!repoFolderCollection.bulkRead())
                 Logger.warn("Could not read fetched file(s)");
         }

@@ -1,0 +1,11 @@
+repo:
+  - name: repoC
+    ask:
+      - parameter:
+          name: parameterC
+          defaultValue: defaultValueC
+          usage: For tests purposes
+          values:
+            - my
+            - parameter
+            - values

@@ -1,12 +1,13 @@
 package io.peasoup.inv.repo
 
-import io.peasoup.inv.Logger
+
 import io.peasoup.inv.TempHome
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThrows
+import static org.junit.Assert.assertTrue
 
 @RunWith(TempHome.class)
 class RepoInvokerTest {

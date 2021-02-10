@@ -75,14 +75,26 @@ public abstract class JunitScriptBase extends Script {
 
             repoFolderCollection.add(localRepoFile.getAbsolutePath());
         }
-
         repoFolderCollection.bulkRead();
 
-        String packageName = null;
-
         // Can occur when using "standalone" Groovy executor
+        String packageName = null;
         if(mySettings != null)
             packageName = mySettings.getPackageName();
+
+        // Add src files
+        if (simulatorDescriptor.isIncludeSrcFiles()) {
+            File srcFiles = new File(Home.getCurrent(), "src");
+
+            if (srcFiles.exists()) {
+                File[] files = srcFiles.listFiles();
+                if (files != null) {
+                    for (File srcFile : files) {
+                        invExecutor.addClass(srcFile, packageName);
+                    }
+                }
+            }
+        }
 
         // Add inv files
         for(String invLocation : simulatorDescriptor.getInvFiles()) {
@@ -96,7 +108,7 @@ public abstract class JunitScriptBase extends Script {
         }
 
         // Add inv bodies
-        for(Closure invBody : simulatorDescriptor.getInvBodies()) {
+        for(Closure<?> invBody : simulatorDescriptor.getInvBodies()) {
             new InvHandler(invExecutor).call(invBody);
         }
 

@@ -209,10 +209,7 @@ public class RepoDescriptor {
     }
 
     private void generateRepoPaths() {
-        this.repoPath = new File(
-            RunsRoller.runsFolder(),
-            ".repos" +
-            File.separator +
+        this.repoPath = new File(getReposPath(),
             scriptFile.getName().split("\\.")[0] +
             "@" +
             name
@@ -220,6 +217,17 @@ public class RepoDescriptor {
 
         this.completeRepoPath = new File(this.repoPath,
                 path);
+    }
+
+    /**
+     * Get the repos path (inside .runs folder).
+     *
+     * @return The path
+     */
+    public static File getReposPath() {
+        return new File(
+                RunsRoller.runsFolder(),
+                ".repos");
     }
 
 

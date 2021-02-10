@@ -4,7 +4,6 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import io.peasoup.inv.composer.WebServer
-import io.peasoup.inv.run.RunsRoller
 import spark.Spark
 
 class ComposerTests {
@@ -19,8 +18,6 @@ class ComposerTests {
 
         def clazz = ComposerTests.classLoader.loadClass(scriptLocation)
         script = (DelegatingScript)clazz.getDeclaredConstructor().newInstance()
-
-        script.setDelegate(new HttpDescriptor(port))
     }
 
     @When("I start Composer with the working directory {string}")
@@ -37,14 +34,16 @@ class ComposerTests {
         File initFile = new File(workspace, "init.yml")
 
         // Start server
-        new WebServer(
+        def webserver = new WebServer(
                 port: port,
                 appLauncher: "my-app-launcher",
                 version: "my-version",
                 initFile: initFile.exists() ? initFile.absolutePath : null
-        ).routes()
+        )
+        webserver.routes()
 
         // Run Http script
+        script.setDelegate(new HttpDescriptor(webserver))
         script.run()
 
         // Stop server

@@ -1,7 +1,7 @@
 package io.peasoup.inv.loader
 
 @Grab('commons-lang:commons-lang:2.6')
-import org.apache.commons.lang.StringUtils
+import java.lang.Object
 
 inv {
     // Should NOT raise exception since it has a Grab instruction

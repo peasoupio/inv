@@ -77,12 +77,12 @@ class SystemAPI {
                                         default: webServer.API_CONTEXT_ROOT + "/settings",
                                         save   : webServer.API_CONTEXT_ROOT + "/settings"
                                 ],
-                                run   : [
+                                run     : [
                                         stageAll  : webServer.API_CONTEXT_ROOT + "/run/stageAll",
                                         unstageAll: webServer.API_CONTEXT_ROOT + "/run/unstageAll",
                                 ],
-                                repos : [
-                                        add            : webServer.API_CONTEXT_ROOT + "/repos/source",
+                                repos   : [
+                                        add            : webServer.API_CONTEXT_ROOT + "/repos/add",
                                         stageAll       : webServer.API_CONTEXT_ROOT + "/repos/stageAll",
                                         unstageAll     : webServer.API_CONTEXT_ROOT + "/repos/unstageAll",
                                         applyDefaultAll: webServer.API_CONTEXT_ROOT + "/repos/applyDefaultAll",
@@ -96,7 +96,7 @@ class SystemAPI {
                                 runFile : [
                                         save: webServer.API_CONTEXT_ROOT + "/runfile"
                                 ],
-                                review: [
+                                review  : [
                                         promote: webServer.API_CONTEXT_ROOT + "/review/promote"
                                 ]
                         ]
@@ -121,7 +121,10 @@ class SystemAPI {
         })
 
         get("/settings", { Request req, Response res ->
-            return JsonOutput.toJson(webServer.settings)
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
+            return webServer.settings.toJson()
         })
 
         post("/settings", { Request req, Response res ->

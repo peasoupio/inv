@@ -1,0 +1,10 @@
+repo:
+  - name: repoB
+    ask:
+      - parameter:
+          name: parameterB
+          defaultValue: defaultValueB
+          usage: For tests purposes
+    hooks:
+      init: |
+        echo 'ok'

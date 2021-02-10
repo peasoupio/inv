@@ -2,11 +2,12 @@ package io.peasoup.inv;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.codehaus.plexus.util.StringOutputStream;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collection;
-import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 

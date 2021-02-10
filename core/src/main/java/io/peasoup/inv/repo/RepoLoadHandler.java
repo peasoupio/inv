@@ -1,24 +1,23 @@
 package io.peasoup.inv.repo;
 
+import io.peasoup.inv.Logger;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * Handles "get" calls from an INV context.
  * IMPORTANT: To load an actual REPO, RepoHandler is the handler.
  */
-public class RepoGetHandler {
+public class RepoLoadHandler {
 
     @Getter
     private final Queue<String> sources;
 
-    public RepoGetHandler() {
+    public RepoLoadHandler() {
         this.sources = new ConcurrentLinkedDeque<>();
     }
 
@@ -29,6 +28,9 @@ public class RepoGetHandler {
         for(String singleSrc : src.split(System.lineSeparator())) {
             if (StringUtils.isEmpty(singleSrc))
                 continue;
+
+            if (!UrlValidator.getInstance().isValid(singleSrc))
+                Logger.warn(singleSrc + " is not a valid URL");
 
             this.sources.add(singleSrc);
         }

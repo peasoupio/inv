@@ -24,7 +24,7 @@ public class JunitRunner {
     private final String packageName;
     private final JUnitCore junit;
     private final GroovyLoader groovyLoader;
-    private final List<Class> classes = new ArrayList<>();
+    private final List<Class<?>> classes = new ArrayList<>();
 
     public JunitRunner(String packageName) {
         if (StringUtils.isEmpty(packageName))
@@ -39,7 +39,11 @@ public class JunitRunner {
         importCustomizer.addStarImports("org.junit");
         importCustomizer.addStaticStars("org.junit.Assert");
 
-        groovyLoader = new GroovyLoader(false, "io.peasoup.inv.testing.JunitScriptBase", importCustomizer);
+        groovyLoader = GroovyLoader.newBuilder()
+            .secureMode(false)
+            .scriptBaseClass("io.peasoup.inv.testing.JunitScriptBase")
+            .importCustomizer(importCustomizer)
+            .build();
     }
 
     public void addClass(String classLocation) {
@@ -58,7 +62,7 @@ public class JunitRunner {
         }
 
         // Load and put class into list
-        Class classObj;
+        Class<?> classObj;
         try {
             classObj = groovyLoader.parseTestScriptFile(scriptFile, packageName);
         } catch (Exception e) {

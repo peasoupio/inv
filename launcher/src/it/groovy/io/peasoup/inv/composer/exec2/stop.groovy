@@ -2,13 +2,9 @@ package io.peasoup.inv.composer.exec2
 
 import io.peasoup.inv.Home
 
-import static junit.framework.Assert.assertEquals
 import static junit.framework.Assert.assertFalse
-import static junit.framework.Assert.assertTrue
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
-import static junit.framework.TestCase.*
-import static junit.framework.TestCase.assertEquals
-import static junit.framework.TestCase.assertTrue
+import static org.junit.Assert.*
 import static org.junit.Assert.assertThrows
 
 def runFile = new File(Home.getCurrent(), "run.txt")
@@ -48,9 +44,7 @@ get(links.execution.default) {
 }
 
 // Stop (when not running)
-assertThrows(Exception.class, {
-    post(execLinks.stop)
-})
+post(execLinks.stop, { assertEquals "Already stopped", it.message})
 
 // Start execution
 post(execLinks.start)

@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.*;
+import org.apache.commons.lang.NotImplementedException;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
@@ -42,19 +43,28 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
         this.responseMetaClass = DefaultGroovyMethods.getMetaClass(broadcastResponse.getResponse());
         this.shell = createShell();
 
-        // Try getting default method
-        Tuple2<Boolean, Object> defaultMetaMethod = lookUpMethod(BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);
-        if (Boolean.FALSE.equals(defaultMetaMethod.getV1()))
-            defaultMetaMethod = lookUpMethod(BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);
+        if (defaults) {
 
-        if (defaults && Boolean.TRUE.equals(defaultMetaMethod.getV1())) {
-            defaultObject = defaultMetaMethod.getV2();
-            defaultsMetaClass = DefaultGroovyMethods.getMetaClass(defaultObject);
+            // Try getting default method
+            Tuple2<Boolean, Object> defaultMetaMethod = lookUpMethod(BroadcastResponse.DEFAULT_RESPONSE_HOOK_SHORT, null);
+            if (Boolean.FALSE.equals(defaultMetaMethod.getV1()))
+                defaultMetaMethod = lookUpMethod(BroadcastResponse.DEFAULT_RESPONSE_HOOK, null);
 
-        } else {
+            // If defaultMetaMethod found
+            if (Boolean.TRUE.equals(defaultMetaMethod.getV1())) {
+                defaultObject = defaultMetaMethod.getV2();
+                defaultsMetaClass = DefaultGroovyMethods.getMetaClass(defaultObject);
+            }
+            else {
+                defaultObject = null;
+                defaultsMetaClass = null;
+            }
+        }
+        else {
             defaultObject = null;
             defaultsMetaClass = null;
         }
+
     }
 
     public Object getShell() {
@@ -112,6 +122,28 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
 
         // Try setting property using default behaviour
         super.setProperty(object, property, newValue);
+    }
+
+    @Override
+    public MetaProperty hasProperty(Object obj, String name) {
+
+        // Try looking for known properties "holders"
+        Tuple2<Boolean, Object> propertyValue = lookProperty(name);
+        if(Boolean.TRUE.equals(propertyValue.getV1()))
+            // Return a mocked property
+            return new MetaProperty(name, propertyValue.getV2().getClass()) {
+                @Override
+                public Object getProperty(Object object) {
+                    return propertyValue.getV2();
+                }
+
+                @Override
+                public void setProperty(Object object, Object newValue) {
+                    throw new NotImplementedException();
+                }
+            };
+
+        return super.hasProperty(obj, name);
     }
 
     @Override

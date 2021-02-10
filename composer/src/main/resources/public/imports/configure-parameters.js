@@ -495,7 +495,7 @@ Vue.component('configure-parameters-carousel', {
 
             repoParameters.loading = true
 
-            axios.get(repoParameters.links.parameters).then(response => {
+            axios.get(repoParameters.links.parametersValues).then(response => {
 
                 repoParameters.parameters.forEach(function(parameter) {
                     parameter.values = response.data[parameter.name]

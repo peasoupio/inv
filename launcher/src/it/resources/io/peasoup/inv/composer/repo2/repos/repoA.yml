@@ -1,0 +1,5 @@
+repo:
+  - name: repoA
+    hooks:
+      init: |
+        echo 'ok'

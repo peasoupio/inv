@@ -1,7 +1,6 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
-import groovy.lang.GroovyObject;
 import io.peasoup.inv.Logger;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerHelper;

@@ -1,7 +1,6 @@
 package io.peasoup.inv.cli
 
 import groovy.transform.CompileStatic
-import io.peasoup.inv.Home
 import io.peasoup.inv.SystemInfo
 import io.peasoup.inv.composer.WebServer
 

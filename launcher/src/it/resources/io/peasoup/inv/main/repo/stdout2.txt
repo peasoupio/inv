@@ -2,7 +2,7 @@
 [VARS] INV_HOME: .*
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
-[REPO] script: io.peasoup.inv.pub.net.http, parameter: .*/repo/get/repo-values.json
+[REPO] script: io.peasoup.inv.pub.net.http, parameter: .*/repo/get/.runs/.repos/repo-values.json
 [REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/.runs/.repos/repo@io.peasoup.inv.pub.net.http [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/.runs/.repos/repo@io.peasoup.inv.pub.net.http [.*] done

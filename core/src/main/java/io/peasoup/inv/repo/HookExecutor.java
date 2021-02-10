@@ -34,59 +34,53 @@ public class HookExecutor {
     }
 
     public static void init(final RepoExecutor.RepoHookExecutionReport report) {
-        if (report == null)
-            throw new IllegalArgumentException("Report");
-
-        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getInit())) {
-            Logger.warn("hook 'init' not defined for " + report.getName());
-            return;
-        }
-
-        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "INIT");
-        executeCommands(report, report.getDescriptor().getHooks().getInit());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "INIT");
+        handleHook(
+                report,
+                "init",
+                report.getDescriptor().getHooks().getInit(),
+                false
+        );
     }
 
     public static void pull(final RepoExecutor.RepoHookExecutionReport report) {
-        if (report == null)
-            throw new IllegalArgumentException("Report");
-
-        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPull())) {
-            Logger.warn("hook 'pull' not defined for " + report.getName());
-            return;
-        }
-
-        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PULL");
-        executeCommands(report, report.getDescriptor().getHooks().getPull());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PULL");
+        handleHook(
+                report,
+                "pull",
+                report.getDescriptor().getHooks().getPull(),
+                false
+        );
     }
 
     public static void push(final RepoExecutor.RepoHookExecutionReport report) {
-        if (report == null)
-            throw new IllegalArgumentException("Report");
-
-        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getPush())) {
-            Logger.warn("hook 'push' not defined for " + report.getName());
-            return;
-        }
-
-        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PUSH");
-        executeCommands(report, report.getDescriptor().getHooks().getPush());
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "PUSH");
+        handleHook(
+                report,
+                "push",
+                report.getDescriptor().getHooks().getPush(),
+                false
+        );
     }
 
     public static void version(final RepoExecutor.RepoHookExecutionReport report) {
+        handleHook(
+                report,
+                "version",
+                report.getDescriptor().getHooks().getVersion(),
+                true
+        );
+    }
+
+    private static void handleHook(RepoExecutor.RepoHookExecutionReport report, String hookName, String commands, boolean returnStdout) {
         if (report == null)
             throw new IllegalArgumentException("Report");
 
-        if (StringUtils.isEmpty(report.getDescriptor().getHooks().getVersion())) {
-            Logger.warn("hook 'version' not defined for " + report.getName());
+        if (StringUtils.isEmpty(commands)) {
+            Logger.warn("hook '" + hookName + "' not defined for " + report.getName());
             return;
         }
 
-        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "VERSION");
-        executeCommands(report, report.getDescriptor().getHooks().getVersion(), true);
-        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), "VERSION");
+        Logger.info(MESSAGE_REPO_START, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), hookName.toUpperCase());
+        executeCommands(report, commands, returnStdout);
+        Logger.info(MESSAGE_REPO_DONE, report.getName(), FileUtils.convertUnixPath(report.getDescriptor().getRepoPath().getAbsolutePath()), hookName.toUpperCase());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -192,10 +186,6 @@ public class HookExecutor {
             Logger.warn("Repository for location '" + FileUtils.convertUnixPath(repository.getRepoPath().toString()) + "' was deleted since hook returned " + process.exitValue());
             ResourceGroovyMethods.deleteDir(repository.getRepoPath());
         }
-    }
-
-    private static void executeCommands(RepoExecutor.RepoHookExecutionReport report, String commands) {
-        HookExecutor.executeCommands(report, commands, false);
     }
 
     private static String randomSuffix() {

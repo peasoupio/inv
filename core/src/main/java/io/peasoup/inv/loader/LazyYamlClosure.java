@@ -8,7 +8,9 @@ import org.apache.commons.lang.NotImplementedException;
 
 public class LazyYamlClosure extends Closure {
 
-    private static final GroovyLoader GROOVYLOADER = new GroovyLoader(DelegatingScript.class.getName());
+    private static final GroovyLoader GROOVYLOADER = GroovyLoader.newBuilder()
+        .scriptBaseClass(DelegatingScript.class.getName())
+        .build();
 
     private final transient Inv owner;
     private final transient String codeBlock;

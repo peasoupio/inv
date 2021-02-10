@@ -1,16 +1,7 @@
 package io.peasoup.inv.composer.run1
 
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
-import static junit.framework.TestCase.*
-import static junit.framework.TestCase.assertEquals
+import static org.junit.Assert.*
 
 // Get links
 Map links = links()

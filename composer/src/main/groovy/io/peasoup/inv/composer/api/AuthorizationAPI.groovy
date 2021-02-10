@@ -12,7 +12,6 @@ import static spark.Spark.get
 class AuthorizationAPI {
 
     private final WebServer webServer
-    private final Map initInfo
 
     AuthorizationAPI(WebServer webServer) {
         this.webServer = webServer

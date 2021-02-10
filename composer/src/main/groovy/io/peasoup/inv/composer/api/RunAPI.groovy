@@ -133,6 +133,9 @@ class RunAPI {
         })
 
         post("/run/stageAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 
@@ -147,6 +150,9 @@ class RunAPI {
         })
 
         post("/run/unstageAll", { Request req, Response res ->
+            if (!webServer.security.isRequestSecure(req))
+                return WebServer.notAvailable(res)
+
             if (!webServer.run)
                 return WebServer.showError(res, "Run is not ready yet")
 

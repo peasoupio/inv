@@ -7,7 +7,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
-import io.peasoup.inv.repo.RepoGetHandler;
+import io.peasoup.inv.repo.RepoLoadHandler;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
@@ -23,17 +23,17 @@ public class InvInvoker {
     private final YamlLoader yamlLoader;
 
     @Getter
-    private final RepoGetHandler repoGetHandler;
+    private final RepoLoadHandler repoLoadHandler;
 
     public InvInvoker(InvExecutor invExecutor) {
         if (invExecutor == null)
             throw new IllegalArgumentException("invExecutor");
 
         this.invExecutor= invExecutor;
-        this.groovyLoader = new GroovyLoader();
+        this.groovyLoader = GroovyLoader.newBuilder().build();
         this.yamlLoader = new YamlLoader();
 
-        this.repoGetHandler = new RepoGetHandler();
+        this.repoLoadHandler = new RepoLoadHandler();
     }
 
     /**
@@ -122,7 +122,7 @@ public class InvInvoker {
                 scriptFile,
                 FileUtils.addEndingSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO,
-                repoGetHandler);
+                repoLoadHandler);
 
         try {
             yamlInvHandler.call();
@@ -152,7 +152,7 @@ public class InvInvoker {
         Binding binding = myNewScript.getBinding();
         binding.setProperty("inv", invHandler);
         binding.setProperty("debug", DebugLogger.Instance);
-        binding.setProperty("get", repoGetHandler);
+        binding.setProperty("load", repoLoadHandler);
 
         try {
             myNewScript.run();

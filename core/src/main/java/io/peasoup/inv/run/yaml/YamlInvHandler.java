@@ -4,7 +4,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.loader.LazyYamlClosure;
 import io.peasoup.inv.loader.YamlLoader;
-import io.peasoup.inv.repo.RepoGetHandler;
+import io.peasoup.inv.repo.RepoLoadHandler;
 import io.peasoup.inv.run.*;
 import lombok.NonNull;
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +26,7 @@ public class YamlInvHandler {
     private final String pwd;
     private final String repo;
 
-    private final RepoGetHandler repoGetHandler;
+    private final RepoLoadHandler repoLoadHandler;
 
     public YamlInvHandler(
             @NonNull InvExecutor invExecutor,
@@ -34,7 +34,7 @@ public class YamlInvHandler {
             @NonNull File yamlFile,
             @NonNull String pwd,
             @NonNull String repo,
-            @NonNull RepoGetHandler repoGetHandler) {
+            @NonNull RepoLoadHandler repoLoadHandler) {
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
@@ -44,7 +44,7 @@ public class YamlInvHandler {
         this.pwd = pwd;
         this.repo = repo;
 
-        this.repoGetHandler = repoGetHandler;
+        this.repoLoadHandler = repoLoadHandler;
     }
 
     public void call() throws MissingOptionException, IOException {
@@ -71,9 +71,9 @@ public class YamlInvHandler {
         context.setBaseFilename(yamlFile.getAbsolutePath());
 
         // Process "get" statements
-        if (descriptor.getGet() != null) {
-            for (String src : descriptor.getGet()) {
-                repoGetHandler.call(src);
+        if (descriptor.getLoad() != null) {
+            for (String src : descriptor.getLoad()) {
+                repoLoadHandler.call(src);
             }
         }
 
@@ -113,6 +113,10 @@ public class YamlInvHandler {
         // Sets path
         if (StringUtils.isNotEmpty(descriptor.getPath()))
             delegate.path(descriptor.getPath());
+
+        // Sets markdown
+        if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
+            delegate.markdown(descriptor.getMarkdown());
 
         Map<String, String> interpolatable = new HashMap<>();
         interpolatable.put("$0", delegate.get$0());

@@ -2,8 +2,8 @@ contributor(context(scope: scriptScope())) {
     method name: 'inv', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new INV object"
     method name: 'repo', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Creates a new REPO object"
     method name: 'simulate', type: 'void', params: [closure: 'groovy.lang.Closure'], doc: "Defines a new simulation context for your test"
-    method name: 'debug', type: 'void', params: [object: 'java.lang.Object'], doc: "Display a new debug message"
-    method name: 'get', type: 'void', params: [object: 'java.lang.String'], doc: "Get and read REPO from a remote HTTP location"
+    method name: 'debug', type: 'void', params: [object: 'Object'], doc: "Display a new debug message"
+    method name: 'load', type: 'void', params: [object: 'String'], doc: "Load a REPO from a remote HTTP location"
 }
 
 contributor(context(scope: closureScope())) {

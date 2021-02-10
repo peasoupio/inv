@@ -7,7 +7,6 @@ import io.peasoup.inv.Logger
 import io.peasoup.inv.composer.api.*
 import io.peasoup.inv.run.RunsRoller
 import spark.Response
-import spark.Spark
 
 import static spark.Spark.*
 

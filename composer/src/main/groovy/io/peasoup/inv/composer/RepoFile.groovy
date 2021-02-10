@@ -35,10 +35,10 @@ class RepoFile {
         // Do the actual parsing
         new RepoExecutor().with {
 
-            if(expectedParameterFile && expectedParameterFile.exists())
-               addScript(scriptFile, expectedParameterFile)
+            if (expectedParameterFile && expectedParameterFile.exists())
+                addScript(scriptFile, expectedParameterFile)
             else
-               addScript(scriptFile)
+                addScript(scriptFile)
 
             RepoFile myself = this
             repos.each { String name, RepoDescriptor desc ->
@@ -122,9 +122,7 @@ class RepoFile {
                         defaultValue: parameter.defaultValue,
                         values      : [],
                         required    : parameter.required,
-                        links       : [
-                                values: WebServer.API_CONTEXT_ROOT + "/repos/parameters/values?name=${descriptor.name}&parameter=${parameter.name}"
-                        ]
+                        links       : []
                 ]
 
                 if (secure)
@@ -162,8 +160,8 @@ class RepoFile {
                             timeout      : descriptor.timeout
                     ],
                     links       : [
-                            default   : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${descriptor.name}",
-                            parameters: WebServer.API_CONTEXT_ROOT + "/repos/parametersValues?name=${descriptor.name}"
+                            default         : WebServer.API_CONTEXT_ROOT + "/repos/view?name=${descriptor.name}",
+                            parametersValues: WebServer.API_CONTEXT_ROOT + "/repos/parametersValues?name=${descriptor.name}"
                     ]
             ]
 

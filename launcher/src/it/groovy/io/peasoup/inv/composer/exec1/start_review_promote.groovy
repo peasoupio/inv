@@ -2,13 +2,8 @@ package io.peasoup.inv.composer.exec1
 
 import io.peasoup.inv.Home
 
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertEquals
-import static junit.framework.Assert.assertTrue
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
-import static junit.framework.TestCase.*
-import static junit.framework.TestCase.assertEquals
-import static junit.framework.TestCase.assertTrue
+import static org.junit.Assert.*
 
 def runFile = new File(Home.getCurrent(), "run.txt")
 runFile.delete() // Make sure run.txt is deleted

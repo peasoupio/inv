@@ -3,23 +3,37 @@ package io.peasoup.inv.testing;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import io.peasoup.inv.run.InvDescriptor;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class SimulatorDescriptor {
+
+    private boolean includeSrcFiles = true;
 
     private final List<String> invFiles;
     private final List<String> repoFiles;
     private final List<String> repoUrls;
-    private final List<Closure> invBodies;
+    private final List<Closure<?>> invBodies;
 
     public SimulatorDescriptor() {
         this.invFiles = new ArrayList<>();
         this.repoFiles = new ArrayList<>();
         this.repoUrls = new ArrayList<>();
         this.invBodies = new ArrayList<>();
+    }
+
+    /**
+     * Set whether or not source files located at /src are loaded.
+     * By default, value is true.
+     *
+     * @param value True to load, otherwise false.
+     */
+    public void includeSrcFiles(boolean value) {
+        this.includeSrcFiles = value;
     }
 
 
@@ -66,7 +80,7 @@ public class SimulatorDescriptor {
      *
      * @param body A non-null valid INV body descriptor.
      */
-    public void addInvBody(@DelegatesTo(InvDescriptor.class) Closure body) {
+    public void addInvBody(@DelegatesTo(InvDescriptor.class) Closure<?> body) {
         if (body == null)
             throw new IllegalArgumentException("body");
 
@@ -83,22 +97,5 @@ public class SimulatorDescriptor {
                !this.repoFiles.isEmpty() ||
                !this.repoUrls.isEmpty() ||
                !this.invBodies.isEmpty();
-    }
-
-
-    public List<String> getInvFiles() {
-        return invFiles;
-    }
-
-    public List<String> getRepoFiles() {
-        return repoFiles;
-    }
-
-    public List<String> getRepoUrls() {
-        return repoUrls;
-    }
-
-    public List<Closure> getInvBodies() {
-        return invBodies;
     }
 }

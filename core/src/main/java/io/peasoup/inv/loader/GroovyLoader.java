@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 
 public class GroovyLoader {
 
+    private static boolean systemSecureModeEnabled = false;
+
     /**
      * Enables system-wide secure mode.
      * Some API might be disabled, or key features, such as "packages" might be disabled also.
@@ -40,28 +42,17 @@ public class GroovyLoader {
         systemSecureModeEnabled = false;
     }
 
-    private static boolean systemSecureModeEnabled = false;
+    /**
+     * Create a new builder instance
+     * @return The builder instance.
+     */
+    public static Builder newBuilder() {
+        return new Builder();
+    }
 
     private final boolean secureMode;
     private final EncapsulatedGroovyClassLoader generalClassLoader;
     private final EncapsulatedGroovyClassLoader securedClassLoader;
-
-
-    /**
-     * Create a common loader using system-wide secure mode preference
-     */
-    public GroovyLoader() {
-        this(systemSecureModeEnabled,  null, null);
-    }
-
-    /**
-     * Create a common loader using system-wide secure mode preference
-     *
-     * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
-     */
-    public GroovyLoader(String scriptBaseClass) {
-        this(systemSecureModeEnabled,  scriptBaseClass, null);
-    }
 
     /**
      * Create a common loader
@@ -70,7 +61,7 @@ public class GroovyLoader {
      * @param scriptBaseClass Determines the script base class. Must inherit groovy.lang.Script. If null or empty, default groovy base class is used.
      * @param importCustomizer A pre-defined import customizer. Can be null.
      */
-    public GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
+    private GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
 
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
@@ -87,7 +78,6 @@ public class GroovyLoader {
         }
 
         compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
-
 
         // Apply SecureAST to all (de)compilers
         applySecureASTConfigs(securedCompilerConfiguration);
@@ -106,6 +96,9 @@ public class GroovyLoader {
      * @return Compiled Object
      */
     public Class<?> parseClassText(String text)  {
+        if (StringUtils.isEmpty(text))
+            throw new IllegalArgumentException("text");
+
         return parseGroovyCodeSource(
             new GroovyCodeSource(
                 text,
@@ -119,11 +112,12 @@ public class GroovyLoader {
      * @param groovyFile Groovy file
      * @param packageName Defines package for groovy file classes (nullable)
      * @return A new class object
+     *
      * @throws IOException
      */
     public Class<?> parseClassFile(File groovyFile, String packageName) throws IOException {
-        if (StringUtils.isEmpty(packageName))
-            throw new IllegalArgumentException("packageName");
+        if (groovyFile == null)
+            throw new IllegalArgumentException("groovyFile");
 
         return parseGroovyCodeSource(
                 new GroovyCodeSource(groovyFile),
@@ -135,11 +129,12 @@ public class GroovyLoader {
      * @param groovyFile Groovy file
      * @param packageName Defines package for groovy file classes (nullable)
      * @return A new class object
+     *
      * @throws IOException
      */
     public Class<?> parseTestScriptFile(File groovyFile, String packageName) throws IOException {
-        if (StringUtils.isEmpty(packageName))
-            throw new IllegalArgumentException("packageName");
+        if (groovyFile == null)
+            throw new IllegalArgumentException("groovyFile");
 
         return parseGroovyCodeSource(
                 new GroovyCodeSource(groovyFile),
@@ -150,6 +145,7 @@ public class GroovyLoader {
      * Parse and raise new instance of Groovy (script) file
      * @param groovyFile Groovy file
      * @return A new Script instance
+     *
      * @throws IOException
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
@@ -164,7 +160,8 @@ public class GroovyLoader {
      * Parse and raise new instance of Groovy (script) file
      * @param groovyFile Groovy file
      * @param newPackage Defines package for groovy file classes (nullable)
-     * @return
+     * @return New script instance.
+     *
      * @throws IOException
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
@@ -172,6 +169,9 @@ public class GroovyLoader {
      * @throws IllegalAccessException
      */
     public Script parseScriptFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (groovyFile == null)
+            throw new IllegalArgumentException("groovyFile");
+
         return createScript(
                 new GroovyCodeSource(groovyFile),
                 new EncapsulatedGroovyClassLoader.Config(
@@ -184,7 +184,8 @@ public class GroovyLoader {
      * @param groovyFile Groovy file
      * @param newPackage Defines package for groovy file classes (nullable)
      * @param useScriptName True if the script name should be used, otherwise it is generated
-     * @return
+     * @return New Script instance.
+     *
      * @throws IOException
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
@@ -192,6 +193,9 @@ public class GroovyLoader {
      * @throws IllegalAccessException
      */
     public Script parseScriptFile(File groovyFile, String newPackage, boolean useScriptName) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (groovyFile == null)
+            throw new IllegalArgumentException("groovyFile");
+
         return createScript(
                 new GroovyCodeSource(groovyFile),
                 new EncapsulatedGroovyClassLoader.Config(
@@ -207,7 +211,6 @@ public class GroovyLoader {
      * @return A new Script instance
      */
     private Script createScript(GroovyCodeSource groovyCodeSource, EncapsulatedGroovyClassLoader.Config config) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-
         Class<?> cls = parseGroovyCodeSource(groovyCodeSource, config);
         if (cls == null)
             return null;
@@ -291,24 +294,87 @@ public class GroovyLoader {
         return returnValue;
     }
 
-    private CompilerConfiguration applySecureTypeCheckerConfigs(CompilerConfiguration compilerConfiguration) {
-
-        // Apply custom AST transformer to trap type checking errors
+    /**
+     * Apply custom AST transformer to trap type checking errors
+     * @param compilerConfiguration
+     */
+    private void applySecureTypeCheckerConfigs(CompilerConfiguration compilerConfiguration) {
         LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
         map.put("extensions", "io.peasoup.inv.loader.SecuredTypeChecked");
         ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
         compilerConfiguration.addCompilationCustomizers(astTransformationCustomizer);
-
-        return compilerConfiguration;
     }
 
-    private CompilerConfiguration applySecureASTConfigs(CompilerConfiguration compilerConfiguration) {
+    private void applySecureASTConfigs(CompilerConfiguration compilerConfiguration) {
         SecureASTCustomizer secureASTCustomizer = new SecureASTCustomizer();
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
 
         compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
+    }
 
-        return compilerConfiguration;
+    public static class Builder {
+
+        private boolean secureMode = systemSecureModeEnabled;
+        private String scriptBaseClass;
+        private ImportCustomizer importCustomizer;
+
+        private Builder() {
+        }
+
+        // boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer
+
+        /**
+         * Sets the secure mode.
+         * By default, secure mode uses the system-wide secure mode flag.
+         * @return This builder.
+         */
+        public Builder secureMode(boolean secureMode) {
+            this.secureMode = secureMode;
+
+            return this;
+        }
+
+        /**
+         * Sets the script base class for Script instantiation
+         * @param scriptBaseClass The script base class name
+         * @return This builder.
+         */
+        public Builder scriptBaseClass(String scriptBaseClass) {
+            if (StringUtils.isEmpty(scriptBaseClass))
+                throw new IllegalArgumentException(("scriptBaseClass"));
+
+            this.scriptBaseClass = scriptBaseClass;
+
+            return this;
+        }
+
+        /**
+         * Sets a Import Customizer for classes to be instantiated.
+         * @param importCustomizer The import customizer.
+         * @return This builder.
+         */
+        public Builder importCustomizer(ImportCustomizer importCustomizer) {
+            if (importCustomizer == null)
+                throw new IllegalArgumentException("importCustomizer");
+
+            this.importCustomizer = importCustomizer;
+
+            return this;
+        }
+
+        /**
+         * Build a new instance of GroovyLoader.
+         * @return New GroovyLoader instance.
+         */
+        public GroovyLoader build() {
+            return new GroovyLoader(
+                    secureMode,
+                    scriptBaseClass,
+                    importCustomizer
+            );
+        }
+
+
     }
 
     public static class MethodCallNotAllowedException extends Exception {

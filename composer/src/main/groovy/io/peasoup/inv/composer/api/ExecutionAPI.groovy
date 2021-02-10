@@ -54,7 +54,7 @@ class ExecutionAPI {
                 return WebServer.notAvailable(res)
 
             if (webServer.exec.isRunning())
-                return "Already webServer.running"
+                return WebServer.showError(res, "An execution is already running")
 
             List<String> toExecute = []
             toExecute += webServer.repos.staged

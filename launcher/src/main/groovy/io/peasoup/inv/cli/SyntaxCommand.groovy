@@ -28,7 +28,7 @@ class SyntaxCommand implements CliCommand {
         if (exclude)
             excludePatterns.add(exclude)
 
-        def commonLoader = new GroovyLoader()
+        def commonLoader = GroovyLoader.newBuilder().build()
         def syntaxFiles = Pattern.get(includes, excludePatterns, Home.getCurrent())
         def succeeded = true
 

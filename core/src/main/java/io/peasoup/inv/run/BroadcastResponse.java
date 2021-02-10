@@ -1,6 +1,5 @@
 package io.peasoup.inv.run;
 
-import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 

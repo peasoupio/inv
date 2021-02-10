@@ -121,6 +121,7 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
                     if (!useScriptName)
                         newName = "Script" + random();
 
+                    // Only if package is provided
                     if (StringUtils.isNotEmpty(packageName)) {
                         ast.setPackageName(packageName);
                         ast.addStarImport(packageName + ".");
@@ -128,20 +129,25 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
                     } else {
                         classNode.setName(newName);
                     }
+
                     break;
 
-                // Takes for granted a "package.classname" signature is provided, then
-                // replace the actual package with the one provided, but takes the actual classes name
+                // Replace the actual package with the one provided, but takes the actual classes name
                 // Since a package could be provided, it's omitted and replaced with the one specified
                 case "class":
-                    ast.addStarImport(packageName + ".");
-                    ast.setPackageName(packageName);
 
-                    String currentClassName = classNode.getName();
-                    if (currentClassName.contains("."))
-                        classNode.setName(packageName + "." + currentClassName.substring(currentClassName.lastIndexOf(".") + 1));
-                    else
-                        classNode.setName(packageName + "." + currentClassName);
+                    // Only if package is provided
+                    if (StringUtils.isNotEmpty(packageName)) {
+                        ast.addStarImport(packageName + ".");
+                        ast.setPackageName(packageName);
+
+                        String currentClassName = classNode.getName();
+                        if (currentClassName.contains("."))
+                            classNode.setName(packageName + "." + currentClassName.substring(currentClassName.lastIndexOf(".") + 1));
+                        else
+                            classNode.setName(packageName + "." + currentClassName);
+                    }
+
                     break;
 
                 // Same as scripts, but package is required, so we assume its available
@@ -149,10 +155,15 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
                     if (!useScriptName)
                         newName = "Test" + random();
 
-                    ast.addStarImport(packageName + ".");
-                    ast.setPackageName(packageName);
-                    classNode.setName(packageName + "." + newName);
+                    // Only if package is provided
+                    if (StringUtils.isNotEmpty(packageName)) {
+                        ast.addStarImport(packageName + ".");
+                        ast.setPackageName(packageName);
+                        classNode.setName(packageName + "." + newName);
+                    }
+
                     break;
+
                 case "text":
                     // do nothing
                     break;

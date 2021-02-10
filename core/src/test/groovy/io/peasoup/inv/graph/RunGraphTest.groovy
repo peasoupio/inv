@@ -1,7 +1,6 @@
 package io.peasoup.inv.graph
 
 import io.peasoup.inv.run.InvInvoker
-import io.peasoup.inv.run.RequireStatement
 import org.junit.Test
 
 import static org.junit.Assert.*

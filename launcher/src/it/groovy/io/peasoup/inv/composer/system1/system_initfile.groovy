@@ -1,9 +1,7 @@
 package io.peasoup.inv.composer.system1
 
-import static junit.framework.Assert.assertEquals
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
-import static junit.framework.TestCase.*
-import static junit.framework.TestCase.assertEquals
+import static org.junit.Assert.*
 import static org.junit.Assert.assertThrows
 
 // Get links
@@ -29,9 +27,4 @@ post(links.initFile.pull) {
 post(links.initFile.push) {
     assertNotNull it
     assertEquals "Pushed init successfully", it.result
-}
-
-// Stop server
-assertThrows(ConnectException.class) {
-    post(links.stop)
 }

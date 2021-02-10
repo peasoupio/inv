@@ -2,18 +2,22 @@ package io.peasoup.inv
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import io.peasoup.inv.composer.WebServer
 
 import java.nio.charset.Charset
 
 import static junit.framework.TestCase.assertNotNull
-import static junit.framework.TestCase.assertNotNull
 
 class HttpDescriptor {
 
+    private final WebServer webServer
     private final int port
 
-    HttpDescriptor(int port) {
-        this.port = port
+    private String cookie
+
+    HttpDescriptor(WebServer webServer) {
+        this.webServer = webServer
+        this.port = webServer.webServerConfigs.port
     }
 
     Map links() {
@@ -23,6 +27,10 @@ class HttpDescriptor {
 
             it.links
         }
+    }
+
+    String getSecurityToken() {
+        return webServer.security.generatedToken
     }
 
     void waitFor(int waitTill, Closure body) {
@@ -51,8 +59,22 @@ class HttpDescriptor {
     }
 
     String getAsString(String context, Closure callback = null) {
-        String urlStr = "http://127.0.0.1:${port}${context}".toString()
-        String responseText = new URL(urlStr).openConnection().inputStream.text
+        def urlStr = "http://127.0.0.1:${port}${context}".toString()
+        def connection = (HttpURLConnection)new URL(urlStr).openConnection()
+        connection.instanceFollowRedirects = false
+        connection.setRequestProperty("Cookie", cookie)
+
+        String responseText
+
+        try {
+            responseText = connection.inputStream.text
+        } catch(Exception ex) {
+            responseText = connection.errorStream.text
+        }
+
+        if (connection.headerFields["Set-Cookie"])
+            cookie = connection.headerFields["Set-Cookie"][0]
+
         if (callback)
             return callback(responseText)
 
@@ -83,8 +105,10 @@ class HttpDescriptor {
     }
 
     String postAsString(String context, Object data = null, Closure callback = null) {
-        String urlStr = "http://127.0.0.1:${port}${context}".toString()
-        HttpURLConnection connection = new URL(urlStr).openConnection() as HttpURLConnection
+        def urlStr = "http://127.0.0.1:${port}${context}".toString()
+        def connection = (HttpURLConnection)new URL(urlStr).openConnection()
+        connection.instanceFollowRedirects = false
+        connection.setRequestProperty("Cookie", cookie)
 
         String responseText = connection.with {
             setDoOutput(true)
@@ -106,7 +130,11 @@ class HttpDescriptor {
                 outputStream.flush()
             }
 
-            return connection.inputStream.text
+            try {
+                return connection.inputStream.text
+            } catch(Exception ex) {
+                return connection.errorStream.text
+            }
         }
 
         if (callback)

@@ -1,5 +1,6 @@
 package io.peasoup.inv.composer
 
+import groovy.json.JsonOutput
 import io.peasoup.inv.composer.utils.MapUtils
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
@@ -110,8 +111,7 @@ class Settings {
         MapUtils.merge(settings, values)
     }
 
-    @Override
-    String toString() {
+    String toYaml() {
         StringWriter sw = new StringWriter()
 
         DumperOptions options = new DumperOptions();
@@ -123,5 +123,14 @@ class Settings {
         yaml.dump(settings, sw)
 
         return sw.toString()
+    }
+
+    String toJson() {
+        return JsonOutput.toJson(settings)
+    }
+
+    @Override
+    String toString() {
+        return toYaml()
     }
 }

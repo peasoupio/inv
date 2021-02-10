@@ -14,6 +14,7 @@ contributor(context(scope: scriptScope())) {
     method name: 'waitFor', type: 'Object', params: [waitTill: 'Integer', callback: 'groovy.lang.Closure'], doc: "Wait until something is done"
 
     method name: 'links', type: 'java.util.Map', doc: "Get links"
+    method name: 'getSecurityToken', type: 'String', doc: "Current security token"
 
 }
 

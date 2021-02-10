@@ -29,7 +29,7 @@ public class RepoURLFetcher {
             if (HttpURLConnection.HTTP_OK != repoConn.getResponseCode())
                 return null;
 
-            File localRepofile = new File(Home.getCurrent(), FilenameUtils.getName(repoUrl));
+            File localRepofile = new File(RepoDescriptor.getReposPath(), FilenameUtils.getName(repoUrl));
             if (localRepofile.exists() && !localRepofile.delete())
                 return null;
 

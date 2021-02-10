@@ -1,12 +1,10 @@
 package io.peasoup.inv.run
 
-import io.peasoup.inv.Logger
-import io.peasoup.inv.utils.Stdout
-import org.junit.After
+
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThrows
 
 class InvInvokerTest {
 

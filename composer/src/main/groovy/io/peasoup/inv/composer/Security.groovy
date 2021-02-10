@@ -4,10 +4,7 @@ import groovy.transform.CompileStatic
 import io.peasoup.inv.Logger
 import org.apache.commons.lang.RandomStringUtils
 import org.apache.commons.lang.StringUtils
-import org.apache.commons.validator.routines.EmailValidator
 import spark.Request
-
-import java.util.regex.Pattern
 
 @CompileStatic
 class Security {

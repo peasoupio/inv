@@ -14,6 +14,8 @@ public class YamlInvDescriptor {
 
     private String path;
 
+    private String markdown;
+
     private Map<String, String> tags;
 
     private List<YamlStatementDescriptor> workflow;

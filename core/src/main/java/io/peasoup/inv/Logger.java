@@ -90,6 +90,12 @@ public final class Logger {
         debugEnabled = true;
     }
 
+    /**
+     * Indicates if debug mode is enabled
+     * @return True if enabled, otherwise false.
+     */
+    public static boolean isDebugEnabled() { return debugEnabled; }
+
     public static Collection<String> getCapture() {
         return captureList;
     }

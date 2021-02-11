@@ -6,6 +6,7 @@
 [REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/.runs/.repos/repo@io.peasoup.inv.pub.net.http [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/.runs/.repos/repo@io.peasoup.inv.pub.net.http [.*] done
+[REPO] [CLASS] path: src/.*.groovy, package: .*
 [STATEMENT] [Script.*] => [BROADCAST] [HTTP] undefined [INIT]
 [io.peasoup.inv.pub.net.http] [.*/repo/get/.runs/.repos/repo@io.peasoup.inv.pub.net.http/net/http/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----

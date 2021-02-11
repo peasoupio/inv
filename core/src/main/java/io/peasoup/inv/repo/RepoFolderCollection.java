@@ -1,5 +1,7 @@
 package io.peasoup.inv.repo;
 
+import io.peasoup.inv.Logger;
+import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.FgroupLoader;
 import io.peasoup.inv.run.InvExecutor;
 import org.apache.commons.lang.StringUtils;
@@ -145,6 +147,10 @@ public class RepoFolderCollection {
     private void invokeGroovyfiles(FgroupLoader.RepoMatches matches, String packageName) {
         // Parse groovy classes
         for(Path groovyFile : matches.getGroovyFiles()) {
+
+            if (Logger.isDebugEnabled())
+                Logger.debug("[REPO] [CLASS] path: " + FileUtils.convertUnixPath(Path.of(matches.getRootPath()).relativize(groovyFile).toString()) + ", package: " + packageName);
+
             invExecutor.addClass(groovyFile.toFile(), packageName);
         }
     }
@@ -152,6 +158,7 @@ public class RepoFolderCollection {
     private void invokeInvfiles(FgroupLoader.RepoMatches matches, String packageName, String path, String repo) {
         // Parse inv files.
         for(Path invFile : matches.getInvFiles()) {
+
             invExecutor.addScript(
                     invFile.toFile(),
                     packageName,

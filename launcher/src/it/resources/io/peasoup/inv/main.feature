@@ -18,7 +18,7 @@ Feature: What is the stdout of my main cli options?
       | run main3.yml                                                           | file:/run              | 0        | /io/peasoup/inv/main/run/stdout7.txt               |
       | run main3.yml main4.yml                                                 | file:/run              | 0        | /io/peasoup/inv/main/run/stdout8.txt               |
       | run main?.*                                                             | file:/run              | 0        | /io/peasoup/inv/main/run/stdout9.txt               |
-      | run main10.groovy                                                       | file:/run              | 0        | /io/peasoup/inv/main/run/stdout10.txt              |
+      | -d run main10.groovy                                                    | file:/run              | 0        | /io/peasoup/inv/main/run/stdout10.txt              |
 
       # GRAPH
       | graph file:/graph/run1.txt                                              |                        | 0        | /io/peasoup/inv/main/graph/stdout1.txt             |

@@ -47,11 +47,7 @@ class MainTest {
         if (StringUtils.isNotEmpty(workingDir))
             Home.setCurrent(new File(resourceTester.interpolate(workingDir)))
 
-        try {
-            Main.start(options)
-        } catch(Exception ex) {
-            hasToFail = true
-        }
+        Main.start(options)
     }
 
     @Then("I should be told the main exitCode {string} AND main stdout log file {string}")
@@ -61,7 +57,5 @@ class MainTest {
                 stdoutLogFile,
                 Main.exitCode()
         )
-
-        assertFalse hasToFail
     }
 }

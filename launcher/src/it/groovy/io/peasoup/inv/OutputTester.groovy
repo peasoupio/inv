@@ -5,8 +5,6 @@ import static org.junit.Assert.*
 class OutputTester {
 
     void assertOutput(String expectedExitCode, String expectedLogFile, int actualExitCode) {
-        assertEquals Integer.parseInt(expectedExitCode), actualExitCode
-
         def actualLogs = Logger.getCapture()
         assertNotNull actualLogs
 
@@ -21,6 +19,8 @@ class OutputTester {
         String actualTotal = String.join(System.lineSeparator(), actualLogs)
         println "Actual: "
         println actualTotal
+
+        assertEquals Integer.parseInt(expectedExitCode), actualExitCode
 
         for (i in 0..<expected.size()) {
             String expectedStr = expected.get(i).trim()

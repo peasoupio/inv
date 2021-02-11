@@ -15,9 +15,9 @@ class RunCucumberTest {
      * @return Nullified value if equals to "null"
      */
     static String nullify(String value) {
-        if (StringUtils.isEmpty(value)) return value;
-        if (value.equals("null")) return null;
-        return value;
+        if (StringUtils.isEmpty(value)) return value
+        if (value.equals("null")) return null
+        return value
     }
 
 }

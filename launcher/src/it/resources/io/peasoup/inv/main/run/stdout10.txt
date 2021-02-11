@@ -8,6 +8,8 @@
 [REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/.runs/.repos/repo@io.peasoup.inv.pub.tools.maven [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/.runs/.repos/repo@io.peasoup.inv.pub.tools.maven [.*] done
+[REPO] [CLASS] path: src/.*.groovy, package: .*
+[REPO] [CLASS] path: src/.*.groovy, package: .*
 [STATEMENT] [Script.*] => [REQUIRE] [Files] undefined [INIT]
 [STATEMENT] [Script.*] => [BROADCAST] [Maven] undefined [INIT]
 [io.peasoup.inv.pub.tools.maven] [.*/run/.runs/.repos/repo@io.peasoup.inv.pub.tools.maven/tools/maven/vars/inv.groovy] [Script.*]
@@ -15,6 +17,7 @@
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/.runs/.repos/repo@io.peasoup.inv.pub.io.files [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/.runs/.repos/repo@io.peasoup.inv.pub.io.files [.*] done
+[REPO] [CLASS] path: src/.*.groovy, package: .*
 [STATEMENT] [Script.*] => [BROADCAST] [Files] undefined [INIT]
 [io.peasoup.inv.pub.io.files] [.*/run/.runs/.repos/repo@io.peasoup.inv.pub.io.files/io/files/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----

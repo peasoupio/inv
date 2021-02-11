@@ -62,7 +62,9 @@ class HttpDescriptor {
         def urlStr = "http://127.0.0.1:${port}${context}".toString()
         def connection = (HttpURLConnection)new URL(urlStr).openConnection()
         connection.instanceFollowRedirects = false
-        connection.setRequestProperty("Cookie", cookie)
+
+        if (cookie)
+            connection.setRequestProperty("Cookie", cookie)
 
         String responseText
 
@@ -108,7 +110,9 @@ class HttpDescriptor {
         def urlStr = "http://127.0.0.1:${port}${context}".toString()
         def connection = (HttpURLConnection)new URL(urlStr).openConnection()
         connection.instanceFollowRedirects = false
-        connection.setRequestProperty("Cookie", cookie)
+
+        if (cookie)
+            connection.setRequestProperty("Cookie", cookie)
 
         String responseText = connection.with {
             setDoOutput(true)

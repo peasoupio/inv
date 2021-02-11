@@ -1,9 +1,14 @@
 package io.peasoup.inv
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import io.peasoup.inv.composer.WebServer
+import spark.Filter
+import spark.Request
+import spark.Response
 import spark.Spark
 
 class ComposerTests {
@@ -42,7 +47,10 @@ class ComposerTests {
         )
         webserver.routes()
 
-        Spark.awaitInitialization()
+        // Setup request and response loggers
+        setupLoggers()
+
+        Thread.sleep(2000)
 
         // Run Http script
         script.setDelegate(new HttpDescriptor(webserver))
@@ -56,6 +64,43 @@ class ComposerTests {
             Spark.stop()
             Spark.awaitStop()
         }
+    }
+
+    private setupLoggers() {
+        int reqCount = 0
+        int resCount = 0
+
+        // Register logging hooks
+        Spark.before(new Filter() {
+            @Override
+            void handle(Request request, Response response) throws Exception {
+                println "REQUEST #${++reqCount}: ${request.url()}"
+                println "\tHEADERS:"
+                request.headers().each {
+                    println "\t\t${it}:${request.headers(it)}"
+                }
+
+                if (request.body()) {
+                    println "\tBODY:"
+                    println "\t\t${request.body().trim()}"
+                }
+            }
+        })
+
+        Spark.after(new Filter() {
+            @Override
+            void handle(Request request, Response response) throws Exception {
+                println "RESPONSE #${++resCount}: ${request.url()}"
+                response.raw().toString().split(System.lineSeparator()).each {
+                    println "\t${it}]"
+                }
+
+                if (response.body()) {
+                    println "\tBODY:"
+                    println "\t\t${response.body().trim()}"
+                }
+            }
+        })
     }
 
 }

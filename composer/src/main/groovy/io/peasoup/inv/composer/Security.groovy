@@ -52,13 +52,13 @@ class Security {
     }
 
     void print(int port, boolean usingSsl) {
-        if (isSecurityless())
-            return
-
         Logger.trace "[COMPOSER] Open the following URL in your browser:"
         Logger.trace "[COMPOSER] \t${usingSsl? "https" : "http"}://localhost:${port}"
-        Logger.trace "[COMPOSER] For administrative privileges, open the following URL in your browser: "
-        Logger.trace "[COMPOSER] \t${usingSsl? "https" : "http"}://localhost:${port}/api/security/apply?t=${generatedToken}"
+
+        if (!isSecurityless()) {
+            Logger.trace "[COMPOSER] For administrative privileges, open the following URL in your browser: "
+            Logger.trace "[COMPOSER] \t${usingSsl ? "https" : "http"}://localhost:${port}/api/security/apply?t=${generatedToken}"
+        }
     }
 
     /**

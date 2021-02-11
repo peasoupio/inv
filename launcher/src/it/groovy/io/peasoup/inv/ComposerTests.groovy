@@ -46,11 +46,16 @@ class ComposerTests {
 
         // Run Http script
         script.setDelegate(new HttpDescriptor(webserver))
-        script.run()
 
-        // Stop server
-        Spark.stop()
-        Spark.awaitStop()
+        try {
+            script.run()
+        } catch(Exception ex) {
+            throw ex
+        } finally {
+            // Stop server
+            Spark.stop()
+            Spark.awaitStop()
+        }
     }
 
 }

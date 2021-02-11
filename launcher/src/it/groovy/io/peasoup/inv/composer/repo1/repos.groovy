@@ -1,4 +1,4 @@
-package io.peasoup.inv.composer.run1
+package io.peasoup.inv.composer.repo1
 
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static org.junit.Assert.*

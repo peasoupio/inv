@@ -42,6 +42,8 @@ class ComposerTests {
         )
         webserver.routes()
 
+        Spark.awaitInitialization()
+
         // Run Http script
         script.setDelegate(new HttpDescriptor(webserver))
         script.run()

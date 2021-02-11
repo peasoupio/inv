@@ -10,12 +10,12 @@ Feature: What are the responses of my Composer requests?
       | httpScript                                         | workDir           |
 
       # Repo
-      | io.peasoup.inv.composer.repo3.parameters           | /composer/repo3   |
-      | io.peasoup.inv.composer.repo2.add_and_remove       | /composer/repo2   |
       | io.peasoup.inv.composer.repo1.search               | /composer/repo1   |
+      | io.peasoup.inv.composer.repo1.repos                | /composer/repo1   |
+      | io.peasoup.inv.composer.repo2.add_and_remove       | /composer/repo2   |
+      | io.peasoup.inv.composer.repo3.parameters           | /composer/repo3   |
 
       # Run
-      | io.peasoup.inv.composer.run1.repos                 | /composer/run1    |
       | io.peasoup.inv.composer.run1.staging_unstaging     | /composer/run1    |
       | io.peasoup.inv.composer.run1.runfile               | /composer/run1    |
 

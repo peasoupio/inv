@@ -4,6 +4,7 @@ import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
 import org.apache.commons.lang.StringUtils
+import static org.junit.Assert.*
 
 class MainTest {
 
@@ -27,6 +28,7 @@ class MainTest {
     }
 
     private List logs
+    private boolean hasToFail
 
     @Given("cli options {string}")
     void cli_options(String cliOptions) {
@@ -45,7 +47,11 @@ class MainTest {
         if (StringUtils.isNotEmpty(workingDir))
             Home.setCurrent(new File(resourceTester.interpolate(workingDir)))
 
-        Main.start(options)
+        try {
+            Main.start(options)
+        } catch(Exception ex) {
+            hasToFail = true
+        }
     }
 
     @Then("I should be told the main exitCode {string} AND main stdout log file {string}")
@@ -55,5 +61,7 @@ class MainTest {
                 stdoutLogFile,
                 Main.exitCode()
         )
+
+        assertFalse hasToFail
     }
 }

@@ -1,7 +1,5 @@
 package io.peasoup.inv
 
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import io.cucumber.java.en.Given
 import io.cucumber.java.en.Then
 import io.cucumber.java.en.When
@@ -48,7 +46,8 @@ class ComposerTests {
         webserver.routes()
 
         // Setup request and response loggers
-        setupLoggers()
+        if (false)
+            setupLoggers()
 
         Thread.sleep(2000)
 

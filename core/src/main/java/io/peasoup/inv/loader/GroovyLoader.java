@@ -3,11 +3,11 @@ package io.peasoup.inv.loader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovy.transform.TypeChecked;
+import io.peasoup.inv.Home;
 import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
@@ -18,6 +18,7 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 
 public class GroovyLoader {
@@ -51,8 +52,11 @@ public class GroovyLoader {
     }
 
     private final boolean secureMode;
+
     private final EncapsulatedGroovyClassLoader generalClassLoader;
     private final EncapsulatedGroovyClassLoader securedClassLoader;
+
+    private final CompilationUnit compilationUnit;
 
     /**
      * Create a common loader
@@ -85,8 +89,56 @@ public class GroovyLoader {
         // Apply SecureTypeChecker to secured (de)compiler
         applySecureTypeCheckerConfigs(securedCompilerConfiguration);
 
-        this.generalClassLoader = new EncapsulatedGroovyClassLoader(compilerConfiguration);
         this.securedClassLoader = new EncapsulatedGroovyClassLoader(securedCompilerConfiguration);
+
+        // Create general classloader
+        this.generalClassLoader = new EncapsulatedGroovyClassLoader(compilerConfiguration);
+
+        File libFolder = new File(Home.getCurrent(), "target" + File.separatorChar + "classes");
+        compilerConfiguration.setTargetDirectory(libFolder);
+
+        // Register lib folder to general classloader
+        // Make sure it ends with a Path.separator, otherwise ClassLoader won't see it.
+        try {
+            this.generalClassLoader.addURL(new File(libFolder, File.separator).toURI().toURL());
+        } catch (MalformedURLException e) {
+            Logger.error(e);
+        }
+
+        // Create compilation unit
+        this.compilationUnit = new CompilationUnit(compilerConfiguration);
+    }
+
+    /**
+     * Parse class from a Groovy script file, with a predefined package.
+     * @param groovyFile Groovy file
+     * @param packageName Defines package for groovy file classes (nullable)
+     */
+    public void addClassFile(File groovyFile, String packageName)  {
+        if (groovyFile == null)
+            throw new IllegalArgumentException("groovyFile");
+
+        compilationUnit.addSource(new EncapsulatedGroovyClassLoader.SourceUnit(
+                groovyFile,
+                this.compilationUnit.getConfiguration(),
+                this.compilationUnit.getClassLoader(),
+                this.compilationUnit.getErrorCollector(),
+                packageName
+        ));
+    }
+
+    /**
+     * Compile all class files.
+     */
+    public void compileClasses() {
+        this.compilationUnit.addPhaseOperation((source, context, classNode) -> {
+            if (source instanceof EncapsulatedGroovyClassLoader.SourceUnit) {
+                EncapsulatedGroovyClassLoader.SourceUnit su = (EncapsulatedGroovyClassLoader.SourceUnit) source;
+                su.updateAst(classNode);
+            }
+        }, Phases.CONVERSION);
+
+        this.compilationUnit.compile();
     }
 
     /**
@@ -105,23 +157,6 @@ public class GroovyLoader {
                 "script:",
                 "groovy/script"),
             new EncapsulatedGroovyClassLoader.Config("text", null));
-    }
-
-    /**
-     * Parse class from a Groovy script file, with a predefined package.
-     * @param groovyFile Groovy file
-     * @param packageName Defines package for groovy file classes (nullable)
-     * @return A new class object
-     *
-     * @throws IOException
-     */
-    public Class<?> parseClassFile(File groovyFile, String packageName) throws IOException {
-        if (groovyFile == null)
-            throw new IllegalArgumentException("groovyFile");
-
-        return parseGroovyCodeSource(
-                new GroovyCodeSource(groovyFile),
-                new EncapsulatedGroovyClassLoader.Config("class", packageName));
     }
 
     /**

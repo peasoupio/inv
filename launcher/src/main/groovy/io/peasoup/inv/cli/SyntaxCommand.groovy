@@ -34,10 +34,12 @@ class SyntaxCommand implements CliCommand {
 
         syntaxFiles.each {
             try {
-                def result = commonLoader.parseClassFile(it, "empty.package")
+                commonLoader.addClassFile(it, null)
+                commonLoader.compileClasses()
+
                 def path = FileUtils.convertUnixPath(it.absolutePath)
 
-                if (result)
+                if (true)
                     Logger.info("[SYNTAX] startup succeeded: ${path}")
                 else {
                     Logger.warn("[SYNTAX] startup failed: ${path}")

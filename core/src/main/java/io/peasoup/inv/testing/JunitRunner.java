@@ -48,7 +48,7 @@ public class JunitRunner {
 
     public void addClass(String classLocation) {
         try {
-            groovyLoader.parseClassFile(new File(classLocation), packageName);
+            groovyLoader.addClassFile(new File(classLocation), packageName);
         } catch (Exception e) {
             Logger.error(e);
         }

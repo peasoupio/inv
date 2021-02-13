@@ -140,6 +140,9 @@ public class RepoFolderCollection {
         // Invoke groovy files
         invokeGroovyfiles(matches, packageName);
 
+        // Compile fetched classes
+        invExecutor.compileClasses();
+
         // Invoke inv files
         invokeInvfiles(matches, packageName, path, name);
     }

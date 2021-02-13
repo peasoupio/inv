@@ -56,8 +56,10 @@ Eval.me('1+1')
         def script3 = new File(TempHome.testResources, "/groovyloader-package-3.groovy")
         def script4 = new File(TempHome.testResources, "/groovyloader-package-4.groovy")
 
-        loader.parseClassFile(script3, "org.test.classes")
-        loader.parseClassFile(script4, "org.test.classes")
+        loader.addClassFile(script3, "org.test.classes")
+        loader.addClassFile(script4, "org.test.classes")
+
+        loader.compileClasses()
 
         loader.parseScriptFile(script1, "org.test.classes").run()
         loader.parseScriptFile(script2, "org.test.other.classes").run() // requires an "import"

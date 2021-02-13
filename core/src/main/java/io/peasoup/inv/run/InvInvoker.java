@@ -42,15 +42,22 @@ public class InvInvoker {
      * @param classFile   Classfile to load
      * @param packageName New package name assigned to the loaded classes
      */
-    public void invokeClass(File classFile, String packageName) {
+    public void addClass(File classFile, String packageName) {
         if (classFile == null)
             throw new IllegalArgumentException("classFile");
 
         try {
-            groovyLoader.parseClassFile(classFile, packageName);
+            groovyLoader.addClassFile(classFile, packageName);
         } catch (Exception e) {
             Logger.error(e);
         }
+    }
+
+    /**
+     * @link io.peasoup.inv.loader.GroovyLoader.compileClasses
+     */
+    public void compileClasses() {
+        groovyLoader.compileClasses();
     }
 
     /**

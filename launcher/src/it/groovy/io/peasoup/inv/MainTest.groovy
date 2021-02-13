@@ -57,10 +57,5 @@ class MainTest {
                 stdoutLogFile,
                 Main.exitCode()
         )
-
-        // For debugging
-        Home.getCurrent().eachFileRecurse {
-            println "[FILE] ${it.absolutePath}"
-        }
     }
 }

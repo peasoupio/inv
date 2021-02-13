@@ -47,12 +47,16 @@ public class InvExecutor {
         Logger.info("---- [DIGEST] opened ----");
     }
 
-    public void addClass(File classFile) {
-        this.addClass(classFile, null);
+    public void addClass(File classFile, String packageName) {
+        invInvoker.addClass(classFile, packageName);
     }
 
-    public void addClass(File classFile, String packageName) {
-        invInvoker.invokeClass(classFile, packageName);
+    /**
+     * Will compile all added classes since latest compile.
+     * It does manage deltas.
+     */
+    public void compileClasses() {
+        invInvoker.compileClasses();
     }
 
     /**
@@ -90,6 +94,7 @@ public class InvExecutor {
      */
     public PoolReport execute() {
 
+        compileClasses();
         fetchGetRepoSources();
 
         Logger.info("---- [DIGEST] started ----");
@@ -112,6 +117,8 @@ public class InvExecutor {
 
         return report;
     }
+
+
 
     /**
      * Fetch files added into the RepogGetHandler instance

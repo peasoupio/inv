@@ -2,12 +2,14 @@ package io.peasoup.inv.loader;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
+import lombok.Getter;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.ErrorCollector;
 
 import java.io.File;
 import java.security.CodeSource;
@@ -132,24 +134,6 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
 
                     break;
 
-                // Replace the actual package with the one provided, but takes the actual classes name
-                // Since a package could be provided, it's omitted and replaced with the one specified
-                case "class":
-
-                    // Only if package is provided
-                    if (StringUtils.isNotEmpty(packageName)) {
-                        ast.addStarImport(packageName + ".");
-                        ast.setPackageName(packageName);
-
-                        String currentClassName = classNode.getName();
-                        if (currentClassName.contains("."))
-                            classNode.setName(packageName + "." + currentClassName.substring(currentClassName.lastIndexOf(".") + 1));
-                        else
-                            classNode.setName(packageName + "." + currentClassName);
-                    }
-
-                    break;
-
                 // Same as scripts, but package is required, so we assume its available
                 case "test":
                     if (!useScriptName)
@@ -176,5 +160,34 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
         private String random() {
             return RandomStringUtils.random(9, true, true);
         }
+    }
+
+    // TODO Could this class replace completely Config (above)
+    static class SourceUnit extends org.codehaus.groovy.control.SourceUnit {
+
+        @Getter
+        private final String packageName;
+
+        public SourceUnit(File source, CompilerConfiguration configuration, GroovyClassLoader loader, ErrorCollector er, String packageName) {
+            super(source, configuration, loader, er);
+
+            this.packageName = packageName;
+        }
+
+        public void updateAst(ClassNode classNode) {
+            // Only if package is provided
+            if (StringUtils.isEmpty(packageName))
+                return;
+
+            ast.addStarImport(packageName + ".");
+            ast.setPackageName(packageName);
+
+            String currentClassName = classNode.getName();
+            if (currentClassName.contains("."))
+                classNode.setName(packageName + "." + currentClassName.substring(currentClassName.lastIndexOf(".") + 1));
+            else
+                classNode.setName(packageName + "." + currentClassName);
+        }
+
     }
 }

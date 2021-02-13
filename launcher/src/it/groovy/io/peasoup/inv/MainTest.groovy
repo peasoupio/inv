@@ -59,7 +59,8 @@ class MainTest {
         )
 
         // For debugging
-        "tree -a".execute(System.getenv().collect{ "${it.key}=${it.value}"}, Home.getCurrent())
-            .waitForProcessOutput(System.out, System.err)
+        Home.getCurrent().eachFileRecurse {
+            println "[FILE] ${it.absolutePath}"
+        }
     }
 }

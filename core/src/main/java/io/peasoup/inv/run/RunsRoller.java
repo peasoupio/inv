@@ -14,32 +14,26 @@ import java.util.OptionalInt;
 public class RunsRoller {
     private static final RunsRoller latest = new RunsRoller();
 
-    private static final int FIRST_RUN_INDEX = 1;
-
-    /**
-     * Gets the ".runs/" folder location
-     * @return File object representation of the location
-     */
-    public static File runsFolder() {
-        return new File(Home.getCurrent(), ".runs/");
-    }
-
     /**
      * Gets the latest roller instance.
      * @return Singleton instance of RunsRoller.
      */
     public static RunsRoller getLatest() {
         // Make sure .runs/ exists
-        if (!runsFolder().mkdirs() && !runsFolder().exists())
-            Logger.warn("Could not create runs (./runs) folder");
+        if (!Home.getRunsFolder().mkdirs() && !Home.getRunsFolder().exists())
+            Logger.warn("Could not create runs folder");
 
         return latest;
     }
 
+    /**
+     * Force delete the runs folder.
+     * @return True if deleted, otherwise false.
+     */
     public static boolean forceDelete() {
         try {
             getLatest().closeRunfileOutputStream();
-            ResourceGroovyMethods.deleteDir(RunsRoller.runsFolder());
+            ResourceGroovyMethods.deleteDir(Home.getRunsFolder());
 
             return true;
         } catch (IOException e) {
@@ -49,23 +43,19 @@ public class RunsRoller {
     }
 
     public File folder() {
-        File latestFolder = new File(runsFolder(), latestIndex().toString());
-        if (!latestFolder.exists() &&!latestFolder.mkdirs())
-            Logger.warn("Could not create the latest folder");
-
-        return latestFolder;
+        return new File(Home.getRunsFolder(), latestIndex().toString());
     }
 
     public File failFolder() {
-        return new File(runsFolder(), "latestFail/");
+        return new File(Home.getRunsFolder(), "latestFail/");
     }
 
     public File successFolder() {
-        return new File(runsFolder(), "latestSuccess/");
+        return new File(Home.getRunsFolder(), "latestSuccess/");
     }
 
     private File latestSymlink() {
-        return new File(runsFolder(), "latest/");
+        return new File(Home.getRunsFolder(), "latest/");
     }
 
     private OutputStream latestRunFileOutputStream;
@@ -102,7 +92,7 @@ public class RunsRoller {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void roll() throws IOException {
         int nextIndex = hasRuns()? latestIndex() + 1 : 1;
-        File nextFolder = new File(runsFolder(), Integer.toString(nextIndex));
+        File nextFolder = new File(Home.getRunsFolder(), Integer.toString(nextIndex));
 
         // Clean symlink for previous roll
         if (latestSymlink().exists())
@@ -123,24 +113,25 @@ public class RunsRoller {
     }
 
     private Integer latestIndex() {
-        File[] files = runsFolder().listFiles();
+        File[] files = Home.getRunsFolder().listFiles();
 
         if (files == null || files.length == 0)
-            return FIRST_RUN_INDEX;
+            return 0;
 
         OptionalInt max = Arrays.stream(files)
                 .filter(file -> file.isDirectory() && StringUtils.isNumeric(file.getName()))
                 .mapToInt(file -> Integer.parseInt(file.getName()))
                 .max();
 
-        if (max.isPresent())
+        if (max.isPresent()) {
             return max.getAsInt();
-        return
-            FIRST_RUN_INDEX;
+        }
+
+        return 0;
     }
 
     private boolean hasRuns() {
-        File[] files =  runsFolder().listFiles();
+        File[] files =  Home.getRunsFolder().listFiles();
 
         if (files == null)
             return false;

@@ -94,13 +94,12 @@ public class GroovyLoader {
         // Create general classloader
         this.generalClassLoader = new EncapsulatedGroovyClassLoader(compilerConfiguration);
 
-        File libFolder = new File(Home.getCurrent(), "target" + File.separatorChar + "classes");
-        compilerConfiguration.setTargetDirectory(libFolder);
+        compilerConfiguration.setTargetDirectory(Home.getClassesFolder());
 
         // Register lib folder to general classloader
         // Make sure it ends with a Path.separator, otherwise ClassLoader won't see it.
         try {
-            this.generalClassLoader.addURL(new File(libFolder, File.separator).toURI().toURL());
+            this.generalClassLoader.addURL(new File(Home.getClassesFolder(), File.separator).toURI().toURL());
         } catch (MalformedURLException e) {
             Logger.error(e);
         }

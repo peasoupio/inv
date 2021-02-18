@@ -23,7 +23,7 @@ class PromoteCommand implements CliCommand {
         File toPromote = DEFAULT
 
         if (runIndex && runIndex.isInteger())
-            toPromote = new File(RunsRoller.runsFolder(), runIndex.toString())
+            toPromote = new File(Home.runsFolder, runIndex.toString())
 
         if (!toPromote.exists()) {
             Logger.warn "You attempt to promote a non-existing run"

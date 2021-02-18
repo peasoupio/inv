@@ -28,11 +28,14 @@ class InitRunCommand implements CliCommand {
             return 2
         }
 
-        // Change currentHome for current process (and others spawned by composer.Execution
-        Home.setCurrent(report.descriptor.getRepoPath())
+        // Change workspace to the init repo path, but keep current home.
+        def initialSettings = [
+                initFile : initRepoFileLocation,
+                workspace: report.descriptor.getRepoPath().absolutePath
+        ]
 
         Logger.trace "[COMPOSER] Starting server..."
-        def composerCommand = new ComposerCommand(initRepoFileLocation)
+        def composerCommand = new ComposerCommand(initialSettings)
         return composerCommand.call(args)
     }
 

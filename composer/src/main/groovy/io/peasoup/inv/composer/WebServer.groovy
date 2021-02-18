@@ -55,8 +55,8 @@ class WebServer {
 
         // Create required folders
         // ./.runs
-        if (!RunsRoller.runsFolder().exists())
-            RunsRoller.runsFolder().mkdirs()
+        if (!Home.getRunsFolder().exists())
+            Home.getRunsFolder().mkdirs()
 
         // ./.repos
         def reposLocationFolder = new File(reposLocation)

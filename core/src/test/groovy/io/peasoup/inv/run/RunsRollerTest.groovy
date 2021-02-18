@@ -1,5 +1,6 @@
 package io.peasoup.inv.run
 
+import io.peasoup.inv.Home
 import io.peasoup.inv.TempHome
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,27 +12,27 @@ class RunsRollerTest {
 
     @Test
     void ok() {
-        assertNotNull RunsRoller.runsFolder()
-        assertTrue RunsRoller.runsFolder().exists()
+        assertNotNull Home.getRunsFolder()
+        assertTrue Home.getRunsFolder().exists()
     }
 
     @Test
     void roll() {
         RunsRoller.forceDelete();
-        assertNull RunsRoller.runsFolder().listFiles()
+        assertNull Home.getRunsFolder().listFiles()
 
         RunsRoller.getLatest().roll()
 
-        assertNotNull RunsRoller.runsFolder().listFiles()
-        assertEquals 2, RunsRoller.runsFolder().listFiles().length
-        assertTrue RunsRoller.runsFolder().listFiles().any { it.name == "latest" }
-        assertTrue RunsRoller.runsFolder().listFiles().any { it.name == "1" }
+        assertNotNull Home.getRunsFolder().listFiles()
+        assertEquals 2, Home.getRunsFolder().listFiles().length
+        assertTrue Home.getRunsFolder().listFiles().any { it.name == "latest" }
+        assertTrue Home.getRunsFolder().listFiles().any { it.name == "1" }
     }
 
     @Test
     void roll_multiple_times() {
-        RunsRoller.runsFolder().deleteDir()
-        assertNull RunsRoller.runsFolder().listFiles()
+        Home.getRunsFolder().deleteDir()
+        assertNull Home.getRunsFolder().listFiles()
 
         int amount = 12
 
@@ -39,12 +40,12 @@ class RunsRollerTest {
             RunsRoller.getLatest().roll()
         })
 
-        assertNotNull RunsRoller.runsFolder().listFiles() != null
-        assertEquals  amount + 1, RunsRoller.runsFolder().listFiles().length
-        assertTrue RunsRoller.runsFolder().listFiles().any { it.name == "latest" }
+        assertNotNull Home.getRunsFolder().listFiles() != null
+        assertEquals  amount + 1, Home.getRunsFolder().listFiles().length
+        assertTrue Home.getRunsFolder().listFiles().any { it.name == "latest" }
 
         1.upto(amount, { index ->
-            assertTrue RunsRoller.runsFolder().listFiles().any { it.name == index.toString() }
+            assertTrue Home.getRunsFolder().listFiles().any { it.name == index.toString() }
         })
     }
 

@@ -1,3 +1,3 @@
-[REPO] name: push1, path: .*/hooks/.runs/.repos/push1@push1 [PUSH] start
+[REPO] name: push1, path: .*/hooks/target/repos/push1@push1 [PUSH] start
 [REPO] .* .*/hooks/.*
-[REPO] name: push1, path: .*/hooks/.runs/.repos/push1@push1 [PUSH] done
+[REPO] name: push1, path: .*/hooks/target/repos/push1@push1 [PUSH] done

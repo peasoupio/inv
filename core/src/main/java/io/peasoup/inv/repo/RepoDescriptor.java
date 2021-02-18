@@ -3,6 +3,7 @@ package io.peasoup.inv.repo;
 import groovy.json.JsonSlurper;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import io.peasoup.inv.Home;
 import io.peasoup.inv.Logger;
 import io.peasoup.inv.MissingOptionException;
 import io.peasoup.inv.io.FileUtils;
@@ -209,7 +210,7 @@ public class RepoDescriptor {
     }
 
     private void generateRepoPaths() {
-        this.repoPath = new File(getReposPath(),
+        this.repoPath = new File(Home.getReposFolder(),
             scriptFile.getName().split("\\.")[0] +
             "@" +
             name
@@ -217,17 +218,6 @@ public class RepoDescriptor {
 
         this.completeRepoPath = new File(this.repoPath,
                 path);
-    }
-
-    /**
-     * Get the repos path (inside .runs folder).
-     *
-     * @return The path
-     */
-    public static File getReposPath() {
-        return new File(
-                RunsRoller.runsFolder(),
-                ".repos");
     }
 
 

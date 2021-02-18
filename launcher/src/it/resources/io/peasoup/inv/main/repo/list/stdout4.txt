@@ -3,9 +3,9 @@
 [VARS] VERSION: .*
 ---- [DIGEST] opened ----
 [REPO] script: my-repo, parameter: .*/main/repo/list/repo-values.json
-[REPO] name: my-repo, path: .*/main/repo/list/.runs/.repos/repo@my-repo [INIT] start
+[REPO] name: my-repo, path: .*/main/repo/list/target/repos/repo@my-repo [INIT] start
 [REPO] .* .*/main/repo/list/.*
-[REPO] name: my-repo, path: .*/main/repo/list/.runs/.repos/repo@my-repo [INIT] done
+[REPO] name: my-repo, path: .*/main/repo/list/target/repos/repo@my-repo [INIT] done
 ---- [DIGEST] started ----
 ---- [DIGEST] completed ----
 Completed INV(s): 0

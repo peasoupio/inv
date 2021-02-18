@@ -9,14 +9,14 @@ import java.nio.file.Paths
 @CompileStatic
 class ComposerCommand implements CliCommand {
 
-    private final String initFileLocation
+    private final Map initialSettings
 
     ComposerCommand() {
         this(null)
     }
 
-    ComposerCommand(String initFileLocation) {
-        this.initFileLocation = initFileLocation
+    ComposerCommand(Map initialSettings) {
+        this.initialSettings = initialSettings
     }
 
     @Override
@@ -29,10 +29,13 @@ class ComposerCommand implements CliCommand {
                 ComposerCommand.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toFile()
 
         Map settings = [
-                initFile   : this.initFileLocation,
                 appLauncher: jarLocation.absolutePath,
                 version    : SystemInfo.version()
         ]
+
+        // Add initial settings
+        if (initialSettings != null)
+            settings += initialSettings
 
         // Check whether or not Composer will use the AppLauncher or classic approach.
         if (args["<port>"])

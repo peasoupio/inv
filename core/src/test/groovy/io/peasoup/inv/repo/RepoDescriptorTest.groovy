@@ -36,7 +36,7 @@ class RepoDescriptorTest {
         def descriptor = new RepoDescriptor(scriptFile)
         descriptor.name(name)
 
-        File expectedRepopath = new File(RunsRoller.runsFolder(), ".repos" + File.separator + scriptFile.name.split("\\.")[0] + "@" + name)
+        File expectedRepopath = new File(Home.getReposFolder(), scriptFile.name.split("\\.")[0] + "@" + name)
 
         assertEquals(RepoDescriptor.DEFAULT_PATH, descriptor.path)
         assertEquals(expectedRepopath, descriptor.repoPath)

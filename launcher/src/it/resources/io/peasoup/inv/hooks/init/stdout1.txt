@@ -1,3 +1,3 @@
-[REPO] name: init1, path: .*/hooks/.runs/.repos/init1@init1 [INIT] start
+[REPO] name: init1, path: .*/hooks/target/repos/init1@init1 [INIT] start
 [REPO] .* .*/hooks/.*
-[REPO] name: init1, path: .*/hooks/.runs/.repos/init1@init1 [INIT] done
+[REPO] name: init1, path: .*/hooks/target/repos/init1@init1 [INIT] done

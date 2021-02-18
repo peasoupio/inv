@@ -21,7 +21,7 @@ class ComposerCommandTest {
 
     @Test
     void ok() {
-        assertEquals 0, new ComposerCommand().call("<port>": "8081")
+        assertEquals 0, new ComposerCommand().call("<port>": "18081")
     }
 
     @Test

@@ -65,9 +65,6 @@ class Execution {
         if (isRunning())
             return new ExecutionError(message: "Already running")
 
-        // Create new run folder
-        RunsRoller.runsFolder().mkdirs()
-
         // Erase previous logs
         latestLog().delete()
 
@@ -92,51 +89,45 @@ class Execution {
             // Do the actual execution
             currentProcess = args.execute(envs, Home.getCurrent())
 
+            def stdoutWriter = new StringWriter() {
+                @CompileStatic
+                @Override
+                void write(String str) {
+                    if (str == "\n")
+                        return
+
+                    // Make sure to create from latest folder
+                    if (!logWriter)
+                        logWriter = latestLog().newWriter()
+
+                    logWriter.writeLine(str)
+                    streamMessage(str)
+
+                    System.out.println str
+                }
+            }
+
+            def stderrWriter = stdoutWriter
+
             // Process output
-            currentProcess.waitForProcessOutput(
-                    new StringWriter() {
-                        @CompileStatic
-                        @Override
-                        void write(String str) {
-                            if (str == "\n")
-                                return
+            currentProcess.waitForProcessOutput(stdoutWriter, stderrWriter)
 
-                            // Make sure to create from latest folder
-                            if (!logWriter)
-                                logWriter = latestLog().newWriter()
-
-                            logWriter.writeLine(str)
-                            streamMessage(str)
-
-                            System.out.println str
-                        }
-                    },
-                    new StringWriter() {
-                        @CompileStatic
-                        @Override
-                        void write(String str) {
-                            if (str == "\n")
-                                return
-
-                            // Make sure to create from latest folder
-                            if (!logWriter)
-                                logWriter = latestLog().newWriter()
-
-                            logWriter.writeLine(str)
-                            streamMessage(str)
-
-                            System.out.println str
-                        }
-                    }
-            )
             println "Execution: stopped"
 
             // Set latest execution time
             lastExecution = new Date().time
 
             // Flushing writer(s)
-            if (logWriter)
+            stdoutWriter.flush()
+            stdoutWriter.close()
+
+            stderrWriter.flush()
+            stderrWriter.close()
+
+            if (logWriter) {
                 logWriter.flush()
+                logWriter.close()
+            }
 
             // Close sessions
             MessageStreamer.sessions.each { it.close() }
@@ -170,7 +161,7 @@ class Execution {
                         startedOn: lastExecutionStartedOn,
                         repos    : []
                 ],
-                executions   : !RunsRoller.runsFolder().exists() ? 0 : RunsRoller.runsFolder().listFiles()
+                executions   : !Home.runsFolder.exists() ? 0 : Home.runsFolder.listFiles()
                         .findAll { it.name.isInteger() }
                         .collect { it.lastModified() },
                 running      : isRunning(),
@@ -241,7 +232,7 @@ class Execution {
     }
 
     static File latestRepoFiles() {
-        return new File(RunsRoller.runsFolder(), "repos.json")
+        return new File(Home.runsFolder, "repos.json")
     }
 
     static List<String> latestRepoFilesList() {

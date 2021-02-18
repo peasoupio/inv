@@ -34,7 +34,7 @@ class PromoteCommandTest {
 
     @Test
     void runfile_not_existing() {
-        def run = new File(RunsRoller.runsFolder(), "10")
+        def run = new File(Home.getRunsFolder(), "10")
         run.mkdirs()
 
         assertEquals(2, new PromoteCommand().call("<runIndex>": "10"))

@@ -1,4 +1,4 @@
-[REPO] name: version1, path: .*/hooks/.runs/.repos/version1@version1 [VERSION] start
+[REPO] name: version1, path: .*/hooks/target/repos/version1@version1 [VERSION] start
 [REPO] .* .*/hooks/.*
 v1
-[REPO] name: version1, path: .*/hooks/.runs/.repos/version1@version1 [VERSION] done
+[REPO] name: version1, path: .*/hooks/target/repos/version1@version1 [VERSION] done

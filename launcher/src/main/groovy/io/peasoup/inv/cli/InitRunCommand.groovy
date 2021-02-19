@@ -67,19 +67,20 @@ Environment variables:
 
     private RepoExecutor.RepoHookExecutionReport processREPO(String initRepoFileLocation) {
         String actualFileLocation = initRepoFileLocation
-        File repoFile
-
-        // Check if init file location is an URL
-        if (UrlValidator.instance.isValid(initRepoFileLocation)) {
-            repoFile = RepoURLFetcher.fetch(initRepoFileLocation)
-        } else
-            repoFile = new File(actualFileLocation)
-
-        if (!repoFile.exists())
-            return null
 
         def repoExecutor = new RepoExecutor()
-        repoExecutor.addScript(repoFile)
+
+        try {
+            // Check if init file location is an URL
+            if (UrlValidator.instance.isValid(initRepoFileLocation)) {
+                repoExecutor.addScript(initRepoFileLocation)
+            } else
+                repoExecutor.addScript(new File(actualFileLocation))
+        } catch(Exception ex) {
+            Logger.warn(ex.getMessage())
+            return null
+        }
+
         def reports = repoExecutor.execute()
 
         if (reports.any { !it.isOk() }) {

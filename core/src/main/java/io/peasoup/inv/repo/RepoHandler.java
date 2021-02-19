@@ -13,6 +13,9 @@ public class RepoHandler {
 
     private static final String HELP_LINK = "https://github.com/peasoupio/inv/wiki/REPO-groovy-Syntax";
 
+    private final RepoExecutor executor;
+    private final File parametersFile;
+
     private final File scriptFile;
 
     public RepoHandler(RepoExecutor executor, File scriptFile, File parametersFile) {
@@ -28,6 +31,13 @@ public class RepoHandler {
 
     public RepoHandler(RepoExecutor executor, File scriptFile) {
         this(executor, scriptFile, null);
+    }
+
+    public void call(String remoteUrl) {
+        if (StringUtils.isEmpty(remoteUrl))
+            throw new IllegalArgumentException("remoteUrl");
+
+        this.executor.addScript(remoteUrl, parametersFile);
     }
 
     @SuppressWarnings("rawtypes")
@@ -55,9 +65,4 @@ public class RepoHandler {
 
         executor.add(repoDescriptor);
     }
-
-    private final RepoExecutor executor;
-    private final File parametersFile;
-
-
 }

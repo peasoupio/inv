@@ -4,6 +4,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.FgroupLoader;
 import io.peasoup.inv.run.InvExecutor;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -13,8 +14,10 @@ import java.util.Map;
 
 public class RepoFolderCollection {
 
-    private final RepoExecutor repoExecutor = new RepoExecutor();
     private final Map<RepoDescriptor, FgroupLoader.RepoMatches> matchesCache = new HashMap<>();
+
+    @Getter
+    private final RepoExecutor repoExecutor = new RepoExecutor();
 
     private final InvExecutor invExecutor;
 

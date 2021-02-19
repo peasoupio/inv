@@ -4,7 +4,7 @@
 ---- [DIGEST] opened ----
 [STATEMENT] [main1] => [REQUIRE] [Maven] undefined [INIT]
 [undefined] [.*/run/main10.groovy] [main1]
-[REPO] script: io.peasoup.inv.pub.tools.maven, parameter: .*/run/target/repos/repo-values.json
+[REPO] script: io.peasoup.inv.pub.tools.maven, parameter: .*-values.json
 [REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven [.*] done
@@ -13,7 +13,7 @@
 [STATEMENT] [Script.*] => [REQUIRE] [Files] undefined [INIT]
 [STATEMENT] [Script.*] => [BROADCAST] [Maven] undefined [INIT]
 [io.peasoup.inv.pub.tools.maven] [.*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven/tools/maven/vars/inv.groovy] [Script.*]
-[REPO] script: io.peasoup.inv.pub.io.files, parameter: .*/run/target/repos/repo-values.json
+[REPO] script: io.peasoup.inv.pub.io.files, parameter: .*-values.json
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/target/repos/repo@io.peasoup.inv.pub.io.files [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/target/repos/repo@io.peasoup.inv.pub.io.files [.*] done

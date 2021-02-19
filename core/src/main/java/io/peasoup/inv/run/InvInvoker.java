@@ -7,7 +7,11 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import io.peasoup.inv.loader.GroovyLoader;
 import io.peasoup.inv.loader.YamlLoader;
+import io.peasoup.inv.repo.RepoDescriptor;
+import io.peasoup.inv.repo.RepoHandler;
+import io.peasoup.inv.repo.RepoInvoker;
 import io.peasoup.inv.repo.RepoLoadHandler;
+import io.peasoup.inv.repo.yaml.YamlRepoHandler;
 import io.peasoup.inv.run.yaml.YamlInvHandler;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
@@ -22,9 +26,6 @@ public class InvInvoker {
     private final GroovyLoader groovyLoader;
     private final YamlLoader yamlLoader;
 
-    @Getter
-    private final RepoLoadHandler repoLoadHandler;
-
     public InvInvoker(InvExecutor invExecutor) {
         if (invExecutor == null)
             throw new IllegalArgumentException("invExecutor");
@@ -32,8 +33,6 @@ public class InvInvoker {
         this.invExecutor= invExecutor;
         this.groovyLoader = GroovyLoader.newBuilder().build();
         this.yamlLoader = new YamlLoader();
-
-        this.repoLoadHandler = new RepoLoadHandler();
     }
 
     /**
@@ -122,17 +121,29 @@ public class InvInvoker {
 
     private void parseYaml(File scriptFile, String pwd, String repo) {
 
-        // Create YAML handler
+        // INV YAML handler
         YamlInvHandler yamlInvHandler = new YamlInvHandler(
                 invExecutor,
                 yamlLoader,
                 scriptFile,
                 FileUtils.addEndingSlash(pwd),
-                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO,
-                repoLoadHandler);
+                StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
         try {
             yamlInvHandler.call();
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+
+        // REPO YAML handler
+        YamlRepoHandler yamlRepoHandler = new YamlRepoHandler(
+                invExecutor.getRepoFolderCollection().getRepoExecutor(),
+                yamlLoader,
+                scriptFile,
+                RepoInvoker.expectedParametersfileLocation(scriptFile));
+
+        try {
+            yamlRepoHandler.call();
         } catch (Exception e) {
             Logger.error(e);
         }
@@ -156,10 +167,15 @@ public class InvInvoker {
                 FileUtils.addEndingSlash(pwd),
                 StringUtils.isNotEmpty(repo) ? repo : UNDEFINED_REPO);
 
+        RepoHandler repoHandler = new RepoHandler(
+                invExecutor.getRepoFolderCollection().getRepoExecutor(),
+                scriptFile,
+                RepoInvoker.expectedParametersfileLocation(scriptFile));
+
         Binding binding = myNewScript.getBinding();
         binding.setProperty("inv", invHandler);
+        binding.setProperty("repo", repoHandler);
         binding.setProperty("debug", DebugLogger.Instance);
-        binding.setProperty("load", repoLoadHandler);
 
         try {
             myNewScript.run();

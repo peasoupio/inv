@@ -1,6 +1,7 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Logger;
+import io.peasoup.inv.repo.RepoExecutor;
 import io.peasoup.inv.repo.RepoFolderCollection;
 import io.peasoup.inv.repo.RepoURLFetcher;
 import lombok.Getter;
@@ -39,6 +40,7 @@ public class InvExecutor {
      */
     public InvExecutor() {
         invInvoker = new InvInvoker(this);
+
         pool = new NetworkValuablePool();
         report = new PoolReport();
 
@@ -124,27 +126,9 @@ public class InvExecutor {
      * Fetch files added into the RepogGetHandler instance
      */
     private void fetchGetRepoSources() {
-        Queue<String> getQueue = invInvoker.getRepoLoadHandler().getSources();
 
         // Has any INV declared a load statement
-        while(!getQueue.isEmpty()) {
-
-            // Process current batch
-            while (!getQueue.isEmpty()) {
-                String src = getQueue.poll();
-                if (src == null)
-                    break;
-
-                // Fetch the actual content into a temp file
-                File fetchedTempFile = RepoURLFetcher.fetch(src);
-                if (fetchedTempFile == null) {
-                    Logger.warn("Could not fetch " + src);
-                    continue;
-                }
-
-                // Add temp file location into repo collection
-                repoFolderCollection.add(fetchedTempFile.getAbsolutePath());
-            }
+        while(repoFolderCollection.getRepoExecutor().hasUnexecutedRepos()) {
 
             // Read current batch
             if (!repoFolderCollection.bulkRead())

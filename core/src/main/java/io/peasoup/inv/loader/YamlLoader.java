@@ -115,6 +115,5 @@ public class YamlLoader {
 
         private List<YamlInvDescriptor> inv;
         private List<YamlRepoDescriptor> repo;
-        private Set<String> load;
     }
 }

@@ -4,6 +4,7 @@ import io.peasoup.inv.Logger;
 import io.peasoup.inv.io.FileUtils;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.File;
@@ -16,9 +17,14 @@ import java.util.concurrent.Future;
 public class RepoExecutor {
 
     private final RepoInvoker repoInvoker;
-    private final Map<String, RepoDescriptor> repos;
-
     private final Set<String> processedRepos;
+
+    /**
+     * Gets the map of RepoDescriptor with their respective name
+     * @return Map of <String, RepoDescriptor>
+     */
+    @Getter
+    private final Map<String, RepoDescriptor> repos;
 
     public RepoExecutor() {
         this.repoInvoker = new RepoInvoker(this);
@@ -50,6 +56,30 @@ public class RepoExecutor {
     }
 
     /**
+     * Add a script from a remote url without a specific parameter file
+     * @param remoteUrl The remote url
+     */
+    public void addScript(String remoteUrl) {
+        this.addScript(remoteUrl, null);
+    }
+
+    /**
+     * Add a script from a remote url with a specific parameter file
+     * @param remoteUrl The remote url
+     * @param parametersFile The parameter file (has to exist)
+     */
+    public void addScript(String remoteUrl, File parametersFile) {
+        if (StringUtils.isEmpty(remoteUrl))
+            throw new IllegalArgumentException("remoteUrl");
+
+        File localFile = RepoURLFetcher.fetch(remoteUrl);
+        if (localFile == null || !localFile.exists())
+            throw new IllegalStateException("Could not extract remote file from the specified url '" + remoteUrl + "'");
+
+        repoInvoker.invokeScript(localFile, parametersFile);
+    }
+
+    /**
      * Adds a RepoDescriptor instance to the executor
      * @param descriptor RepoDescriptor instance
      */
@@ -58,6 +88,14 @@ public class RepoExecutor {
             throw new IllegalArgumentException("descriptor");
 
         repos.put(descriptor.getName(), descriptor);
+    }
+
+    /**
+     * Indicate wheter or not some REPOs are left to be execute.
+     * @return True if REPO(s) needs execution, otherwise false
+     */
+    public boolean hasUnexecutedRepos() {
+        return processedRepos.size() < repos.size();
     }
 
     /**
@@ -136,13 +174,7 @@ public class RepoExecutor {
         return reports;
     }
 
-    /**
-     * Gets the map of RepoDescriptor with their respective name
-     * @return Map of <String, RepoDescriptor>
-     */
-    public final Map<String, RepoDescriptor> getRepos() {
-        return repos;
-    }
+
 
 
     public static class RepoHookExecutionReport {

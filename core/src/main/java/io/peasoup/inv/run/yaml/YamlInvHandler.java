@@ -26,15 +26,12 @@ public class YamlInvHandler {
     private final String pwd;
     private final String repo;
 
-    private final RepoLoadHandler repoLoadHandler;
-
     public YamlInvHandler(
             @NonNull InvExecutor invExecutor,
             @NonNull YamlLoader yamlLoader,
             @NonNull File yamlFile,
             @NonNull String pwd,
-            @NonNull String repo,
-            @NonNull RepoLoadHandler repoLoadHandler) {
+            @NonNull String repo) {
         if (StringUtils.isEmpty(pwd)) throw new IllegalArgumentException("pwd");
         if (StringUtils.isEmpty(repo)) throw new IllegalArgumentException("repo");
 
@@ -43,8 +40,6 @@ public class YamlInvHandler {
         this.yamlFile = yamlFile;
         this.pwd = pwd;
         this.repo = repo;
-
-        this.repoLoadHandler = repoLoadHandler;
     }
 
     public void call() throws MissingOptionException, IOException {
@@ -69,13 +64,6 @@ public class YamlInvHandler {
 
         // Set Script filename
         context.setBaseFilename(yamlFile.getAbsolutePath());
-
-        // Process "get" statements
-        if (descriptor.getLoad() != null) {
-            for (String src : descriptor.getLoad()) {
-                repoLoadHandler.call(src);
-            }
-        }
 
         // Process YAML INV descriptor into real INV instances
         for (YamlInvDescriptor yamlInvDescriptor : descriptor.getInv()) {

@@ -65,7 +65,6 @@ class Boot {
                     webServer.run = new RunFile(runFile)
 
                 readReposFiles()
-                readReposHrefs()
                 stageSettings()
                 readRunFile()
 
@@ -104,50 +103,6 @@ class Boot {
         progress.start {
             files.each {
                 webServer.repos.load(it)
-
-                thingsDone.incrementAndGet()
-                progress.step()
-            }
-        }
-    }
-
-    protected void readReposHrefs() {
-        File hrefFolder = webServer.repos.hrefFolder
-        Logger.trace "[COMPOSER] Checking for hrefs files in '${hrefFolder.absolutePath}'..."
-
-        def files = Pattern.get(["*.href"], RepoInvoker.DEFAULT_EXCLUDED, hrefFolder, false)
-
-        if (!files) {
-            Logger.warn "...files are not present right now."
-            return
-        }
-
-        thingsToDo.addAndGet(files.size())
-
-        def progress = new Progressbar("[COMPOSER] Reading from '${hrefFolder.absolutePath}'".toString(), files.size(), false)
-        progress.start {
-            files.each {
-                String href = it.text
-                if (StringUtils.isEmpty(href))
-                    return
-
-                href = href.trim()
-                if (!UrlValidator.instance.isValid(href))
-                    return
-
-                HttpURLConnection repoConn = (HttpURLConnection)new URL(href).openConnection()
-                if (!HttpURLConnection.HTTP_OK.equals(repoConn.getResponseCode()))
-                    return
-
-                String repoFileContent = repoConn.inputStream.text
-
-                File localRepofile = new File(webServer.repos.repoFolder, FilenameUtils.getName(href))
-                if (localRepofile.exists())
-                    localRepofile.delete()
-
-                localRepofile << repoFileContent
-
-                webServer.repos.load(localRepofile)
 
                 thingsDone.incrementAndGet()
                 progress.step()

@@ -21,7 +21,6 @@ class WebServer {
     Map webServerConfigs
     String runLocation
     String reposLocation
-    String hrefsLocation
 
     Boot boot
     Settings settings
@@ -51,29 +50,23 @@ class WebServer {
 
         runLocation = webServerConfigs.workspace as String
         reposLocation = webServerConfigs.workspace + "/repos" as String
-        hrefsLocation = webServerConfigs.workspace + "/hrefs" as String
 
         // Create required folders
-        // ./.runs
+        // ./target/runs
         if (!Home.getRunsFolder().exists())
             Home.getRunsFolder().mkdirs()
 
-        // ./.repos
+        // ./repos
         def reposLocationFolder = new File(reposLocation)
         if (!reposLocationFolder.exists())
             reposLocationFolder.mkdirs()
-
-        // ./hrefs
-        def hrefsLocationFolder = new File(hrefsLocation)
-        if (!hrefsLocationFolder.exists())
-            hrefsLocationFolder.mkdirs()
 
         boot = new Boot(this)
         settings = new Settings(new File(runLocation, Settings.DEFAULT_SETTINGS_NAME))
         security = new Security(settings)
         pagination = new Pagination(settings)
 
-        repos = new RepoFileCollection(reposLocationFolder, hrefsLocationFolder)
+        repos = new RepoFileCollection(reposLocationFolder)
         exec = new Execution(appLauncher(), reposLocationFolder)
     }
 

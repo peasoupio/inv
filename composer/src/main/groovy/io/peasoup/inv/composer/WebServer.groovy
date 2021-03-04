@@ -42,7 +42,7 @@ class WebServer {
             throw new IllegalArgumentException("Args must include a 'version' (String) property.")
 
         webServerConfigs = [
-                port: 8080,
+                port: 18080,
                 workspace: Home.getCurrent().absolutePath
         ] + args
 

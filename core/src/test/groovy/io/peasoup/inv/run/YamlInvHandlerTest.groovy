@@ -19,8 +19,8 @@ class YamlInvHandlerTest {
         def executor = new InvExecutor()
         executor.addScript(yamlFile)
 
-        def report = executor.execute()
-        assertTrue report.isOk();
+        def results = executor.execute()
+        assertTrue results.report.isOk();
     }
 
     @Test

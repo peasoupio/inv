@@ -11,7 +11,6 @@ waitFor(10) {
     get(links.setup) { it.booted }
 }
 
-
 get(links.repos.default) {
     assertNotNull it
     assertNotNull it.descriptors

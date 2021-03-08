@@ -1,18 +1,31 @@
 package io.peasoup.inv.run;
 
-import org.codehaus.groovy.runtime.StackTraceUtils;
+import lombok.*;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class PoolReport {
-    private final Queue<Inv> digested = new LinkedList<>();
-    private final Queue<PoolError> poolErrors = new LinkedList<>();
-    private volatile boolean halted = false;
 
-    private int cycleCount = 0;
+    /**
+     * Gets the pool errors.
+     * Usually, pool errors are exceptions (either throwables or exceptions).
+     * @return Queue reference of pool error objects
+     */
+    @Getter private final Queue<PoolError> errors = new LinkedList<>();
+
+    /**
+     * Indicates this pool report received an "halting" instruction
+     * @return True if halting, otherwise false
+     */
+    @Getter private volatile boolean halted = false;
+
+    /**
+     * Gets the digestion cycle count
+     * @return Cycle count integer
+     */
+    @Getter @Setter private int cycleCount = 0;
 
     /**
      * Create an empty PoolReport
@@ -22,19 +35,15 @@ public class PoolReport {
 
     /**
      * Create a PoolReport with existing data.
-     * @param digested List of "digested" INV's
-     * @param poolErrors Queue of PoolErrors
+     * @param errors Queue of PoolErrors
      * @param halted True if the report should indicate the pool must halt, otherwise false.
      */
-    public PoolReport(List<Inv> digested, Queue<PoolError> poolErrors, Boolean halted) {
-        if (digested == null) {
-            throw new IllegalArgumentException("Digested collection is required. NOTE: can be empty");
-        }
-        if (poolErrors == null) {
+    public PoolReport(Queue<PoolError> errors, Boolean halted) {
+        if (errors == null) {
             throw new IllegalArgumentException("Exceptions collection is required. NOTE: can be empty");
         }
 
-        concat(digested, poolErrors, halted);
+        concat(errors, halted);
     }
 
     /**
@@ -49,7 +58,7 @@ public class PoolReport {
             throw new IllegalArgumentException("Other (pool report) is required");
         }
 
-        concat(other.getDigested(), other.getErrors(), other.isHalted());
+        concat(other.getErrors(), other.isHalted());
     }
 
     /**
@@ -59,7 +68,7 @@ public class PoolReport {
     public boolean isOk() {
         if (halted) return false;
 
-        return poolErrors.isEmpty();
+        return errors.isEmpty();
     }
 
     /**
@@ -67,96 +76,29 @@ public class PoolReport {
      * This method should be used by the "top level" pool report instance only.
      */
     public void reset() {
-        digested.clear();
-        poolErrors.clear();
+        errors.clear();
     }
 
-    private void concat(Collection<Inv> digested, Collection<PoolError> exceptions, boolean halted) {
-        this.digested.addAll(digested);
-        this.poolErrors.addAll(exceptions);
+    private void concat(Collection<PoolError> exceptions, boolean halted) {
+        this.errors.addAll(exceptions);
 
         // Once halted, can't put it back on
         if (halted) this.halted = true;
     }
 
-    /**
-     * Gets the completely digested INV objects.
-     * If an INV has remaining statements, it is NOT considered digested.
-     * @return Queue reference of digested INV objects
-     */
-    public final Queue<Inv> getDigested() {
-        return digested;
-    }
-
-    /**
-     * Gets the pool errors.
-     * Usually, pool errors are exceptions (either throwables or exceptions).
-     * @return Queue reference of pool error objects
-     */
-    public final Queue<PoolError> getErrors() {
-        return poolErrors;
-    }
-
-    /**
-     * Indicates this pool report received an "halting" instruction
-     * @return True if halting, otherwise false
-     */
-    public boolean isHalted() {
-        return halted;
-    }
-
-    /**
-     * Gets the digestion cycle count
-     * @return Cycle count integer
-     */
-    public int getCycleCount() {
-        return cycleCount;
-    }
-
-    /**
-     * Indicates how many digestion cycle occurred
-     * @param cycleCount Cycle count integer
-     */
-    public void setCycleCount(int cycleCount) {
-        this.cycleCount = cycleCount;
-    }
-
+    @AllArgsConstructor
     public static class PoolError {
-        private final Inv inv;
-        private final Throwable throwable;
-
-        /**
-         * Creates a new Pool Report, linking an INV and a throwable
-         * @param inv INV object reference
-         * @param throwable Throwable object reference
-         */
-        public PoolError(Inv inv, Throwable throwable) {
-            if (inv == null) {
-                throw new IllegalArgumentException("Inv is required");
-            }
-
-            if (throwable == null) {
-                throw new IllegalArgumentException("Throwable is required");
-            }
-
-            this.inv = inv;
-            this.throwable = StackTraceUtils.sanitize(throwable);
-        }
 
         /**
          * Gets the INV object reference
          * @return INV object reference
          */
-        public Inv getInv() {
-            return inv;
-        }
+        @Getter @NonNull private final Inv inv;
 
         /**
          * Gets the throwable object reference
          * @return Throwable object reference
          */
-        public Throwable getThrowable() {
-            return throwable;
-        }
+        @Getter @NonNull private final Throwable throwable;
     }
 }

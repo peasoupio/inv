@@ -14,6 +14,10 @@ class ComposerTests {
     DelegatingScript script
     String workDir
 
+    ComposerTests() {
+        Logger.enableSystem()
+    }
+
     @Given("an http script {string}")
     void an_http_script(String scriptLocation) {
         // set port

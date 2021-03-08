@@ -22,24 +22,14 @@
 [io.peasoup.inv.pub.io.files] [.*/run/target/repos/repo@io.peasoup.inv.pub.io.files/io/files/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
-[EXECUTOR] scheduling: #3
 [Script.*] => [BROADCAST] [Files] undefined
-[POOL] available:1 , staged:1
 [POOL] inv: Script.* COMPLETED
----- [DIGEST] #2 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
 [Script.*] => [REQUIRE] [Files] undefined
 [Script.*] => [BROADCAST] [Maven] undefined
-[POOL] available:2 , staged:1
 [POOL] inv: Script.* COMPLETED
----- [DIGEST] #3 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [main1] => [REQUIRE] [Maven] undefined
-[POOL] available:2 , staged:0
 [POOL] inv: main1 COMPLETED
+[POOL] available:2 , staged:2
 ---- [DIGEST] completed ----
 Completed INV(s): 3
 Uncompleted INV(s): 0

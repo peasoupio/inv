@@ -2,7 +2,8 @@ package io.peasoup.inv.run;
 
 import io.peasoup.inv.Logger;
 
-import java.util.List;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,87 +12,131 @@ public class NetworkValuablePoolExecutor {
 
     private static final int THREAD_COUNT = 4;
 
-    private final NetworkValuablePoolEater eater;
-    private final Queue<Inv> stack;
+    private final NetworkValuablePool pool;
+    private final NetworkValuablePoolIngester ingester;
     private final Inv.Digestion cycleDigestion;
-    private final BlockingDeque<PoolReport.PoolError> poolErrors;
+    private final BlockingQueue<PoolReport.PoolError> poolErrors;
 
-    private final int threadCount;
-    private final ExecutorService invExecutor;
-    private final CompletionService<Object> invCompletionService;
+    private final CompletionService<Inv> ingesterService;
 
-    private final AtomicInteger working = new AtomicInteger(0);
+    private final Queue<Inv> unexecutedInvs;
 
-    private int count = 0;
+    private final AtomicInteger amountOfWork = new AtomicInteger(0);
 
-    public NetworkValuablePoolExecutor(NetworkValuablePoolEater eater, List<Inv> invs, Inv.Digestion cycleDigestion, BlockingDeque<PoolReport.PoolError> poolErrors) {
-        this.eater = eater;
-        this.stack = new ConcurrentLinkedQueue<>(invs);
+    public NetworkValuablePoolExecutor(
+            NetworkValuablePool networkValuablePool,
+            NetworkValuablePoolIngester ingester,
+            Inv.Digestion cycleDigestion,
+            BlockingQueue<PoolReport.PoolError> poolErrors) {
+        this.pool = networkValuablePool;
+        this.ingester = ingester;
         this.cycleDigestion = cycleDigestion;
         this.poolErrors = poolErrors;
 
         // Create executor and completion service
-        this.threadCount = Math.min(THREAD_COUNT, invs.size());
-        this.invExecutor = Executors.newFixedThreadPool(this.threadCount);
-        this.invCompletionService = new ExecutorCompletionService<>(invExecutor);
+        this.ingesterService = new ExecutorCompletionService<>(
+                Executors.newFixedThreadPool(THREAD_COUNT,
+                        r -> {
+                            Thread t = Executors.defaultThreadFactory().newThread(r);
+                            t.setDaemon(true);
+                            return t;
+                        }));
+
+        this.unexecutedInvs = new ConcurrentLinkedQueue<>(networkValuablePool.sortRemainings());
     }
 
     public void start() {
+        if (unexecutedInvs.isEmpty())
+            return;
 
-        // Print info outside the register loop to make sure it's print before any statement is processed
-        for(int i=0;i<threadCount;i++) {
-            Logger.system("[EXECUTOR] scheduling: #" + ++count);
-        }
+        // Execute first INV
+        execute(unexecutedInvs.poll());
 
-        // Register and start workers
-        for(int i=0;i<threadCount;i++) {
-            schedule();
-        }
-
-        // Wait for threads until done
-        while(working.get() > 0) {
+        // Wait for all work to be done
+        for (int i=0; i < amountOfWork.get(); i++) {
             try {
-                invCompletionService.take().get();
+                 ingesterService.take().get();
             } catch (Exception e) {
                 Logger.error(e);
             }
         }
-
-        // Stage broadcasts
-        if (cycleDigestion.getBroadcasts() > 0)
-            eater.stageBroadcasts();
-
-        // Close pool
-        this.invExecutor.shutdownNow();
     }
 
-    private void schedule() {
-        working.incrementAndGet();
-        invCompletionService.submit(createWorker());
+    /**
+     * Execute a INV to be ingested
+     * @param toIngest The INV.
+     */
+    protected void execute(Inv toIngest) {
+        if (toIngest == null)
+            return;
+
+        amountOfWork.incrementAndGet();
+        ingesterService.submit(new IngestWorker(toIngest));
     }
 
-    private Callable<Object> createWorker() {
-        return () -> {
-            // Proceed only if INVs are left to process and only if all INVs are stuck
-            while(!stack.isEmpty()) {
-                Inv toEat = stack.poll();
-                if (toEat == null)
-                    break;
+    private class IngestWorker implements Callable<Inv> {
 
-                // Eat an INV
-                NetworkValuablePoolEater.EatenInv eatenInv = eater.eatInv(toEat, poolErrors);
+        private final Inv toIngest;
 
-                // If an error was caught, check next Inv
-                if (eatenInv.hasError())
-                    continue;
+        private IngestWorker(Inv toIngest) {
+            this.toIngest = toIngest;
+        }
 
-                // Concat digestion metrics
-                cycleDigestion.concat(eatenInv.getDigestion());
+        @Override
+        public Inv call() throws Exception {
+
+            // Do not process if already completed.
+            // Can occur if it was schedule before being completed
+            // by a provider (from the watchlist)
+            if (toIngest.isCompleted())
+                return toIngest;
+
+            // Eat an INV
+            NetworkValuablePoolIngester.IngestedInv ingestedInv = ingester.ingest(toIngest, poolErrors);
+
+            // If an error was caught, check next Inv
+            if (ingestedInv.hasError())
+                return null;
+
+            // Remove from active (remaining) pool if completed
+            pool.removeIfCompleted(toIngest);
+
+            // Concat digestion metrics
+            cycleDigestion.concat(ingestedInv.getDigestion());
+
+            // Try to execute INV requiring any of the broadcasted statements.
+            if (ingestedInv.getDigestion().getBroadcast() != null) {
+
+                // Stage broadcasts
+                ingester.stageBroadcasts();
+
+                int watcherExecuted = 0;
+
+                // Get watchers and execute them.
+                for(Statement statement : ingestedInv.getDigestion().getBroadcast()) {
+                    for(Inv watchingInv : pool.getWatchList().getWatchers(statement)) {
+                        execute(watchingInv);
+
+                        watcherExecuted++;
+                    }
+                }
+
+                if (watcherExecuted > 0)
+                    return toIngest;
             }
 
-            working.decrementAndGet();
+            // If no broadcast occurred, execute an unprocessed INV.
+            Inv next =  unexecutedInvs.poll();
+            if (next == null)
+                return toIngest;
 
-            return this;
-        };
+            // Can't resend itself.
+            if (next == toIngest)
+                return toIngest;
+
+            // Schedule next INV.
+            execute(next);
+            return toIngest;
+        }
     }
 }

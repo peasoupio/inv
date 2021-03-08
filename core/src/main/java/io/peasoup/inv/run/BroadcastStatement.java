@@ -2,12 +2,16 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
 import io.peasoup.inv.Logger;
+import lombok.Getter;
+import lombok.Setter;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerHelper;
 
 import java.util.Map;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
+@Getter
+@Setter
 public class BroadcastStatement implements Statement {
     public static final Broadcast BROADCAST = new Broadcast();
     private Object id;
@@ -29,50 +33,6 @@ public class BroadcastStatement implements Statement {
     @Override
     public String toString() {
         return getInv() + " => " + getLabel();
-    }
-
-    public Object getId() {
-        return id;
-    }
-
-    public void setId(Object id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMarkdown() {
-        return markdown;
-    }
-
-    public void setMarkdown(String markdown) {
-        this.markdown = markdown;
-    }
-
-    public Closure<Object> getReady() {
-        return ready;
-    }
-
-    public void setReady(Closure<Object> ready) {
-        this.ready = ready;
-    }
-
-    public Inv getInv() {
-        return inv;
-    }
-
-    public void setInv(Inv inv) {
-        this.inv = inv;
-    }
-
-    public StatementStatus getState() {
-        return state;
     }
 
     public static class Broadcast implements Manageable<BroadcastStatement> {

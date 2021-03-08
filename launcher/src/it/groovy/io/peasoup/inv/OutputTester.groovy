@@ -41,7 +41,6 @@ class OutputTester {
                     .replace(".", "\\.")
                     .replace("\\.*", ".*")
 
-
             assertTrue(
                     (i + 1) + ": " + actualStr + " != " + expectedStr, // echo what's wrong
                     actualStr ==~ expectedStr)

@@ -42,7 +42,7 @@ class RepoRunCommand implements CliCommand {
             return 4
 
         // Execute invs
-        if (!invExecutor.execute().isOk())
+        if (!invExecutor.execute().report.isOk())
             return 5
 
         return 0

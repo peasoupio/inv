@@ -6,12 +6,9 @@
 [undefined] [.*/main/run/main2.groovy] [main2]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [POOL] available:0 , staged:0
-nothing done
 ---- [DIGEST] #2 (state=UNBLOATING) ----
 [POOL] available:0 , staged:0
-nothing unbloated
 ---- [DIGEST] completed ----
 Completed INV(s): 0
 Uncompleted INV(s): 1

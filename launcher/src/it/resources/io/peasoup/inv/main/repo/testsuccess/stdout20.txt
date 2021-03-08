@@ -10,16 +10,11 @@ Run:
 [undefined] [.*/testsuccess/resources/test/inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
 [provider] => [BROADCAST] [Element] undefined
-[POOL] available:1 , staged:1
 [POOL] inv: provider COMPLETED
----- [DIGEST] #2 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [consumer] => [REQUIRE] [Element] undefined
-[POOL] available:1 , staged:0
 [POOL] inv: consumer COMPLETED
+[POOL] available:1 , staged:1
 ---- [DIGEST] completed ----
 Completed INV(s): 2
 Uncompleted INV(s): 0
@@ -30,12 +25,9 @@ Run:
 [undefined] [.*/testsuccess/resources/test/inv2.groovy] [consumer]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [POOL] available:0 , staged:0
-nothing done
 ---- [DIGEST] #2 (state=UNBLOATING) ----
 [POOL] available:0 , staged:0
-nothing unbloated
 ---- [DIGEST] completed ----
 Completed INV(s): 0
 Uncompleted INV(s): 1

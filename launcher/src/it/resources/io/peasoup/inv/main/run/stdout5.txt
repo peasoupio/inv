@@ -10,20 +10,13 @@
 [undefined] [.*] [main.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
-[EXECUTOR] scheduling: #3
-[main1] => [BROADCAST] [Something] undefined
+.*
+.*
+.*
+.*
+.*
+[POOL] inv: main.* COMPLETED
 [POOL] available:1 , staged:1
-[POOL] inv: main1 COMPLETED
----- [DIGEST] #2 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
-[main.*] => [REQUIRE] [Something] undefined
-[main.*] => [REQUIRE] [Something] undefined
-[POOL] available:1 , staged:0
-[POOL] inv: main2 COMPLETED
-[POOL] inv: main3 COMPLETED
 ---- [DIGEST] completed ----
 Completed INV(s): 3
 Uncompleted INV(s): 0

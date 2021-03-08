@@ -20,7 +20,7 @@ class RepoFileCollectionTest {
         def hrefsFolder = new File(hrefs)
         hrefsFolder.mkdirs()
 
-        repoFileCollection = new RepoFileCollection(repoFolder, hrefsFolder)
+        repoFileCollection = new RepoFileCollection(repoFolder)
 
         // Load repo files
         repoFolder.listFiles().each {
@@ -33,17 +33,17 @@ class RepoFileCollectionTest {
 
     @Test
     void ok() {
-        new RepoFileCollection(new File(repos), new File(hrefs))
+        new RepoFileCollection(new File(repos))
     }
 
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            new RepoFileCollection(null, null)
+            new RepoFileCollection(null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new RepoFileCollection(new File("not-existing"), null)
+            new RepoFileCollection(new File("not-existing"))
         })
     }
 

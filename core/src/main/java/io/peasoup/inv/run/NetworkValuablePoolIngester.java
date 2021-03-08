@@ -6,24 +6,24 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 
-public class NetworkValuablePoolEater {
+public class NetworkValuablePoolIngester {
 
     private final NetworkValuablePool pool;
 
     private volatile int latestStagedCount = 0;
 
-    public NetworkValuablePoolEater(NetworkValuablePool pool) {
+    public NetworkValuablePoolIngester(NetworkValuablePool pool) {
         this.pool = pool;
     }
 
     /**
-     * Do the actual "eating" for a single INV
+     * Ingest an INV instance.
      * @param inv The INV to eat
      * @param poolErrors Pool errors collection
      * @return A new digestion for this specific INV
      */
     @SuppressWarnings("squid:S1181")
-    public EatenInv eatInv(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
+    public IngestedInv ingest(final Inv inv, final Queue<PoolReport.PoolError> poolErrors) {
         Inv.Digestion currentDigest = null;
         boolean hasError = false;
 
@@ -41,7 +41,7 @@ public class NetworkValuablePoolEater {
             Logger.fail(inv + " caught an error. Report will be displayed on pool termination.");
         }
 
-        return new EatenInv(currentDigest, hasError);
+        return new IngestedInv(currentDigest, hasError);
     }
 
     /**
@@ -78,12 +78,12 @@ public class NetworkValuablePoolEater {
     /**
      * Results of eating an IV
      */
-    public static class EatenInv {
+    public static class IngestedInv {
 
         private final Inv.Digestion digestion;
         private final boolean hasError;
 
-        private EatenInv(Inv.Digestion digestion, boolean hasError) {
+        private IngestedInv(Inv.Digestion digestion, boolean hasError) {
             this.digestion = digestion;
             this.hasError = hasError;
         }

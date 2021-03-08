@@ -1,13 +1,11 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Logger;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.*;
 
 public class NetworkValuablePool {
     public static final String HALTING = "HALTED";
@@ -15,22 +13,40 @@ public class NetworkValuablePool {
     public static final String RUNNING = "RUNNING";
 
     private final Queue<String> names = new ConcurrentLinkedQueue<>();
-    private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    private final Set<Inv> remainingInvs = ConcurrentHashMap.newKeySet();
-    private final Set<Inv> completedInvs = ConcurrentHashMap.newKeySet();
-    private final Set<Inv> totalInvs = ConcurrentHashMap.newKeySet();
+    private final NetworkValuablePoolIngester ingester;
 
-    private final NetworkValuablePoolEater eater;
+    @Getter private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
+    @Getter private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
+    @Getter private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
 
-    protected volatile String runningState;
-    private volatile boolean isDigesting;
+    @Getter private final Queue<Inv> remainingInvs = new ConcurrentLinkedQueue<>();
+    @Getter private final Set<Inv> completedInvs = ConcurrentHashMap.newKeySet();
+    @Getter private final Set<Inv> totalInvs = ConcurrentHashMap.newKeySet();
+
+    @Getter private final NetworkValuablePoolWatchList watchList;
+
+    /**
+     * Gets the current state
+     *
+     * @return the string value of the current state
+     */
+    @Getter protected volatile String runningState;
+
+    /**
+     * Check if the pool is currently ingesting
+     *
+     * @return True if ingesting, otherwise false
+     */
+    @Getter private volatile boolean isIngesting;
+
+    private volatile int latestCompletedCount = 0;
 
     public NetworkValuablePool() {
-        this.eater = new NetworkValuablePoolEater(this);
+        this.ingester = new NetworkValuablePoolIngester(this);
+        this.watchList = new NetworkValuablePoolWatchList();
+
         this.runningState  = RUNNING;
-        this.isDigesting = false;
+        this.isIngesting = false;
     }
 
     /**
@@ -56,16 +72,15 @@ public class NetworkValuablePool {
      * @return list of inv completed during this digestion cycle
      */
     public PoolReport digest() {
-        isDigesting = true;
+        isIngesting = true;
         try {
             return proceedDigest();
         } catch (Exception ex) {
             Logger.error(ex);
             throw ex;
         } finally {
-            isDigesting = false;
+            isIngesting = false;
         }
-
     }
 
     private PoolReport proceedDigest() {
@@ -73,7 +88,6 @@ public class NetworkValuablePool {
         // If running in halted mode, skip cycle
         if (isHalting())
             return new PoolReport(
-                    new ArrayList<>(),
                     new LinkedList<>(),
                     true);
 
@@ -81,35 +95,35 @@ public class NetworkValuablePool {
         Inv.Digestion digestion = new Inv.Digestion();
 
         // Get sorted INV
-        List<Inv> sorted = sort();
+        List<Inv> sorted = sortRemainings();
 
         // Eat invs
         Queue<PoolReport.PoolError> errorsCaught = null;
 
         // Eat invs
         if (isRunning())
-            errorsCaught = eatMultithreaded(sorted, digestion);
+            errorsCaught = eatMultithreaded(digestion);
 
         if (isUnbloating())
             errorsCaught = eatSynchronized(sorted, digestion);
 
         // Batch all require resolve at once
-        boolean hasResolvedSomething = digestion.getRequires() > 0;
+        boolean hasResolvedSomething = digestion.getRequire() != null &&  digestion.getRequire().size() > 0;
 
         // Check for new broadcasts
-        boolean hasStagedSomething = digestion.getBroadcasts() > 0;
+        boolean hasStagedSomething = digestion.getBroadcast() != null && digestion.getBroadcast().size() > 0;
 
-        // Check for new dumps
-        List<Inv> invsCompleted = cleanCompletedInvs();
+        boolean hasCompletedSomething = latestCompletedCount > 0;
+        latestCompletedCount = 0;
 
         // Prepare state for next cycle
         evaluateState(
-                !invsCompleted.isEmpty(),
+                hasCompletedSomething,
                 hasResolvedSomething,
                 hasStagedSomething
         );
 
-        return new PoolReport(invsCompleted, errorsCaught, runningState.equals(HALTING));
+        return new PoolReport(errorsCaught, runningState.equals(HALTING));
     }
 
     /**
@@ -124,68 +138,45 @@ public class NetworkValuablePool {
         
         for (final Inv inv : invs) {
             String stateBefore = runningState;
-            NetworkValuablePoolEater.EatenInv eatenInv = eater.eatInv(inv, poolErrors);
+            NetworkValuablePoolIngester.IngestedInv ingestedInv = ingester.ingest(inv, poolErrors);
 
             // If eaten INV has an error, skip and process the next INV
-            if (eatenInv.hasError())
+            if (ingestedInv.hasError())
                 continue;
 
-            cycleDigestion.concat(eatenInv.getDigestion());
+            removeIfCompleted(inv);
+
+            cycleDigestion.concat(ingestedInv.getDigestion());
 
             // If state has changed or the eaten INV interrupted the cycle, quit
-            if (eatenInv.getDigestion().isInterrupted() && !stateBefore.equals(runningState))
+            if (ingestedInv.getDigestion().isInterrupted() && !stateBefore.equals(runningState))
                 break;
         }
 
         // Check for broadcasts
-        eater.stageBroadcasts();
+        ingester.stageBroadcasts();
 
         // Print broadcasts
-        eater.printStagedBroadcasts();
+        ingester.printStagedBroadcasts();
 
         return poolErrors;
     }
 
     /**
      * Eat "multithread-ly" INV collection
-     * @param invs INV collection to eat
      * @param cycleDigestion Cycle digestion
      * @return Pool errors
      */
-    private Queue<PoolReport.PoolError> eatMultithreaded(List<Inv> invs, final Inv.Digestion cycleDigestion) {
+    private Queue<PoolReport.PoolError> eatMultithreaded(final Inv.Digestion cycleDigestion) {
         BlockingDeque<PoolReport.PoolError> poolErrors = new LinkedBlockingDeque<>();
 
         // Execute INVs
-        new NetworkValuablePoolExecutor(eater, invs, cycleDigestion, poolErrors).start();
+        new NetworkValuablePoolExecutor(this, ingester, cycleDigestion, poolErrors).start();
 
         // Print broadcasts
-        eater.printStagedBroadcasts();
+        ingester.printStagedBroadcasts();
 
         return poolErrors;
-    }
-
-    /**
-     * Determine and remove completed invs from the remaining ones
-     * @return a list with the removed invs
-     */
-    private List<Inv> cleanCompletedInvs() {
-        List<Inv> invsDone = new ArrayList<>();
-        for (Inv inv : remainingInvs) {
-
-            // Has more steps, more whens or statements, it is not done yet
-            if (!inv.isCompleted()) {
-                continue;
-            }
-
-            invsDone.add(inv);
-
-            Logger.system("[POOL] inv: " + inv.getName() + " COMPLETED");
-        }
-
-        remainingInvs.removeAll(invsDone);
-        completedInvs.addAll(invsDone);
-
-        return invsDone;
     }
 
     /**
@@ -197,20 +188,25 @@ public class NetworkValuablePool {
     private void evaluateState(boolean hasDoneSomething, boolean hasResolvedSomething, boolean hasStagedSomething) {
         if (hasDoneSomething) {// Has completed Invs
             startRunning();
-        } else if (hasResolvedSomething) {// Has completed requirements
-            startRunning();
+        //} else if (hasResolvedSomething) {// Has completed requirements
+        //    startRunning();
         } else if (hasStagedSomething) {// Has dumped something
             startRunning();
         } else if (runningState.equals(UNBLOATING)) {
-            Logger.info("nothing unbloated");
             startHalting();// Has already start unbloating, but did not do anything ? Halt pool
         } else {
-            Logger.info("nothing done");
             startUnbloating();// Should start unbloating
         }
     }
 
-    public boolean include(Inv inv) {
+    /**
+     * Add an INV to the pool.
+     * @param inv The INV to add
+     * @param forceRecalculateWatchlist True to force the watchlist recalculation.
+     *                                  Occurs when a statement is added after this owning INV is added.
+     * @return True if added, otherwise false.
+     */
+    public boolean add(Inv inv, boolean forceRecalculateWatchlist) {
         if (inv == null) {
             throw new IllegalArgumentException("Inv is required");
         }
@@ -218,22 +214,53 @@ public class NetworkValuablePool {
         if (StringUtils.isEmpty(inv.getName()))
             return false;
 
-        if (totalInvs.contains(inv))
-            return false;
+        boolean dumped = false;
 
-        totalInvs.add(inv);
-        remainingInvs.add(inv);
+        // Add INV to pool if not already there
+        if (!totalInvs.contains(inv)) {
+            // Add inv to main collections
+            totalInvs.add(inv);
+            remainingInvs.add(inv);
 
-        return true;
+            dumped = true;
+        }
+
+        if (dumped || forceRecalculateWatchlist) {
+            watchList.addWatcher(inv);
+        }
+
+        return dumped;
+    }
+
+
+    /**
+     * Remove INV from remaining queue if completed.
+     * @param inv The INV to remove
+     */
+    public synchronized void removeIfCompleted(Inv inv) {
+        if (inv == null)
+            throw new IllegalArgumentException("inv");
+
+        if (!inv.isCompleted())
+            return;
+
+        if (!remainingInvs.contains(inv))
+            return;
+
+        Logger.system("[POOL] inv: " + inv.getName() + " COMPLETED");
+
+        remainingInvs.remove(inv);
+        completedInvs.add(inv);
+
+        latestCompletedCount++;
     }
 
     /**
-     * Check if a name is already available within the pool.
-     * If not, make it available.
+     * Register a name to the pool.
      *
      * @param name string value of the name to check
      */
-    public void checkAvailability(String name) {
+    public void registerName(String name) {
         if (StringUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Name is required");
         }
@@ -249,29 +276,6 @@ public class NetworkValuablePool {
             stagingStatements.put(name, new ConcurrentHashMap<>(24, 0.9f, 1));
             unbloatedStatements.put(name, new ConcurrentLinkedQueue<>());
         }
-    }
-
-    /**
-     * Sort the remaining invs based on their pop and tail configuration
-     * @return A new list with the sorted invs
-     */
-    List<Inv> sort() {
-        List<Inv> sorted = new ArrayList<>(remainingInvs);
-        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloats()));
-        sorted.sort((a, b) -> {
-            if (a.isPop() == b.isPop() && a.isTail() == b.isTail())
-                return 0;
-
-            if (a.isPop())
-                return -1;
-
-            if (a.isTail())
-                return 1;
-
-            return 0;
-        });
-
-        return sorted;
     }
 
     /**
@@ -303,7 +307,6 @@ public class NetworkValuablePool {
             return false;
         }
 
-
         runningState = UNBLOATING;
 
         return true;
@@ -333,7 +336,7 @@ public class NetworkValuablePool {
         if (statement == null) {
             throw new IllegalArgumentException("Statement is required");
         }
-        if (!isDigesting) {
+        if (!isIngesting) {
             throw new IllegalArgumentException("Can't prevent unbloating outside a digest cycle");
         }
 
@@ -361,54 +364,23 @@ public class NetworkValuablePool {
     }
 
     /**
-     * Gets the current state
+     * Sort the remaining invs based on the amount of unbloat statement and
+     * on their pop and tail configuration
      *
-     * @return the string value of the current state
+     * @return A new list with the sorted invs
      */
-    public String runningState() {
-        return this.runningState;
+    List<Inv> sortRemainings() {
+        List<Inv> sorted = new ArrayList<>(remainingInvs);
+        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloat() == null ?
+                0 :
+                a.getDigestionSummary().getUnbloat().size()));
+        sorted.sort((a, b) -> {
+            if (a.isPop() != b.isPop())
+                return b.isPop().compareTo(a.isPop());
+
+            return a.isTail().compareTo(b.isTail());
+        });
+
+        return sorted;
     }
-
-    /**
-     * Check if the pool is currently digesting
-     *
-     * @return the boolean value indicating if the pool is digesting (true) or not (false).
-     */
-    public boolean isDigesting() {
-        return this.isDigesting;
-    }
-
-    public final Map<String, Map<Object, BroadcastResponse>> getAvailableStatements() {
-        return availableStatements;
-    }
-
-    public final Map<String, Map<Object, BroadcastResponse>> getStagingStatements() {
-        return stagingStatements;
-    }
-
-    public final Map<String, Queue<Object>> getUnbloatedStatements() {
-        return unbloatedStatements;
-    }
-
-    public final Set<Inv> getRemainingInvs() {
-        return remainingInvs;
-    }
-
-    public final Set<Inv> getCompletedInvs() {
-        return completedInvs;
-    }
-
-    public final Set<Inv> getTotalInvs() {
-        return totalInvs;
-    }
-
-    public boolean getIsDigesting() {
-        return isDigesting;
-    }
-
-    public void setIsDigesting(boolean isDigesting) {
-        this.isDigesting = isDigesting;
-    }
-
-
 }

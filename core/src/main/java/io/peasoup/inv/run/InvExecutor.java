@@ -1,13 +1,12 @@
 package io.peasoup.inv.run;
 
 import io.peasoup.inv.Logger;
-import io.peasoup.inv.repo.RepoExecutor;
 import io.peasoup.inv.repo.RepoFolderCollection;
-import io.peasoup.inv.repo.RepoURLFetcher;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.io.File;
-import java.util.Queue;
+import java.util.Set;
 
 /**
  * InvExecutor is the main object for parsing, invoking and executing INV files.
@@ -94,7 +93,7 @@ public class InvExecutor {
      * Execute the parsed INV groovy files
      * @return Execution report
      */
-    public PoolReport execute() {
+    public Results execute() {
 
         compileClasses();
         fetchGetRepoSources();
@@ -117,7 +116,10 @@ public class InvExecutor {
         new PoolReportTrace(pool, report).printPoolTrace();
         new PoolReportMarkdown(pool).printPoolMarkdown();
 
-        return report;
+        return new Results(
+                report,
+                pool.getCompletedInvs()
+        );
     }
 
 
@@ -161,7 +163,7 @@ public class InvExecutor {
                 if (pool.isEmpty()) break;
 
                 ++count;
-                Logger.info("---- [DIGEST] #" + count + " (state=" + getPool().runningState() + ") ----");
+                Logger.info("---- [DIGEST] #" + count + " (state=" + getPool().getRunningState() + ") ----");
 
                 // Get the next digested invs
                 report.eat(pool.digest());
@@ -172,5 +174,20 @@ public class InvExecutor {
         }
 
         report.setCycleCount(count);
+    }
+
+
+    @RequiredArgsConstructor
+    public static class Results {
+
+        /**
+         * The execution pool report.
+         */
+        @Getter private final PoolReport report;
+
+        /**
+         * The completed INVs
+         */
+        @Getter private final Set<Inv> ingested;
     }
 }

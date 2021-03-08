@@ -8,16 +8,11 @@
 [undefined] [.*/run/main4.yml] [main4]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
-[EXECUTOR] scheduling: #2
 [main3] => [BROADCAST] [SomethingYaml] undefined
-[POOL] available:1 , staged:1
 [POOL] inv: main3 COMPLETED
----- [DIGEST] #2 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [main4] => [REQUIRE] [SomethingYaml] undefined
-[POOL] available:1 , staged:0
 [POOL] inv: main4 COMPLETED
+[POOL] available:1 , staged:1
 ---- [DIGEST] completed ----
 Completed INV(s): 2
 Uncompleted INV(s): 0

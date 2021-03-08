@@ -43,7 +43,7 @@ class RunCommand implements CliCommand {
         }
 
         // Do the actual execution
-        if (!invExecutor.execute().isOk())
+        if (!invExecutor.execute().report.isOk())
             return 3
 
         return 0

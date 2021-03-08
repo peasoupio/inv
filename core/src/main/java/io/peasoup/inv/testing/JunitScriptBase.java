@@ -9,7 +9,6 @@ import io.peasoup.inv.repo.RepoFolderCollection;
 import io.peasoup.inv.repo.RepoURLFetcher;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
-import io.peasoup.inv.run.PoolReport;
 import org.junit.Before;
 
 import java.io.File;
@@ -20,7 +19,7 @@ public abstract class JunitScriptBase extends Script {
 
     protected RepoFolderCollection repoFolderCollection;
     protected InvExecutor invExecutor;
-    protected PoolReport report;
+    protected InvExecutor.Results results;
 
     private boolean called;
 
@@ -35,15 +34,15 @@ public abstract class JunitScriptBase extends Script {
     }
 
     public boolean getIsOk() {
-        return report != null && report.isOk();
+        return results != null && results.getReport().isOk();
     }
 
     public boolean getIsHalted() {
-        return report != null && report.isHalted();
+        return results != null && results.getReport().isHalted();
     }
 
     public boolean getHasExceptions() {
-        return report != null  && !report.getErrors().isEmpty();
+        return results != null  && !results.getReport().getErrors().isEmpty();
     }
 
     public void simulate(@DelegatesTo(SimulatorDescriptor.class) Closure body) throws IllegalAccessException, MissingOptionException {
@@ -113,6 +112,6 @@ public abstract class JunitScriptBase extends Script {
         }
 
         // Do the actual execution
-        report = invExecutor.execute();
+        results = invExecutor.execute();
     }
 }

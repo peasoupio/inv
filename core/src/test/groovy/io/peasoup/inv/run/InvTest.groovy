@@ -98,7 +98,7 @@ class InvTest {
 
     @Test
     void digest_pool_not_ok() {
-        assertFalse pool.isDigesting()
+        assertFalse pool.isIngesting()
 
         assertThrows(IllegalArgumentException.class, {
             inv.digest()

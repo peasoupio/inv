@@ -2,13 +2,18 @@ package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
 import io.peasoup.inv.Logger;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
+@Getter
+@Setter
 public class RequireStatement implements Statement {
     public static final Require REQUIRE = new Require();
     private Object id;
@@ -37,82 +42,6 @@ public class RequireStatement implements Statement {
     @Override
     public String toString() {
         return getInv() + " => " + getLabel();
-    }
-
-    public Object getId() {
-        return id;
-    }
-
-    public void setId(Object id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMarkdown() {
-        return markdown;
-    }
-
-    public void setMarkdown(String markdown) {
-        this.markdown = markdown;
-    }
-
-    public Boolean getUnbloatable() {
-        return unbloatable;
-    }
-
-    public void setUnbloatable(Boolean unbloatable) {
-        this.unbloatable = unbloatable;
-    }
-
-    public Boolean getDefaults() {
-        return defaults;
-    }
-
-    public void setDefaults(Boolean defaults) {
-        this.defaults = defaults;
-    }
-
-    public Inv getInv() {
-        return inv;
-    }
-
-    public void setInv(Inv inv) {
-        this.inv = inv;
-    }
-
-    public String getInto() {
-        return into;
-    }
-
-    public void setInto(String into) {
-        this.into = into;
-    }
-
-    public Closure<Object> getResolved() {
-        return resolved;
-    }
-
-    public void setResolved(Closure<Object> resolved) {
-        this.resolved = resolved;
-    }
-
-    public Closure<Object> getUnresolved() {
-        return unresolved;
-    }
-
-    public void setUnresolved(Closure<Object> unresolved) {
-        this.unresolved = unresolved;
-    }
-
-    public StatementStatus getState() {
-        return state;
     }
 
     public static class Require implements Manageable<RequireStatement> {
@@ -154,6 +83,9 @@ public class RequireStatement implements Statement {
 
             // Resolve require statement with broadcast response
             resolveRequire(requireStatement, broadcastResponse);
+
+            // Remove INV of watchlist for this statement
+            pool.getWatchList().unwatch(requireStatement);
         }
 
         private boolean isBroadcastAvailable(NetworkValuablePool pool, RequireStatement requireStatement, BroadcastResponse broadcastResponse) {

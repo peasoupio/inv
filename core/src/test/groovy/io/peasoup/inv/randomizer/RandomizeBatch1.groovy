@@ -127,10 +127,10 @@ class RandomizeBatch1 {
             }
         }
 
-        def report = executor.execute()
+        def results = executor.execute()
 
-        assertTrue report.isOk()
-        assertEquals totalInv, report.digested.size()
+        assertTrue results.report.isOk()
+        assertEquals totalInv, results.ingested.size()
     }
 
     static class InvBootstrap {

@@ -47,18 +47,18 @@ class NetworkValuablePoolTest {
     void checkAvailability_not_ok() {
 
         assertThrows(IllegalArgumentException.class, {
-            pool.checkAvailability(null)
+            pool.registerName(null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            pool.checkAvailability("")
+            pool.registerName("")
         })
     }
 
     @Test
     void preventUnbloating() {
         pool.runningState = NetworkValuablePool.UNBLOATING
-        pool.isDigesting = true
+        pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
@@ -75,7 +75,7 @@ class NetworkValuablePoolTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            pool.isDigesting = false
+            pool.isIngesting = false
             pool.preventUnbloating(new BroadcastStatement())
         })
     }
@@ -83,7 +83,7 @@ class NetworkValuablePoolTest {
     @Test
     void preventUnbloating_not_unbloating() {
         pool.runningState = NetworkValuablePool.RUNNING
-        pool.isDigesting = true
+        pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
@@ -94,7 +94,7 @@ class NetworkValuablePoolTest {
     @Test
     void preventUnbloating_not_successful() {
         pool.runningState = NetworkValuablePool.UNBLOATING
-        pool.isDigesting = true
+        pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.FAILED
@@ -105,7 +105,7 @@ class NetworkValuablePoolTest {
     @Test
     void preventUnbloating_not_broadcastValuable() {
         pool.runningState = NetworkValuablePool.UNBLOATING
-        pool.isDigesting = true
+        pool.isIngesting = true
 
         def requireValuable = new RequireStatement()
         requireValuable.state = StatementStatus.SUCCESSFUL
@@ -124,7 +124,6 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 0
 
                 return delegate
             },
@@ -136,7 +135,6 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 0
 
                 return delegate
             },
@@ -147,7 +145,6 @@ class NetworkValuablePoolTest {
                     pop true
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 0
 
                 return delegate
             },
@@ -159,7 +156,7 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 10
+                10.times { digestionSummary.useUnbloat().add(null) }
 
                 return delegate
             },
@@ -170,7 +167,7 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 999
+                999.times { digestionSummary.useUnbloat().add(null) }
 
                 return delegate
             },
@@ -181,7 +178,7 @@ class NetworkValuablePoolTest {
                     pop true
                 }
                 dumpDelegate()
-                digestionSummary.unbloats = 999
+                999.times { digestionSummary.useUnbloat().add(null) }
 
                 return delegate
             }
@@ -190,12 +187,12 @@ class NetworkValuablePoolTest {
         pool.remainingInvs.clear()
         pool.remainingInvs.addAll(invs)
 
-        def sortedInvs = pool.sort()
+        def sortedInvs = pool.sortRemainings()
 
         assertEquals "0", sortedInvs[0].name
         assertEquals "1", sortedInvs[1].name
-        assertEquals "2", sortedInvs[2].name
-        assertEquals "3", sortedInvs[3].name
+        assertEquals "3", sortedInvs[2].name
+        assertEquals "2", sortedInvs[3].name
         assertEquals "4", sortedInvs[4].name
         assertEquals "5", sortedInvs[5].name
     }
@@ -206,9 +203,9 @@ class NetworkValuablePoolTest {
         def inv = ctx.build()
 
         assertThrows(IllegalArgumentException.class) {
-            pool.include(null)
+            pool.add(null, false)
         }
 
-        assertFalse pool.include(inv) // missing name
+        assertFalse pool.add(inv, false) // missing name
     }
 }

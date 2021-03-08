@@ -64,30 +64,35 @@ public class Inv {
     public synchronized boolean dumpDelegate() {
         initalizeProperties();
 
-        boolean dumpedSomething = context.pool.include(this);
+        // Indicate if a new statement should trigger the watchlist recalculation
+        boolean forceRecalculateWatchlist = false;
+
+        // The number of time something was changed to this INV during this dump
+        int dumpingCounter = 0;
 
         // Transfer Statement(s) from delegate to INV
         for (Statement statement : properties.getStatements()) {
-            dumpedSomething = true;
+            forceRecalculateWatchlist = true;
+            dumpingCounter++;
 
             statement.setInv(this);
 
             this.totalStatements.add(statement);
             this.remainingStatements.add(statement);
 
-            context.pool.checkAvailability(statement.getName());
+            context.pool.registerName(statement.getName());
 
             Logger.system("[STATEMENT] " + statement.toString() + " [INIT]");
         }
 
         // Transfer Step(s) from delegate to INV
-        for(Closure<Object> body : properties.getSteps()) {
+        for (Closure<Object> body : properties.getSteps()) {
             steps.add(new Step(this, body, stepCount++));
-            dumpedSomething = true;
+            dumpingCounter++;
         }
 
         // Transfer When(s) from delegate to INV
-        for(WhenData when : properties.getWhens()) {
+        for (WhenData when : properties.getWhens()) {
             // If not completed, do not process. It will be cleaned during reset()
             if (!when.isOk())
                 continue;
@@ -97,7 +102,11 @@ public class Inv {
 
         properties.reset();
 
-        return dumpedSomething;
+        if (context.pool.add(this, forceRecalculateWatchlist)) {
+            dumpingCounter++;
+        }
+
+        return dumpingCounter > 0;
     }
 
     /**
@@ -150,8 +159,8 @@ public class Inv {
      * @return A new digestion instance
      */
     @SuppressWarnings("squid:S135")
-    public Digestion digest() {
-        if (!context.pool.isDigesting()) {
+    public synchronized Digestion digest() {
+        if (!context.pool.isIngesting()) {
             throw new IllegalArgumentException("digest() is only callable during its pool digest cycle");
         }
 
@@ -208,17 +217,15 @@ public class Inv {
             statement.getMatch().manage(context.pool, statement);
 
             // Process results for digestion
-            int currentStatus = Digestion.checkStatementResult(context.pool, statement);
-
-            // Update current digestion
-            currentDigestion.concat(currentStatus);
-
-            // If interrupted status, quit right away
-            if (currentStatus == Digestion.INTERRUPT_STATUS)
-                break;
-            else {
-                // Remove statement if completed
-                this.remainingStatements.remove(statement);
+            switch(currentDigestion.checkStatementResult(context.pool, statement)) {
+                case -1: // if failed
+                    break;
+                case 0: // if succeeded
+                    this.remainingStatements.remove(statement);
+                    continue;
+                case 1: // if unbloated and prevent further unbloats
+                    this.remainingStatements.remove(statement);
+                    break;
             }
         }
     }
@@ -387,24 +394,22 @@ public class Inv {
         }
     }
 
+    @Getter
     public static class Digestion {
 
-        // UNBLOATS - REQUIRES - BROADCAST - FAILED
-        public static final int UNBLOAT_STATUS =  0x1000;
-        public static final int REQUIRE_STATUS = 0x1100;
-        public static final int BROADCAST_STATUS = 0x1110;
-
-        public static final int INTERRUPT_STATUS = 0x0001;
-        public static final int UNBLOAT_INTERRUPT_STATUS = 0x1001;
+        private Queue<Statement> interrupted;
+        private Queue<Statement> require;
+        private Queue<Statement> broadcast;
+        private Queue<Statement> unbloat;
 
         /**
          * Check statement result and get its status
          * @param pool NetworkValuablePool
          * @param statement Statement
-         * @return Integer status
+         * @return 0 is successful, -1 if failed, 1 if failed, but needs to be removed (unbloated)
          */
         @SuppressWarnings("EqualsBetweenInconvertibleTypes")
-        public static int checkStatementResult(NetworkValuablePool pool, Statement statement) {
+        public int checkStatementResult(NetworkValuablePool pool, Statement statement) {
             if (pool == null)
                 throw new IllegalArgumentException("Pool is required");
 
@@ -412,57 +417,41 @@ public class Inv {
                 throw new IllegalArgumentException("Statement is required");
 
             // Indicates if statement is blocking others
-            if (statement.getState() == StatementStatus.FAILED)
-                return INTERRUPT_STATUS;
+            if (statement.getState() == StatementStatus.FAILED) {
+                useInterrupted().add(statement);
+                return -1;
+            }
 
             // Gets metrics if successful
             if (statement.getState().level >= StatementStatus.SUCCESSFUL.level) {
 
                 // If the statement prevents unbloating, stop processing the remaining statements
-                if (pool.preventUnbloating(statement))
-                    return UNBLOAT_INTERRUPT_STATUS;
+                if (pool.preventUnbloating(statement)) {
+                    useInterrupted().add(statement);
+                    useUnbloat().add(statement);
+                    useBroadcast().add(statement);
 
-                if (RequireStatement.REQUIRE.equals(statement.getMatch()))
-                    return REQUIRE_STATUS;
+                    return 1;
+                }
 
-                if (BroadcastStatement.BROADCAST.equals(statement.getMatch()))
-                    return BROADCAST_STATUS;
+                if (RequireStatement.REQUIRE.equals(statement.getMatch())) {
+                    useRequire().add(statement);
+                    return 0;
+                }
+
+                if (BroadcastStatement.BROADCAST.equals(statement.getMatch())) {
+                    useBroadcast().add(statement);
+                    return 0;
+                }
             }
 
             // Gets metrics if unbloating
-            if (statement.getState() == StatementStatus.UNBLOADTING)
-                return UNBLOAT_STATUS;
-
-            return 0;
-        }
-
-        private int requires = 0;
-        private int broadcasts = 0;
-        private int unbloats = 0;
-        private boolean interrupt = false;
-
-        /**
-         * Concat status
-         * @param status Status
-         */
-        public synchronized void concat(int status) {
-            switch(status) {
-                case UNBLOAT_STATUS:
-                    unbloats++;
-                    break;
-                case REQUIRE_STATUS:
-                    requires++;
-                    break;
-                case BROADCAST_STATUS:
-                    broadcasts++;
-                    break;
-                case INTERRUPT_STATUS:
-                    interrupt = true;
-                    break;
-                case UNBLOAT_INTERRUPT_STATUS:
-                    broadcasts++; interrupt = true;
-                    break;
+            if (statement.getState() == StatementStatus.UNBLOADTING) {
+                useUnbloat().add(statement);
+                return 0;
             }
+
+            return -1;
         }
 
         /**
@@ -473,26 +462,50 @@ public class Inv {
             if (digestion == null)
                 return;
 
-            this.requires += digestion.getRequires();
-            this.broadcasts += digestion.getBroadcasts();
-            this.unbloats += digestion.getUnbloats();
+            if (digestion.getRequire() != null)
+                useRequire().addAll(digestion.getRequire());
 
-            if (digestion.interrupt)
-                this.interrupt = true;
+            if (digestion.getBroadcast() != null)
+                useBroadcast().addAll(digestion.getBroadcast());
+
+            if (digestion.getUnbloat() != null)
+                useUnbloat().addAll(digestion.getUnbloat());
+
+            if (digestion.getInterrupted() != null)
+                useInterrupted().addAll(digestion.getInterrupted());
         }
 
-        public int getRequires() {
-            return requires;
+        /**
+         * Check if statements provoked an interruption
+         * @return True if interrupted, otherwise false
+         */
+        public boolean isInterrupted() {
+            return interrupted != null && !interrupted.isEmpty();
         }
 
-        public int getBroadcasts() {
-            return broadcasts;
+        private Queue<Statement> useInterrupted() {
+            if (interrupted == null)
+                interrupted = new LinkedList<>();
+            return interrupted;
         }
 
-        public int getUnbloats() {
-            return unbloats;
+        private Queue<Statement> useRequire() {
+            if (require == null)
+                require = new LinkedList<>();
+            return require;
         }
 
-        public boolean isInterrupted() { return interrupt; }
+        private Queue<Statement> useBroadcast() {
+            if (broadcast == null)
+                broadcast = new LinkedList<>();
+            return broadcast;
+        }
+
+        private Queue<Statement> useUnbloat() {
+            if (unbloat == null)
+                unbloat = new LinkedList<>();
+            return unbloat;
+        }
+
     }
 }

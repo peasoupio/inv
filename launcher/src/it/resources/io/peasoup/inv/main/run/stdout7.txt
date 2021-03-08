@@ -6,10 +6,9 @@
 [undefined] [.*/run/main3.yml] [main3]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [main3] => [BROADCAST] [SomethingYaml] undefined
-[POOL] available:1 , staged:1
 [POOL] inv: main3 COMPLETED
+[POOL] available:1 , staged:1
 ---- [DIGEST] completed ----
 Completed INV(s): 1
 Uncompleted INV(s): 0

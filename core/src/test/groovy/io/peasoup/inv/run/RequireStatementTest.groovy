@@ -29,9 +29,9 @@ class RequireStatementTest {
             require { Element }
         }
 
-        def report = executor.execute()
+        def results = executor.execute()
 
-        assertTrue report.isOk()
+        assertTrue results.report.isOk()
 
         def requireStatement = executor
                 .pool
@@ -67,9 +67,9 @@ class RequireStatementTest {
             }
         }
 
-        def report = executor.execute()
+        def results = executor.execute()
 
-        assertTrue report.isOk()
+        assertTrue results.report.isOk()
         assertTrue unresolvedRaised
 
         def requireStatement = executor.pool.totalInvs.first().totalStatements.first() as RequireStatement
@@ -96,9 +96,9 @@ class RequireStatementTest {
             }
         }
 
-        def report = executor.execute()
+        def results = executor.execute()
 
-        assertFalse report.isOk()
+        assertFalse results.report.isOk()
         assertFalse unresolvedRaised
     }
 
@@ -121,8 +121,8 @@ class RequireStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -144,8 +144,8 @@ class RequireStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test

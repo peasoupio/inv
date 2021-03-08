@@ -11,10 +11,9 @@
 [io.peasoup.inv.pub.net.http] [.*/repo/get/target/repos/repo@io.peasoup.inv.pub.net.http/net/http/vars/inv.groovy] [Script.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[EXECUTOR] scheduling: #1
 [Script.*] => [BROADCAST] [HTTP] undefined
-[POOL] available:1 , staged:1
 [POOL] inv: Script.* COMPLETED
+[POOL] available:1 , staged:1
 ---- [DIGEST] completed ----
 Completed INV(s): 1
 Uncompleted INV(s): 0

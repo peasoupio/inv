@@ -409,8 +409,8 @@ class BroadcastStatementTest {
             require { Endpoint(context: myCtx) }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -450,8 +450,8 @@ class BroadcastStatementTest {
             require { Endpoint(context: myCtx) }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
 
@@ -485,8 +485,8 @@ class BroadcastStatementTest {
             require { Endpoint(context: myCtx) }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -520,8 +520,8 @@ class BroadcastStatementTest {
             require { Endpoint(context: myCtx) }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -554,8 +554,8 @@ class BroadcastStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -582,8 +582,8 @@ class BroadcastStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertFalse report.isOk()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     @Test
@@ -616,8 +616,8 @@ class BroadcastStatementTest {
             require { Endpoint(context: myCtx) }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -663,8 +663,8 @@ class BroadcastStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertTrue report.isOk()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -694,8 +694,8 @@ class BroadcastStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertFalse report.isOk()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     @Test
@@ -725,8 +725,8 @@ class BroadcastStatementTest {
             }
         }
 
-        def report = executor.execute()
-        assertFalse report.isOk()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     static class MyResponseClass1 {

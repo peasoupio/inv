@@ -9,7 +9,7 @@ public class PoolStateTree {
         if (pool == null) {
             throw new IllegalArgumentException("Pool is required");
         }
-        if (pool.getIsDigesting()) {
+        if (pool.isIngesting()) {
             throw new IllegalArgumentException("It is unsafe to get a pool state during a pool digestion cycle");
         }
 

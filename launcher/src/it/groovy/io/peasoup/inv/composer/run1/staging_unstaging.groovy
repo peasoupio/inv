@@ -11,6 +11,32 @@ waitFor(10) {
     get(links.setup) { it.booted }
 }
 
+// Search using default
+get(links.run.default) {
+    assertNotNull it
+    assertEquals 5, it.total
+    assertEquals 5, it.count
+    assertEquals 0, it.staged
+    assertEquals 0, it.required
+
+    assertNotNull it.names
+    assertTrue it.names.contains("StatementA1")
+    assertTrue it.names.contains("StatementA2")
+    assertTrue it.names.contains("StatementB1")
+    assertTrue it.names.contains("StatementB2")
+    assertTrue it.names.contains("StatementC1")
+
+    assertNotNull it.nodes
+    assertEquals 5, it.nodes.size()
+}
+
+// Stage all
+post(links.run.staged) { assertEquals 0, it.count}
+post(links.run.stageAll)
+post(links.run.staged) { assertEquals 5, it.count }
+post(links.run.unstageAll)
+post(links.run.staged) { assertEquals 0, it.count}
+
 // Search by name
 post(links.run.search, [name: 'StatementB1']) {
     assertNotNull it

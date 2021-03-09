@@ -9,6 +9,8 @@ Feature: What are the responses of my Composer requests?
     Examples:
       | httpScript                                         | workDir           |
 
+      | io.peasoup.inv.composer.run1.staging_unstaging     | /composer/run1    |
+
       # Repo
       | io.peasoup.inv.composer.repo1.search               | /composer/repo1   |
       | io.peasoup.inv.composer.repo1.repos                | /composer/repo1   |
@@ -16,8 +18,8 @@ Feature: What are the responses of my Composer requests?
       | io.peasoup.inv.composer.repo3.parameters           | /composer/repo3   |
 
       # Run
-      | io.peasoup.inv.composer.run1.staging_unstaging     | /composer/run1    |
       | io.peasoup.inv.composer.run1.runfile               | /composer/run1    |
+      | io.peasoup.inv.composer.run2.missing_runfile       | /composer/run2    |
 
       # Boot
       | io.peasoup.inv.composer.boot1.empty_folder         | /composer/boot1   |

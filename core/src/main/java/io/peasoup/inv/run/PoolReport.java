@@ -1,6 +1,9 @@
 package io.peasoup.inv.run;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Collection;
 import java.util.LinkedList;

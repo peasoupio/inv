@@ -62,8 +62,8 @@ public final class Logger {
                         notifier.wait();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    break;
+                    // Do not handle itself the exception, rethrow it.
+                    throw new RuntimeException(e);
                 }
             }
         }, "logging-thread");
@@ -159,10 +159,10 @@ public final class Logger {
                 writingQueue.put(message);
 
             synchronized (notifier) {
-                notifier.notify();
+                notifier.notifyAll();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         capture(message);
@@ -173,10 +173,10 @@ public final class Logger {
             writingQueue.put( ERR_MSG_TOKEN + type + " " + message);
 
             synchronized (notifier) {
-                notifier.notify();
+                notifier.notifyAll();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         capture(message);

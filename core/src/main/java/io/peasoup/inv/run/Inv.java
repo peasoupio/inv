@@ -226,6 +226,8 @@ public class Inv {
                 case 1: // if unbloated and prevent further unbloats
                     this.remainingStatements.remove(statement);
                     break;
+                default:
+                    throw new IllegalStateException("Cannot proceed with the statement result");
             }
         }
     }

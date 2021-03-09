@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class BroadcastResponseMetaClass extends ExpandoMetaClass {
 
-    private final static MetaClass CALLER_METACLASS = DefaultGroovyMethods.getMetaClass(InvDescriptor.class);
+    private static final MetaClass CALLER_METACLASS = DefaultGroovyMethods.getMetaClass(InvDescriptor.class);
 
     private final Object shell;
 
@@ -155,28 +155,28 @@ public class BroadcastResponseMetaClass extends ExpandoMetaClass {
         this.initialize();
 
         // Create actual object
-        Object shell = InvokerHelper.invokeNoArgumentsConstructorOf(broadcastResponse.getResponse().getClass());
+        Object newShell = InvokerHelper.invokeNoArgumentsConstructorOf(broadcastResponse.getResponse().getClass());
 
         // Duplicate values from original to shell
-        if (shell instanceof Map) {
-            ((Map)shell).putAll((Map)broadcastResponse.getResponse());
+        if (newShell instanceof Map) {
+            ((Map)newShell).putAll((Map)broadcastResponse.getResponse());
         }
 
-        if (shell instanceof GroovyObject) {
+        if (newShell instanceof GroovyObject) {
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) DefaultGroovyMethods.getProperties(broadcastResponse.getResponse())).entrySet()) {
                 if ("class".equals(entry.getKey()))
                     continue;
 
-                responseMetaClass.setProperty(shell, entry.getKey(), entry.getValue());
+                responseMetaClass.setProperty(newShell, entry.getKey(), entry.getValue());
             }
         }
 
-        if(shell instanceof GroovyObject)
-            DefaultGroovyMethods.setMetaClass((GroovyObject) shell, this);
+        if(newShell instanceof GroovyObject)
+            DefaultGroovyMethods.setMetaClass((GroovyObject) newShell, this);
         else
-            DefaultGroovyMethods.setMetaClass(shell, this);
+            DefaultGroovyMethods.setMetaClass(newShell, this);
 
-        return shell;
+        return newShell;
     }
 
     private Tuple2<Boolean, Object> lookUpMethod(String methodName, Object[] args) {

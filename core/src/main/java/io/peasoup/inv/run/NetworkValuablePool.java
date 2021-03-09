@@ -5,7 +5,10 @@ import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class NetworkValuablePool {
     public static final String HALTING = "HALTED";
@@ -107,19 +110,16 @@ public class NetworkValuablePool {
         if (isUnbloating())
             errorsCaught = eatSynchronized(sorted, digestion);
 
-        // Batch all require resolve at once
-        boolean hasResolvedSomething = digestion.getRequire() != null &&  digestion.getRequire().size() > 0;
-
         // Check for new broadcasts
-        boolean hasStagedSomething = digestion.getBroadcast() != null && digestion.getBroadcast().size() > 0;
+        boolean hasStagedSomething = digestion.getBroadcast() != null && !digestion.getBroadcast().isEmpty();
 
+        // Check if an INV has been completed.
         boolean hasCompletedSomething = latestCompletedCount > 0;
         latestCompletedCount = 0;
 
         // Prepare state for next cycle
         evaluateState(
                 hasCompletedSomething,
-                hasResolvedSomething,
                 hasStagedSomething
         );
 
@@ -182,14 +182,11 @@ public class NetworkValuablePool {
     /**
      * Determine the next cycle state
      * @param hasDoneSomething invs were completed
-     * @param hasResolvedSomething requires statements where met
      * @param hasStagedSomething broadcast statements where met
      */
-    private void evaluateState(boolean hasDoneSomething, boolean hasResolvedSomething, boolean hasStagedSomething) {
+    private void evaluateState(boolean hasDoneSomething, boolean hasStagedSomething) {
         if (hasDoneSomething) {// Has completed Invs
             startRunning();
-        //} else if (hasResolvedSomething) {// Has completed requirements
-        //    startRunning();
         } else if (hasStagedSomething) {// Has dumped something
             startRunning();
         } else if (runningState.equals(UNBLOATING)) {
@@ -375,7 +372,7 @@ public class NetworkValuablePool {
                 0 :
                 a.getDigestionSummary().getUnbloat().size()));
         sorted.sort((a, b) -> {
-            if (a.isPop() != b.isPop())
+            if (!a.isPop().equals(b.isPop()))
                 return b.isPop().compareTo(a.isPop());
 
             return a.isTail().compareTo(b.isTail());

@@ -9,6 +9,7 @@ import io.peasoup.inv.repo.RepoFolderCollection;
 import io.peasoup.inv.repo.RepoURLFetcher;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.junit.Before;
 
 import java.io.File;
@@ -45,7 +46,13 @@ public abstract class JunitScriptBase extends Script {
         return results != null  && !results.getReport().getErrors().isEmpty();
     }
 
-    public void simulate(@DelegatesTo(SimulatorDescriptor.class) Closure body) throws IllegalAccessException, MissingOptionException {
+    /**
+     * Simulate a body using the SimulatorDescriptor to execute tests.
+     * @param body The closure body
+     * @throws IllegalAccessException Cannot read content.
+     * @throws MissingOptionException Cannot parse an INV
+     */
+    public void simulate(@DelegatesTo(SimulatorDescriptor.class) Closure<?> body) throws IllegalAccessException, MissingOptionException {
         if (body == null)
             throw new IllegalArgumentException("body");
 
@@ -60,6 +67,14 @@ public abstract class JunitScriptBase extends Script {
 
         if (!simulatorDescriptor.hasSomethingToDo())
             return;
+
+        addResources(simulatorDescriptor);
+
+        // Do the actual execution
+        results = invExecutor.execute();
+    }
+
+    private void addResources(SimulatorDescriptor simulatorDescriptor) throws MissingOptionException {
 
         // Add repo files
         for(String repoLocation : simulatorDescriptor.getRepoFiles()) {
@@ -82,15 +97,13 @@ public abstract class JunitScriptBase extends Script {
             packageName = mySettings.getPackageName();
 
         // Add src files
-        if (simulatorDescriptor.isIncludeSrcFiles()) {
-            File srcFiles = new File(Home.getCurrent(), "src");
+        File srcFiles = new File(Home.getCurrent(), "src");
+        if (simulatorDescriptor.isIncludeSrcFiles() && srcFiles.exists()) {
 
-            if (srcFiles.exists()) {
-                File[] files = srcFiles.listFiles();
-                if (files != null) {
-                    for (File srcFile : files) {
-                        invExecutor.addClass(srcFile, packageName);
-                    }
+            File[] files = srcFiles.listFiles();
+            if (files != null) {
+                for (File srcFile : files) {
+                    invExecutor.addClass(srcFile, packageName);
                 }
             }
         }
@@ -110,8 +123,5 @@ public abstract class JunitScriptBase extends Script {
         for(Closure<?> invBody : simulatorDescriptor.getInvBodies()) {
             new InvHandler(invExecutor).call(invBody);
         }
-
-        // Do the actual execution
-        results = invExecutor.execute();
     }
 }

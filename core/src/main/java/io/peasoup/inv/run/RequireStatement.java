@@ -9,7 +9,6 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Getter
@@ -134,7 +133,7 @@ public class RequireStatement implements Statement {
             else {
                 // Be default, a require statement includes an "into" variable which equals to the
                 // require statement name first letter lowercase, preceded by a '$'.
-                char c[] = requireStatement.getName().toCharArray();
+                char[] c = requireStatement.getName().toCharArray();
                 c[0] = Character.toLowerCase(c[0]);
                 intoVariable = "$" + new String(c);
             }

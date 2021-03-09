@@ -2,7 +2,9 @@ package io.peasoup.inv.run;
 
 import lombok.Getter;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkValuablePoolWatchList {
@@ -26,18 +28,15 @@ public class NetworkValuablePoolWatchList {
                 continue;
 
             // Get watchlist for statement name
-            String watchlistKey = remainingStatement.getName();
-            if (!watchlist.containsKey(watchlistKey))
-                watchlist.put(watchlistKey, new ConcurrentHashMap<>());
-            Map<Object, Set<Inv>> watchlistForName = watchlist.get(watchlistKey);
+            Map<Object, Set<Inv>> watchlistForName = watchlist.computeIfAbsent(
+                    remainingStatement.getName(), (k -> new ConcurrentHashMap<>()));
 
             // Get watchlist for statement id
-            Object watchlistForNameKey = remainingStatement.getId();
-            if (!watchlistForName.containsKey(watchlistForNameKey))
-                watchlistForName.put(watchlistForNameKey, ConcurrentHashMap.newKeySet());
+            Set<Inv> watchlistForIds = watchlistForName.computeIfAbsent(
+                    remainingStatement.getId(), (k -> ConcurrentHashMap.newKeySet()));
 
             // Add inv to watchlist
-            watchlistForName.get(watchlistForNameKey).add(inv);
+            watchlistForIds.add(inv);
         }
     }
 

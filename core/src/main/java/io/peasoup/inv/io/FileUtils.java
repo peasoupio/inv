@@ -4,8 +4,8 @@ import org.apache.commons.lang.StringUtils;
 
 public class FileUtils {
 
-    public final static String SCRIPT_GROOVY_TYPE = "text/x-groovy";
-    public final static String SCRIPT_YAML_TYPE = "text/x-yaml";
+    public static final String SCRIPT_GROOVY_TYPE = "text/x-groovy";
+    public static final String SCRIPT_YAML_TYPE = "text/x-yaml";
 
     private FileUtils() {
         // private ctor

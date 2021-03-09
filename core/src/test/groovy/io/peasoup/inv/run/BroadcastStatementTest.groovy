@@ -91,7 +91,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -121,7 +122,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -149,7 +151,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -174,7 +177,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     @Test
@@ -201,7 +205,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     @Test
@@ -229,7 +234,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertFalse results.report.isOk()
     }
 
     @Test
@@ -256,7 +262,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -285,7 +292,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -312,7 +320,34 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+    }
+
+    @Test
+    void ok_has_property() {
+        inv {
+            name "provide"
+
+            broadcast { Element } using {
+                ready {new MyResponseClass2(myCtx: "myCtx")}
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require { Element } using {
+
+                resolved {
+                    assertNotNull response.hasProperty("myCtx")
+                    assertNull response.hasProperty("notExisting")
+                }
+            }
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -339,7 +374,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test
@@ -370,7 +406,8 @@ class BroadcastStatementTest {
             }
         }
 
-        executor.execute()
+        def results = executor.execute()
+        assertTrue results.report.isOk()
     }
 
     @Test

@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public final class Logger {
@@ -16,8 +18,7 @@ public final class Logger {
     private static final Object notifier = new Object();
     private static final String ERR_MSG_TOKEN = "%e%:";
 
-    // Highest from randomizer is around 900. 8096 seems a bit overkill, but better be safe than sorry :)
-    private static final BlockingQueue<String> writingQueue = new LinkedBlockingQueue<>(8096);
+    private static final Queue<String> writingQueue = new ConcurrentLinkedQueue<>();
 
     private static Collection<String> captureList = null;
 
@@ -152,31 +153,25 @@ public final class Logger {
     }
 
     private static void writeStdout(String type, String message) {
-        try {
-            if (StringUtils.isNotEmpty(type))
-                writingQueue.put(type + " " + message);
-            else
-                writingQueue.put(message);
 
-            synchronized (notifier) {
-                notifier.notifyAll();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if (StringUtils.isNotEmpty(type))
+            writingQueue.add(type + " " + message);
+        else
+            writingQueue.add(message);
+
+        synchronized (notifier) {
+            notifier.notifyAll();
         }
 
         capture(message);
     }
 
     private static void writeStderr(String type, String message) {
-        try {
-            writingQueue.put( ERR_MSG_TOKEN + type + " " + message);
 
-            synchronized (notifier) {
-                notifier.notifyAll();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        writingQueue.add( ERR_MSG_TOKEN + type + " " + message);
+
+        synchronized (notifier) {
+            notifier.notifyAll();
         }
 
         capture(message);

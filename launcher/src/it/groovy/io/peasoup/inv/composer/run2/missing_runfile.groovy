@@ -45,5 +45,3 @@ waitFor(10) {
     }
 }
 
-println "ok"
-

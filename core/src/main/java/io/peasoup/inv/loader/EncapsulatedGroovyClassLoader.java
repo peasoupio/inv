@@ -2,12 +2,15 @@ package io.peasoup.inv.loader;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
+import groovyjarjarasm.asm.ClassVisitor;
+import groovyjarjarasm.asm.ClassWriter;
 import lombok.Getter;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.ErrorCollector;
 
@@ -35,6 +38,15 @@ public class EncapsulatedGroovyClassLoader extends GroovyClassLoader {
             // INV stuff
             "io\\.peasoup\\.inv\\.testing\\.JunitScriptBase"
         )));
+
+    @Getter
+    private final CompilationUnit.ClassgenCallback classGenCallback = ((classVisitor, classNode) -> {
+        String className = classNode.getName();
+        byte[] bytecode = ((ClassWriter) classVisitor).toByteArray();
+
+        Class<?> clazz = this.defineClass(className, bytecode);
+        this.setClassCacheEntry(clazz);
+    });
 
     private final Map<CodeSource, Config> knownConfigs = new ConcurrentHashMap<>();
 

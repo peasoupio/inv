@@ -1,16 +1,17 @@
 package io.peasoup.inv.loader;
 
+import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovy.transform.TypeChecked;
+import groovyjarjarasm.asm.ClassVisitor;
+import groovyjarjarasm.asm.ClassWriter;
 import io.peasoup.inv.Home;
 import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
-import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
@@ -99,16 +100,9 @@ public class GroovyLoader {
 
         compilerConfiguration.setTargetDirectory(Home.getClassesFolder());
 
-        // Register lib folder to general classloader
-        // Make sure it ends with a Path.separator, otherwise ClassLoader won't see it.
-        try {
-            this.generalClassLoader.addURL(new File(Home.getClassesFolder(), File.separator).toURI().toURL());
-        } catch (MalformedURLException e) {
-            Logger.error(e);
-        }
-
         // Create compilation unit
         this.compilationUnit = new CompilationUnit(compilerConfiguration);
+        this.compilationUnit.setClassgenCallback(this.generalClassLoader.getClassGenCallback());
     }
 
     /**

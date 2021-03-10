@@ -108,6 +108,9 @@ public abstract class JunitScriptBase extends Script {
             }
         }
 
+        // Compile classes before executing INv bodies
+        invExecutor.compileClasses();
+
         // Add inv files
         for(String invLocation : simulatorDescriptor.getInvFiles()) {
             File invRealLocation = new File(Home.getCurrent(), invLocation);

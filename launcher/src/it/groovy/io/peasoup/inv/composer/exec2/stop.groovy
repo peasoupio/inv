@@ -5,7 +5,6 @@ import io.peasoup.inv.Home
 import static junit.framework.Assert.assertFalse
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static org.junit.Assert.*
-import static org.junit.Assert.assertThrows
 
 def runFile = new File(Home.getCurrent(), "run.txt")
 runFile.delete() // Make sure run.txt is deleted

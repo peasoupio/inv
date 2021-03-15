@@ -10,23 +10,23 @@
 [REPO] name: io.peasoup.inv.pub.tools.maven, path: .*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven [.*] done
 [REPO] [CLASS] path: src/.*.groovy, package: .*
 [REPO] [CLASS] path: src/.*.groovy, package: .*
-[STATEMENT] [Script.*] => [REQUIRE] [Files] undefined [INIT]
-[STATEMENT] [Script.*] => [BROADCAST] [Maven] undefined [INIT]
-[io.peasoup.inv.pub.tools.maven] [.*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven/tools/maven/vars/inv.groovy] [Script.*]
+[STATEMENT] [io.peasoup.inv.pub.tools.maven.*] => [REQUIRE] [Files] undefined [INIT]
+[STATEMENT] [io.peasoup.inv.pub.tools.maven.*] => [BROADCAST] [Maven] undefined [INIT]
+[io.peasoup.inv.pub.tools.maven] [.*/run/target/repos/repo@io.peasoup.inv.pub.tools.maven/tools/maven/vars/inv.groovy] [io.peasoup.inv.pub.tools.maven.*]
 [REPO] script: io.peasoup.inv.pub.io.files, parameter: .*-values.json
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/target/repos/repo@io.peasoup.inv.pub.io.files [.*] start
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.io.files, path: .*/run/target/repos/repo@io.peasoup.inv.pub.io.files [.*] done
 [REPO] [CLASS] path: src/.*.groovy, package: .*
-[STATEMENT] [Script.*] => [BROADCAST] [Files] undefined [INIT]
-[io.peasoup.inv.pub.io.files] [.*/run/target/repos/repo@io.peasoup.inv.pub.io.files/io/files/vars/inv.groovy] [Script.*]
+[STATEMENT] [io.peasoup.inv.pub.io.files.*] => [BROADCAST] [Files] undefined [INIT]
+[io.peasoup.inv.pub.io.files] [.*/run/target/repos/repo@io.peasoup.inv.pub.io.files/io/files/vars/inv.groovy] [io.peasoup.inv.pub.io.files.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[Script.*] => [BROADCAST] [Files] undefined
-[POOL] inv: Script.* COMPLETED
-[Script.*] => [REQUIRE] [Files] undefined
-[Script.*] => [BROADCAST] [Maven] undefined
-[POOL] inv: Script.* COMPLETED
+[io.peasoup.inv.pub.io.files.*] => [BROADCAST] [Files] undefined
+[POOL] inv: io.peasoup.inv.pub.io.files.* COMPLETED
+[io.peasoup.inv.pub.tools.maven.*] => [REQUIRE] [Files] undefined
+[io.peasoup.inv.pub.tools.maven.*] => [BROADCAST] [Maven] undefined
+[POOL] inv: io.peasoup.inv.pub.tools.maven.* COMPLETED
 [main1] => [REQUIRE] [Maven] undefined
 [POOL] inv: main1 COMPLETED
 [POOL] available:2 , staged:2

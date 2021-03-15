@@ -13,6 +13,7 @@ import java.util.List;
 public class SimulatorDescriptor {
 
     private boolean includeSrcFiles = true;
+    private boolean includeGrabFile = true;
 
     private final List<String> invFiles;
     private final List<String> repoFiles;
@@ -27,13 +28,23 @@ public class SimulatorDescriptor {
     }
 
     /**
-     * Set whether or not source files located at /src are loaded.
+     * Set whether or not source files located at /src will be loaded.
      * By default, value is true.
      *
      * @param value True to load, otherwise false.
      */
     public void includeSrcFiles(boolean value) {
         this.includeSrcFiles = value;
+    }
+
+    /**
+     * Set whether or not the grab.groovy file located at current folder will be loaded.
+     * By default, value is true.
+     *
+     * @param value True to load, otherwise false.
+     */
+    public void includeGrabFile(boolean value) {
+        this.includeGrabFile = value;
     }
 
 

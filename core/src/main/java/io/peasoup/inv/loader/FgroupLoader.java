@@ -3,6 +3,8 @@ package io.peasoup.inv.loader;
 import io.peasoup.fgroup.FileMatches;
 import io.peasoup.fgroup.FileSeeker;
 import io.peasoup.inv.Logger;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
@@ -22,12 +24,15 @@ public class FgroupLoader {
         String tmpFolder = System.getProperty("java.io.tmpdir");
         Path configFile = Path.of(tmpFolder, "fgroup.txt");
 
-        if (!Files.exists(configFile)) {
-            try (InputStream is = FgroupLoader.class.getResourceAsStream("/fgroup.txt");) {
-                Files.copy(is, configFile);
-            } catch (IOException e) {
-                Logger.error(e);
-            }
+        try (InputStream is = FgroupLoader.class.getResourceAsStream("/fgroup.txt")) {
+            // Copy existing local
+            if (Files.exists(configFile))
+                Files.delete(configFile);
+
+            // Copy from classpath to local
+            Files.copy(is, configFile);
+        } catch (IOException e) {
+            Logger.error(e);
         }
 
         fileSeeker = new FileSeeker(configFile.toString());
@@ -75,15 +80,26 @@ public class FgroupLoader {
             repoMatches.setRepoFile(match.getMatch());
         }
 
+        // Add deps file
+        for (FileMatches.FileMatchRecord match : fileMatches.get("grabFile")) {
+            repoMatches.setGrabFile(match.getMatch());
+        }
+
         return repoMatches;
     }
 
+    @Getter
     public static class RepoMatches {
         private final String rootPath;
         private final List<Path> groovyFiles;
         private final List<Path> groovyTestFiles;
         private final List<Path> invFiles;
+
+        @Setter
         private Path repoFile;
+
+        @Setter
+        private Path grabFile;
 
         public RepoMatches(String rootPath) {
             if (StringUtils.isEmpty(rootPath))
@@ -93,30 +109,6 @@ public class FgroupLoader {
             this.groovyFiles = new ArrayList<>();
             this.groovyTestFiles = new ArrayList<>();
             this.invFiles = new ArrayList<>();
-        }
-
-        public String getRootPath() {
-            return rootPath;
-        }
-
-        public List<Path> getGroovyFiles() {
-            return groovyFiles;
-        }
-
-        public List<Path> getGroovyTestFiles() {
-            return groovyTestFiles;
-        }
-
-        public List<Path> getInvFiles() {
-            return invFiles;
-        }
-
-        public void setRepoFile(Path repoFile) {
-            this.repoFile = repoFile;
-        }
-
-        public Path getRepoFile() {
-            return repoFile;
         }
     }
 }

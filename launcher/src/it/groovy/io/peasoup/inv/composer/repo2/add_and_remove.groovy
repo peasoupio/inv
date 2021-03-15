@@ -1,7 +1,5 @@
 package io.peasoup.inv.composer.repo2
 
-import java.nio.charset.Charset
-
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static org.junit.Assert.*
 

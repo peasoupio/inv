@@ -1,16 +1,11 @@
 package io.peasoup.inv.loader;
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovy.transform.TypeChecked;
-import groovyjarjarasm.asm.ClassVisitor;
-import groovyjarjarasm.asm.ClassWriter;
 import io.peasoup.inv.Home;
 import io.peasoup.inv.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
@@ -22,7 +17,6 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.util.LinkedHashMap;
 
 public class GroovyLoader {
@@ -57,10 +51,12 @@ public class GroovyLoader {
 
     private final boolean secureMode;
 
-    private final EncapsulatedGroovyClassLoader generalClassLoader;
-    private final EncapsulatedGroovyClassLoader securedClassLoader;
+    private final CompilerConfiguration compilerConfiguration;
 
-    private final CompilationUnit compilationUnit;
+    private final CustomClassLoader generalClassLoader;
+    private final CustomClassLoader securedClassLoader;
+
+    private final CustomCompilationUnit classesCompilationUnit;
 
     /**
      * Create a common loader
@@ -72,20 +68,20 @@ public class GroovyLoader {
     private GroovyLoader(boolean secureMode, String scriptBaseClass, ImportCustomizer importCustomizer) {
         this.secureMode = secureMode;
 
-        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        this.compilerConfiguration = new CompilerConfiguration();
+        this.compilerConfiguration.setTargetDirectory(Home.getClassesFolder());
+
         CompilerConfiguration securedCompilerConfiguration = new CompilerConfiguration();
 
         if (StringUtils.isNotEmpty(scriptBaseClass)) {
-            compilerConfiguration.setScriptBaseClass(scriptBaseClass);
+            this.compilerConfiguration.setScriptBaseClass(scriptBaseClass);
             securedCompilerConfiguration.setScriptBaseClass(scriptBaseClass);
         }
 
         if (importCustomizer != null) {
-            compilerConfiguration.addCompilationCustomizers(importCustomizer);
+            this.compilerConfiguration.addCompilationCustomizers(importCustomizer);
             securedCompilerConfiguration.addCompilationCustomizers(importCustomizer);
         }
-
-        compilerConfiguration.addCompilationCustomizers(new PackageTransformationCustomizer());
 
         // Apply SecureAST to all (de)compilers
         applySecureASTConfigs(securedCompilerConfiguration);
@@ -93,16 +89,13 @@ public class GroovyLoader {
         // Apply SecureTypeChecker to secured (de)compiler
         applySecureTypeCheckerConfigs(securedCompilerConfiguration);
 
-        this.securedClassLoader = new EncapsulatedGroovyClassLoader(securedCompilerConfiguration);
+        this.securedClassLoader = new CustomClassLoader(securedCompilerConfiguration);
 
         // Create general classloader
-        this.generalClassLoader = new EncapsulatedGroovyClassLoader(compilerConfiguration);
+        this.generalClassLoader = new CustomClassLoader(this.compilerConfiguration);
 
-        compilerConfiguration.setTargetDirectory(Home.getClassesFolder());
-
-        // Create compilation unit
-        this.compilationUnit = new CompilationUnit(compilerConfiguration);
-        this.compilationUnit.setClassgenCallback(this.generalClassLoader.getClassGenCallback());
+        // Create classes compilation unit
+        this.classesCompilationUnit = new CustomCompilationUnit();
     }
 
     /**
@@ -111,30 +104,16 @@ public class GroovyLoader {
      * @param packageName Defines package for groovy file classes (nullable)
      */
     public void addClassFile(File groovyFile, String packageName)  {
-        if (groovyFile == null)
-            throw new IllegalArgumentException("groovyFile");
-
-        compilationUnit.addSource(new EncapsulatedGroovyClassLoader.SourceUnit(
-                groovyFile,
-                this.compilationUnit.getConfiguration(),
-                this.compilationUnit.getClassLoader(),
-                this.compilationUnit.getErrorCollector(),
-                packageName
-        ));
+        classesCompilationUnit.addSourceWithPackage(
+                        groovyFile,
+                        packageName);
     }
 
     /**
      * Compile all class files.
      */
     public void compileClasses() {
-        this.compilationUnit.addPhaseOperation((source, context, classNode) -> {
-            if (source instanceof EncapsulatedGroovyClassLoader.SourceUnit) {
-                EncapsulatedGroovyClassLoader.SourceUnit su = (EncapsulatedGroovyClassLoader.SourceUnit) source;
-                su.updateAst(classNode);
-            }
-        }, Phases.CONVERSION);
-
-        this.compilationUnit.compile();
+        this.classesCompilationUnit.compile();
     }
 
     /**
@@ -147,12 +126,13 @@ public class GroovyLoader {
         if (StringUtils.isEmpty(text))
             throw new IllegalArgumentException("text");
 
-        return parseGroovyCodeSource(
-            new GroovyCodeSource(
+        CustomCompilationUnit compilationUnit = new CustomCompilationUnit();
+        compilationUnit.addSourceWithPackage(
                 text,
-                "script:",
-                "groovy/script"),
-            new EncapsulatedGroovyClassLoader.Config("text", null));
+                null
+        );
+
+        return parseGroovyCodeSource(compilationUnit);
     }
 
     /**
@@ -164,12 +144,13 @@ public class GroovyLoader {
      * @throws IOException
      */
     public Class<?> parseTestScriptFile(File groovyFile, String packageName) throws IOException {
-        if (groovyFile == null)
-            throw new IllegalArgumentException("groovyFile");
+        CustomCompilationUnit compilationUnit = new CustomCompilationUnit();
+        compilationUnit.addSourceWithPackage(
+                groovyFile,
+                packageName
+        );
 
-        return parseGroovyCodeSource(
-                new GroovyCodeSource(groovyFile),
-                new EncapsulatedGroovyClassLoader.Config("test", packageName));
+        return parseGroovyCodeSource(compilationUnit);
     }
 
     /**
@@ -190,7 +171,7 @@ public class GroovyLoader {
     /**
      * Parse and raise new instance of Groovy (script) file
      * @param groovyFile Groovy file
-     * @param newPackage Defines package for groovy file classes (nullable)
+     * @param packageName Defines package for groovy file classes (nullable)
      * @return New script instance.
      *
      * @throws IOException
@@ -199,50 +180,24 @@ public class GroovyLoader {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    public Script parseScriptFile(File groovyFile, String newPackage) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        if (groovyFile == null)
-            throw new IllegalArgumentException("groovyFile");
+    public Script parseScriptFile(File groovyFile, String packageName) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-        return createScript(
-                new GroovyCodeSource(groovyFile),
-                new EncapsulatedGroovyClassLoader.Config(
-                        "script",
-                        newPackage));
-    }
+        CustomCompilationUnit compilationUnit = new CustomCompilationUnit();
+        compilationUnit.addSourceWithPackage(
+                groovyFile,
+                packageName
+        );
 
-    /**
-     * Parse and raise new instance of Groovy (script) file
-     * @param groovyFile Groovy file
-     * @param newPackage Defines package for groovy file classes (nullable)
-     * @param useScriptName True if the script name should be used, otherwise it is generated
-     * @return New Script instance.
-     *
-     * @throws IOException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     */
-    public Script parseScriptFile(File groovyFile, String newPackage, boolean useScriptName) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        if (groovyFile == null)
-            throw new IllegalArgumentException("groovyFile");
-
-        return createScript(
-                new GroovyCodeSource(groovyFile),
-                new EncapsulatedGroovyClassLoader.Config(
-                        "script",
-                        newPackage,
-                        useScriptName));
+        return createScript(compilationUnit);
     }
 
     /**
      * Create a new instance of a Script Groovy code source
-     * @param groovyCodeSource Groovy code source
-     * @param config Extended Groovy class loader config
+     * @param compilationUnit Compilation unit to use
      * @return A new Script instance
      */
-    private Script createScript(GroovyCodeSource groovyCodeSource, EncapsulatedGroovyClassLoader.Config config) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        Class<?> cls = parseGroovyCodeSource(groovyCodeSource, config);
+    private Script createScript(CustomCompilationUnit compilationUnit) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Class<?> cls = parseGroovyCodeSource(compilationUnit);
         if (cls == null)
             return null;
 
@@ -251,18 +206,21 @@ public class GroovyLoader {
 
     /**
      * Parse and raise new instance of Groovy (script) file
-     * @param groovyCodeSource Groovy code source
-     * @param config Extended Groovy class loader config
+     * @param compilationUnit Compilation unit to use
      * @return A new class object
      */
-    private Class<?> parseGroovyCodeSource(GroovyCodeSource groovyCodeSource, EncapsulatedGroovyClassLoader.Config config) {
+    private Class<?> parseGroovyCodeSource(CustomCompilationUnit compilationUnit) {
+
+        SourceUnit sourceUnit = compilationUnit.getSourceUnit();
+        if (sourceUnit == null)
+            throw new IllegalStateException("Cannot retrieve source unit.");
 
         // If secure is enabled, use secure classloader
         if (secureMode) {
             try {
-                Class<?> cls = securedClassLoader.parseClass(groovyCodeSource, config);
+                Class<?> cls = securedClassLoader.parseClass(sourceUnit.getSource().getReader(), sourceUnit.getName());
                 if (cls == null) {
-                    Logger.warn("[COMMONLOADER] name: " + groovyCodeSource.getName() + ", succeeded: false");
+                    Logger.warn("[COMMONLOADER] name: " + sourceUnit.getName() + ", succeeded: false");
                     return null;
                 }
 
@@ -271,17 +229,23 @@ public class GroovyLoader {
             } catch (MultipleCompilationErrorsException ex) {
                 if (hasFatalException(ex))
                     return null;
+            } catch (IOException e) {
+                Logger.error(e);
+                return null;
             }
         }
 
-        // Otherwise, use general classloader
-        Class<?> cls = generalClassLoader.parseClass(groovyCodeSource, config);
-        if (cls == null) {
-            Logger.warn("[COMMONLOADER] name: " + groovyCodeSource.getName() + ", succeeded: false");
+        try {
+            // Do the actual compilation
+            compilationUnit.compile();
+
+            // Expect the first class to be the "main" one, load it.
+            return generalClassLoader.loadClass(compilationUnit.getClasses().get(0).getName());
+
+        } catch (ClassNotFoundException | CompilationFailedException e) {
+            Logger.error(e);
             return null;
         }
-
-        return cls;
     }
 
     private boolean hasFatalException(MultipleCompilationErrorsException ex) {
@@ -341,6 +305,65 @@ public class GroovyLoader {
         secureASTCustomizer.setIndirectImportCheckEnabled(false);
 
         compilerConfiguration.addCompilationCustomizers(secureASTCustomizer);
+    }
+
+    private class CustomCompilationUnit extends CompilationUnit {
+
+        CustomCompilationUnit() {
+            super(compilerConfiguration, null, generalClassLoader);
+
+            this.setClassgenCallback(generalClassLoader.getClassGenCallback());
+            this.addPhaseOperation((source, context, classNode) -> {
+                if (source instanceof CustomClassLoader.SourceUnit) {
+                    CustomClassLoader.SourceUnit su = (CustomClassLoader.SourceUnit) source;
+                    su.updateAst(classNode);
+                }
+            }, Phases.CONVERSION);
+        }
+
+        /**
+         * Gets first source unit in the queue list.
+         * @return Sourceunit if found, otherwise null
+         */
+        SourceUnit getSourceUnit() {
+            return this.queuedSources.peek();
+        }
+
+        /**
+         * Create a new EncapsulatedGroovyClassLoader.SourceUnit instance from a groovy file
+         * @param source The groovy file
+         * @param packageName Sets a predefined package value
+         */
+        void addSourceWithPackage(File source, String packageName) {
+            if (source == null)
+                throw new IllegalArgumentException("source");
+
+            this.addSource(new CustomClassLoader.SourceUnit(
+                    source,
+                    this.getConfiguration(),
+                    this.getClassLoader(),
+                    this.getErrorCollector(),
+                    packageName
+            ));
+        }
+
+        /**
+         * Create a new EncapsulatedGroovyClassLoader.SourceUnit instance from source text
+         * @param source The source
+         * @param packageName Sets a predefined package value
+         */
+        void addSourceWithPackage(String source, String packageName) {
+            if (StringUtils.isEmpty(source))
+                throw new IllegalArgumentException("source");
+
+            this.addSource(new CustomClassLoader.SourceUnit(
+                    source,
+                    this.getConfiguration(),
+                    this.getClassLoader(),
+                    this.getErrorCollector(),
+                    packageName
+            ));
+        }
     }
 
     public static class Builder {

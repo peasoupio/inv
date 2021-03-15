@@ -9,7 +9,6 @@ import io.peasoup.inv.repo.RepoFolderCollection;
 import io.peasoup.inv.repo.RepoURLFetcher;
 import io.peasoup.inv.run.InvExecutor;
 import io.peasoup.inv.run.InvHandler;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.junit.Before;
 
 import java.io.File;
@@ -95,6 +94,16 @@ public abstract class JunitScriptBase extends Script {
         String packageName = null;
         if(mySettings != null)
             packageName = mySettings.getPackageName();
+
+
+        File grabFile = new File(Home.getCurrent(), "grab.groovy");
+        if (simulatorDescriptor.isIncludeGrabFile() && grabFile.exists()) {
+            invExecutor.addScript(
+                    grabFile,
+                    packageName,
+                    grabFile.getParent(),
+                    null);
+        }
 
         // Add src files
         File srcFiles = new File(Home.getCurrent(), "src");

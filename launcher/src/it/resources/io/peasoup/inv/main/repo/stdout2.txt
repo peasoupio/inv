@@ -7,12 +7,12 @@
 [REPO] .*
 [REPO] name: io.peasoup.inv.pub.net.http, path: .*/repo/get/target/repos/repo@io.peasoup.inv.pub.net.http [.*] done
 [REPO] [CLASS] path: src/.*.groovy, package: .*
-[STATEMENT] [Script.*] => [BROADCAST] [HTTP] undefined [INIT]
-[io.peasoup.inv.pub.net.http] [.*/repo/get/target/repos/repo@io.peasoup.inv.pub.net.http/net/http/vars/inv.groovy] [Script.*]
+[STATEMENT] [io.peasoup.inv.pub.net.http.*] => [BROADCAST] [HTTP] undefined [INIT]
+[io.peasoup.inv.pub.net.http] [.*/repo/get/target/repos/repo@io.peasoup.inv.pub.net.http/net/http/vars/inv.groovy] [io.peasoup.inv.pub.net.http.*]
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
-[Script.*] => [BROADCAST] [HTTP] undefined
-[POOL] inv: Script.* COMPLETED
+[io.peasoup.inv.pub.net.http.*] => [BROADCAST] [HTTP] undefined
+[POOL] inv: io.peasoup.inv.pub.net.http.* COMPLETED
 [POOL] available:1 , staged:1
 ---- [DIGEST] completed ----
 Completed INV(s): 1

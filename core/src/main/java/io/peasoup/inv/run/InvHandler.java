@@ -42,7 +42,8 @@ public class InvHandler {
             throw new IllegalArgumentException("Body is required");
         }
 
-        this.call(body, body.getOwner().getClass().getSimpleName());
+        // Use body owner full class name (for example package.name)
+        this.call(body, body.getOwner().getClass().getName());
     }
 
     public void call(@DelegatesTo(InvDescriptor.class) Closure body, String defaultName) throws MissingOptionException {
@@ -53,7 +54,8 @@ public class InvHandler {
         Inv.Context context = new Inv.Context(invExecutor.getPool());
 
         // Set default name
-        if (StringUtils.isNotEmpty(defaultName)) context.setDefaultName(defaultName);
+        if (StringUtils.isNotEmpty(defaultName))
+            context.setDefaultName(defaultName);
 
         // Is loading from script ?
         if (scriptFile != null) {

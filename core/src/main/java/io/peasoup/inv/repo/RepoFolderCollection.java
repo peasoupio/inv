@@ -137,39 +137,56 @@ public class RepoFolderCollection {
 
     private void parseRepoFolderFiles(RepoDescriptor descriptor, FgroupLoader.RepoMatches matches) {
         String path = matches.getRootPath();
-        String name = descriptor.getName();
-        String packageName = name;
+        String descriptorName = descriptor.getName();
 
-        // Invoke groovy files
-        invokeGroovyfiles(matches, packageName);
+        // Invoke prioritized inv files
+        processGrabFile(matches, descriptorName, path);
 
-        // Compile fetched classes
-        invExecutor.compileClasses();
+        // Add groovy classes
+        processGroovyClasses(matches, descriptorName);
 
         // Invoke inv files
-        invokeInvfiles(matches, packageName, path, name);
+        processInvFiles(matches, descriptorName, path);
     }
 
-    private void invokeGroovyfiles(FgroupLoader.RepoMatches matches, String packageName) {
-        // Parse groovy classes
+    private void processGrabFile(FgroupLoader.RepoMatches matches, String descriptorName, String path) {
+
+        // Parse inv files.
+        Path grabFile = matches.getGrabFile();
+        if (grabFile == null)
+            return;
+
+        // Execute it right now
+        invExecutor.addScript(
+                grabFile.toFile(),
+                descriptorName,
+                path,
+                descriptorName);
+    }
+
+    private void processGroovyClasses(FgroupLoader.RepoMatches matches, String descriptorName) {
+        // Add groovy classes
         for(Path groovyFile : matches.getGroovyFiles()) {
 
             if (Logger.isDebugEnabled())
-                Logger.debug("[REPO] [CLASS] path: " + FileUtils.convertUnixPath(Path.of(matches.getRootPath()).relativize(groovyFile).toString()) + ", package: " + packageName);
+                Logger.debug("[REPO] [CLASS] path: " + FileUtils.convertUnixPath(Path.of(matches.getRootPath()).relativize(groovyFile).toString()) + ", package: " + descriptorName);
 
-            invExecutor.addClass(groovyFile.toFile(), packageName);
+            invExecutor.addClass(groovyFile.toFile(), descriptorName);
         }
+
+        // Compile added classes
+        invExecutor.compileClasses();
     }
 
-    private void invokeInvfiles(FgroupLoader.RepoMatches matches, String packageName, String path, String repo) {
+    private void processInvFiles(FgroupLoader.RepoMatches matches, String descriptorName, String path) {
         // Parse inv files.
         for(Path invFile : matches.getInvFiles()) {
 
             invExecutor.addScript(
                     invFile.toFile(),
-                    packageName,
+                    descriptorName,
                     path,
-                    repo);
+                    descriptorName);
         }
     }
 }

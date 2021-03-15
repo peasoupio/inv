@@ -15,8 +15,9 @@
         (*.yml as 'invFiles')
         (*.yaml as 'invFiles')
 
-# Capture different flavors of REPO files. Expect only one.
+# Capture different flavors of REPO file and dependencies file
 ./
     (repo.groovy as 'repoFile')
     (repo.yml as 'repoFile')
     (repo.yaml as 'repoFile')
+    (grab.groovy as 'grabFile')

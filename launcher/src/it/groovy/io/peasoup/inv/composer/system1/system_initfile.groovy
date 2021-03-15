@@ -2,7 +2,6 @@ package io.peasoup.inv.composer.system1
 
 @groovy.transform.BaseScript(groovy.util.DelegatingScript.class)
 import static org.junit.Assert.*
-import static org.junit.Assert.assertThrows
 
 // Get links
 Map links = links()

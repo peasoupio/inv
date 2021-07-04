@@ -41,7 +41,7 @@ class PoolResultsTest {
         })
 
         assertThrows(IllegalArgumentException.class, {
-            new PoolReport.PoolError(new Inv.Context().build(), null)
+            new PoolReport.PoolError(new Inv.Builder().build(), null)
         })
     }
 }

@@ -5,13 +5,10 @@ import io.peasoup.inv.Logger
 import io.peasoup.inv.fs.Pattern
 import io.peasoup.inv.repo.RepoInvoker
 import io.peasoup.inv.utils.Progressbar
-import org.apache.commons.io.FilenameUtils
-import org.apache.commons.validator.routines.UrlValidator
 import org.eclipse.jetty.websocket.api.Session
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect
 import org.eclipse.jetty.websocket.api.annotations.WebSocket
-import spark.utils.StringUtils
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger

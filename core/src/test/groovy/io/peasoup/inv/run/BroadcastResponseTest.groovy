@@ -12,18 +12,35 @@ class BroadcastResponseTest {
         def resolvedBy = "resolvedBy"
         def responseObj = new Object()
 
-        def response = new BroadcastResponse(resolvedBy, responseObj)
+        NetworkValuablePool pool = new NetworkValuablePool()
+        Inv inv = new Inv.Builder(pool).build()
+        inv.name = resolvedBy
+
+        def response = new BroadcastResponse(new BroadcastStatement(
+                inv: inv,
+                global: {
+                    return responseObj
+                }))
 
         assertEquals resolvedBy, response.resolvedBy
-        assertEquals responseObj, response.response
+        assertEquals responseObj, response.globalResponse
     }
 
     @Test
     void ok_toString() {
+
         def resolvedBy = "resolvedBy"
         def responseObj = [my: "value"]
 
-        def response = new BroadcastResponse(resolvedBy, responseObj)
+        NetworkValuablePool pool = new NetworkValuablePool()
+        Inv inv = new Inv.Builder(pool).build()
+        inv.name = resolvedBy
+
+        def response = new BroadcastResponse(new BroadcastStatement(
+                inv: inv,
+                global: {
+                    return responseObj
+                }))
 
         assertEquals "[my:value]", response.toString()
     }
@@ -31,7 +48,7 @@ class BroadcastResponseTest {
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            new BroadcastResponse("", null)
+            new BroadcastResponse(null)
         })
     }
 

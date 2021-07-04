@@ -10,7 +10,10 @@ import java.util.Map;
 public class BroadcastUsingDescriptor {
     private Object id;
     private String markdown;
-    private Closure<Object> ready;
+    private boolean delayed;
+    private Closure<Object> global;
+    private Closure<Object> dynamic;
+
 
     /**
      * Defines the broadcast id from a generic object.
@@ -47,17 +50,44 @@ public class BroadcastUsingDescriptor {
     }
 
     /**
-     * Event raised when broadcast is ready during the running cycle.
+     * Indicates whether or not the "ready" closure is evaluated right now
+     * or only when required.
+     * By default, the value is false.
+     * @param delayed True if delayed, otherwise false.
+     */
+    public void delayed(boolean delayed) {
+        this.delayed = delayed;
+    }
+
+    /**
+     * Event raised when broadcast is ready to get the global response.
      * <p>
-     * A return value is expected if something is meant to be shared to other requirements.
+     * A return value is expected if something is meant to be shared globally
+     * and does not depend on the caller information.
      * <p>
      * Otherwise, "null" will be shared.
      *
-     * @param readyBody the closure body receiving the ready event
+     * @param globalBody the closure body defining the global event
      */
-    public void ready(Closure<Object> readyBody) {
-        this.ready = readyBody;
+    public void global(Closure<Object> globalBody) {
+        this.global = globalBody;
     }
 
 
+    /**
+     * Event raised when broadcast is ready to get the global response.
+     * <p>
+     * A return value is expected if something is meant to be shared using
+     * caller information, such as its name, path, etc.
+     * <p>
+     * You could also use its broadcast and require function to manipulate
+     * the caller requirements and broadcasts.
+     * <p>
+     * Otherwise, "null" will be shared.
+     *
+     * @param dynamicBody the closure body defining the dynamic event
+     */
+    public void dynamic(Closure<Object> dynamicBody) {
+        this.dynamic = dynamicBody;
+    }
 }

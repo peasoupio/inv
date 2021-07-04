@@ -17,14 +17,14 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_set_property() {
+    void ClassWithCaller_set_property() {
         def newValue = "newValue"
 
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready { new ClassWithDefault(myCtx: "myCtx") }
+                dynamic { new ClassWithCaller(myCtx: "myCtx") }
             }
         }
 
@@ -32,7 +32,7 @@ class BroadcastStatementWithClassesTest {
             name "consume"
 
             require { Element } using {
-
+                dynamic true
                 resolved {
                     myCtx = newValue
                     assertEquals newValue, myCtx
@@ -45,12 +45,12 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_has_property() {
+    void ClassWithCaller_has_property() {
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready { new ClassWithDefault(myCtx: "myCtx") }
+                dynamic { new ClassWithCaller(myCtx: "myCtx") }
             }
         }
 
@@ -58,7 +58,7 @@ class BroadcastStatementWithClassesTest {
             name "consume"
 
             require { Element } using {
-
+                dynamic true
                 resolved {
                     assertNotNull response.hasProperty("myCtx")
                     assertNull response.hasProperty("notExisting")
@@ -71,34 +71,7 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_set_property_on_default_value() {
-        def newValue = "newValue"
-
-        inv {
-            name "provide"
-
-            broadcast { Element } using {
-                ready { new ClassWithDefault() }
-            }
-        }
-
-        inv {
-            name "consume"
-
-            require { Element } using {
-
-                resolved {
-                    defaultContext = newValue
-                    assertEquals newValue, defaultContext
-                }
-            }
-        }
-
-        def results = executor.execute()
-        assertTrue results.report.isOk()
-    }
-    @Test
-    void ClassWithDefault_use_default_value() {
+    void ClassWithCaller_as_global() {
         String myCtx = "/my-context"
 
         inv {
@@ -106,7 +79,7 @@ class BroadcastStatementWithClassesTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefault(myCtx: myCtx) }
+                    global { return new ClassWithCaller(myCtx: myCtx) }
                 }
             }
         }
@@ -116,15 +89,9 @@ class BroadcastStatementWithClassesTest {
 
             require { EndpointMapper } using {
                 resolved {
-                    response.withContext(response.defaultContext)
+                    assertEquals myCtx, response.myCtx
                 }
             }
-        }
-
-        inv {
-            name "my-other-app"
-
-            require { Endpoint(context: myCtx) }
         }
 
         def results = executor.execute()
@@ -132,7 +99,7 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_delegate_broadcast() {
+    void ClassWithCaller_delegate_broadcast() {
         String myCtx = "/my-context"
 
         inv {
@@ -140,7 +107,7 @@ class BroadcastStatementWithClassesTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefault() }
+                    dynamic { return new ClassWithCaller() }
                 }
             }
         }
@@ -149,8 +116,9 @@ class BroadcastStatementWithClassesTest {
             name "my-webservice"
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
-                    def resp = response as ClassWithDefault
+                    def resp = response as ClassWithCaller
                     resp.withContext2(myself, myCtx)
                 }
             }
@@ -167,7 +135,7 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_set_property_later() {
+    void ClassWithCaller_set_property_later() {
         String myCtx = "/my-context"
         String myNewCtx = "/my-new-context"
 
@@ -176,7 +144,7 @@ class BroadcastStatementWithClassesTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefault(myCtx: myCtx) }
+                    dynamic { return new ClassWithCaller(myCtx: myCtx) }
                 }
             }
         }
@@ -185,8 +153,9 @@ class BroadcastStatementWithClassesTest {
             name "my-webservice"
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
-                    def respCls2 = response as ClassWithDefault
+                    def respCls2 = response as ClassWithCaller
                     assertEquals myCtx, respCls2.myCtx
 
                     respCls2.myCtx = myNewCtx
@@ -202,9 +171,10 @@ class BroadcastStatementWithClassesTest {
             require { Endpoint(context: myNewCtx) }
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
-                    def respCls2 = response as ClassWithDefault
-                    assertEquals myNewCtx, respCls2.myCtx
+                    def respCls2 = response as ClassWithCaller
+                    assertEquals myCtx, respCls2.myCtx
                 }
             }
         }
@@ -214,16 +184,14 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefault_rebroadcast_response() {
-        String myCtx = "/my-context"
-        String myNewCtx = "/my-new-context"
+    void ClassWithCaller_rebroadcast_response() {
 
         inv {
             name "my-server-id"
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefault(myCtx: myCtx) }
+                    global { return new ClassWithCaller() }
                 }
             }
         }
@@ -234,7 +202,7 @@ class BroadcastStatementWithClassesTest {
             require { EndpointMapper } into '$mapper'
 
             broadcast { EndpointMapperProxy } using {
-                ready {
+                global {
                     return $mapper
                 }
             }
@@ -245,14 +213,14 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefaultUsingCallee_using_callee() {
+    void ClassWithCaller_using_caller_info() {
 
         inv {
             name "my-server-id"
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefaultUsingCallee() }
+                    dynamic { return new ClassWithCaller() }
                 }
             }
         }
@@ -263,8 +231,9 @@ class BroadcastStatementWithClassesTest {
             path subPath
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
-                    def resp = response as ClassWithDefaultUsingCallee
+                    def resp = response as ClassWithCaller
                     assertNotNull resp.myPath
                     assertEquals path, resp.myPath
                 }
@@ -276,26 +245,25 @@ class BroadcastStatementWithClassesTest {
     }
 
     @Test
-    void ClassWithDefaultUsingCallee_using_interface() {
+    void ClassWithCaller_as_interface() {
 
         inv {
             name "my-server-id"
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithDefaultUsingCallee() }
+                    dynamic { return new ClassWithCaller(myCtx: "ok") }
                 }
             }
         }
 
-        String subPath = "subpath1"
         inv {
             name "my-webservice"
-            path subPath
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
-                    def respInterface = response as ClassWithDefaultUsingCalleeInterface
+                    def respInterface = response as InterfaceForCaller
                     assertEquals "ok", respInterface.interfacable()
                 }
             }
@@ -313,7 +281,7 @@ class BroadcastStatementWithClassesTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { return new ClassWithCtor(context) }
+                    global { return new ClassWithCtor(context) }
                 }
             }
         }
@@ -323,8 +291,10 @@ class BroadcastStatementWithClassesTest {
 
             require { EndpointMapper } using {
                 resolved {
+                    assertNotNull response.context
+
                     //throws "MissingPropertyException"
-                    response.ctorContext
+                    response.notExistingProperty
                 }
             }
         }
@@ -333,46 +303,33 @@ class BroadcastStatementWithClassesTest {
         assertFalse results.report.isOk()
     }
 
-
-
-    static class ClassWithDefault {
+    static class ClassWithCaller {
         String myCtx
 
-        Map $default() {
-            return [defaultContext: myCtx]
-        }
-
         void withContext(String ctx) {
-            broadcast { Endpoint(context: ctx) }
+            getCaller().broadcast { Endpoint(context: ctx) }
         }
 
         void withContext2(InvDescriptor myself, String ctx) {
             myself.broadcast { Endpoint(context: ctx) }
         }
+
+        String getMyPath() { getCaller().path }
+
+        String interfacable() { return myCtx }
     }
 
-    class ClassWithDefaultUsingCallee {
-        Map $default() {
-            String callerPath = getPath()
-            return [myPath: callerPath]
-        }
-
-        String interfacable() { return "ok" }
-    }
-
-    interface ClassWithDefaultUsingCalleeInterface {
+    interface InterfaceForCaller {
         String interfacable()
     }
 
     static class ClassWithCtor {
-        private final String context
+
+        private String context
 
         ClassWithCtor(String context) {
             this.context = context
         }
 
-        String $default() {
-            [ctorContext: context]
-        }
     }
 }

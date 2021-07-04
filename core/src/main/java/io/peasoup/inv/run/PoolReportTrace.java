@@ -98,8 +98,8 @@ public class PoolReportTrace {
                 output.append("\t\t[WOULD MATCH] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
             else if (remainingRequire.isCouldMatch())
                 output.append("\t\t[COULD MATCH] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
-            else if (Boolean.TRUE.equals(remainingRequire.getStatement().getUnbloatable()))
-                output.append("\t\t[UNBLOATABLE] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
+            else if (Boolean.TRUE.equals(remainingRequire.getStatement().getOptional()))
+                output.append("\t\t[OPTIONAL] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
             else
                 output.append("\t\t[NOT MATCHED] ").append(remainingRequire.getStatement()).append(System.lineSeparator());
         }

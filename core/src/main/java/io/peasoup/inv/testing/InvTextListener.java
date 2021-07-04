@@ -9,17 +9,23 @@ import org.junit.runner.notification.RunListener;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 
 public class InvTextListener extends RunListener {
+
+    private final static char OUTLINE_CHAR = '#';
 
     @Override
     public void testRunFinished(Result result) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Finished. Result:").append(System.lineSeparator())
-          .append(". Failures: ").append(result.getFailureCount()).append(System.lineSeparator())
-          .append(". Ignored: ").append(result.getIgnoreCount()).append(System.lineSeparator())
-          .append(". Tests run: ").append(result.getRunCount()).append(System.lineSeparator())
-          .append(". Time: ").append(result.getRunTime()).append("ms").append(System.lineSeparator());
+        sb.append(System.lineSeparator())
+          .append("##################").append(System.lineSeparator())
+          .append("# Test completed #").append(System.lineSeparator())
+          .append("##################").append(System.lineSeparator())
+          .append("- Failures: ").append(result.getFailureCount()).append(System.lineSeparator())
+          .append("- Ignored: ").append(result.getIgnoreCount()).append(System.lineSeparator())
+          .append("- Tests run: ").append(result.getRunCount()).append(System.lineSeparator())
+          .append("- Time: ").append(result.getRunTime()).append("ms").append(System.lineSeparator());
 
 
         if (result.getFailureCount() > 0) {
@@ -41,8 +47,12 @@ public class InvTextListener extends RunListener {
     @Override
     public void testStarted(Description description) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Test  : ").append(description.getDisplayName()).append(System.lineSeparator())
-                .append("Run: ").append(System.lineSeparator());
+
+        char[] lines = new char[description.getDisplayName().length() + 10];
+        Arrays.fill(lines, OUTLINE_CHAR);
+        sb.append(lines).append(System.lineSeparator());
+        sb.append(OUTLINE_CHAR).append(" Test: ").append(description.getDisplayName()).append(" " + OUTLINE_CHAR).append(System.lineSeparator());
+        sb.append(lines);
 
         Logger.trace(sb.toString());
     }

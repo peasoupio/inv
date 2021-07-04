@@ -81,7 +81,7 @@ public class PoolReportMarkdown {
         Map<String, Object> scopes = new HashMap<>();
         scopes.put("name", inv.getName());
         scopes.put("markdown", inv.getMarkdown());
-        scopes.put("repo", inv.getContext().getRepo());
+        scopes.put("repo", inv.getBuilder().getRepo());
 
         List<Map<String, Object>> statements = new ArrayList<>();
 
@@ -96,11 +96,10 @@ public class PoolReportMarkdown {
 
             // Check if its a require statement.
             if (statement instanceof RequireStatement) {
-                Map<Object, BroadcastResponse> responses = pool.getAvailableStatements().get(statement.getName());
 
+                BroadcastResponse response = pool.getAvailableMap().get(statement);
                 // Check if it has a broadcast response
-                if (responses != null && responses.containsKey(statement.getId())) {
-                    BroadcastResponse response = responses.get(statement.getId());
+                if (response != null) {
                     statementScope.put("resolvedBy", response.getResolvedBy());
                 }
             }

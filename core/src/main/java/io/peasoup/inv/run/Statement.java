@@ -1,18 +1,6 @@
 package io.peasoup.inv.run;
 
-public interface Statement {
-
-    /**
-     * Gets the current ID of this statement
-     * @return Object reference to its ID
-     */
-    Object getId();
-
-    /**
-     * Gets the current NAME of this statement
-     * @return String reference to its NAME
-     */
-    String getName();
+public interface Statement extends StatementIdentifier {
 
     /**
      * Gets the markdown documentation text.
@@ -38,10 +26,10 @@ public interface Statement {
     StatementStatus getState();
 
     /**
-     * Gets the manageable match mechanism.
+     * Gets the processor associated with this statement.
      * @return The manageable object reference.
      */
-    Manageable<Statement> getMatch();
+    Processor<Statement> getProcessor();
 
     /**
      * Gets the label text. Per example : [BROADCAST] [Something] [with:'an-id']
@@ -50,10 +38,10 @@ public interface Statement {
     String getLabel();
 
     /**
-     * An interface that indicates who a statement should be manage within a running pool.
-     * @param <N> The statement (sub-)type to manage.
+     * An interface that indicates who a statement should be process within a running pool.
+     * @param <N> The statement (sub-)type to process.
      */
-    interface Manageable<N extends Statement> {
-        void manage(NetworkValuablePool pool, N statement);
+    interface Processor<N extends Statement> {
+        void process(NetworkValuablePool pool, N statement);
     }
 }

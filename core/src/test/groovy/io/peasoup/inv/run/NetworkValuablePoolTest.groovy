@@ -16,7 +16,7 @@ class NetworkValuablePoolTest {
 
     @Test
     void digest_during_halting() {
-        pool.startUnbloating()
+        pool.startCleaning()
         pool.startHalting()
 
         def report = pool.digest()
@@ -26,17 +26,17 @@ class NetworkValuablePoolTest {
     }
 
     @Test
-    void startUnbloating() {
+    void startCleaning() {
         pool.runningState = NetworkValuablePool.RUNNING
-        assertTrue pool.startUnbloating()
+        assertTrue pool.startCleaning()
 
         pool.runningState = NetworkValuablePool.HALTING
-        assertFalse pool.startUnbloating()
+        assertFalse pool.startCleaning()
     }
 
     @Test
     void startHalting() {
-        pool.runningState = NetworkValuablePool.UNBLOATING
+        pool.runningState = NetworkValuablePool.CLEANING
         assertTrue pool.startHalting()
 
         pool.runningState = NetworkValuablePool.RUNNING
@@ -44,78 +44,66 @@ class NetworkValuablePoolTest {
     }
 
     @Test
-    void checkAvailability_not_ok() {
-
-        assertThrows(IllegalArgumentException.class, {
-            pool.registerName(null)
-        })
-
-        assertThrows(IllegalArgumentException.class, {
-            pool.registerName("")
-        })
-    }
-
-    @Test
-    void preventUnbloating() {
-        pool.runningState = NetworkValuablePool.UNBLOATING
+    void preventCleaning() {
+        pool.runningState = NetworkValuablePool.CLEANING
         pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
 
-        assertTrue pool.preventUnbloating(broadcastValuable)
+        assertTrue pool.preventCleaning(broadcastValuable)
         assertEquals NetworkValuablePool.RUNNING, pool.runningState
     }
 
     @Test
-    void preventUnbloating_not_ok() {
+    void preventCleaning_not_ok() {
 
         assertThrows(IllegalArgumentException.class, {
-            pool.preventUnbloating(null)
+            pool.preventCleaning(null)
         })
 
         assertThrows(IllegalArgumentException.class, {
             pool.isIngesting = false
-            pool.preventUnbloating(new BroadcastStatement())
+            pool.preventCleaning(new BroadcastStatement())
         })
     }
 
     @Test
-    void preventUnbloating_not_unbloating() {
+    void preventCleaning_not_cleaning() {
         pool.runningState = NetworkValuablePool.RUNNING
         pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.SUCCESSFUL
 
-        assertFalse pool.preventUnbloating(broadcastValuable)
+        assertFalse pool.preventCleaning(broadcastValuable)
     }
 
     @Test
-    void preventUnbloating_not_successful() {
-        pool.runningState = NetworkValuablePool.UNBLOATING
+    void preventCleaning_not_successful() {
+        pool.runningState = NetworkValuablePool.CLEANING
         pool.isIngesting = true
 
         def broadcastValuable = new BroadcastStatement()
         broadcastValuable.state = StatementStatus.FAILED
 
-        assertFalse pool.preventUnbloating(broadcastValuable)
+        assertFalse pool.preventCleaning(broadcastValuable)
     }
 
     @Test
-    void preventUnbloating_not_broadcastValuable() {
-        pool.runningState = NetworkValuablePool.UNBLOATING
+    void preventCleaning_not_broadcastValuable() {
+        pool.runningState = NetworkValuablePool.CLEANING
         pool.isIngesting = true
 
         def requireValuable = new RequireStatement()
         requireValuable.state = StatementStatus.SUCCESSFUL
 
-        assertFalse pool.preventUnbloating(requireValuable)
+        assertFalse pool.preventCleaning(requireValuable)
     }
 
     @Test
     void sort() {
-        def ctx = new Inv.Context(pool)
+        def ctx = new Inv.Builder(pool)
         def invs = [
             ctx.build().with {
                 delegate.delegate.with {
@@ -156,7 +144,7 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                10.times { digestionSummary.useUnbloat().add(null) }
+                10.times { digestionSummary.useCleaned().add(null) }
 
                 return delegate
             },
@@ -167,7 +155,7 @@ class NetworkValuablePoolTest {
                     pop false
                 }
                 dumpDelegate()
-                999.times { digestionSummary.useUnbloat().add(null) }
+                999.times { digestionSummary.useCleaned().add(null) }
 
                 return delegate
             },
@@ -178,7 +166,7 @@ class NetworkValuablePoolTest {
                     pop true
                 }
                 dumpDelegate()
-                999.times { digestionSummary.useUnbloat().add(null) }
+                999.times { digestionSummary.useCleaned().add(null) }
 
                 return delegate
             }
@@ -199,7 +187,7 @@ class NetworkValuablePoolTest {
 
     @Test
     void include_not_ok() {
-        def ctx = new Inv.Context(pool)
+        def ctx = new Inv.Builder(pool)
         def inv = ctx.build()
 
         assertThrows(IllegalArgumentException.class) {

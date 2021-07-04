@@ -50,23 +50,23 @@ public class YamlInvHandler {
                 descriptor.getInv().isEmpty())
             return;
 
-        Inv.Context context = new Inv.Context(invExecutor.getPool());
+        Inv.Builder builder = new Inv.Builder(invExecutor.getPool());
 
         // Set default name
-        context.setDefaultName(yamlFile.getName().split("\\.")[0]);
+        builder.setDefaultName(yamlFile.getName().split("\\.")[0]);
 
         // Set default path
-        context.setDefaultPath(pwd);
+        builder.setDefaultPath(pwd);
 
         // Set REPO
-        context.setRepo(repo);
+        builder.setRepo(repo);
 
         // Set Script filename
-        context.setBaseFilename(yamlFile.getAbsolutePath());
+        builder.setBaseFilename(yamlFile.getAbsolutePath());
 
         // Process YAML INV descriptor into real INV instances
         for (YamlInvDescriptor yamlInvDescriptor : descriptor.getInv()) {
-            final Inv inv = context.build();
+            final Inv inv = builder.build();
 
             try {
                 // Parse descriptor into inv object
@@ -85,7 +85,7 @@ public class YamlInvHandler {
             inv.dumpDelegate();
 
             // Print REPO reference
-            Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
+            Logger.info("[" + builder.getRepo() + "] [" + builder.getBaseFilename() + "] " + inv);
         }
     }
 
@@ -154,8 +154,11 @@ public class YamlInvHandler {
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
             broadcastUsingDescriptor.markdown((String)yamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
-        if (StringUtils.isNotEmpty(descriptor.getReady()))
-            broadcastUsingDescriptor.ready(new LazyYamlClosure(inv, descriptor.getReady()));
+        if (StringUtils.isNotEmpty(descriptor.getGlobal()))
+            broadcastUsingDescriptor.global(new LazyYamlClosure(inv, descriptor.getGlobal()));
+
+        if (StringUtils.isNotEmpty(descriptor.getDynamic()))
+            broadcastUsingDescriptor.global(new LazyYamlClosure(inv, descriptor.getDynamic()));
 
         BroadcastDescriptor broadcastDescriptor = inv.getDelegate().broadcast(statementDescriptor);
         broadcastDescriptor.using(broadcastUsingDescriptor);
@@ -171,11 +174,11 @@ public class YamlInvHandler {
         if (StringUtils.isNotEmpty(descriptor.getMarkdown()))
             requireUsingDescriptor.markdown((String) yamlLoader.interpolate(descriptor.getMarkdown(), interpolatable));
 
-        if (descriptor.getUnbloatable() != null)
-            requireUsingDescriptor.unbloatable(descriptor.getUnbloatable());
+        if (descriptor.getOptional() != null)
+            requireUsingDescriptor.optional(descriptor.getOptional());
 
-        if (descriptor.getDefaults() != null)
-            requireUsingDescriptor.defaults(descriptor.getDefaults());
+        if (descriptor.getDynamic() != null)
+            requireUsingDescriptor.dynamic(descriptor.getDynamic());
 
         if (StringUtils.isNotEmpty(descriptor.getResolved()))
             requireUsingDescriptor.resolved(new LazyYamlClosure(inv, descriptor.getResolved()));

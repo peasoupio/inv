@@ -15,7 +15,7 @@ class InvExecutorTest {
     @Test
     void raising_exception_ready() {
 
-        def ctx = new Inv.Context(invExecutor.pool)
+        def ctx = new Inv.Builder(invExecutor.pool)
         def inv = ctx.build()
 
         inv.name = "my-index"

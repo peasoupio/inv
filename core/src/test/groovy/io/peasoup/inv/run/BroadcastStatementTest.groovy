@@ -20,12 +20,12 @@ class BroadcastStatementTest {
     void during_halting() {
 
         NetworkValuablePool pool = new NetworkValuablePool()
-        pool.startUnbloating()
+        pool.startCleaning()
         pool.startHalting()
 
         BroadcastStatement statement = new BroadcastStatement()
 
-        BroadcastStatement.BROADCAST.manage(pool, statement)
+        BroadcastStatement.BROADCAST_PROCESSOR.process(pool, statement)
 
         assertEquals StatementStatus.NOT_PROCESSED, statement.state
     }
@@ -33,38 +33,42 @@ class BroadcastStatementTest {
     @Test
     void already_broadcasted() {
 
-        BroadcastStatement statement = new BroadcastStatement()
-        statement.name = "Statement"
-        statement.id = "my-id"
-
         NetworkValuablePool pool = new NetworkValuablePool()
 
-        pool.availableStatements.put(statement.name, [
-                (statement.id): new BroadcastResponse("resolvedByMe", null)
-        ] as Map<Object, BroadcastResponse>)
+        Inv inv = new Inv.Builder(pool).build()
+        inv.name = "resolvedByMe"
 
-        BroadcastStatement.BROADCAST.manage(pool, statement)
+        Inv otherInv = new Inv.Builder(pool).build()
+        otherInv.name = "tryingToResolve"
+
+        BroadcastStatement statement = new BroadcastStatement(inv: inv, name: "Statement", id: "my-id")
+
+        def broadcast = new BroadcastStatement(inv: otherInv, name: statement.name, id: statement.id)
+        def response = new BroadcastResponse(broadcast)
+        pool.availableMap.staticIdStatements.put(broadcast, response)
+
+        BroadcastStatement.BROADCAST_PROCESSOR.process(pool, statement)
         assertEquals StatementStatus.ALREADY_BROADCAST, statement.state
 
-        pool.availableStatements[statement.name].clear()
+        pool.availableMap.staticIdStatements.clear()
         statement.state = StatementStatus.NOT_PROCESSED
 
-        pool.stagingStatements.put(statement.name, [
-                (statement.id): new BroadcastResponse("resolvedByMe", null)
-        ] as Map<Object, BroadcastResponse>)
+        def broadcast2 = new BroadcastStatement(inv: otherInv, name: statement.name, id: statement.id)
+        def response2 = new BroadcastResponse(broadcast2)
+        pool.stagingMap.staticIdStatements.put(broadcast2, response2)
 
-        BroadcastStatement.BROADCAST.manage(pool, statement)
+        BroadcastStatement.BROADCAST_PROCESSOR.process(pool, statement)
         assertEquals StatementStatus.ALREADY_BROADCAST, statement.state
     }
 
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            BroadcastStatement.BROADCAST.manage(null, null)
+            BroadcastStatement.BROADCAST_PROCESSOR.process(null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            BroadcastStatement.BROADCAST.manage(new NetworkValuablePool(), null)
+            BroadcastStatement.BROADCAST_PROCESSOR.process(new NetworkValuablePool(), null)
         })
     }
 
@@ -74,7 +78,7 @@ class BroadcastStatementTest {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                         my: { return "method" }
                 ]}
             }
@@ -101,7 +105,7 @@ class BroadcastStatementTest {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                         my: { return "method" }
                 ]}
             }
@@ -132,7 +136,7 @@ class BroadcastStatementTest {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                     my: { return "method" }
                 ]}
             }
@@ -156,12 +160,12 @@ class BroadcastStatementTest {
     }
 
     @Test
-    void not_existing() {
+    void response_not_existing() {
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready { return null }
+                global { return null }
             }
         }
 
@@ -182,12 +186,12 @@ class BroadcastStatementTest {
     }
 
     @Test
-    void not_existing_2() {
+    void response_not_existing_2() {
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                     something: "valuable"
                 ]}
             }
@@ -210,12 +214,12 @@ class BroadcastStatementTest {
     }
 
     @Test
-    void not_a_closure() {
+    void response_not_a_closure() {
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                         my: "method"
                 ]}
             }
@@ -244,7 +248,7 @@ class BroadcastStatementTest {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                     my: "property"
                 ]}
             }
@@ -274,7 +278,7 @@ class BroadcastStatementTest {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
+                global {[
                         my: "property"
                 ]}
             }
@@ -297,17 +301,17 @@ class BroadcastStatementTest {
     }
 
     @Test
-    void ok_with_default() {
+    void ok_with_dynamic() {
         inv {
             name "provide"
 
             broadcast { Element } using {
-                ready {[
-                        $: {
-                            return [
-                                my: "default-value"
-                            ]
-                        }
+                global {[
+                        my: "global-value"
+                ]}
+
+                dynamic {[
+                        my: "dynamic-value"
                 ]}
             }
         }
@@ -316,10 +320,104 @@ class BroadcastStatementTest {
             name "consume"
 
             require { Element } using {
-
                 resolved {
                     assertNotNull my
-                    assertEquals "default-value", my
+                    assertEquals "global-value", my
+                }
+            }
+        }
+
+        inv {
+            name "consume-dynamic"
+
+            require { Element } using {
+                dynamic true
+                resolved {
+                    assertNotNull my
+                    assertEquals "dynamic-value", my
+                }
+            }
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+    }
+
+    @Test
+    void ok_with_dynamic_2() {
+
+        def id = [my: "id"]
+
+        inv {
+            name "provide"
+
+            broadcast { Element } using {
+                dynamic { it }
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require { Element(id) } using {
+                dynamic true
+                resolved {
+                    assertNotNull my
+                    assertEquals id.my, my
+                }
+            }
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+    }
+
+    @Test
+    void ok_with_dynamic_3() {
+
+        def id = [my: "id"]
+        def id2 = [my: "id2"]
+
+        inv {
+            name "provide"
+
+            broadcast { Element } using {
+                dynamic { it }
+            }
+        }
+
+        inv {
+            name "consume"
+
+            require { Element(id) } using {
+                dynamic true
+                resolved {
+                    assertEquals 1, executor.pool.availableMap.staticIdStatements.size()
+                }
+            }
+
+            require { Element(id) } using {
+                dynamic true
+                resolved {
+                    assertEquals 1, executor.pool.availableMap.staticIdStatements.size()
+                }
+            }
+        }
+
+        inv {
+            name "consume2"
+
+            require { Element(id2) } using {
+                dynamic true
+                resolved {
+                    assertEquals 2, executor.pool.availableMap.staticIdStatements.size()
+                }
+            }
+
+            require { Element(id2) } using {
+                dynamic true
+                resolved {
+                    assertEquals 2, executor.pool.availableMap.staticIdStatements.size()
                 }
             }
         }
@@ -337,10 +435,10 @@ class BroadcastStatementTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready {
+                    dynamic {
                         [
                                 withContext: { String ctx ->
-                                    broadcast { Endpoint(context: ctx) }
+                                    caller.broadcast { Endpoint(context: ctx) }
                                 }
                         ]
                     }
@@ -352,6 +450,7 @@ class BroadcastStatementTest {
             name "my-webservice"
 
             require { EndpointMapper } using {
+                dynamic true
                 resolved {
                     response.withContext(myCtx)
                 }
@@ -367,84 +466,6 @@ class BroadcastStatementTest {
         def results = executor.execute()
         assertTrue results.report.isOk()
     }
-
-    @Test
-    void delegatedBroadcast_withDefaultProperty() {
-        String myCtx = "/my-context"
-
-        inv {
-            name "my-server-id"
-
-            step {
-                broadcast { EndpointMapper } using {
-                    ready {
-                        [
-                                $          : { [defaultContext: myCtx] },
-                                withContext: { String ctx ->
-                                    broadcast { Endpoint(context: ctx) }
-                                }
-                        ]
-                    }
-                }
-            }
-        }
-
-        inv {
-            name "my-webservice"
-
-            require { EndpointMapper } using {
-                resolved {
-                    response.withContext(response.defaultContext)
-                }
-            }
-        }
-
-        inv {
-            name "my-other-app"
-
-            require { Endpoint(context: myCtx) }
-        }
-
-        def results = executor.execute()
-        assertTrue results.report.isOk()
-    }
-
-
-    @Test
-    void delegatedBroadcast_okWithClass1() {
-        String myCtx = "/my-context"
-
-        inv {
-            name "my-server-id"
-
-            step {
-                broadcast { EndpointMapper } using {
-                    ready { return new MyResponseClass1() }
-                }
-            }
-        }
-
-        inv {
-            name "my-webservice"
-
-            require { EndpointMapper } using {
-                resolved {
-                    response.withContext(myCtx)
-                }
-            }
-        }
-
-        inv {
-            name "my-other-app"
-
-            require { Endpoint(context: myCtx) }
-        }
-
-        def results = executor.execute()
-        assertTrue results.report.isOk()
-    }
-
-
 
     @Test
     void delegatedBroadcast_withOtherBroadcast2() {
@@ -456,7 +477,7 @@ class BroadcastStatementTest {
 
             step {
                 broadcast { EndpointMapper } using {
-                    ready { [my: "value"] }
+                    global { [my: "value"] }
                 }
             }
         }
@@ -467,7 +488,7 @@ class BroadcastStatementTest {
             require { EndpointMapper } into '$mapper'
 
             broadcast { EndpointMapperProxy } using {
-                ready {
+                global {
                     return $mapper
                 }
             }
@@ -477,11 +498,87 @@ class BroadcastStatementTest {
         assertFalse results.report.isOk()
     }
 
-    static class MyResponseClass1 {
-        void withContext(String ctx) {
-            broadcast { Endpoint(context: ctx) }
+    @Test
+    void is_delayed_false() {
+        boolean reached = false
+
+        inv {
+            name "is_delayed_false"
+
+            broadcast { Delayed } using {
+                delayed false
+                global { reached = true  }
+            }
         }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+        assertTrue reached
     }
 
+    @Test
+    void is_delayed_true() {
+        boolean reached = false
+
+        inv {
+            name "is_delayed_true"
+
+            broadcast { Delayed } using {
+                delayed true
+                global { reached = true  }
+            }
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+        assertFalse reached
+    }
+
+    @Test
+    void is_delayed_true_require() {
+        boolean reached = false
+
+        inv {
+            name "is_delayed_true"
+
+            broadcast { Delayed } using {
+                delayed true
+                global { reached = true  }
+            }
+
+            require { Delayed }
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+        assertTrue reached
+    }
+
+    @Test
+    void is_delayed_once() {
+        int reached = 0
+
+        inv {
+            name "is_delayed_once"
+
+            broadcast { Delayed } using {
+                delayed true
+                global { reached++  }
+            }
+        }
+
+        inv {
+            name "is_delayed_once_consumer"
+
+            require { Delayed }
+            require { Delayed }
+            require { Delayed }
+
+        }
+
+        def results = executor.execute()
+        assertTrue results.report.isOk()
+        assertEquals 1, reached
+    }
 
 }

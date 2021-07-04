@@ -12,7 +12,7 @@ inv:
           ready: |
               return [
                   $: {[
-                      my: tags.my
+                      my: caller.tags.my
                   ]},
                   my: tags.my
               ]

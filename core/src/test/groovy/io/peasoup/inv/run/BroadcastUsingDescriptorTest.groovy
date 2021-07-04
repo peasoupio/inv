@@ -37,9 +37,9 @@ class BroadcastUsingDescriptorTest {
     void ready() {
         def ready = { }
 
-        myself.ready(ready)
+        myself.global(ready)
 
-        assertEquals ready, myself.ready
+        assertEquals ready, myself.global
     }
 
     @Test

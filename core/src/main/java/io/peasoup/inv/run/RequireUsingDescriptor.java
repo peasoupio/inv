@@ -12,8 +12,9 @@ public class RequireUsingDescriptor {
     private String markdown;
     private Closure<Object> resolved;
     private Closure<Object> unresolved;
-    private Boolean unbloatable;
-    private Boolean defaults;
+    private Boolean optional;
+    private Boolean dynamic;
+    private Boolean impersonate;
 
     /**
      * Defines the requirement id from a generic object.
@@ -61,7 +62,7 @@ public class RequireUsingDescriptor {
     }
 
     /**
-     * Event raised when requirement is not resolved during the unbloating and halting cycles.
+     * Event raised when requirement is not resolved during the optional.
      * <p>
      * No return value is expected.
      *
@@ -72,20 +73,20 @@ public class RequireUsingDescriptor {
     }
 
     /**
-     * Defines if this requirement (network valuable) can unbloat/disappear upon the unbloating cycle
+     * Defines if this requirement (network valuable) optional upon the optional cycle
      *
      * @param value the boolean value
      */
-    public void unbloatable(boolean value) {
-        this.unbloatable = value;
+    public void optional(boolean value) {
+        this.optional = value;
     }
 
     /**
-     * Defines if this requirement allow to call the default ("$") closure of the associated response
+     * Defines if this requirement gets the global or the dynamic response of the resolved broadcast.
      *
      * @param value the boolean value
      */
-    public void defaults(boolean value) {
-        this.defaults = value;
+    public void dynamic(boolean value) {
+        this.dynamic = value;
     }
 }

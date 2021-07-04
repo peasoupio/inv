@@ -51,14 +51,14 @@ class RequireUsingDescriptorTest {
     }
 
     @Test
-    void unbloatable() {
-        def unbloatable = true
+    void optional() {
+        def optional = true
 
-        assertNull myself.unbloatable
+        assertNull myself.optional
 
-        myself.unbloatable(unbloatable)
+        myself.optional(optional)
 
-        assertTrue myself.unbloatable
+        assertTrue myself.optional
     }
 
     @Test

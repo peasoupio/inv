@@ -35,7 +35,7 @@ class InvHandlerTest {
 
             broadcast { Endpoint } using {
                 id name: "my-webservice-id"
-                ready {
+                global {
                     println "my-webservice-id has been broadcast"
                 }
             }
@@ -59,7 +59,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -118,7 +118,7 @@ class InvHandlerTest {
             def myId = [id: 1]
 
             broadcast { Something } using {
-                ready { myId }
+                global { myId }
             }
 
             require { Something }
@@ -138,7 +138,7 @@ class InvHandlerTest {
             def myId = [id: 1]
 
             broadcast { Something } using {
-                ready { myId }
+                global { myId }
             }
 
             require { Something }
@@ -161,7 +161,7 @@ class InvHandlerTest {
 
             broadcast { Endpoint } using {
                 id "my-webservice-id"
-                ready {
+                global {
                     println "my-webservice-id has been broadcast"
                 }
             }
@@ -174,7 +174,7 @@ class InvHandlerTest {
 
             broadcast { Endpoint } using {
                 id "my-webservice-id"
-                ready {
+                global {
                     println "my-webservice-id has been broadcast twice"
                 }
             }
@@ -195,7 +195,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -223,7 +223,7 @@ class InvHandlerTest {
             step {
                 broadcast { Endpoint } using {
                     id "my-webservice-id"
-                    ready {
+                    global {
                         return "http://my.endpoint.com"
                     }
                 }
@@ -237,7 +237,7 @@ class InvHandlerTest {
 
             step {
                 broadcast { App("my-app-id") } using {
-                    ready {
+                    global {
                         print "My App is hosted here: ${$ep}"
                     }
                 }
@@ -249,7 +249,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -260,7 +260,7 @@ class InvHandlerTest {
     }
 
     @Test
-    void call_using_step_and_unbloating() {
+    void call_using_step_and_cleaning() {
         inv.call {
             name "my-webservice"
 
@@ -270,7 +270,7 @@ class InvHandlerTest {
             step {
                 broadcast { Endpoint } using {
                     id "my-webservice-id"
-                    ready {
+                    global {
                         return "http://my.endpoint.com"
                     }
                 }
@@ -280,15 +280,15 @@ class InvHandlerTest {
         inv.call {
             name "my-app"
 
-            require { Endpoint("my-unbloatable-ws-id") } using {
-                unbloatable true
+            require { Endpoint("my-optional-ws-id") } using {
+                optional true
             }
 
             require { Endpoint("my-webservice-id") } into '$ep'
 
             step {
                 broadcast { App("my-app-id") } using {
-                    ready {
+                    global {
                         print "My App is hosted here: ${$ep}"
                     }
                 }
@@ -300,7 +300,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -311,7 +311,7 @@ class InvHandlerTest {
     }
 
     @Test
-    void call_using_step_unbloating_and_broadcast_after() {
+    void call_using_step_cleaning_and_broadcast_after() {
         inv.call {
             name "my-webservice"
 
@@ -321,7 +321,7 @@ class InvHandlerTest {
             step {
                 broadcast { Endpoint } using {
                     id "my-webservice-id"
-                    ready {
+                    global {
                         return "http://my.endpoint.com"
                     }
                 }
@@ -331,8 +331,8 @@ class InvHandlerTest {
         inv.call {
             name "my-app"
 
-            require { Endpoint("my-unbloatable-ws-id") } using {
-                unbloatable true
+            require { Endpoint("my-optional-ws-id") } using {
+                optional true
             }
 
             step {
@@ -345,7 +345,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -359,7 +359,7 @@ class InvHandlerTest {
             }
 
             step {
-                require { Element("not-existing") } using { unbloatable true }
+                require { Element("not-existing") } using { optional true }
             }
 
             step {
@@ -372,34 +372,34 @@ class InvHandlerTest {
     }
 
     @Test
-    void call_using_multiple_unbloating() {
+    void call_using_multiple_optional() {
         inv.call {
             name "my-app-1"
 
-            require { Artifact("A") } using { unbloatable true }
+            require { Artifact("A") } using { optional true }
             broadcast { Artifact("B") }
-            require { Artifact("B") } using { unbloatable true }
-            require { Artifact("C") } using { unbloatable true }
-            require { Artifact("D") } using { unbloatable true }
+            require { Artifact("B") } using { optional true }
+            require { Artifact("C") } using { optional true }
+            require { Artifact("D") } using { optional true }
 
-            require { Service("A") } using { unbloatable true }
+            require { Service("A") } using { optional true }
             require { Service("B") }
-            require { Service("C") } using { unbloatable true }
-            require { Service("D") } using { unbloatable true }
+            require { Service("C") } using { optional true }
+            require { Service("D") } using { optional true }
         }
 
         inv.call {
             name "my-app-2"
 
-            require { Artifact("A") } using { unbloatable true }
+            require { Artifact("A") } using { optional true }
             require { Artifact("B") }
-            require { Artifact("C") } using { unbloatable true }
-            require { Artifact("D") } using { unbloatable true }
+            require { Artifact("C") } using { optional true }
+            require { Artifact("D") } using { optional true }
 
-            require { Service("A") } using { unbloatable true }
+            require { Service("A") } using { optional true }
             broadcast { Service("B") }
-            require { Service("C") } using { unbloatable true }
-            require { Service("D") } using { unbloatable true }
+            require { Service("C") } using { optional true }
+            require { Service("D") } using { optional true }
         }
 
         def results = executor.execute()
@@ -421,7 +421,7 @@ class InvHandlerTest {
             step {
                 broadcast { Endpoint } using {
                     id "my-webservice-id"
-                    ready {
+                    global {
                         value++
                         return "http://my.endpoint.com"
                     }
@@ -440,7 +440,7 @@ class InvHandlerTest {
 
             step {
                 broadcast { App("my-app-id") } using {
-                    ready {
+                    global {
                         value++
                         print "My App is hosted here: ${$ep}"
                     }
@@ -453,7 +453,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     value++
                     println "my-server-id has been broadcast"
                 }
@@ -508,7 +508,7 @@ class InvHandlerTest {
 
             broadcast { Endpoint } using {
                 id "my-webservice-id"
-                ready {
+                global {
                     println "my-webservice-id has been broadcast"
                 }
             }
@@ -519,7 +519,7 @@ class InvHandlerTest {
 
             broadcast { Server } using {
                 id "my-server-id"
-                ready {
+                global {
                     println "my-server-id has been broadcast"
                 }
             }
@@ -539,8 +539,8 @@ class InvHandlerTest {
             require { Endpoint("my-webservice-id-not-existing") }
             require { App("my-app-id") }
 
-            require { Endpoint("my-unbloatable-endpoint") } using {
-                unbloatable true
+            require { Endpoint("my-optional-endpoint") } using {
+                optional true
             }
 
             broadcast { App("my-app-id-2") }
@@ -588,7 +588,7 @@ class InvHandlerTest {
             name "my-exception"
 
             broadcast { MyException } using {
-                ready {
+                global {
                     throw new Exception("fail-broadcast")
                 }
             }
@@ -659,7 +659,7 @@ class InvHandlerTest {
             tail true
 
             broadcast { Something("3") } using {
-                ready {
+                global {
                     assertEquals 3, index
                 }
             }
@@ -673,7 +673,7 @@ class InvHandlerTest {
             tail true
 
             broadcast { Something("2") } using {
-                ready {
+                global {
                     assertEquals 2, index
                     index++
                 }
@@ -687,7 +687,7 @@ class InvHandlerTest {
             tail false
 
             broadcast { Something("1") } using {
-                ready {
+                global {
                     assertEquals 1, index
                     index++
                 }
@@ -701,7 +701,7 @@ class InvHandlerTest {
             tail false
 
             broadcast { Something("0") } using {
-                ready {
+                global {
                     assertEquals 0, index
                     index++
                 }

@@ -14,6 +14,6 @@ public class DebugLogger {
         if (StringUtils.isEmpty(message))
             return;
 
-        Logger.debug(message);
+        Logger.trace(message);
     }
 }

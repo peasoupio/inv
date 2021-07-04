@@ -7,7 +7,7 @@
 ---- [DIGEST] started ----
 ---- [DIGEST] #1 (state=RUNNING) ----
 [POOL] available:0 , staged:0
----- [DIGEST] #2 (state=UNBLOATING) ----
+---- [DIGEST] #2 (state=CLEANING) ----
 [POOL] available:0 , staged:0
 ---- [DIGEST] completed ----
 Completed INV(s): 0

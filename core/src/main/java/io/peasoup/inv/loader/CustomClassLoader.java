@@ -22,6 +22,7 @@ public class CustomClassLoader extends GroovyClassLoader {
             "groovy\\.lang\\..*", // example: groovy.lang.Script
             "groovy\\.transform\\..*", // example: groovy.transform.Generated
             "groovy\\.util\\..*", // example: groovy.util.DelegatingScript
+            "org\\.apache\\.groovy\\..*", // example: org.apache.groovy.ast.builder.AstBuilderTransformation
             "org\\.codehaus\\.groovy\\..*", // example: ...runtime.GeneratedClosure, ...runtime.callsite.CallSiteArray, ...reflection.ClassInfo
 
             // Junit

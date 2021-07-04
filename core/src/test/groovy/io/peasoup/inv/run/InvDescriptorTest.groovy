@@ -62,8 +62,8 @@ class InvDescriptorTest {
 
         assertEquals nvd.name, delegate.name
         assertEquals nvd.id, delegate.id
-        assertTrue delegate.defaults
-        assertFalse delegate.unbloatable
+        assertFalse delegate.dynamic
+        assertFalse delegate.optional
         assertNull delegate.into
     }
 
@@ -87,25 +87,25 @@ class InvDescriptorTest {
         def delegate = properties.statements.first() as RequireStatement
 
         assertEquals statementDescriptor.name, delegate.name
-        assertTrue delegate.defaults
+        assertFalse delegate.dynamic
 
         requireDescriptor.using {
-            defaults false
+            dynamic true
         }
 
         assertEquals statementDescriptor.name, delegate.name
-        assertFalse delegate.defaults
+        assertTrue delegate.dynamic
 
         requireDescriptor.using {
-            defaults true
+            dynamic false
         }
 
         assertEquals statementDescriptor.name, delegate.name
-        assertTrue delegate.defaults
+        assertFalse delegate.dynamic
     }
 
     @Test
-    void require_set_unbloatable() {
+    void require_set_optional() {
         def statementDescriptor = new StatementDescriptor("name")
 
         def requireDescriptor = myself.require(statementDescriptor)
@@ -113,21 +113,21 @@ class InvDescriptorTest {
 
         def delegate = properties.statements.first() as RequireStatement
         assertEquals statementDescriptor.name, delegate.name
-        assertFalse delegate.unbloatable
+        assertFalse delegate.optional
 
         requireDescriptor.using {
-            unbloatable true
+            optional true
         }
 
         assertEquals statementDescriptor.name, delegate.name
-        assertTrue delegate.unbloatable
+        assertTrue delegate.optional
 
         requireDescriptor.using {
-            unbloatable false
+            optional false
         }
 
         assertEquals statementDescriptor.name, delegate.name
-        assertFalse delegate.unbloatable
+        assertFalse delegate.optional
     }
 
     @Test

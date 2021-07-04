@@ -17,9 +17,9 @@ public class YamlRequireStatementDescriptor {
 
     private String unresolved;
 
-    private Boolean unbloatable;
+    private Boolean optional;
 
-    private Boolean defaults;
+    private Boolean dynamic;
 
     public YamlRequireStatementDescriptor() {
         // empty ctor

@@ -42,12 +42,12 @@ class RequireStatementTest {
 
         assertNotNull requireStatement
         assertEquals StatementStatus.SUCCESSFUL, requireStatement.state
-        assertFalse requireStatement.unbloatable
+        assertFalse requireStatement.optional
         assertTrue requireStatement.toString().contains("[REQUIRE]")
     }
 
     @Test
-    void ok_with_unbloating() {
+    void ok_with_optional() {
 
         boolean unresolvedRaised = false
 
@@ -55,7 +55,7 @@ class RequireStatementTest {
             name "consumer"
 
             require { Bloatable } using {
-                unbloatable true
+                optional true
 
                 unresolved {
                     unresolvedRaised = true
@@ -75,8 +75,8 @@ class RequireStatementTest {
         def requireStatement = executor.pool.totalInvs.first().totalStatements.first() as RequireStatement
 
         assertNotNull requireStatement
-        assertTrue requireStatement.unbloatable
-        assertTrue requireStatement.toString().contains("[UNBLOATABLE]")
+        assertTrue requireStatement.optional
+        assertTrue requireStatement.toString().contains("[CLEANED]")
     }
 
     @Test
@@ -88,7 +88,7 @@ class RequireStatementTest {
             name "consumer"
 
             require { Bloatable } using {
-                unbloatable false
+                optional false
 
                 unresolved {
                     unresolvedRaised = true
@@ -126,38 +126,15 @@ class RequireStatementTest {
     }
 
     @Test
-    void ok_with_default_into() {
-
-        inv {
-            name "provider"
-
-            broadcast { Element }
-        }
-
-        inv {
-            name "consumer"
-
-            require { Element }
-
-            step {
-                assertNotNull $element
-            }
-        }
-
-        def results = executor.execute()
-        assertTrue results.report.isOk()
-    }
-
-    @Test
     void during_halting() {
 
         NetworkValuablePool pool = new NetworkValuablePool()
-        pool.startUnbloating()
+        pool.startCleaning()
         pool.startHalting()
 
         RequireStatement statement = new RequireStatement()
 
-        RequireStatement.REQUIRE.manage(pool, statement)
+        RequireStatement.REQUIRE_PROCESSOR.process(pool, statement)
 
         assertEquals StatementStatus.NOT_PROCESSED, statement.state
     }
@@ -165,11 +142,11 @@ class RequireStatementTest {
     @Test
     void not_ok() {
         assertThrows(IllegalArgumentException.class, {
-            RequireStatement.REQUIRE.manage(null, null)
+            RequireStatement.REQUIRE_PROCESSOR.process(null, null)
         })
 
         assertThrows(IllegalArgumentException.class, {
-            RequireStatement.REQUIRE.manage(new NetworkValuablePool(), null)
+            RequireStatement.REQUIRE_PROCESSOR.process(new NetworkValuablePool(), null)
         })
     }
 }

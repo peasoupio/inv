@@ -56,7 +56,7 @@ public class GroovyLoader {
     private final CustomClassLoader generalClassLoader;
     private final CustomClassLoader securedClassLoader;
 
-    private final CustomCompilationUnit classesCompilationUnit;
+    private CustomCompilationUnit classesCompilationUnit;
 
     /**
      * Create a common loader
@@ -114,6 +114,7 @@ public class GroovyLoader {
      */
     public void compileClasses() {
         this.classesCompilationUnit.compile();
+        this.classesCompilationUnit = new CustomCompilationUnit();
     }
 
     /**
@@ -295,7 +296,7 @@ public class GroovyLoader {
      */
     private void applySecureTypeCheckerConfigs(CompilerConfiguration compilerConfiguration) {
         LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
-        map.put("extensions", "io.peasoup.inv.loader.SecuredTypeChecked");
+        map.put("extensions", SecuredCheckingExtension.class.getCanonicalName());
         ASTTransformationCustomizer astTransformationCustomizer = new ASTTransformationCustomizer(map, TypeChecked.class);
         compilerConfiguration.addCompilationCustomizers(astTransformationCustomizer);
     }
@@ -431,7 +432,7 @@ public class GroovyLoader {
 
     }
 
-    public static class MethodCallNotAllowedException extends Exception {
+    public static class MethodCallNotAllowedException extends RuntimeException {
         public MethodCallNotAllowedException(final ASTNode expr) {
             super("Method call is not allowed: " + expr.getText());
         }

@@ -1,28 +1,33 @@
 package io.peasoup.inv.run;
 
 import groovy.lang.Closure;
-import io.peasoup.inv.Logger;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.InvokerHelper;
-
-import java.util.Map;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Getter
 @Setter
 public class BroadcastStatement implements Statement {
-    public static final Broadcast BROADCAST = new Broadcast();
+    public static final BroadcastProcessor BROADCAST_PROCESSOR = new BroadcastProcessor();
+
     private Object id;
     private String name;
     private String markdown;
-    private Closure<Object> ready;
+    private boolean delayed;
+    private Closure<Object> global;
+    private Closure<Object> dynamic;
     private Inv inv;
+
     protected StatementStatus state = StatementStatus.NOT_PROCESSED;
 
-    public Manageable getMatch() {
-        return BROADCAST;
+    public Processor getProcessor() {
+        return BROADCAST_PROCESSOR;
+    }
+
+    public boolean isDynamic() {
+        return dynamic != null;
     }
 
     @Override
@@ -31,81 +36,22 @@ public class BroadcastStatement implements Statement {
     }
 
     @Override
-    public String toString() {
-        return getInv() + " => " + getLabel();
+    public void applyResolvedID() {
+        this.id = IdResolver.resolve(this);
     }
 
-    public static class Broadcast implements Manageable<BroadcastStatement> {
+    @Override
+    public int hashCode() {
+        return StatementHasher.hashcode(this);
+    }
 
-        public synchronized void manage(NetworkValuablePool pool, BroadcastStatement broadcastStatement) {
-            if (pool == null)
-                throw new IllegalArgumentException("pool");
+    @Override
+    public boolean equals(Object obj) {
+        return StatementHasher.equals(this, obj);
+    }
 
-            if (broadcastStatement == null)
-                throw new IllegalArgumentException("broadcastStatement");
-
-            // Reset state
-            broadcastStatement.state = StatementStatus.NOT_PROCESSED;
-
-            if (pool.isHalting()) // Do nothing if halting
-                return;
-
-            // Check if already available
-            Map<Object, BroadcastResponse> channel = pool.getAvailableStatements().get(broadcastStatement.getName());
-            if (alreadyBroadcast(channel, broadcastStatement))
-                return;
-
-            // Check if already staged
-            Map<Object, BroadcastResponse> staging = pool.getStagingStatements().get(broadcastStatement.getName());
-            if (alreadyBroadcast(staging, broadcastStatement))
-                return;
-
-            broadcastStatement.state = StatementStatus.SUCCESSFUL;
-
-            Logger.info(broadcastStatement);
-
-            Object id = broadcastStatement.getId();
-
-            // Resolved delayed id
-            if (id instanceof Closure) {
-                Closure delayedId = (Closure) id;
-                delayedId.setResolveStrategy(Closure.DELEGATE_ONLY);
-                delayedId.setDelegate(broadcastStatement.getInv().getDelegate());
-                id = delayedId.call();
-            }
-
-            // Staging response
-            BroadcastResponse response = createResponse(broadcastStatement);
-            staging.putIfAbsent(id, response);
-        }
-
-        @SuppressWarnings("unchecked")
-        private BroadcastResponse createResponse(BroadcastStatement broadcastStatement) {
-            Object responseObject = null;
-
-            if (broadcastStatement.getReady() != null) {
-                responseObject = broadcastStatement.getReady().call();
-
-                if (responseObject != null && InvokerHelper.getMetaClass(responseObject) instanceof BroadcastResponseMetaClass)
-                        throw new IllegalStateException("Cannot return the response object from a previous required statement.");
-            }
-
-            // Staging response
-            return new BroadcastResponse(
-                    broadcastStatement.getInv().getName(),
-                    responseObject);
-        }
-
-        private boolean alreadyBroadcast(Map<Object, BroadcastResponse> statements, BroadcastStatement broadcastStatement) {
-            if (!statements.containsKey(broadcastStatement.getId()))
-                return false;
-
-            String resolvedBy = statements.get(broadcastStatement.getId()).getResolvedBy();
-            Logger.warn(broadcastStatement.toString() + " already broadcasted by [" + resolvedBy + "]. Will be skipped.");
-
-            broadcastStatement.state = StatementStatus.ALREADY_BROADCAST;
-
-            return true;
-        }
+    @Override
+    public String toString() {
+        return getInv() + " => " + getLabel();
     }
 }

@@ -27,7 +27,10 @@ public class BroadcastDescriptor {
             broadcastStatement.setId(broadcastUsingDescriptor.getId());
 
         broadcastStatement.setMarkdown(broadcastUsingDescriptor.getMarkdown());
-        broadcastStatement.setReady(broadcastUsingDescriptor.getReady());
+        if (broadcastUsingDescriptor.isDelayed()) broadcastStatement.setDelayed(true);
+
+        broadcastStatement.setGlobal(broadcastUsingDescriptor.getGlobal());
+        broadcastStatement.setDynamic(broadcastUsingDescriptor.getDynamic());
 
         return this;
     }

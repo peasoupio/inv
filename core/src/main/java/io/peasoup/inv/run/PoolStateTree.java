@@ -24,12 +24,12 @@ public class PoolStateTree {
         sortedInvs.sort((Inv a, Inv b) -> {
             Integer weightA = (int) a.getRemainingStatements()
                     .stream()
-                    .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()))
+                    .filter(statement -> RequireStatement.REQUIRE_PROCESSOR.equals(statement.getProcessor()))
                     .count();
 
             Integer weightB = (int) b.getRemainingStatements()
                     .stream()
-                    .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()))
+                    .filter(statement -> RequireStatement.REQUIRE_PROCESSOR.equals(statement.getProcessor()))
                     .count();
 
             return weightA - weightB;
@@ -45,7 +45,7 @@ public class PoolStateTree {
 
         return inv.getRemainingStatements()
                 .stream()
-                .filter(statement -> BroadcastStatement.BROADCAST.equals(statement.getMatch()))
+                .filter(statement -> BroadcastStatement.BROADCAST_PROCESSOR.equals(statement.getProcessor()))
                 .map(statement -> new RemainingBroadcast(
                         (BroadcastStatement) statement,
                         getRequiredByCount((BroadcastStatement) statement)
@@ -61,9 +61,9 @@ public class PoolStateTree {
 
         return inv.getRemainingStatements()
                 .stream()
-                .filter(statement -> RequireStatement.REQUIRE.equals(statement.getMatch()) )
+                .filter(statement -> RequireStatement.REQUIRE_PROCESSOR.equals(statement.getProcessor()) )
                 .map(statement -> {
-                    boolean wouldHaveMatched = pool.getAvailableStatements().get(statement.getName()).get(statement.getId()) != null;
+                    boolean wouldHaveMatched = pool.getAvailableMap().exists(statement);
                     boolean couldHaveMatched = couldHaveMatched((RequireStatement) statement);
 
                     return new RemainingRequire(
@@ -110,7 +110,7 @@ public class PoolStateTree {
                 .collect(Collectors.toList())
                 .forEach(statement -> {
                     // Get remaining requirement statement(s)
-                    if (statement.getMatch().equals(RequireStatement.REQUIRE)) {
+                    if (statement.getProcessor().equals(RequireStatement.REQUIRE_PROCESSOR)) {
                         RequireStatement requireStatement = (RequireStatement) statement;
 
                         if (!remainingRequirements.containsKey(statement.getName()))
@@ -126,7 +126,7 @@ public class PoolStateTree {
 
 
                     // Get remaining broadcast statement(s)
-                    if (statement.getMatch().equals(BroadcastStatement.BROADCAST)) {
+                    if (statement.getProcessor().equals(BroadcastStatement.BROADCAST_PROCESSOR)) {
                         BroadcastStatement broadcastStatement = (BroadcastStatement) statement;
 
                         if (!remainingBroadcasts.containsKey(statement.getName()))

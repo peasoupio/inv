@@ -103,7 +103,7 @@ public class NetworkValuablePoolExecutor {
             cycleDigestion.concat(ingestedInv.getDigestion());
 
             // Try to execute INV requiring any of the broadcasted statements.
-            if (ingestedInv.getDigestion().getBroadcast() != null) {
+            if (ingestedInv.getDigestion().getBroadcasted() != null) {
 
                 // Stage broadcasts
                 ingester.stageBroadcasts();
@@ -111,7 +111,7 @@ public class NetworkValuablePoolExecutor {
                 int watcherExecuted = 0;
 
                 // Get watchers and execute them.
-                for(Statement statement : ingestedInv.getDigestion().getBroadcast()) {
+                for(Statement statement : ingestedInv.getDigestion().getBroadcasted()) {
                     for(Inv watchingInv : pool.getWatchList().getWatchers(statement)) {
                         execute(watchingInv);
 

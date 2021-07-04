@@ -48,28 +48,14 @@ public class NetworkValuablePoolIngester {
      * Batch and add staging broadcasts once to prevent double-broadcasts on the same digest.
      */
     public synchronized void stageBroadcasts() {
-        for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : pool.getStagingStatements().entrySet()) {
-            Map<Object, BroadcastResponse> inChannel = pool.getAvailableStatements().get(statements.getKey());
-            Iterator<Map.Entry<Object, BroadcastResponse>> outChannel = statements.getValue().entrySet().iterator();
-
-            while(outChannel.hasNext()) {
-
-                Map.Entry<Object,BroadcastResponse> response = outChannel.next();
-                inChannel.putIfAbsent(response.getKey(), response.getValue());
-
-                outChannel.remove();
-            }
-        }
+        pool.getAvailableMap().addAll(pool.getStagingMap());
     }
 
     public void printStagedBroadcasts() {
         // Get the pool actual size
-        int actualSize = 0;
-        for (Map.Entry<String, Map<Object, BroadcastResponse>> statements : pool.getStagingStatements().entrySet()) {
-            actualSize += pool.getAvailableStatements().get(statements.getKey()).size();
-        }
-
+        int actualSize = pool.getAvailableMap().size();
         int stagedSize = actualSize - latestStagedCount;
+
         Logger.system("[POOL] available:" + actualSize + " " + ", staged:" +  stagedSize);
 
         latestStagedCount = actualSize;

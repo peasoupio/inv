@@ -12,17 +12,16 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class NetworkValuablePool {
     public static final String HALTING = "HALTED";
-    public static final String UNBLOATING = "UNBLOATING";
+    public static final String CLEANING = "CLEANING";
     public static final String RUNNING = "RUNNING";
 
-    private final Queue<String> names = new ConcurrentLinkedQueue<>();
     private final NetworkValuablePoolIngester ingester;
 
-    @Getter private final Map<String, Map<Object, BroadcastResponse>> availableStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    @Getter private final Map<String, Map<Object, BroadcastResponse>> stagingStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
-    @Getter private final Map<String, Queue<Object>> unbloatedStatements = new ConcurrentHashMap<>(24, 0.9f, 1);
+    @Getter private final NetworkValuablePoolBroadcastMap availableMap = new NetworkValuablePoolBroadcastMap(this);
+    @Getter private final NetworkValuablePoolBroadcastMap stagingMap = new NetworkValuablePoolBroadcastMap(this);
+    @Getter private final NetworkValuablePoolBroadcastMap cleanedMap = new NetworkValuablePoolBroadcastMap(this);
 
-    @Getter private final Queue<Inv> remainingInvs = new ConcurrentLinkedQueue<>();
+    @Getter private final Set<Inv> remainingInvs = ConcurrentHashMap.newKeySet();
     @Getter private final Set<Inv> completedInvs = ConcurrentHashMap.newKeySet();
     @Getter private final Set<Inv> totalInvs = ConcurrentHashMap.newKeySet();
 
@@ -56,20 +55,18 @@ public class NetworkValuablePool {
      * Digest invs and theirs statements.
      * This is the main function to resolve requirements and broadcasts within the current pool.
      * <p>
-     * Invs and statements are pushed through different cycles : RUNNING, UNBLOATING and HALTED.
-     * Cycles can be altered based on how well the digestion goes.
+     * Invs and statements are pushed through different cycles : RUNNING, REMOVED and HALTED.
+     * Cycles can be altered based on how statements are matching each other.
      * <p>
-     * Invs resolution process is multithreaded during the RUNNING cycle only.
-     * Within the resolution, statements are processed.
-     * During this step, the statements (require and broadcast) are matched.
-     * NOTE : If running in an UNBLOATING cycle, requires "unresolved" could be raised if marked unbloatable.
+     * During the RUNNING cycle, matches are multithreaded.
      * <p>
-     * During the UNBLOATING cycle, we removed/do not resolve unbloatable requirements to unbloat the pool.
-     * We wait until we catch a broadcast since a broadcast could alter the remaining statements within the pool.
-     * In this case, when reached, the current cycle is close and a new one is meant to called as RUNNING.
+     * RUNNING cycle ends when there is no more matching being done. The CLEANING cycle is set.
+     * During the REMOVING cycle, it removes optional requirements to "unjam" the pool.
+     * If enough require statements are removed to meet a broadcast statement, pool is set back to RUNNING and restarts
+     * a cycle
      * <p>
-     * If nothing is broadcast during a UNBLOATING cycle, next one will be called as HALTED.
-     * During the HALTED cycle, even a broadcast cannot reset the digestion cycles to running.
+     * If nothing is broadcast during the CLEANING cycle, the HALTING cycle is raised.
+     * During the HALTED cycle, even a broadcast cannot reset the digestion cycles to RUNNING.
      * The pool is meant to be closed and restarted manually.
      *
      * @return list of inv completed during this digestion cycle
@@ -107,11 +104,11 @@ public class NetworkValuablePool {
         if (isRunning())
             errorsCaught = eatMultithreaded(digestion);
 
-        if (isUnbloating())
+        if (isCleaning())
             errorsCaught = eatSynchronized(sorted, digestion);
 
         // Check for new broadcasts
-        boolean hasStagedSomething = digestion.getBroadcast() != null && !digestion.getBroadcast().isEmpty();
+        boolean hasStagedSomething = digestion.getBroadcasted() != null && !digestion.getBroadcasted().isEmpty();
 
         // Check if an INV has been completed.
         boolean hasCompletedSomething = latestCompletedCount > 0;
@@ -189,10 +186,10 @@ public class NetworkValuablePool {
             startRunning();
         } else if (hasStagedSomething) {// Has dumped something
             startRunning();
-        } else if (runningState.equals(UNBLOATING)) {
-            startHalting();// Has already start unbloating, but did not do anything ? Halt pool
+        } else if (runningState.equals(CLEANING)) {
+            startHalting();// Has already start cleaning, but did not do anything ? Halt pool
         } else {
-            startUnbloating();// Should start unbloating
+            startCleaning();// Should start cleaning
         }
     }
 
@@ -253,33 +250,10 @@ public class NetworkValuablePool {
     }
 
     /**
-     * Register a name to the pool.
-     *
-     * @param name string value of the name to check
-     */
-    public void registerName(String name) {
-        if (StringUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("Name is required");
-        }
-
-        if (names.contains(name)) return;
-
-        synchronized (names) {
-            // double lock checking
-            if (names.contains(name)) return;
-
-            names.add(name);
-            availableStatements.put(name, new ConcurrentHashMap<>(24, 0.9f, 1));
-            stagingStatements.put(name, new ConcurrentHashMap<>(24, 0.9f, 1));
-            unbloatedStatements.put(name, new ConcurrentLinkedQueue<>());
-        }
-    }
-
-    /**
-     * Determines if pool is doing an unbloating cycle
+     * Determines if pool is doing a cleaning cycle
      * @return true if so, otherwise false
      */
-    public boolean isUnbloating() { return UNBLOATING.equals(runningState); }
+    public boolean isCleaning() { return CLEANING.equals(runningState); }
 
     /**
      * Determines if pool is doing an halting cycle
@@ -297,14 +271,14 @@ public class NetworkValuablePool {
         runningState = RUNNING;
     }
 
-    public synchronized boolean startUnbloating() {
+    public synchronized boolean startCleaning() {
 
         if (!runningState.equals(RUNNING)) {
-            Logger.warn("cannot start unbloating from a non running state. Make sure pool is in running state before starting to unbloat");
+            Logger.warn("cannot start cleaning from a non running state. Make sure pool is in running state before starting to clean");
             return false;
         }
 
-        runningState = UNBLOATING;
+        runningState = CLEANING;
 
         return true;
     }
@@ -312,7 +286,7 @@ public class NetworkValuablePool {
     public synchronized boolean startHalting() {
 
         if (runningState.equals(RUNNING)) {
-            Logger.warn("cannot start halting from a running state. Start unbloating first");
+            Logger.warn("cannot start halting from a running state. Start cleaning first");
             return false;
         }
 
@@ -323,21 +297,21 @@ public class NetworkValuablePool {
     }
 
     /**
-     * If we caught a successful broadcast during the unbloating cycle, we need to
-     * restart digest since this broadcasts can altered the remaining cycles
+     * If we caught a successful broadcast during the cleaning cycle, we need to
+     * restart digest since this broadcasts can alter the remaining cycles
      *
-     * @param statement statement who could prevent unbloating
+     * @param statement statement who could prevent removals
      * @return true if prevented, otherwise, false.
      */
-    public synchronized boolean preventUnbloating(Statement statement) {
+    public synchronized boolean preventCleaning(Statement statement) {
         if (statement == null) {
             throw new IllegalArgumentException("Statement is required");
         }
         if (!isIngesting) {
-            throw new IllegalArgumentException("Can't prevent unbloating outside a digest cycle");
+            throw new IllegalArgumentException("Can't prevent cleaning cycle outside of a digest cycle");
         }
 
-        if (!runningState.equals(UNBLOATING)) {
+        if (!runningState.equals(CLEANING)) {
             return false;
         }
 
@@ -361,16 +335,16 @@ public class NetworkValuablePool {
     }
 
     /**
-     * Sort the remaining invs based on the amount of unbloat statement and
-     * on their pop and tail configuration
+     * Sort the remaining invs based on the amount of cleaned statements and
+     * their pop and tail configurations
      *
      * @return A new list with the sorted invs
      */
     List<Inv> sortRemainings() {
         List<Inv> sorted = new ArrayList<>(remainingInvs);
-        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getUnbloat() == null ?
+        sorted.sort(Comparator.comparing(a -> a.getDigestionSummary().getCleaned() == null ?
                 0 :
-                a.getDigestionSummary().getUnbloat().size()));
+                a.getDigestionSummary().getCleaned().size()));
         sorted.sort((a, b) -> {
             if (!a.isPop().equals(b.isPop()))
                 return b.isPop().compareTo(a.isPop());

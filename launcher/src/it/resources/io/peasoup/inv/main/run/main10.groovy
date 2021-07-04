@@ -6,6 +6,6 @@ inv {
     name "main1"
 
     require { Maven } using {
-        defaults false
+        dynamic false
     }
 }

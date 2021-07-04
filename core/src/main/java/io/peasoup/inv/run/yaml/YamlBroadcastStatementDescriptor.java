@@ -13,7 +13,9 @@ public class YamlBroadcastStatementDescriptor {
 
     private String markdown;
 
-    private String ready;
+    private String global;
+
+    private String dynamic;
 
     public YamlBroadcastStatementDescriptor() {
         // empty ctor

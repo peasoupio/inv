@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Watchlist that allows to index with INV is requiring which statement.
+ * It is mostly helpful to get a list of INV to process when a new broadcast statement is available.
+ */
 public class NetworkValuablePoolWatchList {
 
     @Getter
@@ -24,7 +28,7 @@ public class NetworkValuablePoolWatchList {
         for (Statement remainingStatement : inv.getRemainingStatements()) {
 
             // Proceed only Require statements
-            if (!RequireStatement.REQUIRE.equals(remainingStatement.getMatch()))
+            if (!RequireStatement.REQUIRE_PROCESSOR.equals(remainingStatement.getProcessor()))
                 continue;
 
             // Get watchlist for statement name
@@ -40,6 +44,13 @@ public class NetworkValuablePoolWatchList {
         }
     }
 
+    /**
+     * Removes a statement from the watchlist.
+     * If there is no more statement similar to this one and if there is no more statement
+     * for an INV, the INV owning the statement is removed for the watchlist completely.
+     *
+     * @param statement The statement.
+     */
     synchronized void unwatch(Statement statement) {
 
         if (statement == null)

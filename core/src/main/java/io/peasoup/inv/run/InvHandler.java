@@ -51,27 +51,27 @@ public class InvHandler {
             throw new IllegalArgumentException("Body is required");
         }
 
-        Inv.Context context = new Inv.Context(invExecutor.getPool());
+        Inv.Builder builder = new Inv.Builder(invExecutor.getPool());
 
         // Set default name
         if (StringUtils.isNotEmpty(defaultName))
-            context.setDefaultName(defaultName);
+            builder.setDefaultName(defaultName);
 
         // Is loading from script ?
         if (scriptFile != null) {
             // Set default path
             if (StringUtils.isNotEmpty(pwd))
-                context.setDefaultPath(pwd);
+                builder.setDefaultPath(pwd);
 
             // Set REPO
             if (StringUtils.isNotEmpty(repo))
-                context.setRepo(repo);
+                builder.setRepo(repo);
 
             // Set Script filename
-            context.setBaseFilename(scriptFile.getAbsolutePath());
+            builder.setBaseFilename(scriptFile.getAbsolutePath());
         }
 
-        final Inv inv = context.build();
+        final Inv inv = builder.build();
         body.setResolveStrategy(Closure.DELEGATE_FIRST);
         body.setDelegate(inv.getDelegate());
 
@@ -90,7 +90,7 @@ public class InvHandler {
 
         // Print REPO reference
         if (scriptFile != null) {
-            Logger.info("[" + context.getRepo() + "] [" + context.getBaseFilename() + "] " + inv);
+            Logger.info("[" + builder.getRepo() + "] [" + builder.getBaseFilename() + "] " + inv);
         }
     }
 }

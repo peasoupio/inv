@@ -1,4 +1,6 @@
 @ECHO off
 
+SET SCRIPTPATH=%~dp0
+
 REM Call INV jar with parameters
-java -jar ${project.artifactId}-${project.version}.jar %*
+java -jar %SCRIPTPATH%/${project.artifactId}-${project.version}.jar %*

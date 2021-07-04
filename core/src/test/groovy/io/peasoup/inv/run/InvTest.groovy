@@ -8,13 +8,13 @@ import static org.junit.Assert.*
 class InvTest {
 
     NetworkValuablePool pool
-    Inv.Context ctx
+    Inv.Builder ctx
     Inv inv
 
     @Before
     void setup() {
         pool = new NetworkValuablePool()
-        ctx = new Inv.Context(pool)
+        ctx = new Inv.Builder(pool)
         inv = ctx.build()
     }
 
@@ -37,7 +37,7 @@ class InvTest {
 
     @Test
     void context_defaultName() {
-        def context = new Inv.Context(pool)
+        def context = new Inv.Builder(pool)
         context.setDefaultName("")
 
         assertNull context.getDefaultName()
@@ -45,15 +45,15 @@ class InvTest {
 
     @Test
     void context_defaultPath() {
-        def context = new Inv.Context(pool)
+        def context = new Inv.Builder(pool)
         context.setDefaultPath("")
 
-        assertEquals Inv.Context.WORKING_DIR, context.getDefaultPath()
+        assertEquals Inv.Builder.WORKING_DIR, context.getDefaultPath()
     }
 
     @Test
     void context_repo() {
-        def context = new Inv.Context(pool)
+        def context = new Inv.Builder(pool)
         context.setRepo("")
 
         assertNull context.getRepo()
@@ -61,7 +61,7 @@ class InvTest {
 
     @Test
     void context_baseFilename() {
-        def context = new Inv.Context(pool)
+        def context = new Inv.Builder(pool)
         context.setBaseFilename("")
 
         assertNull context.getBaseFilename()
@@ -93,7 +93,7 @@ class InvTest {
 
     @Test
     void dumpDelegate_without_path() {
-        assertEquals Inv.Context.WORKING_DIR, inv.delegate.path
+        assertEquals Inv.Builder.WORKING_DIR, inv.delegate.path
     }
 
     @Test

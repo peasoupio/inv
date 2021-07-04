@@ -16,7 +16,7 @@ class LazyYamlClosureTest {
 
     @Before
     void setup() {
-        owner = new Inv.Context(new NetworkValuablePool()).build()
+        owner = new Inv.Builder(new NetworkValuablePool()).build()
         simpleClosure = new LazyYamlClosure(owner, """
             return \"it works!\"
         """)

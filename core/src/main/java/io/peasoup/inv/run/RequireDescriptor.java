@@ -27,11 +27,11 @@ public class RequireDescriptor {
         if (requireUsingDescriptor.getId() != null)
             requireStatement.setId(requireUsingDescriptor.getId());
 
-        if (requireUsingDescriptor.getDefaults() != null)
-            requireStatement.setDefaults(requireUsingDescriptor.getDefaults());
+        if (requireUsingDescriptor.getOptional() != null)
+            requireStatement.setOptional(requireUsingDescriptor.getOptional());
 
-        if (requireUsingDescriptor.getUnbloatable() != null)
-            requireStatement.setUnbloatable(requireUsingDescriptor.getUnbloatable());
+        if (requireUsingDescriptor.getDynamic() != null)
+            requireStatement.setDynamic(requireUsingDescriptor.getDynamic());
 
         requireStatement.setMarkdown(requireUsingDescriptor.getMarkdown());
         requireStatement.setResolved(requireUsingDescriptor.getResolved());
